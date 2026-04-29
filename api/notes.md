@@ -147,3 +147,6 @@ Invoice generation
 Multi-currency
 Dashboard analytics
 API for mobile app
+
+## Self
+php artisan make:controller --api --model=modelname --resource --requests
