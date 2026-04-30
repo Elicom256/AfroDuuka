@@ -12,7 +12,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,11 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'email' => 'nullable|email|unique:users,email,' . $this->route('user')->id,
+            'name' => 'nullable|string|max:255',
+            'username' => 'nullable|string|max:255|unique:users,username,' . $this->route('user')->id,
+            'business_id' => 'nullable|exists:businesses,id',
+            'role_id' => 'nullable|exists:roles,id',
         ];
     }
 }

@@ -148,5 +148,26 @@ Multi-currency
 Dashboard analytics
 API for mobile app
 
+## To run at a go
+php artisan make:controller CategoryController --api --model=Category --resource --requests
+php artisan make:controller ProductController --api --model=Product --resource --requests
+php artisan make:controller PurchaseController --api --model=Purchase --resource --requests
+php artisan make:controller PurchaseItemController --api --model=PurchaseItem --resource --requests
+php artisan make:controller RoleController --api --model=Role --resource --requests
+php artisan make:controller SaleController --api --model=Category --resource --requests
+php artisan make:controller SaleItemController --api --model=SaleItem --resource --requests
+php artisan make:controller StockMovementController --api --model=StockMovement --resource --requests
+php artisan make:controller SupplierController --api --model=Supplier --resource --requests
+
+php artisan make:service CategoryService
+php artisan make:service ProductService
+php artisan make:service PurchaseService
+php artisan make:service PurchaseItemService
+php artisan make:service RoleService
+php artisan make:service SaleService
+php artisan make:service SaleItemService
+php artisan make:service StockMovementService
+php artisan make:service SupplierService
+
 ## Self
 php artisan make:controller --api --model=modelname --resource --requests

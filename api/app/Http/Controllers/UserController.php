@@ -5,46 +5,140 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Services\UserService;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        // Inject UserService for business logic
+        $this->userService = $userService;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Authenticate user and generate token (Login)
+     */
+    public function login(StoreUserRequest $request)
+    {
+        try {
+            $result = $this->userService->login($request->validated());
+            return response()->json([
+                'message' => 'Login successful',
+                'data' => $result,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Login failed',
+                'error' => $e->getMessage(),
+            ], 401);
+        }
+    }
+
+    /**
+     * Get authenticated user (Me)
+     */
+    public function me(Request $request)
+    {
+        // Return currently authenticated user with relations
+        $user = $this->userService->getAuthenticatedUser($request->user());
+        return response()->json([
+            'message' => 'User retrieved successfully',
+            'data' => $user,
+        ], 200);
+    }
+
+    /**
+     * Logout user and revoke token
+     */
+    public function logout(Request $request)
+    {
+        // Revoke all tokens for authenticated user
+        $this->userService->logout($request->user());
+        return response()->json([
+            'message' => 'Logout successful',
+        ], 200);
+    }
+
+    /**
+     * Display a listing of all users
      */
     public function index()
     {
-        //
+        $users = $this->userService->getAllUsers();
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'data' => $users,
+        ], 200);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created user in storage
      */
     public function store(StoreUserRequest $request)
     {
-        //
+        try {
+            $user = $this->userService->signupUser($request->validated());
+            return response()->json([
+                'message' => 'User created successfully',
+                'data' => $user->load('business', 'role'),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User creation failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified user
      */
     public function show(User $user)
     {
-        //
+        $user = $this->userService->getUserById($user->id);
+        return response()->json([
+            'message' => 'User retrieved successfully',
+            'data' => $user,
+        ], 200);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified user in storage
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        try {
+            $updated_user = $this->userService->updateUser($user, $request->validated());
+            return response()->json([
+                'message' => 'User updated successfully',
+                'data' => $updated_user,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User update failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified user from storage
      */
     public function destroy(User $user)
     {
-        //
+        try {
+            $this->userService->deleteUser($user);
+            return response()->json([
+                'message' => 'User deleted successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User deletion failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
     }
 }
