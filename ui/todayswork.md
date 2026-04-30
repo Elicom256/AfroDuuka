@@ -1,21 +1,52 @@
-# Todays work on duukaflow (No not exceed today's work')
-This' a Ugandan made modern inventory management system, for all kinds of shops.
-## Todos
-- Complete the Navbar
-- Complete Home.tsx, About.tsx and Documentation.tsx, Footer.tsx
-- Refactor whenever possible
-- Use tailwindcss for styling, shadcn for styled components and lucide icons
-- Don't re-invent the wheel yet we have shadcn's styled components
-- make it more modern, UI/UX solid and mobile responsive
-- For all the Four files (Home.tsx, About.tsx and Documentation.tsx, Footer.tsx), you can add components inside public/components and just import them in a specific file to file bloating with code
-- in Footer.jsx, add socials to plas othermodern info then copyright thing
+# Today's work on duukaflow (Do NOT exceed scope)
 
-## Socials to add in Footer.tsx (add target _blank)
-https://github.com/Elijah-ug
-https://x.com/ElicomElijah?t=9gAYJg6agmVW0GCKtYwPSA&s=08
-https://www.linkedin.com/in/mugisha-elijah-88a291239/
-https://elicomelijah.vercel.app/
-https://wa.me/256781490899/?text=Hello%20Elicom%2C%20auto%20inserted/ (Whatsapp)
+## Goal
 
-- Please, do not hallucinate
-Otherwise, let's make it modern
+Build a modern, user-friendly login and signup flow using existing components.
+
+## Context
+
+- Components already exist in: src/app/pages/public
+- Use Shadcn UI components (Card, Input, Button, etc.)
+- Use Sonner for toast notifications
+- Use Lucide icons where appropriate
+- App supports dark mode → UI must adapt correctly
+
+## Requirements
+
+### Login Page
+
+- Centered card layout
+- Fields: email, password
+- Show validation errors (required fields, invalid email)
+- Submit button with loading state
+- Link: "Don't have an account? Sign up" → navigates to signup page
+
+### Signup Page
+
+- Centered card layout
+- Fields: name, email, phone, password
+- Validate:
+  - email format
+  - password minimum length (e.g. 6+ chars)
+  - required fields
+- Show toast (Sonner) on successful signup
+- Link: "Already have an account? Login"
+
+## UX Expectations
+
+- Clean, modern UI (minimal, good spacing)
+- Proper error messages under inputs
+- Disabled button while submitting
+- Accessible (labels, focus states)
+
+## Constraints
+
+- Do NOT create custom UI components if Shadcn provides them
+- Do NOT add fields beyond: name, email, phone, password
+- Do NOT invent backend logic—only UI and form handling
+
+## Output
+
+- Clean, readable React/Next.js code
+- Reusable form structure where possible

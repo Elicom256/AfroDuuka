@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import logo from '../../../public/logo-1.png';
@@ -15,13 +15,13 @@ export const NavBar: React.FC = () => {
   const location = useLocation();
 
   return (
-    <header className='sticky top-0 z-50 border-b border-border/50 bg-white/8 backdrop-blur-xl'>
+    <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 backdrop-blur-xl shadow-sm shadow-slate-950/40'>
       <div className='container mx-auto flex items-center justify-between gap-4 px-4 py-4'>
         <Link
           to='/'
           className='group inline-flex items-center gap-3 text-lg font-semibold tracking-tight text-foreground'
         >
-            <img src={logo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
+          <img src={logo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
           {/* <Sparkles className='h-6 w-6 text-primary' /> */}
           <span>DuukaFlow</span>
         </Link>
@@ -46,7 +46,7 @@ export const NavBar: React.FC = () => {
 
         <div className='hidden items-center gap-2 md:flex'>
           <Button asChild size='sm'>
-            <Link to='/documentation'>Start</Link>
+            <Link to='/login'>Try It</Link>
           </Button>
         </div>
 
@@ -61,7 +61,7 @@ export const NavBar: React.FC = () => {
       </div>
 
       {open ? (
-        <div className='border-t border-border/50 bg-background/95 px-4 pb-4 md:hidden'>
+        <div className='border-t border-border/50 bg-slate-950/95 px-4 pb-4 md:hidden'>
           <div className='space-y-2'>
             {navLinks.map((item) => (
               <Link

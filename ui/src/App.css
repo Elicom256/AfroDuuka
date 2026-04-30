@@ -49,38 +49,38 @@
 }
 
 :root {
-  --background: oklch(0.12 0.12 264.5);
+  --background: oklch(0.08 0.05 255);
   --foreground: oklch(0.95 0.04 270);
-  --card: oklch(0.18 0.06 255);
+  --card: oklch(0.155 0.055 255);
   --card-foreground: oklch(0.97 0.03 270);
-  --popover: oklch(0.16 0.05 255);
+  --popover: oklch(0.145 0.05 255);
   --popover-foreground: oklch(0.97 0.03 270);
-  --primary: oklch(0.65 0.28 262);
+  --primary: oklch(0.62 0.27 262);
   --primary-foreground: oklch(0.98 0.01 270);
-  --secondary: oklch(0.42 0.18 230);
+  --secondary: oklch(0.4 0.17 230);
   --secondary-foreground: oklch(0.96 0.02 270);
-  --muted: oklch(0.2 0.08 250);
+  --muted: oklch(0.18 0.07 250);
   --muted-foreground: oklch(0.74 0.03 270);
-  --accent: oklch(0.6 0.2 295);
+  --accent: oklch(0.57 0.2 295);
   --accent-foreground: oklch(0.98 0.01 270);
   --destructive: oklch(0.59 0.3 25);
-  --border: oklch(0.25 0.06 260);
-  --input: oklch(0.16 0.05 255);
-  --ring: oklch(0.52 0.18 268);
-  --chart-1: oklch(0.45 0.16 250);
-  --chart-2: oklch(0.34 0.12 230);
-  --chart-3: oklch(0.28 0.08 290);
-  --chart-4: oklch(0.22 0.06 260);
-  --chart-5: oklch(0.18 0.04 240);
+  --border: oklch(0.22 0.05 260);
+  --input: oklch(0.14 0.045 255);
+  --ring: oklch(0.48 0.16 268);
+  --chart-1: oklch(0.41 0.14 250);
+  --chart-2: oklch(0.31 0.11 230);
+  --chart-3: oklch(0.25 0.08 290);
+  --chart-4: oklch(0.19 0.05 260);
+  --chart-5: oklch(0.15 0.035 240);
   --radius: 0.75rem;
-  --sidebar: oklch(0.14 0.05 260);
+  --sidebar: oklch(0.12 0.045 260);
   --sidebar-foreground: oklch(0.98 0.01 270);
-  --sidebar-primary: oklch(0.65 0.29 240);
+  --sidebar-primary: oklch(0.61 0.27 240);
   --sidebar-primary-foreground: oklch(0.98 0.01 270);
-  --sidebar-accent: oklch(0.48 0.18 265);
+  --sidebar-accent: oklch(0.45 0.16 265);
   --sidebar-accent-foreground: oklch(0.98 0.01 270);
-  --sidebar-border: oklch(0.26 0.06 260);
-  --sidebar-ring: oklch(0.52 0.18 270);
+  --sidebar-border: oklch(0.22 0.05 260);
+  --sidebar-ring: oklch(0.48 0.16 270);
 }
 
 .dark {

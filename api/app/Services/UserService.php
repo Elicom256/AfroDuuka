@@ -60,7 +60,7 @@ class UserService
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'username' => $data['username'],
+            'username' => "@" . $data['name'],
             'password' => Hash::make($data['password']),
             'business_id' => $data['business_id'] ?? null,
             'role_id' => $data['role_id'] ?? null,

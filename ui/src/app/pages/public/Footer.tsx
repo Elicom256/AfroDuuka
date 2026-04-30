@@ -36,7 +36,7 @@ const socials = [
 
 export const Footer: React.FC = () => {
   return (
-    <footer className='border-t border-border/50 bg-background/95 py-8'>
+    <footer className='border-t border-border/60 bg-slate-950 py-8'>
       <div className='container mx-auto px-4'>
         <div className='flex flex-col gap-6 md:flex-row md:items-center md:justify-between'>
           <div>
@@ -44,6 +44,12 @@ export const Footer: React.FC = () => {
             <p className='mt-1 text-sm text-muted-foreground'>
               A modern inventory management experience for Ugandan shops.
             </p>
+            <div className='text-sm text-muted-foreground flex items-center gap-1'>
+              <span>Checkout other amazing software systems from</span>
+              <a className='text-green-400 hover:underline' href='https://elicomelijah.vercel.app/' target='_blank'>
+                AfroBlocks
+              </a>
+            </div>
           </div>
 
           <div className='flex flex-wrap gap-3'>
@@ -62,7 +68,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className='mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground'>
+        <div className='mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground text-center'>
           <p>Made with care in Uganda. © {new Date().getFullYear()} DuukaFlow.</p>
         </div>
       </div>
