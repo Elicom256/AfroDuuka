@@ -12,11 +12,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string("username")->nullable();
-            $table->string('email')->unique()->unique();
+            $table->string('email')->unique();
+            $table->string('phone')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
-            $table->foreignId("role_id")->constrained()->cascadeOnDelete();
+            $table->foreignId('business_id')->nullable()->constrained()->cascadeOnDelete()->index();
+            $table->foreignId("role_id")->nullable()->constrained()->cascadeOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });

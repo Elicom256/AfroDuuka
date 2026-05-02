@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessRequest;
 use App\Http\Requests\UpdateBusinessRequest;
 use App\Models\Business;
+use App\Services\BusinessService;
 
 class BusinessController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   public function __construct(BusinessService $businessService)
+   {
+    $this->businessService = $businessService;
+   }
     public function index()
     {
         //
@@ -21,7 +23,17 @@ class BusinessController extends Controller
      */
     public function store(StoreBusinessRequest $request)
     {
-        //
+        $user = $request->user();
+        
+        $business = $this->businessService->create(
+            $request->validated(),
+            $user
+        );
+
+        return response()->json([
+            'message' => 'Business created successfully',
+            'business' => $business
+        ], 201);
     }
 
     /**

@@ -24,9 +24,10 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'email' => 'required|email',
-            'password' => 'required|min:6',
+            'password' => 'nullable|string|min:6',
             'name' => 'nullable|string|max:255',
             'username' => 'nullable|string|max:255|unique:users',
+            'phone' => 'nullable|string|max:255|unique:users',
             'business_id' => 'nullable|exists:businesses,id',
             'role_id' => 'nullable|exists:roles,id',
         ];

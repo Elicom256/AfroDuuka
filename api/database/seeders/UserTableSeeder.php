@@ -28,18 +28,22 @@ class UserTableSeeder extends Seeder
             "Mikel Arteta" => [
                 "email" => "admin@example.com",
                 "role" => "admin",
+                 "phone" => "0781490833"
             ],
             "Martin Odegaard" => [
                 "email" => "odegaard@example.com",
                 "role" => "manager",
+                "phone" => "0781490811"
             ],
             "Bukayo Saka" => [
                 "email" => "saka@example.com",
                 "role" => "editor",
+                "phone" => "0781490800"
             ],
             "Declan Rice" => [
                 "email" => "rice@example.com",
                 "role" => "staff",
+                "phone" => "0781490822"
             ],
         ];
 
@@ -63,7 +67,8 @@ class UserTableSeeder extends Seeder
                 [
                     "name" => $name,
                     "username" => "@" . $username,
-                      "password" => Hash::make("password"),
+                    "password" => Hash::make("password"),
+                    "phone" => $data['phone'],
                     "business_id" => $business_id,
                     "role_id" => $role->id,
 

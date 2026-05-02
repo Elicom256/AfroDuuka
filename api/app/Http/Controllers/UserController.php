@@ -7,11 +7,12 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     protected UserService $userService;
-
+// Dipendency Injection(DI)
     public function __construct(UserService $userService)
     {
         // Inject UserService for business logic
@@ -43,7 +44,7 @@ class UserController extends Controller
     public function me(Request $request)
     {
         // Return currently authenticated user with relations
-        $user = $this->userService->getAuthenticatedUser($request->user());
+        $user = $request->user();
         return response()->json([
             'message' => 'User retrieved successfully',
             'data' => $user,
@@ -81,6 +82,23 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->signupUser($request->validated());
+            return response()->json([
+                'message' => 'User created successfully',
+                'data' => $user->load('business', 'role'),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User creation failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    // create account for admin
+    public function signup(StoreUserRequest $request)
+    {
+        try {
+            $user = $this->userService->createAccount($request->validated());
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user->load('business', 'role'),

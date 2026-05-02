@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -44,29 +46,37 @@ class UserService
         return true;
     }
 
-    /**
-     * Get authenticated user with relations
-     */
-    public function getAuthenticatedUser(User $user)
-    {
-        return $user->load('business', 'role');
-    }
-
-    /**
-     * Create a new user account
-     */
+    //  * Create a new user account
+     
     public function signupUser(array $data)
     {
+        $admin = Auth::user();
+        // dd($admin);
+            return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'username' => "@" . $data['name'] . $admin->business_id,
+            'phone' => $data['phone'],
+            'password' => Hash::make("password"),
+            'business_id' => $admin->business_id,
+            'role_id' => $data['role_id'],
+        ]);
+       
+        
+    }
+
+    // create account
+    public function createAccount(array $data){
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'username' => "@" . $data['name'],
-            'password' => Hash::make($data['password']),
-            'business_id' => $data['business_id'] ?? null,
-            'role_id' => $data['role_id'] ?? null,
+            'phone' => $data['phone'],
+            'password' => Hash::make($data['password'] ?? "password"),
+            // 'business_id' => $data['business_id'] ?? null,
+            // 'role_id' => $adminRoleId,
         ]);
     }
-
     /**
      * Get all users with relations
      */

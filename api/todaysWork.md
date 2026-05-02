@@ -1,13 +1,11 @@
-# Check the application well and Apply the following (note: I have already created files needed)
+# Todays Work (Don't go beyond this)
 
-## Today, we're gonna work on User model(User Auth). Consider Scalability, security, nice code and modern architecture and try not to complicate things keep things 
+## Create Business (Authnticated User)
 
-- We'll add a method to return trhe loggedin User. We're using sanctum for Auth as before (in addition to other methods layed out already)
-- Use the UserService(already created) for business logic
-- Use the Requests as layed out
-- Separate users api endpoints it their own file (routes/users.php),
-- Don't tauch the front end for now
-- Keep adding simple dev comments in code
-- Remember, it's an api controller
-- dont hallucinate
-  NOTE: We're only working on Users today!
+- create a business, follow the best practice
+- Go to BusinessController, then create a business using the businessService for business logic
+- after creating it, update the user's(creator's profile ie business_id and role_id), the roles are seeded in db from the RoleTableSeeder and the creator has to be an admin.
+- The business phone should be the creator's phone
+- The business categories are seeded in db to from BusinessCategorySeeder
+- Create an electronics business as category
+  Note: Do not hallucinate
