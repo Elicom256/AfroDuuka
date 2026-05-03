@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Phone, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const SignUp: React.FC = () => {
   const navigate = useNavigate();
-  const [formState, setFormState] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [formState, setFormState] = useState({ name: '', email: '', phone: '', password: '' });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,22 +27,17 @@ export const SignUp: React.FC = () => {
     : formState.password.length < 6
       ? 'Password must be at least 6 characters.'
       : '';
-  const confirmPasswordError = !formState.confirmPassword
-    ? 'Please confirm your password.'
-    : formState.password !== formState.confirmPassword
-      ? 'Passwords do not match.'
-      : '';
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
 
-    if (nameError || emailError || phoneError || passwordError || confirmPasswordError) {
+    if (nameError || emailError || phoneError || passwordError) {
       return;
     }
 
@@ -150,29 +144,6 @@ export const SignUp: React.FC = () => {
           {submitted && passwordError ? (
             <p id='password-error' className='text-sm text-destructive'>
               {passwordError}
-            </p>
-          ) : null}
-        </div>
-
-        <div className='space-y-2'>
-          <Label htmlFor='confirmPassword'>
-            <Lock className='h-4 w-4 text-muted-foreground' />
-            Confirm password
-          </Label>
-          <Input
-            id='confirmPassword'
-            name='confirmPassword'
-            type='password'
-            autoComplete='new-password'
-            value={formState.confirmPassword}
-            onChange={handleChange}
-            aria-invalid={Boolean(submitted && confirmPasswordError)}
-            aria-describedby='confirm-password-error'
-            placeholder='Re-enter your password'
-          />
-          {submitted && confirmPasswordError ? (
-            <p id='confirm-password-error' className='text-sm text-destructive'>
-              {confirmPasswordError}
             </p>
           ) : null}
         </div>

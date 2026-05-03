@@ -4,6 +4,11 @@ import { About } from '../pages/public/About';
 import { Documentation } from '../pages/public/Documentation';
 import { Login } from '../pages/public/Login';
 import { SignUp } from '../pages/public/SignUp';
+import { AdminLayout } from '../pages/dashboards/admin/layout';
+import { AdminDashboardPage } from '../pages/dashboards/admin/pages/dashboard';
+import { AdminWorkersPage } from '../pages/dashboards/admin/pages/workers';
+import { AdminProductsPage } from '../pages/dashboards/admin/pages/products';
+import { AdminOrdersPage } from '../pages/dashboards/admin/pages/orders';
 
 export const AppRoutes = () => {
   return (
@@ -14,6 +19,12 @@ export const AppRoutes = () => {
         <Route path='signup' element={<SignUp />} />
         <Route path='about' element={<About />} />
         <Route path='documentation' element={<Documentation />} />
+        <Route path='admin' element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path='workers' element={<AdminWorkersPage />} />
+          <Route path='products' element={<AdminProductsPage />} />
+          <Route path='orders' element={<AdminOrdersPage />} />
+        </Route>
       </Routes>
     </div>
   );

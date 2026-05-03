@@ -8,6 +8,7 @@ const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Documentation', to: '/documentation' },
+  { label: 'Admin', to: '/admin' },
 ];
 
 export const NavBar: React.FC = () => {
@@ -28,7 +29,7 @@ export const NavBar: React.FC = () => {
 
         <nav className='hidden items-center gap-2 md:flex'>
           {navLinks.map((item) => {
-            const active = location.pathname === item.to;
+            const active = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
             return (
               <Link
                 key={item.to}
