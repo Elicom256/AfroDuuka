@@ -42,7 +42,7 @@ class UserController extends Controller
      * Get authenticated user (Me)
      */
     public function me(Request $request)
-    {cd ui
+    {
         // Return currently authenticated user with relations
         $user = $request->user()->load("business", "role");
         return response()->json([
@@ -57,7 +57,8 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         // Revoke all tokens for authenticated user
-        $this->userService->logout($request->user());
+        $user = auth()->user();
+        $user->tokens()->delete();
         return response()->json([
             'message' => 'Logout successful!',
         ], 200);
@@ -126,9 +127,10 @@ class UserController extends Controller
     /**
      * Update the specified user in storage
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request)
     {
         try {
+            $user = Auth::user();
             $updated_user = $this->userService->updateUser($user, $request->validated());
             return response()->json([
                 'message' => 'User updated successfully',

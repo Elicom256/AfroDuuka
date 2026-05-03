@@ -41,11 +41,11 @@ export const authQuery = createApi({
       invalidatesTags: ['UsersAPI'],
     }),
 
-    updateUser: builder.mutation<any, { userData: any; id: number }>({
-      query: ({ userData, id }) => ({
-        url: `/user/${id}`,
+    updateUser: builder.mutation<any, any>({
+      query: (body) => ({
+        url: `/update`,
         method: 'PATCH',
-        body: userData,
+        body,
       }),
       invalidatesTags: ['UsersAPI'],
     }),

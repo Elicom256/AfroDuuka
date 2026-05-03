@@ -71,7 +71,7 @@ type AdminSidebarProps = {
 
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { data } = useLoggedinUserQuery();
-
+  console.log('data of user==>', data?.data);
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>

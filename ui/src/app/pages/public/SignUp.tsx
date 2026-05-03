@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import {
   useLoggedinUserQuery,
   useRegisterMutation,
+  useUpdateUserMutation,
   // useUpdateUserMutation (add this later)
 } from '@/app/store/features/auth/authQuery';
 import { LoadingState } from '@/utils/LoadingState';
@@ -27,8 +28,8 @@ export const SignUp: React.FC = () => {
   });
 
   const [register, { isLoading }] = useRegisterMutation();
+  const [updateUser, { isLoading: loadUpdate }] = useUpdateUserMutation();
   const { data } = useLoggedinUserQuery();
-  console.log('data==>', data);
   // Prefill when editing
   useEffect(() => {
     if (data?.data) {
@@ -54,12 +55,14 @@ export const SignUp: React.FC = () => {
     try {
       if (data) {
         // TODO: replace with update mutation when ready
-       const res= await updateUser(formState).unwrap();
-
-        toast.success('User updated successfully');
+        const res = await updateUser(formState).unwrap();
+        console.log('update res==>', res);
+        if (res) {
+          toast.success(res.message);
+        }
+        return (window.location.href = '/admin');
       } else {
         await register(formState).unwrap();
-
         toast.success('Account created successfully');
         navigate('/login');
       }
@@ -190,7 +193,7 @@ export const SignUp: React.FC = () => {
         )}
 
         <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? <LoadingState /> : data ? 'Update account' : 'Create account'}
+          {isLoading || loadUpdate ? <LoadingState /> : data ? 'Update account' : 'Create account'}
         </Button>
       </form>
 

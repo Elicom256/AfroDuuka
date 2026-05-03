@@ -39,12 +39,12 @@ class UserService
     /**
      * Logout user and revoke all tokens
      */
-    public function logout(User $user): bool
-    {
-        // Revoke all tokens for the user
-        $user->tokens()->delete();
-        return true;
-    }
+    // public function logout(User $user): bool
+    // {
+    //     // Revoke all tokens for the user
+    //     $user->tokens()->delete();
+    //     return true;
+    // }
 
     //  * Create a new user account
      
@@ -101,7 +101,7 @@ class UserService
         $user->update([
             'name' => $data['name'] ?? $user->name,
             'email' => $data['email'] ?? $user->email,
-            'username' => $data['username'] ?? $user->username,
+            'username' => "@" . $data['username'] ?? $user->username,
             'business_id' => $data['business_id'] ?? $user->business_id,
             'role_id' => $data['role_id'] ?? $user->role_id,
         ]);

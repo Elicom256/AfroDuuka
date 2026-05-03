@@ -22,11 +22,12 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = auth()->id();
         return [
-            'email' => 'nullable|email|unique:users,email,' . $this->route('user')->id,
+            'email' => 'nullable|email|unique:users,email,' . $userId,
             'name' => 'nullable|string|max:255',
-            'username' => 'nullable|string|max:255|unique:users,username,' . $this->route('user')->id,
-            'phone' => 'nullable|string|max:255|unique:users',
+            'username' => 'nullable|string|max:255|unique:users,username,' . $userId,
+            'phone' => 'nullable|string|max:255|unique:users,phone,' . $userId,
             'business_id' => 'nullable|exists:businesses,id',
             'role_id' => 'nullable|exists:roles,id',
         ];
