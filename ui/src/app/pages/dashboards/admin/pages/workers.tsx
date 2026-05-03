@@ -36,7 +36,7 @@ export const AdminWorkersPage = () => {
     setDialogOpen(true);
   };
 
-  const handleSubmit = async (formValues: { name: string; email: string; role: string }) => {
+  const handleSubmit = async (formValues: { name: string; email: string; phone: string; role: string }) => {
     try {
       if (selectedWorker) {
         await updateWorker({ id: selectedWorker.id, userData: formValues }).unwrap();

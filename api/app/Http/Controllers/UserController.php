@@ -27,7 +27,7 @@ class UserController extends Controller
         try {
             $result = $this->userService->login($request->validated());
             return response()->json([
-                'message' => 'Login successful',
+                'message' => 'Login successful!',
                 'data' => $result,
             ], 200);
         } catch (\Exception $e) {
@@ -42,11 +42,11 @@ class UserController extends Controller
      * Get authenticated user (Me)
      */
     public function me(Request $request)
-    {
+    {cd ui
         // Return currently authenticated user with relations
-        $user = $request->user();
+        $user = $request->user()->load("business", "role");
         return response()->json([
-            'message' => 'User retrieved successfully',
+            'message' => 'User retrieved successfully!',
             'data' => $user,
         ], 200);
     }
@@ -59,7 +59,7 @@ class UserController extends Controller
         // Revoke all tokens for authenticated user
         $this->userService->logout($request->user());
         return response()->json([
-            'message' => 'Logout successful',
+            'message' => 'Logout successful!',
         ], 200);
     }
 

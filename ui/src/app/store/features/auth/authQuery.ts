@@ -17,7 +17,7 @@ export const authQuery = createApi({
   endpoints: (builder) => ({
     loggedinUser: builder.query<any, void>({
       query: () => ({
-        url: '/loggedin-user',
+        url: '/me',
         method: 'GET',
       }),
       providesTags: ['UsersAPI'],
@@ -51,9 +51,4 @@ export const authQuery = createApi({
     }),
   }),
 });
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useLoggedinUserQuery,
-  useUpdateUserMutation,
-} = authQuery;
+export const { useLoginMutation, useRegisterMutation, useLoggedinUserQuery, useUpdateUserMutation } = authQuery;

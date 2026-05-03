@@ -7,6 +7,7 @@ export type WorkerItem = {
   id: number;
   name?: string;
   email?: string;
+  phone?: string;
   role?: string;
 };
 
@@ -27,6 +28,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -34,6 +36,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
           <TableBody>
             {Array.from({ length: 4 }).map((_, index) => (
               <TableRow key={index} className='opacity-80'>
+                <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
@@ -62,6 +65,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -71,6 +75,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
             <TableRow key={worker.id}>
               <TableCell>{worker.name || '—'}</TableCell>
               <TableCell>{worker.email || '—'}</TableCell>
+              <TableCell>{worker.phone || '—'}</TableCell>
               <TableCell>{worker.role || '—'}</TableCell>
               <TableCell>
                 <div className='flex flex-wrap gap-2'>

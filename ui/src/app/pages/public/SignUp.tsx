@@ -1,61 +1,85 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Phone, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AuthLayout } from './AuthLayout';
 import { toast } from 'sonner';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  useLoggedinUserQuery,
+  useRegisterMutation,
+  // useUpdateUserMutation (add this later)
+} from '@/app/store/features/auth/authQuery';
+import { LoadingState } from '@/utils/LoadingState';
 
 export const SignUp: React.FC = () => {
   const navigate = useNavigate();
-  const [formState, setFormState] = useState({ name: '', email: '', phone: '', password: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  const nameError = !formState.name ? 'Please enter your name.' : '';
-  const emailError = !formState.email
-    ? 'Please enter your email.'
-    : !emailRegex.test(formState.email)
-      ? 'Enter a valid email address.'
-      : '';
-  const phoneError = !formState.phone ? 'Please enter your phone number.' : '';
-  const passwordError = !formState.password
-    ? 'Please create a password.'
-    : formState.password.length < 6
-      ? 'Password must be at least 6 characters.'
-      : '';
+  const [formState, setFormState] = useState<any>({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: '',
+    username: '',
+  });
+
+  const [register, { isLoading }] = useRegisterMutation();
+  const { data } = useLoggedinUserQuery();
+  console.log('data==>', data);
+  // Prefill when editing
+  useEffect(() => {
+    if (data?.data) {
+      setFormState({
+        name: data.data.name || '',
+        email: data.data.email || '',
+        phone: data.data.phone || '',
+        password: '',
+        role: data.data.role || '',
+        username: data.data.username || '',
+      });
+    }
+  }, [data]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
+    setFormState((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
 
-    if (nameError || emailError || phoneError || passwordError) {
-      return;
+    try {
+      if (data) {
+        // TODO: replace with update mutation when ready
+       const res= await updateUser(formState).unwrap();
+
+        toast.success('User updated successfully');
+      } else {
+        await register(formState).unwrap();
+
+        toast.success('Account created successfully');
+        navigate('/login');
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.data?.message || 'Something went wrong');
     }
-
-    setSubmitting(true);
-    toast.success('Your account was created successfully!');
-
-    window.setTimeout(() => {
-      setSubmitting(false);
-      navigate('/login');
-    }, 700);
   };
 
   return (
     <AuthLayout
-      title='Create an account'
-      description='Sign up for DuukaFlow and get started with fast inventory management.'
+      title={data ? 'Update account' : 'Create an account'}
+      description={
+        data
+          ? 'Update your profile for DuukaFlow'
+          : 'Sign up for DuukaFlow and get started with fast inventory management.'
+      }
     >
       <form onSubmit={handleSubmit} className='space-y-5'>
+        {/* Name */}
         <div className='space-y-2'>
           <Label htmlFor='name'>
             <UserPlus className='h-4 w-4 text-muted-foreground' />
@@ -68,17 +92,12 @@ export const SignUp: React.FC = () => {
             autoComplete='name'
             value={formState.name}
             onChange={handleChange}
-            aria-invalid={Boolean(submitted && nameError)}
-            aria-describedby='name-error'
             placeholder='Jane Doe'
+            required
           />
-          {submitted && nameError ? (
-            <p id='name-error' className='text-sm text-destructive'>
-              {nameError}
-            </p>
-          ) : null}
         </div>
 
+        {/* Email */}
         <div className='space-y-2'>
           <Label htmlFor='email'>
             <Mail className='h-4 w-4 text-muted-foreground' />
@@ -91,17 +110,11 @@ export const SignUp: React.FC = () => {
             autoComplete='email'
             value={formState.email}
             onChange={handleChange}
-            aria-invalid={Boolean(submitted && emailError)}
-            aria-describedby='email-error'
             placeholder='you@example.com'
           />
-          {submitted && emailError ? (
-            <p id='email-error' className='text-sm text-destructive'>
-              {emailError}
-            </p>
-          ) : null}
         </div>
 
+        {/* Phone */}
         <div className='space-y-2'>
           <Label htmlFor='phone'>
             <Phone className='h-4 w-4 text-muted-foreground' />
@@ -114,51 +127,81 @@ export const SignUp: React.FC = () => {
             autoComplete='tel'
             value={formState.phone}
             onChange={handleChange}
-            aria-invalid={Boolean(submitted && phoneError)}
-            aria-describedby='phone-error'
             placeholder='+256 700 000 000'
           />
-          {submitted && phoneError ? (
-            <p id='phone-error' className='text-sm text-destructive'>
-              {phoneError}
-            </p>
-          ) : null}
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='password'>
-            <Lock className='h-4 w-4 text-muted-foreground' />
-            Password
-          </Label>
-          <Input
-            id='password'
-            name='password'
-            type='password'
-            autoComplete='new-password'
-            value={formState.password}
-            onChange={handleChange}
-            aria-invalid={Boolean(submitted && passwordError)}
-            aria-describedby='password-error'
-            placeholder='Enter a secure password'
-          />
-          {submitted && passwordError ? (
-            <p id='password-error' className='text-sm text-destructive'>
-              {passwordError}
-            </p>
-          ) : null}
-        </div>
+        {/* Password */}
+        {!data && (
+          <div className='space-y-2'>
+            <Label htmlFor='password'>
+              <Lock className='h-4 w-4 text-muted-foreground' />
+              Password
+            </Label>
+            <Input
+              id='password'
+              name='password'
+              type='password'
+              autoComplete='new-password'
+              value={formState.password}
+              onChange={handleChange}
+              placeholder='Enter a secure password'
+            />
+          </div>
+        )}
 
-        <Button type='submit' className='w-full' disabled={submitting}>
-          {submitting ? 'Creating account…' : 'Create account'}
+        {/* Role (ONLY when editing) */}
+        {data && (
+          <div className=''>
+            {/* <div className='space-y-2'>
+              <Label>Role</Label>
+              <Select
+                value={formState.role}
+                onValueChange={(value) => setFormState((prev: any) => ({ ...prev, role: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Select role' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='admin'>Admin</SelectItem>
+                  <SelectItem value='user'>User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div> */}
+
+            {/* username */}
+            <div className='space-y-2'>
+              <Label htmlFor='name'>
+                <UserPlus className='h-4 w-4 text-muted-foreground' />
+                Name
+              </Label>
+              <Input
+                id='username'
+                name='username'
+                type='text'
+                autoComplete='username'
+                value={formState.username}
+                onChange={handleChange}
+                placeholder='@john'
+                required
+              />
+            </div>
+          </div>
+        )}
+
+        <Button type='submit' className='w-full' disabled={isLoading}>
+          {isLoading ? <LoadingState /> : data ? 'Update account' : 'Create account'}
         </Button>
       </form>
 
-      <p className='text-center text-sm text-muted-foreground'>
-        Already have an account?{' '}
-        <Link className='font-semibold text-primary hover:underline' to='/login'>
-          Login
-        </Link>
-      </p>
+      {!data && (
+        <p className='text-center text-sm text-muted-foreground'>
+          Already have an account?{' '}
+          <Link className='font-semibold text-primary hover:underline' to='/login'>
+            Login
+          </Link>
+        </p>
+      )}
     </AuthLayout>
   );
 };

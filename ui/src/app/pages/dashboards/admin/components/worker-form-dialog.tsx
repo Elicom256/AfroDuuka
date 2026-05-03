@@ -21,21 +21,26 @@ type WorkerFormDialogProps = {
     id?: number | string;
     name?: string;
     email?: string;
+    phone?: string;
     role?: string;
   } | null;
-  onSubmit: (values: { name: string; email: string; role: string }) => void | Promise<void>;
+  onSubmit: (values: { name: string; email: string; phone: string; role: string }) => void | Promise<void>;
   isLoading?: boolean;
 };
+
+const workerRoles = ['Sales', 'Support', 'Operations', 'Inventory', 'Finance', 'Admin'];
 
 export const WorkerFormDialog = ({ open, onOpenChange, defaultValues, onSubmit, isLoading }: WorkerFormDialogProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState('');
 
   useEffect(() => {
     if (open) {
       setName(defaultValues?.name ?? '');
       setEmail(defaultValues?.email ?? '');
+      setPhone(defaultValues?.phone ?? '');
       setRole(defaultValues?.role ?? '');
     }
   }, [defaultValues, open]);
@@ -44,7 +49,12 @@ export const WorkerFormDialog = ({ open, onOpenChange, defaultValues, onSubmit, 
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await onSubmit({ name: name.trim(), email: email.trim(), role: role.trim() });
+    await onSubmit({
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      role: role.trim(),
+    });
   };
 
   return (
@@ -82,14 +92,35 @@ export const WorkerFormDialog = ({ open, onOpenChange, defaultValues, onSubmit, 
           </div>
 
           <div className='grid gap-2'>
-            <Label htmlFor='worker-role'>Role</Label>
+            <Label htmlFor='worker-phone'>Phone</Label>
             <Input
+              id='worker-phone'
+              type='tel'
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder='+254 700 000 000'
+              required
+            />
+          </div>
+
+          <div className='grid gap-2'>
+            <Label htmlFor='worker-role'>Role</Label>
+            <select
               id='worker-role'
               value={role}
               onChange={(event) => setRole(event.target.value)}
-              placeholder='Sales representative'
+              className='h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10'
               required
-            />
+            >
+              <option value='' disabled>
+                Choose a role
+              </option>
+              {workerRoles.map((roleOption) => (
+                <option key={roleOption} value={roleOption}>
+                  {roleOption}
+                </option>
+              ))}
+            </select>
           </div>
 
           <DialogFooter>

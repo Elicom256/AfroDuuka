@@ -37,11 +37,7 @@ export const AdminLayout = () => {
       </div>
 
       <div className='md:grid md:grid-cols-[280px_minmax(0,1fr)]'>
-        <aside className='hidden border-r border-border/70 bg-muted/50 p-6 md:flex md:flex-col'>
-          <div className='mb-8'>
-            <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground'>Admin</p>
-            <h2 className='mt-2 text-2xl font-semibold'>DuukaFlow</h2>
-          </div>
+        <aside className='hidden border-r border-border/70 bg-muted/50 p-6 md:flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-hidden'>
           <AdminSidebar />
         </aside>
 

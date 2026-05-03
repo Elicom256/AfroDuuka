@@ -1,54 +1,48 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthLayout } from './AuthLayout';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { useLoginMutation } from '@/app/store/features/auth/authQuery';
+import { LoadingState } from '@/utils/LoadingState';
+import { toast } from 'sonner';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [formState, setFormState] = useState({ email: '', password: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const emailError = !formState.email
-    ? 'Please enter your email.'
-    : !emailRegex.test(formState.email)
-      ? 'Enter a valid email address.'
-      : '';
-
-  const passwordError = !formState.password ? 'Please enter your password.' : '';
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    try {
+      const res = await login(formState).unwrap();
+      console.log('res from login==>', res);
+      const token = await res.data.token;
+      console.log('token==>', token);
+      toast.success(res.message);
+      localStorage.setItem('token', token);
 
-    if (emailError || passwordError) {
-      return;
+      return (window.location.href = '/admin');
+    } catch (error) {
+      console.error('Login failed:', error);
     }
-
-    setSubmitting(true);
-    window.setTimeout(() => {
-      setSubmitting(false);
-      navigate('/');
-    }, 700);
   };
 
   return (
     <AuthLayout title='Welcome back' description='Sign in to your DuukaFlow account to continue managing inventory.'>
-      <form onSubmit={handleSubmit} className='space-y-5'>
+      <form onSubmit={handleSubmit} className='space-y-6'>
+        {/* Email Field */}
         <div className='space-y-2'>
-          <Label htmlFor='email'>
+          <Label htmlFor='email' className='flex items-center gap-2'>
             <Mail className='h-4 w-4 text-muted-foreground' />
-            Email
+            Email Address
           </Label>
           <Input
             id='email'
@@ -57,48 +51,46 @@ export const Login: React.FC = () => {
             autoComplete='email'
             value={formState.email}
             onChange={handleChange}
-            aria-invalid={Boolean(submitted && emailError)}
-            aria-describedby='email-error'
             placeholder='you@example.com'
+            required
           />
-          {submitted && emailError ? (
-            <p id='email-error' className='text-sm text-destructive'>
-              {emailError}
-            </p>
-          ) : null}
         </div>
 
+        {/* Password Field */}
         <div className='space-y-2'>
-          <Label htmlFor='password'>
+          <Label htmlFor='password' className='flex items-center gap-2'>
             <Lock className='h-4 w-4 text-muted-foreground' />
             Password
           </Label>
-          <Input
-            id='password'
-            name='password'
-            type='password'
-            autoComplete='current-password'
-            value={formState.password}
-            onChange={handleChange}
-            aria-invalid={Boolean(submitted && passwordError)}
-            aria-describedby='password-error'
-            placeholder='••••••••'
-          />
-          {submitted && passwordError ? (
-            <p id='password-error' className='text-sm text-destructive'>
-              {passwordError}
-            </p>
-          ) : null}
+          <div className='relative'>
+            <Input
+              id='password'
+              name='password'
+              type={showPassword ? 'text' : 'password'}
+              autoComplete='current-password'
+              value={formState.password}
+              onChange={handleChange}
+              placeholder='••••••••'
+              required
+            />
+            <button
+              type='button'
+              onClick={() => setShowPassword(!showPassword)}
+              className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition'
+            >
+              {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+            </button>
+          </div>
         </div>
 
-        <Button type='submit' className='w-full' disabled={submitting}>
-          {submitting ? 'Signing in…' : 'Sign in'}
+        <Button type='submit' className='w-full' disabled={isLoading}>
+          {isLoading ? <LoadingState /> : 'Sign in'}
         </Button>
       </form>
 
-      <p className='text-center text-sm text-muted-foreground'>
+      <p className='text-center text-sm text-muted-foreground mt-6'>
         Don&apos;t have an account?{' '}
-        <Link className='font-semibold text-primary hover:underline' to='/signup'>
+        <Link to='/signup' className='font-semibold text-primary hover:underline'>
           Sign up
         </Link>
       </p>

@@ -1,13 +1,30 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
+import { productsQuery } from '../features/business/products/productsQuery';
+import { salesQuery } from '../features/business/sales/salesQuery';
+import { customersQuery } from '../features/business/customers/customersQuery';
+import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
+
 export const store = configureStore({
   reducer: {
     [authQuery.reducerPath]: authQuery.reducer,
     [workersQuery.reducerPath]: workersQuery.reducer,
+    [productsQuery.reducerPath]: productsQuery.reducer,
+    [salesQuery.reducerPath]: salesQuery.reducer,
+    [customersQuery.reducerPath]: customersQuery.reducer,
+    [inventoryQuery.reducerPath]: inventoryQuery.reducer,
   },
 
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(authQuery.middleware, workersQuery.middleware),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(
+      authQuery.middleware,
+      workersQuery.middleware,
+      productsQuery.middleware,
+      salesQuery.middleware,
+      customersQuery.middleware,
+      inventoryQuery.middleware,
+    ),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

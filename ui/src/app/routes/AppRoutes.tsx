@@ -9,6 +9,18 @@ import { AdminDashboardPage } from '../pages/dashboards/admin/pages/dashboard';
 import { AdminWorkersPage } from '../pages/dashboards/admin/pages/workers';
 import { AdminProductsPage } from '../pages/dashboards/admin/pages/products';
 import { AdminOrdersPage } from '../pages/dashboards/admin/pages/orders';
+import {
+  AdminInventoryPage,
+  AdminCustomersPage,
+  AdminAnalyticsPage,
+  AdminReportsPage,
+  AdminFinancesPage,
+  AdminSuppliersPage,
+  AdminPromotionsPage,
+  AdminCouponsPage,
+  AdminHistoryPage,
+  AdminSettingsPage,
+} from '../pages/dashboards/admin/pages/admin-placeholder-pages';
 
 export const AppRoutes = () => {
   return (
@@ -24,6 +36,16 @@ export const AppRoutes = () => {
           <Route path='workers' element={<AdminWorkersPage />} />
           <Route path='products' element={<AdminProductsPage />} />
           <Route path='orders' element={<AdminOrdersPage />} />
+          <Route path='inventory' element={<AdminInventoryPage />} />
+          <Route path='customers' element={<AdminCustomersPage />} />
+          <Route path='analytics' element={<AdminAnalyticsPage />} />
+          <Route path='reports' element={<AdminReportsPage />} />
+          <Route path='finances' element={<AdminFinancesPage />} />
+          <Route path='suppliers' element={<AdminSuppliersPage />} />
+          <Route path='promotions' element={<AdminPromotionsPage />} />
+          <Route path='coupons' element={<AdminCouponsPage />} />
+          <Route path='history' element={<AdminHistoryPage />} />
+          <Route path='settings' element={<AdminSettingsPage />} />
         </Route>
       </Routes>
     </div>
