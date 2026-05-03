@@ -10,7 +10,6 @@ import { LoadingState } from '@/utils/LoadingState';
 import { toast } from 'sonner';
 
 export const Login: React.FC = () => {
-  const navigate = useNavigate();
   const [formState, setFormState] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [login, { isLoading }] = useLoginMutation();

@@ -80,10 +80,7 @@ class UserService
     /**
      * Get all users with relations
      */
-    public function getAllUsers()
-    {
-        return User::with('business', 'role')->get();
-    }
+
 
     /**
      * Get a single user by ID with relations

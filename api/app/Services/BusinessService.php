@@ -19,7 +19,7 @@ class BusinessService
         // Create the business with the user's phone
         $business = Business::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'email' => $data['email'] ?? $user->email,
             'phone' => $user->phone,
             'business_category_id' => $data['business_category_id'],
         ]);

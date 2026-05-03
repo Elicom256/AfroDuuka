@@ -34,7 +34,7 @@ export const authQuery = createApi({
     // Register mutation
     register: builder.mutation({
       query: (userData) => ({
-        url: '/register',
+        url: '/signup',
         method: 'POST',
         body: userData,
       }),

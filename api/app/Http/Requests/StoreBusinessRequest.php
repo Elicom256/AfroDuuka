@@ -20,11 +20,18 @@ class StoreBusinessRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    // protected function prepareForValidation():void{
+    //     if(!$this->has("email") || empty($this->input("email"))){
+    //         $this->merge([
+    //             "email" => auth()->user()->email
+    //         ]);
+    //     }
+    // }
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:businesses,email',
+            // 'email' => 'required|email|unique:businesses,email',
             'business_category_id' => 'required|exists:business_categories,id',
         ];
     }

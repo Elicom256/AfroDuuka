@@ -21,8 +21,13 @@ import {
   AdminHistoryPage,
   AdminSettingsPage,
 } from '../pages/dashboards/admin/pages/admin-placeholder-pages';
+import { AddBusinessForm } from '../pages/dashboards/admin/components/AddBusinessForm';
+import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
 export const AppRoutes = () => {
+  const { data } = useLoggedinUserQuery();
+  console.log('user here==>', data?.data);
+
   return (
     <div>
       <Routes>
@@ -31,22 +36,25 @@ export const AppRoutes = () => {
         <Route path='signup' element={<SignUp />} />
         <Route path='about' element={<About />} />
         <Route path='documentation' element={<Documentation />} />
-        <Route path='admin' element={<AdminLayout />}>
-          <Route index element={<AdminDashboardPage />} />
-          <Route path='workers' element={<AdminWorkersPage />} />
-          <Route path='products' element={<AdminProductsPage />} />
-          <Route path='orders' element={<AdminOrdersPage />} />
-          <Route path='inventory' element={<AdminInventoryPage />} />
-          <Route path='customers' element={<AdminCustomersPage />} />
-          <Route path='analytics' element={<AdminAnalyticsPage />} />
-          <Route path='reports' element={<AdminReportsPage />} />
-          <Route path='finances' element={<AdminFinancesPage />} />
-          <Route path='suppliers' element={<AdminSuppliersPage />} />
-          <Route path='promotions' element={<AdminPromotionsPage />} />
-          <Route path='coupons' element={<AdminCouponsPage />} />
-          <Route path='history' element={<AdminHistoryPage />} />
-          <Route path='settings' element={<AdminSettingsPage />} />
-        </Route>
+        {data    && (
+          <Route path='admin' element={<AdminLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path='workers' element={<AdminWorkersPage />} />
+            <Route path='create-business' element={<AddBusinessForm />} />
+            <Route path='products' element={<AdminProductsPage />} />
+            <Route path='orders' element={<AdminOrdersPage />} />
+            <Route path='inventory' element={<AdminInventoryPage />} />
+            <Route path='customers' element={<AdminCustomersPage />} />
+            <Route path='analytics' element={<AdminAnalyticsPage />} />
+            <Route path='reports' element={<AdminReportsPage />} />
+            <Route path='finances' element={<AdminFinancesPage />} />
+            <Route path='suppliers' element={<AdminSuppliersPage />} />
+            <Route path='promotions' element={<AdminPromotionsPage />} />
+            <Route path='coupons' element={<AdminCouponsPage />} />
+            <Route path='history' element={<AdminHistoryPage />} />
+            <Route path='settings' element={<AdminSettingsPage />} />
+          </Route>
+        )}
       </Routes>
     </div>
   );

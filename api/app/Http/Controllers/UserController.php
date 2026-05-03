@@ -69,7 +69,13 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = $this->userService->getAllUsers();
+        $user = auth()->user();
+        $users = User::where("business_id", $user->business_id)
+        ->whereHas('role', function ($q) {
+            $q->where('name', '!==', 'admin');
+          })
+        ->with(['business', 'role'])
+        ->get();
         return response()->json([
             'message' => 'Users retrieved successfully',
             'data' => $users,

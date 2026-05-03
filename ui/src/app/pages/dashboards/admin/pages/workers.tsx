@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
-  useGetWorkersInfoQuery,
   useRegisterWorkerMutation,
   useUpdateWorkerMutation,
   useDeleteWorkerMutation,
+  useGetWorkersInfoQuery,
 } from '@/app/store/features/business/workers/workersQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,12 +20,6 @@ export const AdminWorkersPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<WorkerItem | null>(null);
 
-  const workers = useMemo(() => {
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && Array.isArray((data as any).data)) return (data as any).data;
-    return [] as WorkerItem[];
-  }, [data]);
-
   const openNewWorker = () => {
     setSelectedWorker(null);
     setDialogOpen(true);
@@ -35,7 +29,7 @@ export const AdminWorkersPage = () => {
     setSelectedWorker(worker);
     setDialogOpen(true);
   };
-
+  const workers = data?.data;
   const handleSubmit = async (formValues: { name: string; email: string; phone: string; role: string }) => {
     try {
       if (selectedWorker) {

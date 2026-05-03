@@ -25,7 +25,7 @@ export const workersQuery = createApi({
     // register worker
     registerWorker: builder.mutation({
       query: (userData) => ({
-        url: '/register',
+        url: '/add-worker',
         method: 'POST',
         body: userData,
       }),

@@ -42,7 +42,7 @@ export const AdminLayout = () => {
         </aside>
 
         <main className='flex min-h-screen flex-col p-6'>
-          <AdminHeader />
+          {/* <AdminHeader /> */}
           <div className='mt-6'>
             <Outlet />
           </div>
