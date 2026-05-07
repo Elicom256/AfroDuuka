@@ -72,7 +72,7 @@ class UserController extends Controller
         $user = auth()->user();
         $users = User::where("business_id", $user->business_id)
         ->whereHas('role', function ($q) {
-            $q->where('name', '!==', 'admin');
+            $q->where('name', '!=', 'admin');
           })
         ->with(['business', 'role'])
         ->get();

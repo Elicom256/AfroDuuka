@@ -4,16 +4,18 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import logo from '../../../public/logo-1.png';
+import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Documentation', to: '/documentation' },
-  { label: 'Admin', to: '/admin' },
+  // { label: 'Admin', to: '/admin' },
 ];
 
 export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { data } = useLoggedinUserQuery();
 
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 backdrop-blur-xl shadow-sm shadow-slate-950/40'>
@@ -46,9 +48,13 @@ export const NavBar: React.FC = () => {
         </nav>
 
         <div className='hidden items-center gap-2 md:flex'>
-          <Button asChild size='sm'>
-            <Link to='/login'>Try It</Link>
-          </Button>
+          {data ? (
+            <Link to='/admin'>Dashboard</Link>
+          ) : (
+            <Button asChild size='sm'>
+              <Link to='/login'>Try It</Link>
+            </Button>
+          )}
         </div>
 
         <button

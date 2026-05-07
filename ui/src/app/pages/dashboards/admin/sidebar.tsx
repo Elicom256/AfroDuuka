@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   History,
   Gift,
-  UserRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -71,7 +70,7 @@ type AdminSidebarProps = {
 
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { data } = useLoggedinUserQuery();
-  console.log('data of user==>', data?.data);
+  // console.log('data of user==>', data?.data);
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -118,7 +117,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
       </div>
 
       {/* Optional Footer */}
-      <div className='p-4 border-t border-border mt-auto'>{data && <UserProfile />}</div>
+      <div className='p-4 border-t border-border mt-auto'>{data && <UserProfile data={data} />}</div>
     </nav>
   );
 };

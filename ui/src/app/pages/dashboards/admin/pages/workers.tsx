@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { WorkersTable, type WorkerItem } from '../components/workers-table';
 import { WorkerFormDialog } from '../components/worker-form-dialog';
+import { useRolesQuery } from '@/app/store/features/business/roles/rolesQuery';
 
 export const AdminWorkersPage = () => {
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
@@ -19,6 +20,8 @@ export const AdminWorkersPage = () => {
   const [deleteWorker, { isLoading: isDeleting }] = useDeleteWorkerMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<WorkerItem | null>(null);
+  const { data: roles } = useRolesQuery();
+  console.log('workers==>', data);
 
   const openNewWorker = () => {
     setSelectedWorker(null);
@@ -102,9 +105,9 @@ export const AdminWorkersPage = () => {
           setDialogOpen(open);
           if (!open) setSelectedWorker(null);
         }}
-        defaultValues={selectedWorker}
         onSubmit={handleSubmit}
         isLoading={isRegistering || isUpdating}
+        roles={roles}
       />
     </div>
   );

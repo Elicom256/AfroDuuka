@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
-import { AdminHeader } from './header';
 import { AdminSidebar } from './sidebar';
 
 export const AdminLayout = () => {

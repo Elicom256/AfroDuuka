@@ -31,6 +31,14 @@ export const authQuery = createApi({
       }),
       invalidatesTags: ['UsersAPI'],
     }),
+    // Logout mutation
+    logout: builder.mutation<any, void>({
+      query: () => ({
+        url: '/logout',
+        method: 'POST',
+      }),
+      invalidatesTags: ['UsersAPI'],
+    }),
     // Register mutation
     register: builder.mutation({
       query: (userData) => ({
@@ -51,4 +59,5 @@ export const authQuery = createApi({
     }),
   }),
 });
-export const { useLoginMutation, useRegisterMutation, useLoggedinUserQuery, useUpdateUserMutation } = authQuery;
+export const { useLoginMutation, useRegisterMutation, useLoggedinUserQuery, useUpdateUserMutation, useLogoutMutation } =
+  authQuery;

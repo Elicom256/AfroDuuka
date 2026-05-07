@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const workersQuery = createApi({
   reducerPath: 'workerPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/users`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/workers`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -23,18 +23,18 @@ export const workersQuery = createApi({
       providesTags: ['WorkersAPI'],
     }),
     // register worker
-    registerWorker: builder.mutation({
-      query: (userData) => ({
-        url: '/add-worker',
+    registerWorker: builder.mutation<any, any>({
+      query: (body) => ({
+        url: '/',
         method: 'POST',
-        body: userData,
+        body,
       }),
       invalidatesTags: ['WorkersAPI'],
     }),
     // update worker
     updateWorker: builder.mutation<any, { userData: any; id: number }>({
       query: ({ userData, id }) => ({
-        url: `/user/${id}`,
+        url: `/${id}`,
         method: 'PATCH',
         body: userData,
       }),
@@ -42,10 +42,9 @@ export const workersQuery = createApi({
     }),
     // delete worker
     deleteWorker: builder.mutation<any, { userData: any; id: number }>({
-      query: ({ userData, id }) => ({
-        url: `/user/${id}`,
-        method: 'PATCH',
-        body: userData,
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
       }),
       invalidatesTags: ['WorkersAPI'],
     }),

@@ -13,7 +13,7 @@ export type WorkerItem = {
 };
 
 type WorkersTableProps = {
-  workers: WorkerItem[];
+  workers: any;
   onEdit: (worker: WorkerItem) => void;
   onDelete: (worker: WorkerItem) => void;
   isLoading: boolean;
@@ -51,7 +51,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
   }
   console.log('user yesss=>', workers);
 
-  if (workers.length === 0) {
+  if (workers?.length === 0) {
     return (
       <Card className='rounded-3xl border border-dashed border-border/50 bg-muted p-6 text-center'>
         <p className='text-lg font-semibold'>No workers available</p>
@@ -75,24 +75,25 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {workers.map((worker) => (
-            <TableRow key={worker.id}>
-              <TableCell>{worker.name || '—'}</TableCell>
-              <TableCell>{worker.email || '—'}</TableCell>
-              <TableCell>{worker.phone || '—'}</TableCell>
-              <TableCell>{(worker?.role as any)?.name || '—'}</TableCell>
-              <TableCell>
-                <div className='flex flex-wrap gap-2'>
-                  <Button size='icon-sm' variant='outline' onClick={() => onEdit(worker)}>
-                    <Edit3 className='h-4 w-4' />
-                  </Button>
-                  <Button size='icon-sm' variant='destructive' onClick={() => onDelete(worker)} disabled={isDeleting}>
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {workers &&
+            workers.map((worker:any) => (
+              <TableRow key={worker.id}>
+                <TableCell>{worker.name || '—'}</TableCell>
+                <TableCell>{worker.email || '—'}</TableCell>
+                <TableCell>{worker.phone || '—'}</TableCell>
+                <TableCell>{(worker?.role as any)?.name || '—'}</TableCell>
+                <TableCell>
+                  <div className='flex flex-wrap gap-2'>
+                    <Button size='icon-sm' variant='outline' onClick={() => onEdit(worker)}>
+                      <Edit3 className='h-4 w-4' />
+                    </Button>
+                    <Button size='icon-sm' variant='destructive' onClick={() => onDelete(worker)} disabled={isDeleting}>
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </Card>

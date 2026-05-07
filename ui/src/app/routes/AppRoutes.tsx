@@ -26,7 +26,7 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
 export const AppRoutes = () => {
   const { data } = useLoggedinUserQuery();
-  console.log('user here==>', data?.data);
+  // console.log('user here==>', data?.data);
 
   return (
     <div>
@@ -36,7 +36,7 @@ export const AppRoutes = () => {
         <Route path='signup' element={<SignUp />} />
         <Route path='about' element={<About />} />
         <Route path='documentation' element={<Documentation />} />
-        {data    && (
+        {data && (
           <Route path='admin' element={<AdminLayout />}>
             <Route index element={<AdminDashboardPage />} />
             <Route path='workers' element={<AdminWorkersPage />} />

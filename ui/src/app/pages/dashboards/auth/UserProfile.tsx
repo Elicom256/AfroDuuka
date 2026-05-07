@@ -11,22 +11,35 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import { useLogoutMutation } from '@/app/store/features/auth/authQuery';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { LoadingState } from '@/utils/LoadingState';
 
-export const UserProfile = ({ user }: any) => {
-  const { data } = useLoggedinUserQuery();
-  //    console.log('data==>', data.data);
+export const UserProfile = ({ data }: any) => {
+  const [logout, { isLoading }] = useLogoutMutation();
+  const handleLogout = async () => {
+    try {
+      const res = await logout().unwrap();
+      console.log('res logout==>', res);
+      if (res) {
+        toast.success(res.message);
+      }
+      return (window.location.href = '/login');
+    } catch (error) {
+      console.log('error==>', error);
+    }
+  };
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className='flex items-center gap-3 px-4 py-3 rounded-2xl bg-muted/50 cursor-pointer'>
-          <div className='w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center'>
+        <div className='flex items-center gap-3 px-4 py-3 rounded-2xl bg-muted/70 cursor-pointer'>
+          <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center'>
             <UserRound />
           </div>
           <div className='text-sm'>
             <p className='font-medium'>{data.data.name}</p>
-            <p className='text-xs text-muted-foreground'>Online</p>
+            <p className='text-xs text-green-400 text-center'>Online</p>
           </div>
         </div>
       </DialogTrigger>
@@ -34,7 +47,9 @@ export const UserProfile = ({ user }: any) => {
       <DialogContent className='sm:max-w-sm '>
         <DialogHeader className='flex items-center'>
           <DialogTitle>
-            <UserRound />
+            <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center'>
+              <UserRound />
+            </div>
           </DialogTitle>
           <DialogDescription>{data.data.username}</DialogDescription>
         </DialogHeader>
@@ -61,9 +76,11 @@ export const UserProfile = ({ user }: any) => {
             <span>Edit</span>
             <SquarePen />
           </Link>
-          <DialogClose asChild>
-            <Button variant='outline'>Close</Button>
-          </DialogClose>
+          {/* <DialogClose asChild> */}
+          <Button variant='outline' onClick={handleLogout}>
+            {isLoading ? <LoadingState /> : 'Log out'}
+          </Button>
+          {/* </DialogClose> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>
