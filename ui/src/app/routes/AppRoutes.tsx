@@ -10,6 +10,8 @@ import { AdminWorkersPage } from '../pages/dashboards/admin/pages/workers';
 import { AdminProductsPage } from '../pages/dashboards/admin/pages/products';
 import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
 import { AdminOrdersPage } from '../pages/dashboards/admin/pages/orders';
+import { AdminSalesPage } from '../pages/dashboards/admin/pages/sales';
+import { AdminPurchasesPage } from '../pages/dashboards/admin/pages/purchases';
 import {
   AdminInventoryPage,
   AdminCustomersPage,
@@ -45,6 +47,8 @@ export const AppRoutes = () => {
             <Route path='create-business' element={<AddBusinessForm />} />
             <Route path='products' element={<AdminProductsPage />} />
             <Route path='product-categories' element={<ProductCategories />} />
+            <Route path='sales' element={<AdminSalesPage />} />
+            <Route path='purchases' element={<AdminPurchasesPage />} />
             <Route path='orders' element={<AdminOrdersPage />} />
             <Route path='inventory' element={<AdminInventoryPage />} />
             <Route path='customers' element={<AdminCustomersPage />} />

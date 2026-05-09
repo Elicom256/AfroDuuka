@@ -3,6 +3,7 @@ import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
 import { productsQuery } from '../features/business/products/productsQuery';
 import { salesQuery } from '../features/business/sales/salesQuery';
+import { purchasesQuery } from '../features/business/purchases/purchasesQuery';
 import { customersQuery } from '../features/business/customers/customersQuery';
 import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
@@ -14,6 +15,7 @@ export const store = configureStore({
     [workersQuery.reducerPath]: workersQuery.reducer,
     [productsQuery.reducerPath]: productsQuery.reducer,
     [salesQuery.reducerPath]: salesQuery.reducer,
+    [purchasesQuery.reducerPath]: purchasesQuery.reducer,
     [customersQuery.reducerPath]: customersQuery.reducer,
     [inventoryQuery.reducerPath]: inventoryQuery.reducer,
     [businessQuery.reducerPath]: businessQuery.reducer,
@@ -26,6 +28,7 @@ export const store = configureStore({
       workersQuery.middleware,
       productsQuery.middleware,
       salesQuery.middleware,
+      purchasesQuery.middleware,
       customersQuery.middleware,
       inventoryQuery.middleware,
       businessQuery.middleware,

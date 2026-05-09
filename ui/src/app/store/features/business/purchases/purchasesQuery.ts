@@ -14,7 +14,43 @@ export const purchasesQuery = createApi({
       }),
       providesTags: ['PurchasesAPI'],
     }),
+    purchase: builder.query<any, number>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['PurchasesAPI'],
+    }),
+    addPurchase: builder.mutation<any, any>({
+      query: (body) => ({
+        url: '/',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['PurchasesAPI'],
+    }),
+    updatePurchase: builder.mutation<any, { body: any; id: number | string }>({
+      query: ({ body, id }) => ({
+        url: `/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['PurchasesAPI'],
+    }),
+    deletePurchase: builder.mutation<any, number | string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['PurchasesAPI'],
+    }),
   }),
 });
 
-export const { usePurchasesQuery } = purchasesQuery;
+export const {
+  usePurchasesQuery,
+  usePurchaseQuery,
+  useAddPurchaseMutation,
+  useUpdatePurchaseMutation,
+  useDeletePurchaseMutation,
+} = purchasesQuery;
