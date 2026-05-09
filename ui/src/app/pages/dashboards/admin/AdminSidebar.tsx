@@ -28,6 +28,8 @@ const navSections = [
     title: 'Operations',
     items: [
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
+      { label: 'Sales', to: '/admin/sales', icon: DollarSign },
+      { label: 'Purchases', to: '/admin/purchases', icon: Truck },
       { label: 'Orders', to: '/admin/orders', icon: ShoppingBag },
       { label: 'Inventory', to: '/admin/inventory', icon: AlertTriangle },
     ],

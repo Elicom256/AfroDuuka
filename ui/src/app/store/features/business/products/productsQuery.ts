@@ -25,9 +25,9 @@ export const productsQuery = createApi({
       providesTags: ['ProductsAPI'],
     }),
     // get one product by id
-    product: builder.query<any, void>({
-      query: () => ({
-        url: '/business-products',
+    product: builder.query<any, string>({
+      query: (id) => ({
+        url: `/business-products/${id}`,
         method: 'GET',
       }),
       providesTags: ['ProductsAPI'],
@@ -95,7 +95,7 @@ export const productsQuery = createApi({
       invalidatesTags: ['ProductsAPI'],
     }),
     // get one product by id
-    deleteProductCategory: builder.mutation<any, void>({
+    deleteProductCategory: builder.mutation<any, number>({
       query: (id) => ({
         url: `/categories/${id}`,
         method: 'DELETE',

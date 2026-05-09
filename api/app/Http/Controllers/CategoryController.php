@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -13,8 +14,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
-        $categories = Category::all();
+        $business_id = Auth::user()->business_id;
+        $categories = Category::where("business_id", $business_id)->orderBy("id", "asc")->get();
         return response()->json(["message"=>"Product categories fetched!", "categories" => $categories], 200);
     }
 
@@ -34,7 +35,6 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
     }
 
     /**
@@ -42,7 +42,9 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        //
+        $validated = $request->validated();
+        $data = $category->update($validated);
+        return response()->json(["message" => "Category updated successfully!", "category" => $data], 201);
     }
 
     /**
@@ -51,5 +53,7 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         //
+        $category->delete();
+        return response()->json(["message" => "Category with id $category->id deleted successfully!"], 201);
     }
 }

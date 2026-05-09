@@ -32,9 +32,10 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(string $pdt)
     {
-        //
+        $product = Product::find($pdt);
+        return response()->json(["message"=>"Product fetched!", "product" => $product], 200);
     }
 
     /**
@@ -48,8 +49,9 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(string $product)
     {
-        //
+        Product::find($product)->delete();
+        return response()->json(["message"=>"Product with id $product deleted!"], 201);
     }
 }

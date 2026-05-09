@@ -88,7 +88,7 @@ class StoreProductRequest extends FormRequest
                 'min:0',
             ],
 
-            'minimum_stock' => [
+            'reorder_level' => [
                 'required',
                 'integer',
                 'min:0',
