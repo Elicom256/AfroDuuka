@@ -27,7 +27,6 @@ export const AddSale = ({ addOrder, products }: AddSaleProps) => {
     product_id: '',
     quantity: '',
     unit_price: '',
-    status: 'completed',
     note: '',
   });
 
@@ -39,14 +38,13 @@ export const AddSale = ({ addOrder, products }: AddSaleProps) => {
         product_id: Number(formData.product_id),
         quantity: Number(formData.quantity),
         unit_price: Number(formData.unit_price),
-        status: formData.status,
         note: formData.note,
       };
       const res = await addOrder(body).unwrap();
       if (res) {
         toast.success(res.message || 'Sale created successfully');
         setOpen(false);
-        setFormData({ product_id: '', quantity: '', unit_price: '', status: 'completed', note: '' });
+        setFormData({ product_id: '', quantity: '', unit_price: '', note: '' });
       }
     } catch (error) {
       toast.error('Failed to create sale');
@@ -115,20 +113,6 @@ export const AddSale = ({ addOrder, products }: AddSaleProps) => {
                 className='col-span-3'
                 required
               />
-            </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='status' className='text-right'>
-                Status
-              </Label>
-              <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                <SelectTrigger className='col-span-3'>
-                  <SelectValue placeholder='Sale status' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='completed'>Completed</SelectItem>
-                  <SelectItem value='pending'>Pending</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='note' className='text-right'>
