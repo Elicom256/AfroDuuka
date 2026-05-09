@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryRequest;
-use App\Models\Category;
+use App\Http\Requests\StoreSaleRequest;
+use App\Http\Requests\UpdateSaleRequest;
+use App\Models\Sale;
 
 class SaleController extends Controller
 {
@@ -19,7 +19,7 @@ class SaleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCategoryRequest $request)
+    public function store(StoreSaleRequest $request)
     {
         //
     }
@@ -27,7 +27,7 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Sale $sale)
     {
         //
     }
@@ -35,15 +35,15 @@ class SaleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateSaleRequest $request, Sale $sale)
     {
-        //
+        $validated = $request->validated();
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Sale $sale)
     {
         //
     }
