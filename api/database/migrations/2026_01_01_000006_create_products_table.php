@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('price', 12, 2);
             $table->decimal('cost_price', 12, 2);
             $table->integer('quantity')->default(0);
-            $table->integer('minimum_stock')->default(0);
+            $table->integer('reorder_level')->default(0);
             $table->boolean('status')->default(true);
             $table->text('description')->nullable();
             $table->timestamps();

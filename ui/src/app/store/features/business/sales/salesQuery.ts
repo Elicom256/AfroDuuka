@@ -7,7 +7,7 @@ export const salesQuery = createApi({
   }),
   tagTypes: ['SalesAPI'],
   endpoints: (builder) => ({
-    getOrders: builder.query<any, void>({
+    orders: builder.query<any, void>({
       query: () => ({
         url: '/',
         method: 'GET',
@@ -17,4 +17,4 @@ export const salesQuery = createApi({
   }),
 });
 
-export const { useGetOrdersQuery } = salesQuery;
+export const { useOrdersQuery } = salesQuery;

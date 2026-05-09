@@ -2,56 +2,17 @@
 
 ## Goal
 
-Implement product management UI in the admin dashboard.
+You're a senior engineer, Implement Sales and Purchases management UI in the admin dashboard.
 
 ## Tasks
 
-1. **Create ProductTable component**
-   - File: `src/app/pages/dashboards/admin/components/products/ProductTable.tsx`
-   - Purpose: Display products in a tabular form.
-   - Columns to include:
-     - category_id
-     - name
-     - sku
-     - barcode
-     - price
-     - cost_price
-     - quantity
-     - minimum_stock
-     - status
-     - description
-     - category
-   - Include action buttons: **edit** and **delete**.
-
-2. **Integrate into Products page**
-   - File: `src/app/pages/dashboards/admin/pages/products.tsx`
-   - Render `ProductTable` as a child component.
-   - Add links/buttons for:
-     - **Add Product**
-     - **Add Product Category**
-
-3. **Category linkage**
-   - Products must be linked to categories.
-   - When adding a product, use a **select dropdown** populated with available categories.
-
-4. **Pagination**
-   - Create a reusable pagination component:
-     - File: `src/app/utils/Pagination.tsx`
-     - Use **shadcn pagination styles**.
-   - Integrate pagination into `ProductTable`.
-
-5. **Styling & Icons**
-   - Use **shadcn UI components** for consistency.
-   - Use **lucide-react icons** for actions (edit, delete, add).
-
-6. **Code organization**
-   - Split reusable UI into smaller components.
-   - Keep product‑related components inside:
-     - `src/app/pages/dashboards/admin/components/products`
+- Add the 2 pages, Sales and Purchases in the admin dashboard and add relevant content inside each like a modern dashboard
+- Implement CRUD for each Sales and Purchases, basic RTK is already layed out inside the src/app/store/features, so your role is to complete it and call the methods in relevant pages to handle Sales and Purchases
+- Split code into components for more readability
+- All these, Sales and Purchases are linked to a product, not product category. Meaning when an admin is placing a purchase order or recording sales, he needs to know which product he's dealing with
 
 ## Constraints
 
 - Do **not** hallucinate features.
 - Keep implementation modern, clean, and consistent with shadcn + lucide.
-
-## Do NOT hallucinate
+- Work as a feature owner engineer

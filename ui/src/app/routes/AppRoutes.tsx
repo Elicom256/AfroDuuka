@@ -8,6 +8,7 @@ import { AdminLayout } from '../pages/dashboards/admin/layout';
 import { AdminDashboardPage } from '../pages/dashboards/admin/pages/dashboard';
 import { AdminWorkersPage } from '../pages/dashboards/admin/pages/workers';
 import { AdminProductsPage } from '../pages/dashboards/admin/pages/products';
+import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
 import { AdminOrdersPage } from '../pages/dashboards/admin/pages/orders';
 import {
   AdminInventoryPage,
@@ -23,6 +24,7 @@ import {
 } from '../pages/dashboards/admin/pages/admin-placeholder-pages';
 import { AddBusinessForm } from '../pages/dashboards/admin/components/AddBusinessForm';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
+import { Product } from '../pages/dashboards/admin/components/products/Product';
 
 export const AppRoutes = () => {
   const { data } = useLoggedinUserQuery();
@@ -42,6 +44,7 @@ export const AppRoutes = () => {
             <Route path='workers' element={<AdminWorkersPage />} />
             <Route path='create-business' element={<AddBusinessForm />} />
             <Route path='products' element={<AdminProductsPage />} />
+            <Route path='product-categories' element={<ProductCategories />} />
             <Route path='orders' element={<AdminOrdersPage />} />
             <Route path='inventory' element={<AdminInventoryPage />} />
             <Route path='customers' element={<AdminCustomersPage />} />
@@ -53,6 +56,7 @@ export const AppRoutes = () => {
             <Route path='coupons' element={<AdminCouponsPage />} />
             <Route path='history' element={<AdminHistoryPage />} />
             <Route path='settings' element={<AdminSettingsPage />} />
+            <Route path='products/:id' element={<Product />} />
           </Route>
         )}
       </Routes>

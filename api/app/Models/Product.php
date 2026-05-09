@@ -20,7 +20,7 @@ class Product extends BaseModel
         'price',
         'cost_price',
         'quantity',
-        'minimum_stock',
+        'reorder_level',
         'status',
         'description',
     ];
@@ -30,7 +30,7 @@ class Product extends BaseModel
         'cost_price' => 'decimal:2',
         'status' => 'boolean',
         'quantity' => 'integer',
-        'minimum_stock' => 'integer',
+        'reorder_level' => 'integer',
     ];
 
     public function category(): BelongsTo

@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { LoadingState } from '@/utils/LoadingState';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Product {
   id: string;
@@ -15,7 +19,7 @@ interface Product {
   price: number;
   cost_price: number;
   quantity: number;
-  minimum_stock: number;
+  reorder_level: number;
   status: string;
   description: string;
   category: string;
@@ -23,6 +27,8 @@ interface Product {
 
 export const ProductTable: React.FC = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
+  const [remove, { isLoading }] = useDeleteProductMutation();
+  const [prodId, setProdId] = useState<string>('');
   console.log(products);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,17 +41,30 @@ export const ProductTable: React.FC = () => {
   const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
   const tableHeaders = [
-    'Category ID',
+    'CID',
     'Name',
     'SKU',
-    'Price (UGX)',
-    'Cost Price (UGX)',
+    'Price',
+    'CP',
     'Quantity',
-    'Min Stock',
+    'RL',
     'Status',
     'Actions',
   ];
-
+  const handleDelete = async (id: string) => {
+    setProdId(id);
+    try {
+      const res = await remove(id).unwrap();
+      if (res) {
+        toast.success(res.message);
+      }
+      setProdId('');
+      return;
+    } catch (error) {
+      console.log('Error on del==>', error);
+      toast.error('Failed to delete product');
+    }
+  };
   return (
     <div>
       <Table>
@@ -66,23 +85,36 @@ export const ProductTable: React.FC = () => {
               <TableCell>{product.price}</TableCell>
               <TableCell>{product.cost_price}</TableCell>
               <TableCell>{product.quantity}</TableCell>
-              <TableCell>{product.minimum_stock}</TableCell>
+              <TableCell>{product.reorder_level ?? "-"}</TableCell>
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>
               {/* <TableCell>{product.description}</TableCell> */}
               {/* <TableCell>{product.category}</TableCell> */}
-              <TableCell>
-                <Button variant='ghost' size='sm' className='text-green-400'>
-                  <Edit className='h-4 w-4' />
-                </Button>
-                <Button variant='ghost' size='sm' className='text-red-400'>
-                  <Trash2 className='h-4 w-4' />
-                </Button>
+              <TableCell className='grid grid-cols-2 place-items-center gap-2'>
+                <Link
+                  to={`/admin/products/${product.id}`}
+                  className='text-amber-400 h-full flex items-center'
+                >
+                  <Eye size={20} />
+                </Link>
+                <div className='h-6 flex items-center'>
+                  {isLoading && prodId === product.id ? (
+                    <Spinner className='size-4' />
+                  ) : (
+                    // <span>tt</span>
+                    <Trash2
+                      size={20}
+                      className='text-red-400 cursor-pointer'
+                      onClick={() => handleDelete(product.id)}
+                    />
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      
     </div>
   );
 };
