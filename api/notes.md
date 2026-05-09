@@ -1,45 +1,47 @@
 # ✅ Core Features (must-have)
+
 1. Product management
-Add/edit/delete products
-SKU, barcode support
-Categories
-Stock quantity tracking
+   Add/edit/delete products
+   SKU, barcode support
+   Categories
+   Stock quantity tracking
 2. Stock tracking
-Stock in (purchases/restock)
-Stock out (sales/usage)
-Automatic quantity updates
+   Stock in (purchases/restock)
+   Stock out (sales/usage)
+   Automatic quantity updates
 3. Suppliers
-Track where products come from
-Useful for restocking & reports
+   Track where products come from
+   Useful for restocking & reports
 4. Sales (or stock out)
-Record transactions
-Reduce inventory automatically
+   Record transactions
+   Reduce inventory automatically
 5. Purchase orders (stock in)
-Add stock into system
-Link to supplier
+   Add stock into system
+   Link to supplier
 6. Reports
-Low stock alerts
-Sales reports
-Inventory valuation
+   Low stock alerts
+   Sales reports
+   Inventory valuation
 7. Authentication
-Users (admin, staff)
-Permissions (optional but good)
-🧱 Recommended Database Tables
-🔹 Users
-users
+   Users (admin, staff)
+   Permissions (optional but good)
+   🧱 Recommended Database Tables
+   🔹 Users
+   users
+
 - id
 - name
 - email
 - password
 - role (admin, staff)
 - timestamps
-🔹 Categories
-categories
+  🔹 Categories
+  categories
 - id
 - name
 - timestamps
-🔹 Products
-products
+  🔹 Products
+  products
 - id
 - name
 - sku
@@ -50,23 +52,23 @@ products
 - quantity
 - minimum_stock
 - timestamps
-🔹 Suppliers
-suppliers
+  🔹 Suppliers
+  suppliers
 - id
 - name
 - phone
 - email
 - address
 - timestamps
-🔹 Purchases (Stock In)
-purchases
+  🔹 Purchases (Stock In)
+  purchases
 - id
 - supplier_id
 - total_amount
 - purchased_at
 - timestamps
-🔹 Purchase Items
-purchase_items
+  🔹 Purchase Items
+  purchase_items
 - id
 - purchase_id
 - product_id
@@ -77,19 +79,20 @@ purchase_items
 
 🔹 Sales (Stock Out)
 sales
+
 - id
 - total_amount
 - sold_at
 - timestamps
-🔹 Sale Items
-sale_items
+  🔹 Sale Items
+  sale_items
 - id
 - sale_id
 - product_id
 - quantity
 - price
-🔹 Stock Movements (🔥 highly recommended)
-stock_movements
+  🔹 Stock Movements (🔥 highly recommended)
+  stock_movements
 - id
 - product_id
 - type (in, out, adjustment)
@@ -105,30 +108,32 @@ Think of it like a ledger
 🧩 Optional but smart additions
 🔸 Warehouses (if scaling later)
 warehouses
+
 - id
 - name
 - location
-🔸 Inventory per warehouse
-inventory
+  🔸 Inventory per warehouse
+  inventory
 - id
 - product_id
 - warehouse_id
 - quantity
-🔸 Audit logs
+  🔸 Audit logs
 
 Track who did what:
 
 activity_logs
+
 - id
 - user_id
 - action
 - description
 - timestamps
-⚠️ Common mistakes (avoid these)
-❌ Only storing quantity in products without history
-❌ Not separating sale_items / purchase_items
-❌ Hardcoding prices instead of storing per transaction
-❌ No minimum_stock → no alerts
+  ⚠️ Common mistakes (avoid these)
+  ❌ Only storing quantity in products without history
+  ❌ Not separating sale_items / purchase_items
+  ❌ Hardcoding prices instead of storing per transaction
+  ❌ No minimum_stock → no alerts
 
 🧠 Simple mental model
 
@@ -140,7 +145,8 @@ Sales = stock going out
 Stock movements = the truth
 
 ## 🚀 To level it up
-* Later you can add:
+
+- Later you can add:
 
 Barcode scanning
 Invoice generation
@@ -149,6 +155,7 @@ Dashboard analytics
 API for mobile app
 
 ## To run at a go
+
 php artisan make:controller CategoryController --api --model=Category --resource --requests
 php artisan make:controller ProductController --api --model=Product --resource --requests
 php artisan make:controller PurchaseController --api --model=Purchase --resource --requests
@@ -170,4 +177,10 @@ php artisan make:service StockMovementService
 php artisan make:service SupplierService
 
 ## Self
+
 php artisan make:controller --api --model=modelname --resource --requests
+
+## To checkout
+
+- purchase, purchaseItem
+- Sale, SaleItem

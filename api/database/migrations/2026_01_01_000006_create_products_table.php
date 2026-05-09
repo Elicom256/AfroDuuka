@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('cost_price', 12, 2);
             $table->integer('quantity')->default(0);
             $table->integer('reorder_level')->default(0);
-            $table->boolean('status')->default(true);
+            $table->enum('status', ["active", "innactive"])->default("active");
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

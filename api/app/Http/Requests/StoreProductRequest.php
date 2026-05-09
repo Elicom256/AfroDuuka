@@ -21,9 +21,10 @@ class StoreProductRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+
         $this->merge([
             'business_id' => Auth::user()->business_id,
-            'status' => true,
+            'status' => "active",
         ]);
     }
 
@@ -96,7 +97,7 @@ class StoreProductRequest extends FormRequest
 
             'status' => [
                 'required',
-                'boolean',
+                'in:active,innactive',
             ],
 
             'description' => [

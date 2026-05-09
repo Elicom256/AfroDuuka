@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LoadingState } from '@/utils/LoadingState';
 import { Spinner } from '@/components/ui/spinner';
 
 interface Product {
@@ -25,7 +23,7 @@ interface Product {
   category: string;
 }
 
-export const ProductTable: React.FC = () => {
+export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
@@ -40,17 +38,7 @@ export const ProductTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = [
-    'CID',
-    'Name',
-    'SKU',
-    'Price',
-    'CP',
-    'Quantity',
-    'RL',
-    'Status',
-    'Actions',
-  ];
+  const tableHeaders = ['CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
     setProdId(id);
     try {
@@ -85,15 +73,12 @@ export const ProductTable: React.FC = () => {
               <TableCell>{product.price}</TableCell>
               <TableCell>{product.cost_price}</TableCell>
               <TableCell>{product.quantity}</TableCell>
-              <TableCell>{product.reorder_level ?? "-"}</TableCell>
+              <TableCell>{product.reorder_level ?? '-'}</TableCell>
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>
               {/* <TableCell>{product.description}</TableCell> */}
               {/* <TableCell>{product.category}</TableCell> */}
               <TableCell className='grid grid-cols-2 place-items-center gap-2'>
-                <Link
-                  to={`/admin/products/${product.id}`}
-                  className='text-amber-400 h-full flex items-center'
-                >
+                <Link to={`/admin/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
                   <Eye size={20} />
                 </Link>
                 <div className='h-6 flex items-center'>
@@ -114,7 +99,6 @@ export const ProductTable: React.FC = () => {
         </TableBody>
       </Table>
       <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      
     </div>
   );
 };

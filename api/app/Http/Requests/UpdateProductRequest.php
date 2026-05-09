@@ -15,12 +15,13 @@ class UpdateProductRequest extends FormRequest
     {
         return Auth::check();
     }
-     * Prepare data before validation
+     // * Prepare data before validation
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $status = $this->status;
+            $this->merge([
             'business_id' => Auth::user()->business_id,
-            'status' => true,
+            'status' => $status ?? "active"
         ]);
     }
 
@@ -91,7 +92,7 @@ public function rules(): array
 
             'status' => [
                 'required',
-                'boolean',
+                'in:active,innactive',
             ],
 
             'description' => [
