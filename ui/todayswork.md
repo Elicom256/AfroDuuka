@@ -1,10 +1,57 @@
-# Today's work at DuukaFlow project
- - in src/app/pages/dashboards/admin/sidebar.tsx, I have included some other features, but some don't have components they're linking to, eg Marketing etc, your work is to add corresponding pages and componets
- - Split code in each page into components if neccessary so that there is no too much code in 1 page(file)
- - Add corresponding querries inside a specific folder in src/app/store/features/business/ . Create the folder if not found
- - The baselink of the api being consummed is in the dotenv
- - Inside the addworker component, add phone and make role a selector
- * Inside every page linked, create a component of dummy data and render it where necessary
- - Donot make Footer.tsx global, ie it should not appear when in AdminDashboard
+# DuukaFlow Project — Product Management
 
- ## Do NOT hallucinate and make it more modern
+## Goal
+
+Implement product management UI in the admin dashboard.
+
+## Tasks
+
+1. **Create ProductTable component**
+   - File: `src/app/pages/dashboards/admin/components/products/ProductTable.tsx`
+   - Purpose: Display products in a tabular form.
+   - Columns to include:
+     - category_id
+     - name
+     - sku
+     - barcode
+     - price
+     - cost_price
+     - quantity
+     - minimum_stock
+     - status
+     - description
+     - category
+   - Include action buttons: **edit** and **delete**.
+
+2. **Integrate into Products page**
+   - File: `src/app/pages/dashboards/admin/pages/products.tsx`
+   - Render `ProductTable` as a child component.
+   - Add links/buttons for:
+     - **Add Product**
+     - **Add Product Category**
+
+3. **Category linkage**
+   - Products must be linked to categories.
+   - When adding a product, use a **select dropdown** populated with available categories.
+
+4. **Pagination**
+   - Create a reusable pagination component:
+     - File: `src/app/utils/Pagination.tsx`
+     - Use **shadcn pagination styles**.
+   - Integrate pagination into `ProductTable`.
+
+5. **Styling & Icons**
+   - Use **shadcn UI components** for consistency.
+   - Use **lucide-react icons** for actions (edit, delete, add).
+
+6. **Code organization**
+   - Split reusable UI into smaller components.
+   - Keep product‑related components inside:
+     - `src/app/pages/dashboards/admin/components/products`
+
+## Constraints
+
+- Do **not** hallucinate features.
+- Keep implementation modern, clean, and consistent with shadcn + lucide.
+
+## Do NOT hallucinate

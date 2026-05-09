@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -12,18 +13,96 @@ class StoreProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * Prepare data before validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'business_id' => Auth::user()->business_id,
+            'status' => true,
+        ]);
+    }
+
+    /**
+     * Get validation rules.
      */
     public function rules(): array
     {
         return [
-            //
+            'business_id' => [
+                'required',
+                'exists:businesses,id',
+            ],
+
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
+
+            'name' => [
+                'required',
+                'string',
+                'min:1',
+                'max:255',
+            ],
+
+            'sku' => [
+                'required',
+                'string',
+                'max:255',
+
+                // unique sku per business
+                Rule::unique('products')->where(function ($query) {
+                    return $query->where(
+                        'business_id',
+                        Auth::user()->business_id
+                    );
+                }),
+            ],
+
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'cost_price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'quantity' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+            'minimum_stock' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+            'status' => [
+                'required',
+                'boolean',
+            ],
+
+            'description' => [
+                'nullable',
+                'string',
+            ],
         ];
     }
 }

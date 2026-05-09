@@ -14,6 +14,8 @@ class CategoryController extends Controller
     public function index()
     {
         //
+        $categories = Category::all();
+        return response()->json(["message"=>"Product categories fetched!", "categories" => $categories], 200);
     }
 
     /**
@@ -22,6 +24,9 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request)
     {
         //
+        $validated = $request->validated();
+        $category = Category::create($validated);
+        return response()->json(["message" => "Category created successfully!", "category" => $category], 201);
     }
 
     /**

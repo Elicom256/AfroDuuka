@@ -18,7 +18,7 @@ export const AdminDashboardPage = () => {
     }
     return [] as any[];
   }, [data]);
-
+  console.log('data==>', data);
   const roleCounts = useMemo<Record<string, number>>(() => {
     return workers.reduce(
       (acc: Record<string, number>, worker: any) => {
@@ -78,16 +78,19 @@ export const AdminDashboardPage = () => {
           <CardContent className='space-y-3'>
             {isLoading ? (
               <p className='text-sm text-muted-foreground'>Loading roles…</p>
-            ) : workers.length === 0 ? (
+            ) : data?.data.length === 0 ? (
               <p className='text-sm text-muted-foreground'>No workers found yet.</p>
             ) : (
-              Object.entries(roleCounts).map(([role, count]) => (
+              data.data.map((worker: any, index: number) => (
                 <div
-                  key={role}
+                  key={worker.id}
                   className='flex items-center justify-between rounded-2xl border border-border/70 bg-background p-4'
                 >
-                  <span className='text-sm font-medium'>{role}</span>
-                  <span className='text-sm font-semibold'>{count as number}</span>
+                  <div className='flex items-center gap-1'>
+                    <span className='text-sm font-medium'>{worker.username},</span>
+                    <span className='text-sm font-medium'>{worker.role.name}</span>
+                  </div>
+                  <span className='text-sm font-semibold'>{index + 1}</span>
                 </div>
               ))
             )}

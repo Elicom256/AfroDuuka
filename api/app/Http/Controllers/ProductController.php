@@ -14,6 +14,8 @@ class ProductController extends Controller
     public function index()
     {
         //
+        $products = Product::all();
+        return response()->json(["message"=>"Products fetched!", "products" => $products], 200);
     }
 
     /**
@@ -22,6 +24,9 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         //
+        $validated = $request->validated();
+        $product = Product::create($validated);
+        return response()->json(["message" => "Product created", "product" => $product], 201);
     }
 
     /**
