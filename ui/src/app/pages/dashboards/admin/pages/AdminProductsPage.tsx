@@ -17,7 +17,7 @@ export const AdminProductsPage = () => {
         <CardDescription>Manage your products here.</CardDescription>
         <div className='flex gap-2'>
           <AddProduct addProduct={addProduct} />
-          <AddProductCategory />
+          {/* <AddProductCategory /> */}
         </div>
       </CardHeader>
       <CardContent>
@@ -27,25 +27,25 @@ export const AdminProductsPage = () => {
         <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
           Manage product categories
         </Link>
-        <div className='grid grid-cols-2'>
+        <div className='grid grid-cols-2 text-xs'>
           {/* <span className='text'>Note</span> */}
           <div className='flex items-center gap-2'>
-            <span className='text-lg'>CID: </span>
+            <span className=''>CID: </span>
             <span className='text-gray-300'>Category Id</span>
           </div>
           {/* SKU */}
           <div className='flex items-center gap-2'>
-            <span className='text-lg'>SKU: </span>
+            <span className=''>SKU: </span>
             <span className='text-gray-300'>Stock Keeping Unit</span>
           </div>
           {/* cost price */}
           <div className='flex items-center gap-2'>
-            <span className='text-lg'>CP: </span>
+            <span className=''>CP: </span>
             <span className='text-gray-300'>Cost Price</span>
           </div>
           {/* RL */}
           <div className='flex items-center gap-2'>
-            <span className='text-lg'>RL: </span>
+            <span className=''>RL: </span>
             <span className='text-gray-300'>Re-order/Restock Level</span>
           </div>
         </div>
