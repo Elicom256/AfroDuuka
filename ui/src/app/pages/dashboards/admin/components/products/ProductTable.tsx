@@ -38,7 +38,7 @@ export const ProductTable = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
+  const tableHeaders = ['No', 'CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
     setProdId(id);
     try {
@@ -64,14 +64,15 @@ export const ProductTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedProducts?.map((product: Product) => (
+          {paginatedProducts?.map((product: Product, i: number) => (
             <TableRow key={product.id}>
+              <TableCell>{i + 1}</TableCell>
               <TableCell>{product.category_id}</TableCell>
               <TableCell>{product.name}</TableCell>
               <TableCell>{product.sku}</TableCell>
               {/* <TableCell>{product.barcode}</TableCell> */}
-              <TableCell>{product.price}</TableCell>
-              <TableCell>{product.cost_price}</TableCell>
+              <TableCell>{Number(product.price)}</TableCell>
+              <TableCell>{Number(product.cost_price)}</TableCell>
               <TableCell>{product.quantity}</TableCell>
               <TableCell>{product.reorder_level ?? '-'}</TableCell>
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>

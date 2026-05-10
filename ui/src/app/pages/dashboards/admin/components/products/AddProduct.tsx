@@ -33,7 +33,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     price: '',
     cost_price: '',
     quantity: '',
-    minimum_stock: '',
+    reorder_level: '',
     description: '',
     category_id: '',
   });
@@ -133,14 +133,14 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='minimum_stock' className='text-right'>
-                Min Stock
+              <Label htmlFor='reorder_level' className='text-right'>
+                Reorder Level
               </Label>
               <Input
-                id='minimum_stock'
+                id='reorder_level'
                 type='number'
-                value={formData.minimum_stock}
-                onChange={(e) => handleChange('minimum_stock', e.target.value)}
+                value={formData.reorder_level}
+                onChange={(e) => handleChange('reorder_level', e.target.value)}
                 className='col-span-3'
                 required
               />
