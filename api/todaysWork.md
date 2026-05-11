@@ -9,3 +9,5 @@
 - The business categories are seeded in db to from BusinessCategorySeeder
 - Create an electronics business as category
   Note: Do not hallucinate
+
+  

@@ -57,8 +57,7 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         // Revoke all tokens for authenticated user
-        $user = auth()->user();
-        $user->tokens()->delete();
+        $request->user()->tokens()->delete();
         return response()->json([
             'message' => 'Logout successful!',
         ], 200);
@@ -69,7 +68,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $users = User::where("business_id", $user->business_id)
         ->whereHas('role', function ($q) {
             $q->where('name', '!=', 'admin');

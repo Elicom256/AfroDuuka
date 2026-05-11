@@ -16,9 +16,7 @@ class StoreProductRequest extends FormRequest
         return Auth::check();
     }
 
-    /**
-     * Prepare data before validation.
-     */
+     // * Prepare data before validation.
     protected function prepareForValidation(): void
     {
 
@@ -28,9 +26,8 @@ class StoreProductRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get validation rules.
-     */
+     // * Get validation rules.
+
     public function rules(): array
     {
         return [
