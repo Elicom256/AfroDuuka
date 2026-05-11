@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->decimal('total_amount', 12, 2);
+            $table->string('note');
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
         });

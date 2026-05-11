@@ -1,56 +1,43 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
-import { useState } from 'react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface SalesTableProps {
   sales: any[];
   products: any[];
-  onEdit: (sale: any) => void;
-  onDelete: (id: number | string) => void;
 }
 
-export const SalesTable = ({ sales, products, onEdit, onDelete }: SalesTableProps) => {
-  const [deletingId, setDeletingId] = useState<string | number>('');
-
-  const productMap = new Map(products.map((product) => [String(product.id), product.name]));
-
-  const handleDelete = async (id: number | string) => {
-    setDeletingId(id);
-    await onDelete(id);
-    setDeletingId('');
-  };
+export const SalesTable = ({ sales }: SalesTableProps) => {
+  const navigate = useNavigate();
 
   return (
     <div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead>Quantity</TableHead>
-            <TableHead>Unit Price</TableHead>
-            <TableHead>Total</TableHead>
+            <TableHead>No</TableHead>
+            {/* <TableHead>Qty</TableHead> */}
             <TableHead>Status</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Note</TableHead>
+            <TableHead> Amount(UGX)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sales.map((sale) => {
-            const productName = productMap.get(String(sale.product_id ?? sale.product?.id)) || 'Unknown product';
-            const quantity = Number(sale.quantity ?? 0);
-            const unitPrice = Number(sale.unit_price ?? sale.price ?? 0);
-            const total = quantity * unitPrice;
+          {sales.map((sale, i) => {
+            const totalPrice = Number(sale.total_amount ?? sale.total_amount ?? 0);
             return (
-              <TableRow key={sale.id}>
-                <TableCell>{productName}</TableCell>
-                <TableCell>{quantity}</TableCell>
-                <TableCell>KSH {unitPrice.toLocaleString()}</TableCell>
-                <TableCell>KSH {total.toLocaleString()}</TableCell>
+              <TableRow key={sale.id} onClick={() => navigate(`/admin/sales/${sale.id}`)} className='cursor-pointer'>
+                <TableHead>{i + 1}</TableHead>
+                {/* <TableHead>
+                  {sale.sale_items.reduce((acc: number, val: any) => acc + Number(val.quantity), 0)}
+                </TableHead> */}
                 <TableCell>{sale.status ?? 'N/A'}</TableCell>
-                <TableCell>{sale.date ?? sale.created_at ?? '-'}</TableCell>
-                <TableCell className='flex items-center gap-2'>
+                <TableCell>{sale.date ?? format(new Date(sale.created_at), 'PPP') ?? '-'}</TableCell>
+                <TableCell>{sale.note.slice(0, 10)}</TableCell>
+                <TableCell> {totalPrice.toLocaleString()}</TableCell>
+
+                {/* <TableCell className='flex items-center gap-2'>
                   <Button variant='outline' size='sm' onClick={() => onEdit(sale)}>
                     <Edit className='mr-2 h-3.5 w-3.5' />
                     Edit
@@ -58,7 +45,7 @@ export const SalesTable = ({ sales, products, onEdit, onDelete }: SalesTableProp
                   <Button variant='ghost' size='sm' onClick={() => handleDelete(sale.id)}>
                     {deletingId === sale.id ? <Spinner className='h-4 w-4' /> : <Trash2 className='h-3.5 w-3.5' />}
                   </Button>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             );
           })}

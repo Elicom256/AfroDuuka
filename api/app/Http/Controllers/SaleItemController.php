@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSaleItemRequest;
 use App\Http\Requests\UpdateSaleItemRequest;
+use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Services\SaleItemService;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ class SaleItemController extends Controller
      */
     public function index()
     {
-        //
+
     }
 
     /**
@@ -28,12 +29,11 @@ class SaleItemController extends Controller
      */
     public function store(StoreSaleItemRequest $request)
     {
-        dd($request);
         $businessId = Auth::user()->business_id;
         $validated = $request->validated();
         
-        $values = $this->saleItemService->handleSaveSaleItem($validated, $businessId);
-        return response()->json([ 'message' => 'Sale successfully', 'sale' => $values ], 200);
+        $sale = $this->saleItemService->handleSaveSaleItem($validated, $businessId);
+        return response()->json([ 'message' => 'Sale completed successfully', 'sale' => $sale ], 200);
     }
 
     /**

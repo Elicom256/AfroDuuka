@@ -27,6 +27,7 @@ import {
 import { AddBusinessForm } from '../pages/dashboards/admin/components/AddBusinessForm';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { Product } from '../pages/dashboards/admin/components/products/Product';
+import { Sale } from '../pages/dashboards/admin/components/sales/Sale';
 
 export const AppRoutes = () => {
   const { data } = useLoggedinUserQuery();
@@ -48,6 +49,7 @@ export const AppRoutes = () => {
             <Route path='products' element={<AdminProductsPage />} />
             <Route path='product-categories' element={<ProductCategories />} />
             <Route path='sales' element={<AdminSalesPage />} />
+            <Route path='sales/:id' element={<Sale />} />
             <Route path='purchases' element={<AdminPurchasesPage />} />
             <Route path='orders' element={<AdminOrdersPage />} />
             <Route path='inventory' element={<AdminInventoryPage />} />

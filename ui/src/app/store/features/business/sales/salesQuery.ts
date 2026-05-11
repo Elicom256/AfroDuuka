@@ -3,25 +3,32 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const salesQuery = createApi({
   reducerPath: 'salesPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/orders`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/sales`,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
   tagTypes: ['SalesAPI'],
   endpoints: (builder) => ({
-    orders: builder.query<any, void>({
+    sales: builder.query<any, void>({
       query: () => ({
         url: '/',
         method: 'GET',
       }),
       providesTags: ['SalesAPI'],
     }),
-    order: builder.query<any, number>({
+    sale: builder.query<any, string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'GET',
       }),
       providesTags: ['SalesAPI'],
     }),
-    addOrder: builder.mutation<any, any>({
+    addSale: builder.mutation<any, any>({
       query: (body) => ({
         url: '/',
         method: 'POST',
@@ -29,7 +36,7 @@ export const salesQuery = createApi({
       }),
       invalidatesTags: ['SalesAPI'],
     }),
-    updateOrder: builder.mutation<any, { body: any; id: number | string }>({
+    updateSale: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
         url: `/${id}`,
         method: 'PUT',
@@ -37,7 +44,7 @@ export const salesQuery = createApi({
       }),
       invalidatesTags: ['SalesAPI'],
     }),
-    deleteOrder: builder.mutation<any, number | string>({
+    deleteSale: builder.mutation<any, number | string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'DELETE',
@@ -47,5 +54,5 @@ export const salesQuery = createApi({
   }),
 });
 
-export const { useOrdersQuery, useOrderQuery, useAddOrderMutation, useUpdateOrderMutation, useDeleteOrderMutation } =
+export const { useSalesQuery, useSaleQuery, useAddSaleMutation, useUpdateSaleMutation, useDeleteSaleMutation } =
   salesQuery;

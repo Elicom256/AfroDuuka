@@ -19,10 +19,10 @@ interface EditSaleProps {
   onOpenChange: (open: boolean) => void;
   sale: any;
   products: any[];
-  updateOrder: any;
+  updateSale: any;
 }
 
-export const EditSale = ({ open, onOpenChange, sale, products, updateOrder }: EditSaleProps) => {
+export const EditSale = ({ open, onOpenChange, sale, products, updateSale }: EditSaleProps) => {
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
@@ -53,7 +53,7 @@ export const EditSale = ({ open, onOpenChange, sale, products, updateOrder }: Ed
         status: formData.status,
         note: formData.note,
       };
-      const res = await updateOrder({ id: sale.id, body }).unwrap();
+      const res = await updateSale({ id: sale.id, body }).unwrap();
       if (res) {
         toast.success(res.message || 'Sale updated successfully');
         onOpenChange(false);

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,10 +28,9 @@ class StoreSaleItemRequest extends FormRequest
         return [
              'items' => 'required|array|min:1',
              'items.*.product_id' => 'required|exists:products,id',
-             'items.*.sale_id' => 'required|exists:products,id',
              'items.*.quantity' => 'required|integer|min:1',
-             'items.*.price' => 'required|numeric|min:0',
-             'items.*.subtotal' => 'required|numeric|min:0',
+             'items.*.unit_price' => 'required|numeric|min:0',
+             'note' => 'nullable|string|min:1|max:255'
         ];
     }
 }
