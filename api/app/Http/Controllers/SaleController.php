@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSaleRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Sale;
+use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller
 {
@@ -13,7 +14,9 @@ class SaleController extends Controller
      */
     public function index()
     {
-        //
+        $businessId = Auth::user()->business_id;
+        $sales = Sale::with("saleItems")->where("business_id", $businessId)->orderByDesc("created_at")->get();
+        return response()->json(["message" => "All sales fetched", "sales" => $sales]);
     }
 
     /**
@@ -27,9 +30,10 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Sale $sale)
+    public function show(string $sale)
     {
-        //
+        $sale = Sale::find($sale)->load("saleItems");
+        return response()->json(["message" => "Sale Fetched!", "sale" => $sale]);
     }
 
     /**

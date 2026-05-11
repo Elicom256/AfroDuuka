@@ -1,7 +1,6 @@
 import { useAddProductMutation } from '@/app/store/features/business/products/productsQuery';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddProduct } from '../components/products/AddProduct';
-import { AddProductCategory } from '../components/products/AddProductCategory';
 import { ProductTable } from '../components/products/ProductTable';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
