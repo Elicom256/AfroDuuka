@@ -19,7 +19,6 @@ class Purchase extends BaseModel
     {
         return $this->belongsTo(Supplier::class);
     }
-
     public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);

@@ -22,7 +22,7 @@ class PurchaseService
                  "product_id" => $item["product_id"],
                  "quantity" => $item["quantity"],
                  "cost_price" => $item["cost_price"],
-                 "subtotal" => $item["subtotal"]
+                 "subtotal" => $item["cost_price"] * $item["quantity"]
              ]);
             //  increment the product by qty
               Product::where("id", $item["product_id"])
