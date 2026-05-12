@@ -19,8 +19,8 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        $purchases = Purchase::all();
-        return response()->json(["message" => "Added supplier", "supplier" => $purchases]);
+        $purchases = Purchase::with("supplier", "purchaseItems")->orderByDesc("created_at")->get();
+        return response()->json(["message" => "Purchases fetched", "purchases" => $purchases]);
     }
 
     /**
@@ -29,7 +29,6 @@ class PurchaseController extends Controller
     public function store(StorePurchaseRequest $request)
     {
         $validated = $request->validated();
-        // dd($validated);
         $purchase = $this->purchaseService->savePurchase($validated);
         return response()->json(["message" => "Added purchase", "supplier" => $purchase]);
     }
@@ -37,9 +36,10 @@ class PurchaseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Purchase $purchase)
+    public function show(string $purchase)
     {
-        //
+        $product = Purchase::with("supplier", "purchaseItems")->where("id", $purchase) ->orderByDesc("created_at")->first();
+        return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
     }
 
     /**

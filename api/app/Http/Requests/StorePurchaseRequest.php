@@ -32,7 +32,7 @@ class StorePurchaseRequest extends FormRequest
              // Purchase fields
             'business_id' => ['required', 'exists:businesses,id'],
             'supplier_id' => ['required','exists:products,id' ],
-            'total_amount' => ['required', 'numeric', 'min:0'],
+            // 'total_amount' => ['nullable', 'numeric', 'min:0'],
             'status'       =>  ['required', Rule::in(['pending', 'completed', 'cancelled'])],
              'note' => ['nullable', 'string', 'min:1', 'max:255'],
 
@@ -41,7 +41,7 @@ class StorePurchaseRequest extends FormRequest
             'items.*.product_id' => ['required', 'exists:products,id' ],
             'items.*.quantity' => [ 'required', 'integer', 'min:1' ],
             'items.*.cost_price' => [ 'required', 'numeric', 'min:0'],
-            'items.*.subtotal' => [ 'required', 'numeric', 'min:0' ],
+            // 'items.*.subtotal' => [ 'nullable', 'numeric', 'min:0' ],
         ];
     }
     public function messages(): array
