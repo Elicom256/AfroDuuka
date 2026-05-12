@@ -13,7 +13,7 @@ class StoreProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return  ::check();
+        return  Auth::check();
     }
 
      // * Prepare data before validation.

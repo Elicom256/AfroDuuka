@@ -5,15 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
+use App\Services\PurchaseService;
 
 class PurchaseController extends Controller
 {
+    protected $purchaseService;
+    public function __construct(PurchaseService $purchaseService)
+    {
+        $this->purchaseService = $purchaseService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $purchases = Purchase::all();
+        return response()->json(["message" => "Added supplier", "supplier" => $purchases]);
     }
 
     /**
@@ -21,7 +28,10 @@ class PurchaseController extends Controller
      */
     public function store(StorePurchaseRequest $request)
     {
-        //
+        $validated = $request->validated();
+        // dd($validated);
+        $purchase = $this->purchaseService->savePurchase($validated);
+        return response()->json(["message" => "Added purchase", "supplier" => $purchase]);
     }
 
     /**

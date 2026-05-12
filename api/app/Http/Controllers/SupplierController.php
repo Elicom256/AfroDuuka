@@ -13,7 +13,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        //
+        $suppliers = Supplier::all();
+        return response()->json(["message" => "Fetched suppliers", "suppliers" => $suppliers]);
     }
 
     /**
@@ -21,7 +22,9 @@ class SupplierController extends Controller
      */
     public function store(StoreSupplierRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $supplier = Supplier::create($validated);
+        return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
     }
 
     /**

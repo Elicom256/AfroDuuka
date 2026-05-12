@@ -1,0 +1,19 @@
+{
+  "supplier_id": 1,
+  "total_amount": 50000,
+  "purchased_at": "2026-05-12 10:00:00",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 2,
+      "cost_price": 10000,
+      "subtotal": 20000
+    },
+    {
+      "product_id": 2,
+      "quantity": 3,
+      "cost_price": 10000,
+      "subtotal": 30000
+    }
+  ]
+}

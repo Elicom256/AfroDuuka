@@ -29,3 +29,7 @@ Route::prefix("orders")->group(function(){
 Route::prefix("admin")->group(function(){
     require __DIR__.'/admin.php';
 });
+
+Route::prefix("purchases")->group(function(){
+    require __DIR__.'/purchases.php';
+});

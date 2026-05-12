@@ -13,8 +13,8 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId('supplier_id')->constrained()->cascadeOnDelete();
             $table->decimal('total_amount', 12, 2);
-            $table->timestamp('purchased_at');
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->string('note');
             $table->timestamps();
         });
     }

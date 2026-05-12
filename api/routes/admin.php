@@ -3,6 +3,7 @@
 use App\Http\Controllers\BusinessCategoryController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,5 +27,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/workers', [UserController::class, 'store']);
     Route::get('/workers/{user}', [UserController::class, 'show']);
     Route::delete('/workers/{user}', [UserController::class, 'destroy']);
-    Route::patch('/workers/{user}', [UserController::class, 'update']); //to change for updating worker
+    Route::patch('/workers/{user}', [UserController::class, 'update']); 
+
+     // ============== suppliers ===================
+    Route::get('/suppliers', [SupplierController::class, 'index']);
+    Route::post('/suppliers', [SupplierController::class, 'store']);
+    Route::get('/suppliers/{user}', [SupplierController::class, 'show']);
+    Route::delete('/suppliers/{user}', [SupplierController::class, 'destroy']);
+    Route::patch('/suppliers/{user}', [SupplierController::class, 'update']); 
 });
