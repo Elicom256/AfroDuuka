@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->string('name');
-            $table->string('email')->nullable();
+            $table->string('email')->unique()->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
-            $table->boolean('status')->default(true);
+            $table->enum('status', ["active", "suspended"])->default("active");
             $table->timestamps();
             $table->softDeletes();
         });

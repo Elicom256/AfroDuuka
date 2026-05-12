@@ -9,16 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Purchase extends BaseModel
 {
 
-    protected $fillable = [
-        'business_id',
-        'supplier_id',
-        'total_amount',
-        'purchased_at',
-        'status',
-    ];
+    protected $fillable = [ 'business_id', 'supplier_id', 'total_amount', 'status', 'note'];
 
     protected $casts = [
-        'purchased_at' => 'datetime',
         'total_amount' => 'decimal:2',
     ];
 
@@ -27,7 +20,7 @@ class Purchase extends BaseModel
         return $this->belongsTo(Supplier::class);
     }
 
-    public function items(): HasMany
+    public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
     }
