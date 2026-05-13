@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
+use App\Models\BusinessBranch;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -47,8 +48,9 @@ class UserTableSeeder extends Seeder
             ],
         ];
 
+        $branches = BusinessBranch::where("business_id", $business_id)->get();
+foreach ($branches as $branch) {
         foreach ($users as $name => $data) {
-
             // Get role by name + business
             $role = Role::where("business_id", $business_id)
                 ->where("name", $data["role"])
@@ -60,7 +62,8 @@ class UserTableSeeder extends Seeder
 
             $username = strtolower(str_replace(' ', '_', $name));
 
-           $data = User::updateOrCreate(
+            
+                $data = User::updateOrCreate(
                 [
                     "email" => $data["email"],
                 ],
@@ -70,11 +73,13 @@ class UserTableSeeder extends Seeder
                     "password" => Hash::make("password"),
                     "phone" => $data['phone'],
                     "business_id" => $business_id,
+                    "business_branch_id" => $branch->id,
                     "role_id" => $role->id,
 
                 ]
             );
-                   $this->command->info("✅ Seeded " . $name . " Successfully!");
+            }
+           
         }
         if($data){
             $this->command->info("✅ Seeded Users Successfully!");

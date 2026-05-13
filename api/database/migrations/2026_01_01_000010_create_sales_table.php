@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignId("business_branch_id")->constrained()->cascadeOnDelete();
             $table->decimal('total_amount', 12, 2);
             $table->string('note');
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');

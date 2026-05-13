@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId('supplier_id')->constrained()->cascadeOnDelete();
+            $table->foreignId("business_branch_id")->constrained()->cascadeOnDelete();
             $table->decimal('total_amount', 12, 2);
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
             $table->string('note')->nullable();

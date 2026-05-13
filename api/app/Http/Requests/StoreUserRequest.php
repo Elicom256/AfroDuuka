@@ -29,6 +29,7 @@ class StoreUserRequest extends FormRequest
             'username' => 'nullable|string|max:255|unique:users',
             'phone' => 'nullable|string|max:255|unique:users',
             'business_id' => 'nullable|exists:businesses,id',
+            'business_branch_id' => 'nullable|exists:business_branches,id',
             'role_id' => 'nullable|exists:roles,id',
         ];
     }
