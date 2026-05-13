@@ -17,13 +17,7 @@ class StoreCategoryRequest extends FormRequest
     }
 
     // prepare for validation
-    public function prepareForValidation(){
-        $user = Auth::user();
-        $this->merge([
-            "business_id" => $user->business_id,
-            "status" => true
-        ]);
-    }
+    businessServicebusinessService
 
      // * @return array<string, ValidationRule|array<mixed>|string>
 

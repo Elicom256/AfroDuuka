@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->foreignId('business_id')->nullable()->constrained()->cascadeOnDelete()->index();
-            $table->foreignId("role_id")->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('business_id')->nullable()->constrained("businesses")->cascadeOnDelete();
+            $table->foreignId('business_branch_id')->nullable()->constrained("business_branches")->cascadeOnDelete();
+            $table->foreignId("role_id")->nullable()->constrained("roles")->cascadeOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });

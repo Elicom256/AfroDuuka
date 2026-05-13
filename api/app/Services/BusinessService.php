@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Business;
+use App\Models\BusinessBranch;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Request;
@@ -35,7 +36,11 @@ class BusinessService
             'business_id' => $business->id,
             'role_id' => $adminRole->id,
         ]);
+        BusinessBranch::create([
+            "business_id" => $business->id, 
+        ]);
 
         return $business;
     }
+
 }

@@ -9,6 +9,8 @@ use App\Services\BusinessService;
 
 class BusinessController extends Controller
 {
+    protected $businessService;
+
    public function __construct(BusinessService $businessService)
    {
     $this->businessService = $businessService;
@@ -25,11 +27,7 @@ class BusinessController extends Controller
     {
         $user = $request->user();
         
-        $business = $this->businessService->create(
-            $request->validated(),
-            $user
-        );
-
+        $business = $this->businessService->create( $request->validated(), $user);
         return response()->json([
             'message' => 'Business created successfully',
             'business' => $business

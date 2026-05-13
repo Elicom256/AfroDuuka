@@ -9,5 +9,5 @@ class BusinessCategory extends Model
 {
     /** @use HasFactory<\Database\Factories\BusinessCategoryFactory> */
     use HasFactory;
-    protected $fillable = ["name", "description", "status"];
+    protected $fillable = [ "name", "description", "status"];
 }
