@@ -20,7 +20,7 @@ class StoreBusinessBranchRequest extends FormRequest
         $user = Auth::user();
         $this->merge([
             "business_id" => $user->business_id,
-            "status" => true
+            "status" => "active"
         ]);
     }
     public function rules(): array
@@ -29,6 +29,7 @@ class StoreBusinessBranchRequest extends FormRequest
             'business_id' => 'required|exists:businesses,id',
             'name' => 'required|string|min:1|max:255',
             'address' => 'nullable|string|min:1|max:255',
+            'phone' => 'nullable|string|digits_between:10,10',
             'status' => 'required|string|in:active,innactive',
         ];
     }

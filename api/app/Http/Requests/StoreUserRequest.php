@@ -27,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'password' => 'nullable|string|min:6',
             'name' => 'nullable|string|max:255',
             'username' => 'nullable|string|max:255|unique:users',
-            'phone' => 'nullable|string|max:255|unique:users',
+            'phone' => 'nullable|string|digits_between:10,10|unique:users',
             'business_id' => 'nullable|exists:businesses,id',
             'business_branch_id' => 'nullable|exists:business_branches,id',
             'role_id' => 'nullable|exists:roles,id',

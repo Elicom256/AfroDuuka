@@ -22,6 +22,7 @@ class BusinessService
             'name' => $data['name'],
             'email' => $data['email'] ?? $user->email,
             'phone' => $user->phone,
+            'address' => $data['address'],
             'business_category_id' => $data['business_category_id'],
         ]);
 

@@ -19,18 +19,22 @@ class BusinessBranchSeeder extends Seeder
             [
                 'name' => 'Main Branch',
                 'address' => 'Kampala Road, Kampala',
+                "phone" => "0780000000"
             ],
             [
                 'name' => 'Ntinda Branch',
                 'address' => 'Ntinda Trading Center, Kampala',
+                "phone" => "0781000000"
             ],
             [
                 'name' => 'Entebbe Branch',
                 'address' => 'Entebbe Road, Entebbe',
+                "phone" => "0782000000"
             ],
             [
                 'name' => 'Mbarara Branch',
                 'address' => 'High Street, Mbarara',
+                "phone" => "0783000000"
             ],
         ];
 

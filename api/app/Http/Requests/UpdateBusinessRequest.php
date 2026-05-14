@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateBusinessRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class UpdateBusinessRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
     /**
@@ -23,7 +24,12 @@ class UpdateBusinessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|digits_between:10,10',
+            'address' => 'nullable|string|min:1|max:255',
+            'business_category_id' => 'required|exists:business_categories,id',
+            ''
         ];
     }
 }

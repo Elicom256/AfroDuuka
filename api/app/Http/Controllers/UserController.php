@@ -73,7 +73,7 @@ class UserController extends Controller
         ->whereHas('role', function ($q) {
             $q->where('name', '!=', 'admin');
           })
-        ->with(['business', 'role'])
+        ->with(['business', 'role', "businessBranch"])
         ->get();
         return response()->json([
             'message' => 'Users retrieved successfully',
@@ -132,11 +132,12 @@ class UserController extends Controller
     /**
      * Update the specified user in storage
      */
-    public function update(UpdateUserRequest $request)
+    public function update(UpdateUserRequest $request, User $worker)
     {
         try {
             $user = Auth::user();
-            $updated_user = $this->userService->updateUser($user, $request->validated());
+            $validated = $request->validated();
+            $updated_user = $worker->update($validated);
             return response()->json([
                 'message' => 'User updated successfully',
                 'data' => $updated_user,

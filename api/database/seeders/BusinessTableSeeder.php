@@ -17,12 +17,14 @@ class BusinessTableSeeder extends Seeder
     {
         //seed a business
         $business_category_id = BusinessCategory::where("name", "electronics")->value("id");
-       $result = Business::updateOrInsert(
+       $result = Business::updateOrCreate(
             ["email" => "testbusinessone@gmail.com"],
             [
             "business_category_id" => $business_category_id,
             "name" => "Test Whole Sallers",
             "phone" => "+256781234567",
+            "address" => "Kabale-Kisoro Road"
+
         ]);
         if($result){
             $this->command->info("✅ Seeded Business Successfully!");
