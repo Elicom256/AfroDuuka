@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreBusinessRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class StoreBusinessRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     /**
@@ -31,7 +32,7 @@ class StoreBusinessRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            // 'email' => 'required|email|unique:businesses,email',
+            'address' => 'nullable|string|min:1|max:255',
             'business_category_id' => 'required|exists:business_categories,id',
         ];
     }

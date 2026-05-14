@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,27 +11,52 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useRegisterWorkerMutation } from '@/app/store/features/business/workers/workersQuery';
+import { useRegisterWorkerMutation, useUpdateWorkerMutation } from '@/app/store/features/business/workers/workersQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
 type WorkerFormDialogProps = {
   open: boolean;
   roles: any;
+  branches: any[];
+  selectedWorker: any;
+  setDialogOpen: any;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: { name: string; email: string; phone: string; role: string }) => void | Promise<void>;
-  isLoading?: boolean;
+  // onSubmit: (values: { name: string; email: string; phone: string; role: string }) => void | Promise<void>;
+  // isLoading?: boolean;
 };
 
-export const WorkerFormDialog = ({ open, onOpenChange, roles }: WorkerFormDialogProps) => {
+export const WorkerFormDialog = ({
+  selectedWorker,
+  open,
+  onOpenChange,
+  roles,
+  branches,
+  setDialogOpen,
+}: WorkerFormDialogProps) => {
   const [register, { isLoading }] = useRegisterWorkerMutation();
+  const [updateWorker, { isLoading: isUpdating }] = useUpdateWorkerMutation();
+
   const [worker, setWorker] = useState({
     name: '',
     email: '',
     phone: '',
-    role_id: 0,
+    role_id: '',
+    business_branch_id: '',
   });
-  console.log('roles==>', roles);
+  useEffect(() => {
+    if (selectedWorker) {
+      setWorker({
+        name: selectedWorker.name || '',
+        email: selectedWorker.email ?? '',
+        phone: selectedWorker.phone ?? '',
+        role_id: selectedWorker.role_id ?? '',
+        business_branch_id: selectedWorker.business_branch_id ?? '',
+      });
+      // console.log('selectedWorker==>', selectedWorker);
+    }
+  }, [selectedWorker]);
+  console.log('selectedWorker==>', selectedWorker);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -45,13 +70,25 @@ export const WorkerFormDialog = ({ open, onOpenChange, roles }: WorkerFormDialog
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await register(worker).unwrap();
-      if (res) {
-        toast.success(res.message);
-        setWorker({ name: '', email: '', phone: '', role_id: 0 });
+      if (selectedWorker) {
+        const res = await updateWorker({ id: selectedWorker.id, userData: worker }).unwrap();
+        console.log('Update res==>', res);
+        if (res) {
+          toast.success(res.message || 'Worker updated successfully!.');
+          setDialogOpen(false);
+          return;
+        }
+      } else {
+        console.log('Hitting a wrong endpoint');
+        const res = await register(worker).unwrap();
+        if (res) {
+          toast.success(res.message);
+          setWorker({ name: '', email: '', phone: '', role_id: '', business_branch_id: '' });
+          setDialogOpen(false);
+        }
+        console.log('Worker data==>', res);
+        return res;
       }
-      console.log('Worker data==>', res);
-      return res;
     } catch (error) {
       toast.error('Failed to add worker!');
       return console.log('error==>', error);
@@ -125,7 +162,27 @@ export const WorkerFormDialog = ({ open, onOpenChange, roles }: WorkerFormDialog
               ))}
             </select>
           </div>
-
+          {/* branch */}
+          <div className='grid gap-2'>
+            <Label htmlFor='worker-role'>Branch</Label>
+            <select
+              id='branch'
+              name='business_branch_id'
+              value={worker.business_branch_id}
+              onChange={handleInputChange}
+              className='h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10'
+              required
+            >
+              <option value='' disabled>
+                Choose a branch
+              </option>
+              {branches?.map((branch: any) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <DialogFooter>
             <DialogClose asChild>
               <Button type='button' variant='outline'>
@@ -133,7 +190,7 @@ export const WorkerFormDialog = ({ open, onOpenChange, roles }: WorkerFormDialog
               </Button>
             </DialogClose>
             <Button type='submit' disabled={isLoading}>
-              {isLoading ? <LoadingState /> : 'Save changes'}
+              {isLoading || isUpdating ? <LoadingState /> : selectedWorker ? 'Update Worker' : 'Save changes'}
             </Button>
           </DialogFooter>
         </form>

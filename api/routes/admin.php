@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\BusinessCategoryController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\RoleController;
@@ -15,6 +16,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("/business", [BusinessController::class, "store"]);
     Route::patch("/update-business", [BusinessController::class, "store"]);
 
+    // ============ Branches =============
+    Route::get("/branches", [BusinessBranchController::class, "index"]);
+    Route::post("/branches", [BusinessBranchController::class, "store"]);
+    Route::put("/branches/{branch}", [BusinessBranchController::class, "update"]);
+    Route::get("/branches/{branch}", [BusinessBranchController::class, "show"]);
+    Route::delete("/branches/{branch}", [BusinessBranchController::class, "delete"]);
+
     // ============ Roles =============
     Route::get("/roles", [RoleController::class, "index"]);
     Route::post("/roles", [RoleController::class, "store"]);
@@ -25,9 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
      // ============== Worker managed by admin===================
     Route::get('/workers', [UserController::class, 'index']);
     Route::post('/workers', [UserController::class, 'store']);
-    Route::get('/workers/{user}', [UserController::class, 'show']);
-    Route::delete('/workers/{user}', [UserController::class, 'destroy']);
-    Route::patch('/workers/{user}', [UserController::class, 'update']); 
+    Route::get('/workers/{worker}', [UserController::class, 'show']);
+    Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
+    Route::put('/workers/{worker}', [UserController::class, 'update']);
 
      // ============== suppliers ===================
     Route::get('/suppliers', [SupplierController::class, 'index']);

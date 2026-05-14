@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Override;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -12,23 +14,24 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'business_id' => Auth::user()->business_id,
+        ]);
+    }
     public function rules(): array
     {
-        $userId = auth()->id();
         return [
-            'email' => 'nullable|email|unique:users,email,' . $userId,
+            'email' => 'nullable|email',
             'name' => 'nullable|string|max:255',
-            'username' => 'nullable|string|max:255|unique:users,username,' . $userId,
-            'phone' => 'nullable|string|max:255|unique:users,phone,' . $userId,
+            'username' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:255',
             'business_id' => 'nullable|exists:businesses,id',
+            'business_branch_id' => 'nullable|exists:business_branches,id',
             'role_id' => 'nullable|exists:roles,id',
         ];
     }

@@ -32,10 +32,10 @@ export const workersQuery = createApi({
       invalidatesTags: ['WorkersAPI'],
     }),
     // update worker
-    updateWorker: builder.mutation<any, { userData: any; id: number }>({
+    updateWorker: builder.mutation<any, { userData: any; id: string }>({
       query: ({ userData, id }) => ({
         url: `/${id}`,
-        method: 'PATCH',
+        method: 'PUT',
         body: userData,
       }),
       invalidatesTags: ['WorkersAPI'],

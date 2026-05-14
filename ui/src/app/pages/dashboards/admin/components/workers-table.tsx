@@ -31,12 +31,14 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Branch</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {Array.from({ length: 4 }).map((_, index) => (
               <TableRow key={index} className='opacity-80'>
+                <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
                 <TableCell className='h-10 bg-muted/50' />
@@ -70,17 +72,19 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Phone</TableHead>
+            <TableHead>Branch</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {workers &&
-            workers.map((worker:any) => (
+            workers.map((worker: any) => (
               <TableRow key={worker.id}>
                 <TableCell>{worker.name || '—'}</TableCell>
                 <TableCell>{worker.email || '—'}</TableCell>
                 <TableCell>{worker.phone || '—'}</TableCell>
+                <TableCell>{worker.business_branch.name || '—'}</TableCell>
                 <TableCell>{(worker?.role as any)?.name || '—'}</TableCell>
                 <TableCell>
                   <div className='flex flex-wrap gap-2'>

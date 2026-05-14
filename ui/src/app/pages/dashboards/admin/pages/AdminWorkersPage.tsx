@@ -12,16 +12,17 @@ import { Plus } from 'lucide-react';
 import { WorkersTable, type WorkerItem } from '../components/workers-table';
 import { WorkerFormDialog } from '../components/worker-form-dialog';
 import { useRolesQuery } from '@/app/store/features/business/roles/rolesQuery';
+import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 
 export const AdminWorkersPage = () => {
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
-  const [registerWorker, { isLoading: isRegistering }] = useRegisterWorkerMutation();
-  const [updateWorker, { isLoading: isUpdating }] = useUpdateWorkerMutation();
+  const {data:sections} =useBranchesQuery() 
   const [deleteWorker, { isLoading: isDeleting }] = useDeleteWorkerMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<WorkerItem | null>(null);
   const { data: roles } = useRolesQuery();
-  console.log('workers==>', data);
+  const branches = sections?.branches
+  console.log('branches==>', branches);
 
   const openNewWorker = () => {
     setSelectedWorker(null);
@@ -30,24 +31,11 @@ export const AdminWorkersPage = () => {
 
   const openEditWorker = (worker: WorkerItem) => {
     setSelectedWorker(worker);
+    console.log('worker here==>', worker);
     setDialogOpen(true);
   };
   const workers = data?.data;
-  const handleSubmit = async (formValues: { name: string; email: string; phone: string; role: string }) => {
-    try {
-      if (selectedWorker) {
-        await updateWorker({ id: selectedWorker.id, userData: formValues }).unwrap();
-        toast.success('Worker updated successfully.');
-      } else {
-        await registerWorker(formValues).unwrap();
-        toast.success('Worker added successfully.');
-      }
-      setDialogOpen(false);
-      setSelectedWorker(null);
-    } catch (error) {
-      toast.error('Unable to save worker. Please try again.');
-    }
-  };
+ 
 
   const handleDelete = async (worker: WorkerItem) => {
     const confirmed = window.confirm(`Delete ${worker.name ?? 'this worker'}?`);
@@ -105,9 +93,11 @@ export const AdminWorkersPage = () => {
           setDialogOpen(open);
           if (!open) setSelectedWorker(null);
         }}
-        onSubmit={handleSubmit}
-        isLoading={isRegistering || isUpdating}
+        
         roles={roles}
+        branches={branches}
+        selectedWorker={selectedWorker}
+        setDialogOpen={setDialogOpen}
       />
     </div>
   );

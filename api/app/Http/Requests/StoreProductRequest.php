@@ -19,7 +19,6 @@ class StoreProductRequest extends FormRequest
      // * Prepare data before validation.
     protected function prepareForValidation(): void
     {
-
         $this->merge([
             'business_id' => Auth::user()->business_id,
             'status' => "active",

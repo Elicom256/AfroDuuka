@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessBranchRequest;
 use App\Http\Requests\UpdateBusinessBranchRequest;
 use App\Models\BusinessBranch;
+use Illuminate\Support\Facades\Auth;
 
 class BusinessBranchController extends Controller
 {
@@ -13,7 +14,9 @@ class BusinessBranchController extends Controller
      */
     public function index()
     {
-        //
+        $businessId = Auth::user()->business_id;
+        $branches = BusinessBranch::where("business_id", $businessId)->orderBy("id")->get();
+        return response()->json(["message" => "Fetched all business branches", "branches" => $branches]);
     }
 
     /**
@@ -29,7 +32,9 @@ class BusinessBranchController extends Controller
      */
     public function store(StoreBusinessBranchRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $branch = BusinessBranch::create($validated);
+        return response()->json(["message" => "Added a new branch!", "branch" => $branch], 201);
     }
 
     /**

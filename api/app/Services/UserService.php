@@ -36,18 +36,9 @@ class UserService
         ];
     }
 
-    /**
-     * Logout user and revoke all tokens
-     */
-    // public function logout(User $user): bool
-    // {
-    //     // Revoke all tokens for the user
-    //     $user->tokens()->delete();
-    //     return true;
-    // }
 
-    //  * Create a new user account
-     
+
+    //  * Create a new user account (adding worker)
     public function signupUser(array $data)
     {
         $admin = Auth::user();
@@ -55,17 +46,15 @@ class UserService
             return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'username' => "@" . $data['name'] . $admin->business_id,
+            'username' => "@" . $data['name'],
             'phone' => $data['phone'],
             'password' => Hash::make("password"),
             'business_id' => $admin->business_id,
             'role_id' => $data['role_id'],
         ]);
-       
-        
     }
 
-    // create account
+    // create account for admin
     public function createAccount(array $data){
         return User::create([
             'name' => $data['name'],

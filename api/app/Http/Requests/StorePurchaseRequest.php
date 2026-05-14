@@ -23,6 +23,7 @@ class StorePurchaseRequest extends FormRequest
     {
         return $this->merge([
             "business_id" => Auth::user()->business_id,
+            "business_branch_id" => Auth::user()->business_branch_id,
             "status" => "pending"
         ]);
     }
@@ -32,6 +33,7 @@ class StorePurchaseRequest extends FormRequest
              // Purchase fields
             'business_id' => ['required', 'exists:businesses,id'],
             'supplier_id' => ['required','exists:products,id' ],
+            "business_branch_id" => ['required','exists:business_branches,id'],
             // 'total_amount' => ['nullable', 'numeric', 'min:0'],
             'status'       =>  ['required', Rule::in(['pending', 'completed', 'cancelled'])],
              'note' => ['nullable', 'string', 'min:1', 'max:255'],
