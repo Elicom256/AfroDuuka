@@ -9,6 +9,7 @@ import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
 import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
+import { branchesQuery } from '../features/business/branches/branchesQuery';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     [businessQuery.reducerPath]: businessQuery.reducer,
     [rolesQuery.reducerPath]: rolesQuery.reducer,
     [supplierQuery.reducerPath]: supplierQuery.reducer,
+    [branchesQuery.reducerPath]: branchesQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -36,6 +38,7 @@ export const store = configureStore({
       businessQuery.middleware,
       rolesQuery.middleware,
       supplierQuery.middleware,
+      branchesQuery.middleware,
     ),
 });
 

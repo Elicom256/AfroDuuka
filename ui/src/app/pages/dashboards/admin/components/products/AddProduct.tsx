@@ -46,7 +46,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
       toast.success(res.message);
     }
     console.log('Adding product:', res);
-    setOpen(false);
+    (falsesetOpen);
   };
 
   const handleChange = (field: string, value: string) => {

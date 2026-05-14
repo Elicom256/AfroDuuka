@@ -8,7 +8,10 @@ import { Toaster } from '@/components/ui/sonner';
 
 function App() {
   const location = useLocation();
-  const hideFooter = location.pathname.startsWith('/admin');
+  const hideFooter =
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/manager') ||
+    location.pathname.startsWith('/staff');
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });

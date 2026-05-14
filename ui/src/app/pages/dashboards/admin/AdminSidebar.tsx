@@ -48,6 +48,7 @@ const navSections = [
       { label: 'Reports', to: '/admin/reports', icon: TrendingUp },
       { label: 'Finances', to: '/admin/finances', icon: DollarSign },
       { label: 'Suppliers', to: '/admin/suppliers', icon: Truck },
+      { label: 'Branches', to: '/admin/branches', icon: Truck },
     ],
   },
   {

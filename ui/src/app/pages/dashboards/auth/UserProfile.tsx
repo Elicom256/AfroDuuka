@@ -53,19 +53,19 @@ export const UserProfile = ({ data }: any) => {
           <DialogDescription>{data.data.username}</DialogDescription>
         </DialogHeader>
 
-        <div className='space-y-3 text-sm'>
+        <div className='space-y-3 text-sm text-gray-300'>
           <div className='flex items-center gap-2'>
-            <p className='text-muted-foreground'>Name</p>
-            <p className='font-medium'>{data.data.name}</p>
+            {/* <p className='text-muted-foreground'>Name</p> */}
+            {/* <p className='font-medium'>{data.data.name}</p> */}
           </div>
 
           <div className='flex items-center gap-2'>
-            <p className='text-muted-foreground'>Username</p>
-            <p className='font-medium'>{data.data.username}</p>
+            {/* <p className='text-muted-foreground'>Username</p> */}
+            <p className='font-medium'>{data.data.email}</p>
           </div>
 
           <div className='flex items-center gap-2'>
-            <p className='text-muted-foreground'>Phone</p>
+            {/* <p className='text-muted-foreground'>Phone</p> */}
             <p className='font-medium'>{data.data.phone}</p>
           </div>
         </div>
