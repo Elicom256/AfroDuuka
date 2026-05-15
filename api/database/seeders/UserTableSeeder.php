@@ -27,22 +27,22 @@ class UserTableSeeder extends Seeder
         // Define users with role names (clean mapping)
         $users = [
             "Mikel Arteta" => [
-                "email" => "admin@example.com",
+                "email" => "admin@gmail.com",
                 "role" => "admin",
                  "phone" => "0781490833"
             ],
             "Martin Odegaard" => [
-                "email" => "odegaard@example.com",
+                "email" => "odegaard@gmail.com",
                 "role" => "manager",
                 "phone" => "0781490811"
             ],
             "Bukayo Saka" => [
-                "email" => "saka@example.com",
+                "email" => "saka@gmail.com",
                 "role" => "editor",
                 "phone" => "0781490800"
             ],
             "Declan Rice" => [
-                "email" => "rice@example.com",
+                "email" => "rice@gmail.com",
                 "role" => "staff",
                 "phone" => "0781490822"
             ],

@@ -17,12 +17,7 @@ class Product extends BaseModel
         'name',
         'sku',
         'barcode',
-        'price',
-        'cost_price',
-        'quantity',
-        'reorder_level',
         'status',
-        'description',
     ];
 
     protected $casts = [

@@ -37,7 +37,7 @@ export const Login: React.FC = () => {
       toast.success(res.message);
       localStorage.setItem("token", token);
 
-      // return (window.location.href = '/');
+      return (window.location.href = '/');
     } catch (error) {
       console.error("Login failed:", error);
     }

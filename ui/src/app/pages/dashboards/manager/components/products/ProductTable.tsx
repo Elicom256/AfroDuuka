@@ -7,6 +7,8 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
+import { usePurchasesQuery } from '@/app/store/features/business/purchases/purchasesQuery';
+import { TestProd } from './TestProd';
 
 interface Product {
   id: string;
@@ -27,6 +29,8 @@ export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
+  const { data } = usePurchasesQuery();
+  // console.log('products available==>', data);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -54,7 +58,8 @@ export const ProductTable = () => {
   };
   return (
     <div>
-      <Table>
+      <TestProd/>
+      {/* <Table>
         <TableHeader>
           <TableRow>
             {tableHeaders.map((header) => (
@@ -93,7 +98,7 @@ export const ProductTable = () => {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table> */}
       <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
