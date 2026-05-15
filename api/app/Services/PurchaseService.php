@@ -13,6 +13,7 @@ class PurchaseService
         $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
         $purchase = Purchase::create([
             "supplier_id" => $validated["supplier_id"],
+            "business_branch_id" => $validated["business_branch_id"],
             "total_amount" => $total_amount,
             "note" => $validated["note"] ?? null
         ]);

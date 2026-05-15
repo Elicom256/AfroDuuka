@@ -20,7 +20,7 @@ export const ManagerPurchasesPage = () => {
   const [updatePurchase] = useUpdatePurchaseMutation();
   const [editPurchase, setEditPurchase] = useState<any>(null);
   const suppliers = sup?.suppliers || [];
-  console.log('purchases==>', data);
+  
   if (isLoading || loadNewPurchase) return <PageLoadingState />;
 
   const purchases = data?.purchases ?? data ?? [];

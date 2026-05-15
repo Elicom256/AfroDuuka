@@ -11,19 +11,14 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('sku');
             $table->string('barcode')->nullable()->index();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->decimal('price', 12, 2);
-            $table->decimal('cost_price', 12, 2);
-            $table->integer('quantity')->default(0);
-            $table->integer('reorder_level')->default(0);
-            $table->enum('status', ["active", "innactive"])->default("active");
-            $table->text('description')->nullable();
+            
+            $table->enum('status', ["active", "inactive", "discontinued"])->default("active");
             $table->timestamps();
             $table->softDeletes();
-
             $table->unique(['business_id', 'sku']);
         });
     }

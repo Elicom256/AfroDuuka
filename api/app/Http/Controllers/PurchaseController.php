@@ -22,8 +22,12 @@ class PurchaseController extends Controller
     {
         $user = Auth::user();
         if($user->role !== "admin"){
-            $purchases = Purchase::with("supplier", "purchaseItems")
+            $purchases = Purchase::with("supplier", "purchaseItems.product")
                         ->where("business_branch_id", $user->business_branch_id)
+                        // ->whereHas("purchaseItems", function ($q) {
+                        //     $q->with("product");
+                        //     // ->get();
+                        // })
                         ->orderByDesc("created_at")
                         ->get();
         }else{

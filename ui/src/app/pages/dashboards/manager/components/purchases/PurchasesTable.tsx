@@ -9,6 +9,7 @@ interface PurchasesTableProps {
 
 export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
   const navigate = useNavigate();
+  console.log('purchases==>', purchases);
 
   return (
     <div>

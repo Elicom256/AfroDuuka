@@ -1,21 +1,21 @@
-import { useAddProductMutation } from '@/app/store/features/business/products/productsQuery';
+// import { useAddProductMutation } from '@/app/store/features/business/products/productsQuery';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddProduct } from '../components/products/AddProduct';
+// import { AddProduct } from '../components/products/AddProduct';
 import { ProductTable } from '../components/products/ProductTable';
-import { PageLoadingState } from '@/utils/PageLoadingState';
+// import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 
 export const ManagerProductsPage = () => {
-  const [addProduct, { isLoading }] = useAddProductMutation();
+  // const [addProduct, { isLoading }] = useAddProductMutation();
 
-  if (isLoading) return <PageLoadingState />;
+  // if (isLoading) return <PageLoadingState />;
   return (
     <Card className='rounded-3xl border border-border/70 bg-card p-6'>
       <CardHeader>
         <CardTitle>Products</CardTitle>
         <CardDescription>Manage your products here.</CardDescription>
         <div className='flex gap-2'>
-          <AddProduct addProduct={addProduct} />
+          {/* <AddProduct addProduct={addProduct} /> */}
         </div>
       </CardHeader>
       <CardContent>
