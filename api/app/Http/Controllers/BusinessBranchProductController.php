@@ -24,7 +24,7 @@ class BusinessBranchProductController extends Controller
     public function store(StoreBusinessBranchProductRequest $request)
     {
         $validated = $request->validated();
-        dd($validated);
+        // dd($validated);
         $product = BusinessBranchProduct::create($validated);
         return response()->json(["message" => "Product Created Successfully!", "product" => $product], 201);
     }
