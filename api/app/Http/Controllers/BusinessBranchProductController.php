@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessBranchProductRequest;
 use App\Http\Requests\UpdateBusinessBranchProductRequest;
 use App\Models\BusinessBranchProduct;
+use Illuminate\Support\Facades\Auth;
 
 class BusinessBranchProductController extends Controller
 {
@@ -13,23 +14,19 @@ class BusinessBranchProductController extends Controller
      */
     public function index()
     {
-        //
+        $branchId = Auth::user()->business_branch_id;
+        $products = BusinessBranchProduct::where("business_branch_id", $branchId)->get();
+        return response()->json(["message" => "Products fetched", "products" => $products], 200);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreBusinessBranchProductRequest $request)
     {
-        //
+        $validated = $request->validated();
+        dd($validated);
+        $product = BusinessBranchProduct::create($validated);
+        return response()->json(["message" => "Product Created Successfully!", "product" => $product], 201);
     }
 
     /**
