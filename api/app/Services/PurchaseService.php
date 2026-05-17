@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BusinessBranchProduct;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
@@ -20,13 +21,13 @@ class PurchaseService
         foreach ($validated["items"] as $item) {
              PurchaseItem::create([
                 "purchase_id" => $purchase->id,
-                 "product_id" => $item["product_id"],
+                 "business_branch_product_id" => $item["business_branch_product_id"],
                  "quantity" => $item["quantity"],
                  "cost_price" => $item["cost_price"],
                  "subtotal" => $item["cost_price"] * $item["quantity"]
              ]);
             //  increment the product by qty
-              Product::where("id", $item["product_id"])
+              BusinessBranchProduct::where("id", $item["business_branch_product_id"])
                      ->increment("quantity", $item["quantity"]);
         }
        

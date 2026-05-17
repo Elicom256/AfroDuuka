@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateBusinessBranchProductRequest extends FormRequest
 {
@@ -12,18 +13,30 @@ class UpdateBusinessBranchProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    public function prepareForValidation(): void
+    {
+        $user = Auth::user();
+
+        $this->merge([
+            'business_branch_id' => $user?->business_branch_id,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            //
+            'business_branch_id' => ['required', 'exists:business_branches,id'],
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:0'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'reorder_level' => ['nullable', 'integer', 'min:0'],
+            'name' => ['nullable', 'string', 'max:1000'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'status' => ['nullable', 'in:active,inactive,damaged,out_of_stock'],
         ];
     }
 }

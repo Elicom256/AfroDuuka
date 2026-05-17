@@ -24,7 +24,6 @@ class BusinessBranchProductController extends Controller
     public function store(StoreBusinessBranchProductRequest $request)
     {
         $validated = $request->validated();
-        // dd($validated);
         $product = BusinessBranchProduct::create($validated);
         return response()->json(["message" => "Product Created Successfully!", "product" => $product], 201);
     }
@@ -34,15 +33,8 @@ class BusinessBranchProductController extends Controller
      */
     public function show(BusinessBranchProduct $businessBranchProduct)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BusinessBranchProduct $businessBranchProduct)
-    {
-        //
+        // dd($businessBranchProduct);
+        return response()->json(["message" => "Product Fetched Successfully!", "product" => $businessBranchProduct], 200);
     }
 
     /**
@@ -50,7 +42,9 @@ class BusinessBranchProductController extends Controller
      */
     public function update(UpdateBusinessBranchProductRequest $request, BusinessBranchProduct $businessBranchProduct)
     {
-        //
+        $validated = $request->validated();
+        $businessBranchProduct->update($validated);
+        return response()->json(["message" => "Product Updated Successfully!", "product" => $businessBranchProduct], 201);
     }
 
     /**
@@ -58,6 +52,8 @@ class BusinessBranchProductController extends Controller
      */
     public function destroy(BusinessBranchProduct $businessBranchProduct)
     {
-        //
+        $businessBranchProduct->delete();
+        return response()->json(["message" => "Product Deleted Successfully!", "product" => $businessBranchProduct], 201);
+
     }
 }

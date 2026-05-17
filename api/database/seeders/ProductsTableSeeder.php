@@ -18,7 +18,7 @@ class ProductsTableSeeder extends Seeder
 
     $products = [
         [
-            'name' => 'Wireless Mouse',
+            'name' => 'Mouse',
             'sku' => 'WM-1001',
             'barcode' => '890100000001',
             'status' => 'active',
@@ -30,7 +30,7 @@ class ProductsTableSeeder extends Seeder
             'status' => 'active',
         ],
         [
-            'name' => 'USB-C Charger',
+            'name' => 'USB',
             'sku' => 'UC-1003',
             'barcode' => '890100000003',
             'status' => 'active',

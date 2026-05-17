@@ -41,6 +41,7 @@ class StoreBusinessBranchProductRequest extends FormRequest
             'cost_price' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
             'reorder_level' => ['nullable', 'integer', 'min:0'],
+            'name' => ['nullable', 'string', 'min:1', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['in:active,inactive,damaged,out_of_stock'],
         ];

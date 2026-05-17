@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Purchase extends BaseModel
+class Purchase extends Model
 {
 
-    protected $fillable = [ 'business_id', 'supplier_id', 'total_amount', 'status', 'note', 'business_branch_id'];
+    protected $fillable = [ 'business_branch_id', 'supplier_id', 'total_amount', 'status', 'note'];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
@@ -22,5 +22,9 @@ class Purchase extends BaseModel
     public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+     public function businessBranch(): BelongsTo
+    {
+        return $this->belongsTo(BusinessBranch::class);
     }
 }

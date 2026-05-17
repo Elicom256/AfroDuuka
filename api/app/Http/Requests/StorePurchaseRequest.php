@@ -22,7 +22,6 @@ class StorePurchaseRequest extends FormRequest
     public function prepareForValidation()
     {
         return $this->merge([
-            "business_id" => Auth::user()->business_id,
             "business_branch_id" => Auth::user()->business_branch_id,
             "status" => "pending"
         ]);
@@ -31,7 +30,6 @@ class StorePurchaseRequest extends FormRequest
     {
         return [
              // Purchase fields
-            'business_id' => ['required', 'exists:businesses,id'],
             'supplier_id' => ['required','exists:products,id' ],
             "business_branch_id" => ['required','exists:business_branches,id'],
             // 'total_amount' => ['nullable', 'numeric', 'min:0'],
@@ -40,7 +38,7 @@ class StorePurchaseRequest extends FormRequest
 
              // Purchase items
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'exists:products,id' ],
+            'items.*.business_branch_product_id' => ['required', 'exists:business_branch_products,id' ],
             'items.*.quantity' => [ 'required', 'integer', 'min:1' ],
             'items.*.cost_price' => [ 'required', 'numeric', 'min:0'],
             // 'items.*.subtotal' => [ 'nullable', 'numeric', 'min:0' ],

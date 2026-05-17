@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class BusinessBranchProduct extends Model
 {
@@ -20,4 +21,9 @@ class BusinessBranchProduct extends Model
         'description',
         'status',
     ];
+
+     public function saleItems(): BelongsToMany
+    {
+        return $this->belongsToMany(SaleItem::class);
+    }
 }
