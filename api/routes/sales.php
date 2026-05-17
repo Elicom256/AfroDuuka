@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 // Protected user routes
 Route::middleware('auth:sanctum')->group(function () {
+    // Route::apiResource("", SaleController::class);
+    // Route::apiResource("item", SaleItemController::class);
     Route::get("/", [SaleController::class, "index"]);
-    Route::post('/', [SaleItemController::class, 'store']);
-    Route::get('/{sale}', [SaleController::class, 'show']);
-    Route::put('/{sale}', [SaleController::class, 'update']);
-    Route::delete('/{sale}', [SaleController::class, 'destroy']);
+    Route::post('/', [SaleController::class, 'store']);
+    // Route::get('/{sale}', [SaleController::class, 'show']);
+    // Route::put('/{sale}', [SaleController::class, 'update']);
+    // Route::delete('/{sale}', [SaleController::class, 'destroy']);
 });

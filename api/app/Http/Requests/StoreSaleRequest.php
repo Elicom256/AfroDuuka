@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreSaleRequest extends FormRequest
 {
@@ -12,18 +13,30 @@ class StoreSaleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+   // * Prepare data before validation.
+    protected function prepareForValidation(): void
+    {
+
+        $this->merge([
+            'business_branch_id' => Auth::user()->business_branch_id,
+            'status' => "pending"
+        ]);
+    }
     public function rules(): array
     {
         return [
-            //
+            'business_branch_id' => 'required|exists:business_branches,id',
+            'total_amount' => 'nullable|numeric',
+            'status' => 'required|string|in:pending,completed,cancelled',
+            'note' => 'nullable|string|min:1|max:255',
+             'items' => 'required|array|min:1',
+             'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
+             'items.*.quantity' => 'required|integer|min:1',
+             'items.*.unit_price' => 'required|numeric|min:0',
+             'note' => 'nullable|string|min:1|max:255'
         ];
     }
 }

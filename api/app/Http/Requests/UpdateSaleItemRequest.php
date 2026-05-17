@@ -13,12 +13,13 @@ class UpdateSaleItemRequest extends FormRequest
     {
 
         $this->merge([
-            'business_id' => Auth::user()->business_id,
+            'business_branch_id' => Auth::user()->business_branch_id,
         ]);
     }
     public function rules(): array
     {
         return [
+            'business_branch_id' => 'required|exists:business_branches,id',
              'items' => 'required|array|min:1',
              'items.*.product_id' => 'required|exists:products,id',
              'items.*.sale_id' => 'required|exists:products,id',

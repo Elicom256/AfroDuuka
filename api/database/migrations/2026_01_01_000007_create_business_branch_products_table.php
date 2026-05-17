@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('cost_price', 12, 2)->default(0);
             $table->decimal('price', 12, 2)->default(0);
             $table->integer('reorder_level')->default(0);
+            $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->enum('status', ["active", "inactive", "damaged", "out_of_stock", "discontinued"])->default("active");
 
