@@ -75,7 +75,8 @@ foreach ($branches as $branch) {
                     "business_id" => $business_id,
                     "business_branch_id" => $branch->id,
                     "role_id" => $role->id,
-
+                    "status" => "active",
+                    "branch_powers" => "none"
                 ]
             );
             }

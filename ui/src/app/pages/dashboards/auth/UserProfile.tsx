@@ -61,7 +61,7 @@ export const UserProfile = ({ data }: any) => {
 
           <div className='flex items-center gap-2'>
             {/* <p className='text-muted-foreground'>Username</p> */}
-            <p className='font-medium'>{data.data.email}</p>
+            <p className='font-medium text-lg '>{data.data.email}</p>
           </div>
 
           <div className='flex items-center gap-2'>
