@@ -22,16 +22,17 @@ class PurchaseController extends Controller
     {
         $user = Auth::user();
         if($user->role !== "admin"){
-            $purchases = Purchase::with("supplier", "purchaseItems.product")
+            $purchases = Purchase::with("supplier", "purchaseItems")
                         ->where("business_branch_id", $user->business_branch_id)
-                        // ->whereHas("purchaseItems", function ($q) {
-                        //     $q->with("product");
-                        //     // ->get();
-                        // })
                         ->orderByDesc("created_at")
                         ->get();
         }else{
-            $purchases = Purchase::with("supplier", "purchaseItems")->orderByDesc("created_at")->get();
+            $purchases = Purchase::with("supplier", "purchaseItems", "businessBranch")
+                         ->where("businessBranch", function($q) use($user){
+                             $q->where("business_id", $user->business_id);
+                         })
+                         ->orderByDesc("created_at")
+                         ->get();
         }
 
         return response()->json(["message" => "Purchases fetched", "purchases" => $purchases]);

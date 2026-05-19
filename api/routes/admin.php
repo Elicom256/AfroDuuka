@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put("/branches/{branch}", [BusinessBranchController::class, "update"]);
     Route::get("/branches/{branch}", [BusinessBranchController::class, "show"]);
     Route::delete("/branches/{branch}", [BusinessBranchController::class, "delete"]);
+    Route::get("/branches/branch/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
 
     // ============ Roles =============
     Route::get("/roles", [RoleController::class, "index"]);

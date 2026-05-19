@@ -2,14 +2,15 @@ import { configureStore } from '@reduxjs/toolkit';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
 import { productsQuery } from '../features/business/products/productsQuery';
-import { salesQuery } from '../features/business/sales/salesQuery';
-import { purchasesQuery } from '../features/business/purchases/purchasesQuery';
+import { salesQuery } from '../features/branch/sales/salesQuery';
+import { purchasesQuery } from '../features/branch/purchases/purchasesQuery';
 import { customersQuery } from '../features/business/customers/customersQuery';
 import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
 import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
 import { branchesQuery } from '../features/business/branches/branchesQuery';
+import { bsbranchProductsQuery } from '../features/branch/products/branchProductsQuery';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     [rolesQuery.reducerPath]: rolesQuery.reducer,
     [supplierQuery.reducerPath]: supplierQuery.reducer,
     [branchesQuery.reducerPath]: branchesQuery.reducer,
+    [bsbranchProductsQuery.reducerPath]: bsbranchProductsQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -39,6 +41,7 @@ export const store = configureStore({
       rolesQuery.middleware,
       supplierQuery.middleware,
       branchesQuery.middleware,
+      bsbranchProductsQuery.middleware,
     ),
 });
 

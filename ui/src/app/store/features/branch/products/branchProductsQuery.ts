@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-export const branchProductsQuery = createApi({
-  reducerPath: 'productsPath',
+export const bsbranchProductsQuery = createApi({
+  reducerPath: 'branchProductsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/products`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/products/business-branch-products`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -13,31 +13,26 @@ export const branchProductsQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['ProductsAPI'],
+  tagTypes: ['BranchProductsAPI'],
   endpoints: (builder) => ({
     // get products
     branchProducts: builder.query<any, void>({
       query: () => ({
-        url: '/business-products',
+        url: '/',
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: ['BranchProductsAPI'],
     }),
     // get one product by id
     branchProduct: builder.query<any, string>({
       query: (id) => ({
-        url: `/business-products/${id}`,
+        url: `/${id}`,
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: ['BranchProductsAPI'],
     }),
-  
-   
    
   }),
 });
 
-export const {
-  useBranchProductsQuery,
-  useBranchProductQuery,
-} = branchProductsQuery;
+export const { useBranchProductsQuery, useBranchProductQuery } = bsbranchProductsQuery;

@@ -19,8 +19,20 @@ class SaleController extends Controller
     
     public function index()
     {
-        $businessId = Auth::user()->business_id;
-        $sales = Sale::with("saleItems")->where("business_id", $businessId)->orderByDesc("created_at")->get();
+        $user = Auth::user();
+        if($user->role !== "admin"){
+            $sales = Sale::with("saleItems", "businessBranch")
+                     ->where("business_branch_id", $user->business_branch_id)
+                     ->orderByDesc("created_at")->get();
+        }else{
+            $sales = Sale::with("saleItems", "businessBranch")
+                     ->where("businessBranch", function($q) use($user){
+                             $q->where("business_id", $user->business_id);
+                         })
+                     ->orderByDesc("created_at")
+                     ->get();
+        }
+
         return response()->json(["message" => "All sales fetched", "sales" => $sales]);
     }
 
@@ -34,7 +46,7 @@ class SaleController extends Controller
         $validated = $request->validated();
         // dd($validated);
         $sale = $this->saleItemService->handleSaveSaleItem($validated, $business_branch_id);
-        return response()->json([ 'message' => 'Sale completed successfully', 'sale' => $sale ], 200);
+        return response()->json([ 'message' => 'Sale completed successfully!', 'sale' => $sale ], 200);
     }
 
     /**

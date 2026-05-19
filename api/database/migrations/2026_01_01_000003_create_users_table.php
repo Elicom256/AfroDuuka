@@ -14,8 +14,11 @@ return new class extends Migration
             $table->string("username")->nullable();
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->string("nin")->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum("status", ["active", "suspended", "sucked"])->default("active");
+            $table->enum("branch_powers", ["allowed", "none"])->default("none");
             $table->foreignId('business_id')->nullable()->constrained("businesses")->cascadeOnDelete();
             $table->foreignId('business_branch_id')->nullable()->constrained("business_branches")->cascadeOnDelete();
             $table->foreignId("role_id")->nullable()->constrained("roles")->cascadeOnDelete();

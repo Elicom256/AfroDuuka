@@ -28,7 +28,6 @@ class SaleItemService
             'unit_price' => $item['unit_price'],
             'subtotal' => $item['quantity'] * $item['unit_price'],
         ]);
-
         // decrement product stock
         BusinessBranchProduct::where('id', $item['business_branch_product_id'])
             ->decrement('quantity', $item['quantity']);

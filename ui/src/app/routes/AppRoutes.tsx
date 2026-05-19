@@ -13,7 +13,7 @@ export const AppRoutes = () => {
   const { data } = useLoggedinUserQuery();
 
   const role = data?.data.role.name;
-  console.log('Roles==>', data?.data);
+  // console.log('Roles==>', data?.data);
   return (
     <div>
       <Routes>

@@ -1,4 +1,4 @@
-import { usePurchasesQuery } from '@/app/store/features/business/purchases/purchasesQuery';
+import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import React, { useEffect } from 'react';
 
 export const TestProd: React.FC = () => {
@@ -43,5 +43,9 @@ export const TestProd: React.FC = () => {
     }
   }, [sales]);
   //   console.log('products available==>', sales);
-  return <div>{sales && sales.map((sale) => sale.purchase_items.map((item) => <p>{item.product.name}</p>))}</div>;
+  return (
+    <div className=''>
+      <div className=''></div>
+    </div>
+  );
 };

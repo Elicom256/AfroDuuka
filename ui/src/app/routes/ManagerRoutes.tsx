@@ -7,6 +7,8 @@ import { ManagerProductsPage } from '../pages/dashboards/manager/pages/ManagerPr
 import { ManagerInventoryPage } from '../pages/dashboards/manager/pages/ManagerInventoryPage';
 import { ManagerAnalyticsPage } from '../pages/dashboards/manager/pages/ManagerAnalyticsPage';
 import { NotFound } from './NotFound';
+import { Product } from '../pages/dashboards/manager/components/products/Product';
+import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 
 export const ManagerRoutes = () => {
   return (
@@ -16,8 +18,11 @@ export const ManagerRoutes = () => {
         <Route path='sales' element={<ManagerSalesPage />} />
         <Route path='purchases' element={<ManagerPurchasesPage />} />
         <Route path='products' element={<ManagerProductsPage />} />
+        <Route path='products/:id' element={<Product />} />
+        <Route path='purchases/:id' element={<Purchase />} />
+        <Route path='sales/:id' element={<Purchase />} />
         <Route path='inventory' element={<ManagerInventoryPage />} />
-        <Route path='analytics' element={<ManagerAnalyticsPage />} /> 
+        <Route path='analytics' element={<ManagerAnalyticsPage />} />
       </Route>
       {/* unmatched */}
       <Route path='*' element={<NotFound />} />

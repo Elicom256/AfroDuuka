@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessBranchRequest;
 use App\Http\Requests\UpdateBusinessBranchRequest;
 use App\Models\BusinessBranch;
+use App\Models\Purchase;
+use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessBranchController extends Controller
@@ -22,9 +24,16 @@ class BusinessBranchController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function salesAndPurchases()
     {
-        //
+        $business_branch_id = Auth::user()->business_branch_id;
+        $totalSales = Sale::where("business_branch_id", $business_branch_id)->sum("total_amount");
+        $totalPurchases = Purchase::where("business_branch_id", $business_branch_id)->sum("total_amount");
+        return response()->json([
+            "message" => "Fetched new changes",
+            "totalSales" => $totalSales,
+            "totalPurchases" => $totalPurchases
+        ]);
     }
 
     /**
