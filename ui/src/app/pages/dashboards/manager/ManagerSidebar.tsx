@@ -6,6 +6,14 @@ import {
   DollarSign,
   BarChart3,
   PackageCheck,
+  Users,
+  Users2,
+  TrendingUp,
+  Gift,
+  CalendarCheck,
+  History,
+  Bell,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -23,12 +31,27 @@ const navSections = [
       { label: 'Sales', to: '/manager/sales', icon: DollarSign },
       { label: 'Purchases', to: '/manager/purchases', icon: Truck },
       { label: 'Inventory', to: '/manager/inventory', icon: AlertTriangle },
+      { label: 'Workers', to: '/manager/workers', icon: Users },
+      { label: 'Customers', to: '/manager/customers', icon: Users2 },
+      { label: 'Suppliers', to: '/manager/suppliers', icon: Truck },
     ],
   },
   {
     title: 'Performance',
     items: [
       { label: 'Analytics', to: '/manager/analytics', icon: BarChart3 },
+      { label: 'Reports', to: '/manager/reports', icon: TrendingUp },
+      { label: 'Finances', to: '/manager/finances', icon: DollarSign },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { label: 'Notifications', to: '/manager/notifications', icon: Bell },
+      { label: 'Messages', to: '/manager/messages', icon: MessageSquare },
+      { label: 'Promotions', to: '/manager/promotions', icon: Gift },
+      { label: 'Attendance', to: '/manager/attendance', icon: CalendarCheck },
+      { label: 'History', to: '/manager/history', icon: History },
     ],
   },
 ];
@@ -39,6 +62,7 @@ type ManagerSidebarProps = {
 
 export const ManagerSidebar = ({ onNavigate }: ManagerSidebarProps) => {
   const { data } = useLoggedinUserQuery();
+  // console.log('user curr==>', data);
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -64,9 +88,7 @@ export const ManagerSidebar = ({ onNavigate }: ManagerSidebarProps) => {
                     className={({ isActive }) =>
                       cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
-                        isActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground'
+                        isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground',
                       )
                     }
                   >
@@ -84,9 +106,7 @@ export const ManagerSidebar = ({ onNavigate }: ManagerSidebarProps) => {
         )}
       </div>
 
-      <div className='border-t border-border p-4'>
-        {data && <UserProfile data={data} />}
-      </div>
+      <div className='border-t border-border p-4'>{data && <UserProfile data={data} />}</div>
     </nav>
   );
 };

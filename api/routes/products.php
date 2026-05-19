@@ -1,14 +1,18 @@
 <?php
 
+use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\BusinessBranchProductController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
+    // ======== CRUD ============
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('business-products', ProductController::class);
     Route::apiResource('business-branch-products', BusinessBranchProductController::class);
+    //  ============ others ============
+    Route::get("/business-branch-products/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
 });
 
 // Protected user routes

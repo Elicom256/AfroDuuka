@@ -7,8 +7,9 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
-import { usePurchasesQuery } from '@/app/store/features/business/purchases/purchasesQuery';
+import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { TestProd } from './TestProd';
+import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 interface Product {
   id: string;
@@ -23,14 +24,19 @@ interface Product {
   status: string;
   description: string;
   category: string;
+  product: {
+    name: string;
+    sku: string;
+  };
 }
 
 export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
+  const { data: branchProds } = useBranchProductsQuery();
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
   const { data } = usePurchasesQuery();
-  // console.log('products available==>', data);
+  console.log('branchProds available==>', branchProds);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -39,9 +45,9 @@ export const ProductTable = () => {
 
   const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedProducts = branchProds?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['No', 'CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
+  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
     setProdId(id);
     try {
@@ -58,8 +64,8 @@ export const ProductTable = () => {
   };
   return (
     <div>
-      <TestProd/>
-      {/* <Table>
+      {/* <TestProd /> */}
+      <Table>
         <TableHeader>
           <TableRow>
             {tableHeaders.map((header) => (
@@ -71,9 +77,9 @@ export const ProductTable = () => {
           {paginatedProducts?.map((product: Product, i: number) => (
             <TableRow key={product.id}>
               <TableCell>{i + 1}</TableCell>
-              <TableCell>{product.category_id}</TableCell>
+              {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
-              <TableCell>{product.sku}</TableCell>
+              <TableCell>{product.product.sku}</TableCell>
               <TableCell>{Number(product.price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
               <TableCell>{product.quantity}</TableCell>
@@ -98,7 +104,7 @@ export const ProductTable = () => {
             </TableRow>
           ))}
         </TableBody>
-      </Table> */}
+      </Table>
       <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );

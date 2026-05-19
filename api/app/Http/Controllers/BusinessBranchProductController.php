@@ -15,7 +15,7 @@ class BusinessBranchProductController extends Controller
     public function index()
     {
         $branchId = Auth::user()->business_branch_id;
-        $products = BusinessBranchProduct::where("business_branch_id", $branchId)->get();
+        $products = BusinessBranchProduct::where("business_branch_id", $branchId)->with("product")->get();
         return response()->json(["message" => "Products fetched", "products" => $products], 200);
     }
     /**
@@ -31,10 +31,15 @@ class BusinessBranchProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BusinessBranchProduct $businessBranchProduct)
+    public function show(string $businessBranchProduct)
     {
+        $branchId = Auth::user()->business_branch_id;
+        $product = BusinessBranchProduct::where("id", $businessBranchProduct)
+                   ->where("business_branch_id", $branchId)
+                   ->with("product")->first();
         // dd($businessBranchProduct);
-        return response()->json(["message" => "Product Fetched Successfully!", "product" => $businessBranchProduct], 200);
+
+        return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);
     }
 
     /**

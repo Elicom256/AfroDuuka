@@ -51,6 +51,14 @@ export const branchesQuery = createApi({
       }),
       invalidatesTags: ['BranchesAPI'],
     }),
+    // dynamics
+    branchDynamics: builder.query<any, void>({
+      query: () => ({
+        url: `/branch/dynamics`,
+        method: 'GET',
+      }),
+      providesTags: ['BranchesAPI'],
+    }),
   }),
 });
 
@@ -60,4 +68,5 @@ export const {
   useAddBranchMutation,
   useUpdateBranchMutation,
   useDeleteBranchMutation,
+  useBranchDynamicsQuery,
 } = branchesQuery;

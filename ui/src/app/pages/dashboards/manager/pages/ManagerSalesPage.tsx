@@ -1,24 +1,21 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  useAddSaleMutation,
-  useSalesQuery,
-  useUpdateSaleMutation,
-} from '@/app/store/features/business/sales/salesQuery';
+import { useAddSaleMutation, useSalesQuery, useUpdateSaleMutation } from '@/app/store/features/branch/sales/salesQuery';
 import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
+import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 export const ManagerSalesPage = () => {
   const { data, isLoading } = useSalesQuery();
-  const { data: productData } = useProductsQuery();
+  const { data: productData } = useBranchProductsQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
   if (isLoading) return <PageLoadingState />;
-
+  console.log('productData==>', productData);
   const sales = data?.sales ?? data ?? [];
   const products = productData?.products ?? [];
   const totalSalesAmount = sales.reduce((sum: number, sale: any) => {
