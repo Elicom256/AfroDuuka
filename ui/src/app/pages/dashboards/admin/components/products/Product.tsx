@@ -1,4 +1,4 @@
-import { useProductQuery, useUpdateProductMutation } from '@/app/store/features/business/products/productsQuery';
+import { useProductQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -11,7 +11,6 @@ import { ArrowLeftCircle } from 'lucide-react';
 export const Product = () => {
   const { id } = useParams();
   const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
-  const [updateProduct] = useUpdateProductMutation();
   const [editOpen, setEditOpen] = useState(false);
   console.log('product==>', data);
   if (isLoading) return <PageLoadingState />;
@@ -47,7 +46,6 @@ export const Product = () => {
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='grid grid-cols-2 gap-4'>
-
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>SKU</label>
               <p className=''>{product.sku}</p>
@@ -57,7 +55,7 @@ export const Product = () => {
               <label className='text-sm font-medium text-gray-500'>Barcode</label>
               <p className=''>{product.barcode || 'N/A'}</p>
             </div>
-            
+
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Price</label>
               <p className=''>UGX {product.price}</p>
@@ -75,12 +73,12 @@ export const Product = () => {
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
-              <p className=''>{product.reorder_level ?? "-"}</p>
+              <p className=''>{product.reorder_level ?? '-'}</p>
             </div>
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Category ID</label>
-              <p className=''>{product.category_id ?? "-"}</p>
+              <p className=''>{product.category_id ?? '-'}</p>
             </div>
           </div>
           <div className='flex items-center gap-2'>
@@ -90,7 +88,7 @@ export const Product = () => {
         </CardContent>
       </Card>
 
-      <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product} updateProduct={updateProduct} />
+      <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product} />
     </div>
   );
 };

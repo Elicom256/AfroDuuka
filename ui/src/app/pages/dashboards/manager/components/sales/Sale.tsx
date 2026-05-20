@@ -11,13 +11,14 @@ import { format } from 'date-fns';
 
 export const Sale = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: saleData, isLoading: saleLoading } = useSaleQuery(String(id), { skip: !id });
+  if (!id) return null;
+  const { data: saleData, isLoading: saleLoading, error } = useSaleQuery(id, { skip: !id });
   const { data: productsData } = useProductsQuery();
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;
   const products = productsData?.products || [];
-  console.log(sale);
+  console.log('manager sale==>', sale);
 
   if (!sale) {
     return (
@@ -37,7 +38,7 @@ export const Sale = () => {
       <div className='flex items-center gap-4'>
         <Link to='../sales' className='flex items-center gap-2 text-blue-400 hover:underline'>
           <ArrowLeftCircle />
-          <span>Back to Products</span>
+          <span>Back to Sales</span>
         </Link>
       </div>
 

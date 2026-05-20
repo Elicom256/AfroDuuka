@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
@@ -25,7 +25,6 @@ interface Product {
 
 export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
-  const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
   console.log('products==>', products);
 
@@ -41,17 +40,17 @@ export const ProductTable = () => {
   const tableHeaders = ['No', 'CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
     setProdId(id);
-    try {
-      const res = await remove(id).unwrap();
-      if (res) {
-        toast.success(res.message);
-      }
-      setProdId('');
-      return;
-    } catch (error) {
-      console.log('Error on del==>', error);
-      toast.error('Failed to delete product');
-    }
+    // try {
+    //   const res = await remove(id).unwrap();
+    //   if (res) {
+    //     toast.success(res.message);
+    //   }
+    //   setProdId('');
+    //   return;
+    // } catch (error) {
+    //   console.log('Error on del==>', error);
+    //   toast.error('Failed to delete product');
+    // }
   };
   return (
     <div>
@@ -83,16 +82,17 @@ export const ProductTable = () => {
                   <Eye size={20} />
                 </Link>
                 <div className='h-6 flex items-center'>
-                  {isLoading && prodId === product.id ? (
-                    <Spinner className='size-4' />
-                  ) : (
+                  {
+                    // isLoading && prodId === product.id ? (
+                    //   <Spinner className='size-4' />
+                    // ) :
                     // <span>tt</span>
                     <Trash2
                       size={20}
                       className='text-red-400 cursor-pointer'
                       onClick={() => handleDelete(product.id)}
                     />
-                  )}
+                  }
                 </div>
               </TableCell>
             </TableRow>

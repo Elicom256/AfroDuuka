@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
@@ -25,7 +25,6 @@ interface Product {
 
 export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
-  const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,20 +37,7 @@ export const ProductTable = () => {
   const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
   const tableHeaders = ['No', 'CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
-  const handleDelete = async (id: string) => {
-    setProdId(id);
-    try {
-      const res = await remove(id).unwrap();
-      if (res) {
-        toast.success(res.message);
-      }
-      setProdId('');
-      return;
-    } catch (error) {
-      console.log('Error on del==>', error);
-      toast.error('Failed to delete product');
-    }
-  };
+
   return (
     <div>
       <Table>
@@ -78,17 +64,6 @@ export const ProductTable = () => {
                 <Link to={`/staff/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
                   <Eye size={20} />
                 </Link>
-                <div className='h-6 flex items-center'>
-                  {isLoading && prodId === product.id ? (
-                    <Spinner className='size-4' />
-                  ) : (
-                    <Trash2
-                      size={20}
-                      className='text-red-400 cursor-pointer'
-                      onClick={() => handleDelete(product.id)}
-                    />
-                  )}
-                </div>
               </TableCell>
             </TableRow>
           ))}

@@ -52,7 +52,7 @@ export const Purchase = () => {
           </CardTitle>
           <CardDescription className='flex items-center gap-2 italic'>
             <span>Datehh: </span>
-            <span>{format(new Date(purchase.created_at), 'PPP')}</span>
+            <span>{format(new Date(purchase?.created_at), 'PPP')}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>

@@ -82,6 +82,8 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
         toast.success(res.message || 'Sale created successfully');
         setOpen(false);
         setFormData({ items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }], note: '' });
+      } else {
+        return toast.error(res.data.message || 'Failed to add a sale');
       }
     } catch (error) {
       toast.error('Failed to create sale');

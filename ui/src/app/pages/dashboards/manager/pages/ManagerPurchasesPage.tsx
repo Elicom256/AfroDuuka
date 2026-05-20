@@ -11,10 +11,11 @@ import { AddPurchase } from '../components/purchases/AddPurchase';
 import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
+import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 export const ManagerPurchasesPage = () => {
   const { data, isLoading } = usePurchasesQuery();
-  const { data: productData } = useProductsQuery();
+  const { data: productData } = useBranchProductsQuery();
   const { data: sup } = useSuppliersQuery();
   const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();
@@ -69,7 +70,7 @@ export const ManagerPurchasesPage = () => {
         <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <CardTitle>Purchase entries</CardTitle>
-            <CardDescription>Manage purchase orders linked to suppliers.</CardDescription>
+            {/* <CardDescription>Manage purchase orders linked to suppliers.</CardDescription> */}
           </div>
           <AddPurchase addPurchase={addPurchase} products={products} suppliers={suppliers} />
         </CardHeader>

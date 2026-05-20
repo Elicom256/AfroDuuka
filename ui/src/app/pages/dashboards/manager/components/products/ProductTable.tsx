@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
@@ -7,9 +6,8 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
-import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
-import { TestProd } from './TestProd';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useBranchProductsQuery, useDeleteBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+
 
 interface Product {
   id: string;
@@ -31,11 +29,9 @@ interface Product {
 }
 
 export const ProductTable = () => {
-  const { data: products, isLoading: loadProducts } = useProductsQuery();
-  const { data: branchProds } = useBranchProductsQuery();
-  const [remove, { isLoading }] = useDeleteProductMutation();
+  const { data: branchProds, isLoading: loadProducts } = useBranchProductsQuery();
+  const [remove, { isLoading }] = useDeleteBranchProductMutation();
   const [prodId, setProdId] = useState<string>('');
-  const { data } = usePurchasesQuery();
   console.log('branchProds available==>', branchProds);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,7 +39,7 @@ export const ProductTable = () => {
 
   if (loadProducts) return <PageLoadingState />;
 
-  const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil((branchProds?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = branchProds?.products.slice(startIndex, startIndex + itemsPerPage);
 

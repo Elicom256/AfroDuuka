@@ -9,6 +9,7 @@ interface SalesTableProps {
 
 export const SalesTable = ({ sales }: SalesTableProps) => {
   const navigate = useNavigate();
+  console.log('sale==>', sales);
 
   return (
     <div>
@@ -34,7 +35,7 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
                 </TableHead> */}
                 <TableCell>{sale.status ?? 'N/A'}</TableCell>
                 <TableCell>{sale.date ?? format(new Date(sale.created_at), 'PPP') ?? '-'}</TableCell>
-                <TableCell>{sale.note.slice(0, 10)}</TableCell>
+                <TableCell>{sale.note?.slice(0, 10)}</TableCell>
                 <TableCell> {totalPrice.toLocaleString()}</TableCell>
 
                 {/* <TableCell className='flex items-center gap-2'>

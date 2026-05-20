@@ -1,12 +1,12 @@
-import { useAddProductMutation } from '@/app/store/features/business/products/productsQuery';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddProduct } from '../components/products/AddProduct';
 import { ProductTable } from '../components/products/ProductTable';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
+import { useAddBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 
 export const AdminProductsPage = () => {
-  const [addProduct, { isLoading }] = useAddProductMutation();
+  const [addProduct, { isLoading }] = useAddBranchProductMutation();
 
   if (isLoading) return <PageLoadingState />;
   return (
@@ -23,9 +23,14 @@ export const AdminProductsPage = () => {
         <ProductTable />
       </CardContent>
       <CardFooter className='flex justify-between'>
-        <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
+        <div className="">
+          <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
           Manage product categories
         </Link>
+        <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
+          Manage product Types
+        </Link>
+        </div>
         <div className='grid grid-cols-2 text-xs'>
           {/* <span className='text'>Note</span> */}
           <div className='flex items-center gap-2'>

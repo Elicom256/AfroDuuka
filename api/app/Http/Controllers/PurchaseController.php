@@ -53,7 +53,10 @@ class PurchaseController extends Controller
      */
     public function show(string $purchase)
     {
-        $product = Purchase::with("supplier", "purchaseItems")->where("id", $purchase) ->orderByDesc("created_at")->first();
+        $product = Purchase::with("supplier", "purchaseItems.businessBranchProduct")
+                  ->where("id", $purchase)
+                  ->orderByDesc("created_at")
+                  ->first();
         return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
     }
 

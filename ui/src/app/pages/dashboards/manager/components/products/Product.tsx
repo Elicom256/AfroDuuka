@@ -1,4 +1,3 @@
-import { useProductQuery, useUpdateProductMutation } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -13,7 +12,6 @@ export const Product = () => {
   const { id } = useParams();
   console.log('id==>', id);
   const { data, isLoading, error } = useBranchProductQuery(id as string, { skip: !id });
-  const [updateProduct] = useUpdateProductMutation();
   const [editOpen, setEditOpen] = useState(false);
   console.log('product==>', data);
   if (isLoading) return <PageLoadingState />;
@@ -92,7 +90,7 @@ export const Product = () => {
         </CardContent>
       </Card>
 
-      <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product} updateProduct={updateProduct} />
+      <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product}  />
     </div>
   );
 };

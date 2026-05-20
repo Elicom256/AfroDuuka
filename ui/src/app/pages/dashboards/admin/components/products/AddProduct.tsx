@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 
 interface AddProductProps {
@@ -23,30 +23,34 @@ interface AddProductProps {
 
 export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
-  const { data } = useProductCategoriesQuery();
+  const { data } = useProductsQuery();
 
   // console.log('Category==>', data);
   const [formData, setFormData] = useState({
     name: '',
-    sku: '',
-    // barcode: '',
+
     price: '',
     cost_price: '',
     quantity: '',
     reorder_level: '',
     description: '',
-    category_id: '',
+    product_id: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     // TODO: Call addProduct mutation
-    const res = await addProduct(formData).unwrap();
+    const res = await addProduct({
+      ...formData,
+      quantity: Number(formData.quantity),
+      reorder_level: Number(formData.reorder_level),
+    }).unwrap();
+    console.log('Add product res==>', res);
     if (res) {
       toast.success(res.message);
     }
     console.log('Adding product:', res);
-    (falsesetOpen);
+    setOpen(false);
   };
 
   const handleChange = (field: string, value: string) => {
@@ -80,7 +84,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 required
               />
             </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
+            {/* <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='sku' className='text-right'>
                 SKU
               </Label>
@@ -91,7 +95,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 className='col-span-3'
                 required
               />
-            </div>
+            </div> */}
 
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='price' className='text-right'>
@@ -147,16 +151,16 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
             </div>
 
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='category_id' className='text-right'>
+              <Label htmlFor='product_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.category_id} onValueChange={(value) => handleChange('category_id', value)}>
+              <Select value={formData.product_id} onValueChange={(value) => handleChange('product_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {data?.categories.map((cat: any) => (
+                  {data?.products.map((cat: any) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>
