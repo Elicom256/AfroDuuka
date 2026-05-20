@@ -1,21 +1,21 @@
 # DuukaFlow Project — Product Management
 
 ## Goal:
-
-Implement Sales and Purchases on the managers dashboard, and sales on staff dashboard
-
+Implement the models that have been added to the manager's dashboard
 ## Task
 
-Follow the Admin Sales and Purchases design pattern to implement them as clarified above
-The functionality half backed with static buttons to add purchases and sales. Copy the implementation from admin dashboard to the manager's and staff's
-Follow rtk implementation for the admin to complete the task
-Reserve the folder structure
-For the staff and managers features, it's just simple because the same logic has already been implemented for the admin, so it'll be like a copy paste, the difference is on the endpoints being hitted by the rtk query, but I'll handle that
+Follow the previous pattern to implement the following models under the following sections on the manager dashboard
+- Operations
+- Performance
+- System
+Note: If you find that some already exist, skip them
+Implement the models under those sections following the design of the already implemented models eg the Sales, Purchases etc models are complete, so you can follow such  models
+
+In addition, implemente rtk queries under the src/app/store/features/branch dirsctory for each model implemented
+because the manager manages a business branch
 
 **I expect the completed work, not just static**
 ## Constraints
-
-## Important
 
 - ✅ Do not hallucinate
 - ✅ Implementation consistency with shadcn + lucide design system

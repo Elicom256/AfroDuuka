@@ -11,6 +11,16 @@ import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
 import { branchesQuery } from '../features/business/branches/branchesQuery';
 import { bsbranchProductsQuery } from '../features/branch/products/branchProductsQuery';
+import { branchWorkersQuery } from '../features/branch/workers/branchWorkersQuery';
+import { branchCustomersQuery } from '../features/branch/customers/branchCustomersQuery';
+import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
+import { branchReportsQuery } from '../features/branch/reports/branchReportsQuery';
+import { branchFinancesQuery } from '../features/branch/finances/branchFinancesQuery';
+import { branchNotificationsQuery } from '../features/branch/notifications/notificationsQuery';
+import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
+import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
+import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
+import { branchHistoryQuery } from '../features/branch/history/historyQuery';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +36,16 @@ export const store = configureStore({
     [supplierQuery.reducerPath]: supplierQuery.reducer,
     [branchesQuery.reducerPath]: branchesQuery.reducer,
     [bsbranchProductsQuery.reducerPath]: bsbranchProductsQuery.reducer,
+    [branchWorkersQuery.reducerPath]: branchWorkersQuery.reducer,
+    [branchCustomersQuery.reducerPath]: branchCustomersQuery.reducer,
+    [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
+    [branchReportsQuery.reducerPath]: branchReportsQuery.reducer,
+    [branchFinancesQuery.reducerPath]: branchFinancesQuery.reducer,
+    [branchNotificationsQuery.reducerPath]: branchNotificationsQuery.reducer,
+    [branchMessagesQuery.reducerPath]: branchMessagesQuery.reducer,
+    [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
+    [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
+    [branchHistoryQuery.reducerPath]: branchHistoryQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -42,6 +62,16 @@ export const store = configureStore({
       supplierQuery.middleware,
       branchesQuery.middleware,
       bsbranchProductsQuery.middleware,
+      branchWorkersQuery.middleware,
+      branchCustomersQuery.middleware,
+      branchSuppliersQuery.middleware,
+      branchReportsQuery.middleware,
+      branchFinancesQuery.middleware,
+      branchNotificationsQuery.middleware,
+      branchMessagesQuery.middleware,
+      branchPromotionsQuery.middleware,
+      branchAttendanceQuery.middleware,
+      branchHistoryQuery.middleware,
     ),
 });
 
