@@ -19,6 +19,8 @@ import { ManagerHistoryPage } from '../pages/dashboards/manager/pages/ManagerHis
 import { NotFound } from './NotFound';
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
+import { ManagerProductTypes } from '../pages/dashboards/manager/components/products/ManagerProductTypes';
+import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
 
 export const ManagerRoutes = () => {
   return (
@@ -26,11 +28,11 @@ export const ManagerRoutes = () => {
       <Route path='manager' element={<ManagerLayout />}>
         <Route index element={<ManagerDashboardPage />} />
         <Route path='sales' element={<ManagerSalesPage />} />
+        <Route path='sales/:id' element={<Sale />} />
         <Route path='purchases' element={<ManagerPurchasesPage />} />
+        <Route path='purchases/:id' element={<Purchase />} />
         <Route path='products' element={<ManagerProductsPage />} />
         <Route path='products/:id' element={<Product />} />
-        <Route path='purchases/:id' element={<Purchase />} />
-        <Route path='sales/:id' element={<Purchase />} />
         <Route path='inventory' element={<ManagerInventoryPage />} />
         <Route path='analytics' element={<ManagerAnalyticsPage />} />
         <Route path='workers' element={<ManagerWorkersPage />} />
@@ -43,6 +45,7 @@ export const ManagerRoutes = () => {
         <Route path='promotions' element={<ManagerPromotionsPage />} />
         <Route path='attendance' element={<ManagerAttendancePage />} />
         <Route path='history' element={<ManagerHistoryPage />} />
+        <Route path='product-categories' element={<ManagerProductTypes />} />
       </Route>
       {/* unmatched */}
       <Route path='*' element={<NotFound />} />

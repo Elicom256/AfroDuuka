@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAddSaleMutation, useSalesQuery, useUpdateSaleMutation } from '@/app/store/features/branch/sales/salesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
@@ -52,11 +51,11 @@ export const ManagerSalesPage = () => {
         </CardContent>
       </Card>
 
-      <Card className='rounded-3xl border border-border/70 bg-card p-6'>
+      <Card className='rounded-3xl border border-border/70 bg-card p-3'>
         <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <CardTitle>Sales entries</CardTitle>
-            <CardDescription>Manage sales records linked to products.</CardDescription>
+            {/* <CardDescription>Manage sales records linked to products.</CardDescription> */}
           </div>
           <AddSale addSale={addSale} products={products} />
         </CardHeader>

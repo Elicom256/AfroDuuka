@@ -15,6 +15,7 @@ class BusinessBranchProduct extends Model
         'business_branch_id',
         'product_id',
         'quantity',
+        'name',
         'cost_price',
         'price',
         'reorder_level',

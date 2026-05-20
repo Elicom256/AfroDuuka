@@ -31,8 +31,42 @@ export const bsbranchProductsQuery = createApi({
       }),
       providesTags: ['BranchProductsAPI'],
     }),
-   
+
+    // get one product by id
+    addBranchProduct: builder.mutation<any, any>({
+      query: (body) => ({
+        url: `/`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['BranchProductsAPI'],
+    }),
+
+    // get one product by id
+    updateBranchProduct: builder.mutation<any, { body: any; id: string }>({
+      query: ({ body, id }) => ({
+        url: `/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['BranchProductsAPI'],
+    }),
+
+    // get one product by id
+    deleteBranchProduct: builder.mutation<any, any>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['BranchProductsAPI'],
+    }),
   }),
 });
 
-export const { useBranchProductsQuery, useBranchProductQuery } = bsbranchProductsQuery;
+export const {
+  useBranchProductsQuery,
+  useAddBranchProductMutation,
+  useBranchProductQuery,
+  useUpdateBranchProductMutation,
+  useDeleteBranchProductMutation,
+} = bsbranchProductsQuery;

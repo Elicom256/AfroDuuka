@@ -6,6 +6,10 @@ use App\Models\BusinessBranchProduct;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use Exception;
+use Illuminate\Support\Facades\Exceptions;
+
+use function PHPUnit\Framework\throwException;
 
 class SaleItemService
 {
@@ -20,7 +24,12 @@ class SaleItemService
            ]);
 
       // create sale items
+
     foreach ($validated['items'] as $item) {
+      $product = BusinessBranchProduct::find($item['business_branch_product_id']);
+      if($product->quantity < $item["quantity"]){
+         throw new Exception("Products available are few to what you want to sale", 301);
+      }
         SaleItem::create([
             'sale_id' => $sale->id,
             'business_branch_product_id' => $item['business_branch_product_id'],

@@ -17,7 +17,7 @@ export const Purchase = () => {
 
   const purchase = purchaseData?.purchase || purchaseData;
   const products = productsData?.products || [];
-  console.log('Test data==>', purchase);
+  // console.log('products purchased==>', purchase);
 
   if (!purchase) {
     return (
@@ -52,7 +52,7 @@ export const Purchase = () => {
           </CardTitle>
           <CardDescription className='flex items-center gap-2 italic'>
             <span>Datehh: </span>
-            <span>{format(new Date(purchase.created_at), 'PPP')}</span>
+            <span>{purchase.created_at ? format(new Date(purchase.created_at), 'PPP') : 'N/A'}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>
@@ -79,6 +79,7 @@ export const Purchase = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>No</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Cost Price</TableHead>
@@ -87,9 +88,10 @@ export const Purchase = () => {
               </TableHeader>
               <TableBody>
                 {purchaseItems && purchaseItems.length > 0 ? (
-                  purchaseItems.map((item: any) => (
+                  purchaseItems.map((item: any, i: number) => (
                     <TableRow key={item.id}>
-                      <TableCell className='font-medium'>{getProductName(item.product_id)}</TableCell>
+                      <TableCell className='font-medium'>{i + 1}</TableCell>
+                      <TableCell className='font-medium'>{item.business_branch_product.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>UGX {Number(item.cost_price).toLocaleString()}</TableCell>
                       <TableCell>UGX {Number(item.subtotal).toLocaleString()}</TableCell>
