@@ -9,7 +9,7 @@ class SalePayment extends Model
 {
     /** @use HasFactory<\Database\Factories\SalePaymentFactory> */
     use HasFactory;
-    protected $fillable = ["sale_id", "method", "amount", "status"];
+    protected $fillable = ["sale_id", "method", "amount", "paymentStatus"];
 
     public function sale(){
        return $this->belongsTo(Sale::class);

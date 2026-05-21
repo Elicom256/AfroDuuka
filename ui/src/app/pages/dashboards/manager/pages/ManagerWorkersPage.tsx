@@ -3,11 +3,16 @@ import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useBranchWorkersQuery } from '@/app/store/features/branch';
 import { resolveList } from './components/manager-page-utils';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 export const ManagerWorkersPage = () => {
+  const navigate = useNavigate();
   const { data, isLoading } = useBranchWorkersQuery();
-  const workers = resolveList(data, 'workers');
-  const activeCount = workers.filter((worker: any) => worker.status === 'active' || worker.is_active).length;
+  const workers = data?.data;
+  console.log('workers==>', workers);
+
+  const activeCount = workers?.filter((worker: any) => worker.status === 'active' || worker.is_active).length;
 
   if (isLoading) return <PageLoadingState />;
 
@@ -19,27 +24,37 @@ export const ManagerWorkersPage = () => {
           <SectionCard title='Active workers' value={activeCount} icon={<TrendingUp className='h-5 w-5' />} />
           <SectionCard
             title='Pending approvals'
-            value={workers.filter((worker: any) => worker.status === 'pending').length}
+            value={workers && workers.filter((worker: any) => worker.status === 'pending').length}
             icon={<FileText className='h-5 w-5' />}
           />
         </div>
-        <div className='space-y-3'>
-          {workers.length === 0 ? (
-            <p className='text-sm text-muted-foreground'>No workers found for this branch yet.</p>
-          ) : (
-            workers.slice(0, 6).map((worker: any) => (
-              <div
-                key={worker.id ?? worker.userId ?? worker.email}
-                className='rounded-3xl border border-border/70 bg-background p-4'
-              >
-                <p className='font-semibold'>{worker.username ?? worker.name ?? 'Unnamed worker'}</p>
-                <p className='text-sm text-muted-foreground'>
-                  {worker.role?.name ?? worker.role ?? 'No role assigned'}
-                </p>
-              </div>
-            ))
-          )}
+        <hr />
+        <div className='grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4'>
+          {workers.map((worker: any) => (
+            <Card
+              key={worker.id}
+              className='hover:shadow-md w-full h-full hover:scale-102 transition-all ease-in-out cursor-pointer'
+              onClick={() => navigate(`/manager/workers/${worker.id}`)}
+            >
+              <CardHeader>
+                <CardAction className='rounded-full bg-white/20 px-2'> {worker.status}</CardAction>
+                <CardTitle className='text-lg'>{worker.username ?? worker.name ?? 'Unnamed worker'}</CardTitle>
+                <CardDescription>
+                  <p>{worker.email}</p>
+                  <p>{worker.role?.name ?? worker.role ?? 'No role assigned'}</p>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='flex gap-2'>{/* <EditProductCategory category={category} /> */}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+        {workers.length === 0 && (
+          <div className='text-center py-8'>
+            <p className='text-muted-foreground'>No found for this branch.</p>
+          </div>
+        )}
       </ManagerPageShell>
     </div>
   );

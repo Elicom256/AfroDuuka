@@ -6,6 +6,7 @@ use App\Models\BusinessBranchProduct;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\SalePayment;
 use Exception;
 use Illuminate\Support\Facades\Exceptions;
 
@@ -41,6 +42,12 @@ class SaleItemService
         BusinessBranchProduct::where('id', $item['business_branch_product_id'])
             ->decrement('quantity', $item['quantity']);
     }
+    SalePayment::create([
+      "sale_id" => $sale->id,
+      "method" => $validated["method"],
+      "amount" => $totalAmount,
+      "paymentStatus" => $validated["paymentStatus"],
+    ]);
     return $sale->load("saleItems");
    }
 }

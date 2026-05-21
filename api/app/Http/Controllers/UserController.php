@@ -81,6 +81,44 @@ class UserController extends Controller
         ], 200);
     }
 
+    // all branch workers
+     public function workers()
+    {
+        $user = Auth::user();
+        $users = User::where("business_id", $user->business_id)
+        ->where("business_branch_id", $user->business_branch_id)
+        ->whereHas('role', function ($q) {
+            $q->where('name', '!=', 'admin');
+          })
+        ->with(['business', 'role', "businessBranch"])
+        ->get();
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'data' => $users,
+        ], 200);
+    }
+
+
+ //  branch worker
+     public function worker(User $worker)
+    {
+        $worker = $worker->load("role");
+        return response()->json([
+            'message' => 'Worker retrieved successfully',
+            'worker' => $worker,
+        ], 200);
+    }
+
+    //  branch worker
+    //  public function updateWorker(User $worker)
+    // {
+    //     $worker = $worker->load("role");
+    //     return response()->json([
+    //         'message' => 'Worker retrieved successfully',
+    //         'worker' => $worker,
+    //     ], 200);
+    // }
+
     /**
      * Store a newly created user in storage
      */
@@ -153,10 +191,10 @@ class UserController extends Controller
     /**
      * Remove the specified user from storage
      */
-    public function destroy(User $user)
+    public function destroy(User $worker)
     {
         try {
-            $this->userService->deleteUser($user);
+            $worker->delete();
             return response()->json([
                 'message' => 'User deleted successfully',
             ], 200);

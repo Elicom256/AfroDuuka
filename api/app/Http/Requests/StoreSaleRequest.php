@@ -22,7 +22,8 @@ class StoreSaleRequest extends FormRequest
 
         $this->merge([
             'business_branch_id' => Auth::user()->business_branch_id,
-            'status' => "pending"
+            'status' => "pending",
+            "paymentStatus" => "paid"
         ]);
     }
     public function rules(): array
@@ -32,11 +33,13 @@ class StoreSaleRequest extends FormRequest
             'total_amount' => 'nullable|numeric',
             'status' => 'required|string|in:pending,completed,cancelled',
             'note' => 'nullable|string|min:1|max:255',
+            'paymentStatus' => 'required|in:paid,pending,partial',
+            'method' => 'required|in:cash,mobile_money,card,debt',
              'items' => 'required|array|min:1',
+            //  sale items
              'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
              'items.*.quantity' => 'required|integer|min:1',
              'items.*.unit_price' => 'required|numeric|min:0',
-             'note' => 'nullable|string|min:1|max:255'
         ];
     }
 }

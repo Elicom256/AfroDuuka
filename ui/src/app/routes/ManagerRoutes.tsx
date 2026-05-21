@@ -21,6 +21,7 @@ import { Product } from '../pages/dashboards/manager/components/products/Product
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 import { ManagerProductTypes } from '../pages/dashboards/manager/components/products/ManagerProductTypes';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
+import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
 
 export const ManagerRoutes = () => {
   return (
@@ -36,6 +37,7 @@ export const ManagerRoutes = () => {
         <Route path='inventory' element={<ManagerInventoryPage />} />
         <Route path='analytics' element={<ManagerAnalyticsPage />} />
         <Route path='workers' element={<ManagerWorkersPage />} />
+        <Route path='workers/:id' element={<Worker />} />
         <Route path='customers' element={<ManagerCustomersPage />} />
         <Route path='suppliers' element={<ManagerSuppliersPage />} />
         <Route path='reports' element={<ManagerReportsPage />} />
