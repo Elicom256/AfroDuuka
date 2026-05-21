@@ -21,6 +21,12 @@ import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
 import { branchHistoryQuery } from '../features/branch/history/historyQuery';
+import { attendanceSettingsQuery } from '../features/business/settings/attendance';
+import { customerSettingsQuery } from '../features/business/settings/customer';
+import { paymentSettingsQuery } from '../features/business/settings/payment';
+import { promotionsSettingsQuery } from '../features/business/settings/promotions';
+import { reportsSettingsQuery } from '../features/business/settings/reports';
+import { supplierSettingsQuery } from '../features/business/settings/supplier';
 
 export const store = configureStore({
   reducer: {
@@ -46,6 +52,12 @@ export const store = configureStore({
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [branchHistoryQuery.reducerPath]: branchHistoryQuery.reducer,
+    [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
+    [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
+    [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
+    [promotionsSettingsQuery.reducerPath]: promotionsSettingsQuery.reducer,
+    [reportsSettingsQuery.reducerPath]: reportsSettingsQuery.reducer,
+    [supplierSettingsQuery.reducerPath]: supplierSettingsQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -72,6 +84,12 @@ export const store = configureStore({
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       branchHistoryQuery.middleware,
+      attendanceSettingsQuery.middleware,
+      customerSettingsQuery.middleware,
+      paymentSettingsQuery.middleware,
+      promotionsSettingsQuery.middleware,
+      reportsSettingsQuery.middleware,
+      supplierSettingsQuery.middleware,
     ),
 });
 
