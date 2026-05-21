@@ -166,6 +166,8 @@ php artisan make:controller SaleItemController --api --model=SaleItem --resource
 php artisan make:controller StockMovementController --api --model=StockMovement --resource --requests
 php artisan make:controller SupplierController --api --model=Supplier --resource --requests
 
+php artisan make:model PaymentStatus -a --api --controller=Settings/PaymentStatusController
+
 php artisan make:service CategoryService
 php artisan make:service ProductService
 php artisan make:service PurchaseService
