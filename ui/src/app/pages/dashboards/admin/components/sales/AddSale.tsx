@@ -12,7 +12,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,6 +40,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
   const [formData, setFormData] = useState<{ items: SaleItem[]; note: string }>({
     items: [{ product_id: '', quantity: '', unit_price: '' }],
     note: '',
+    
   });
   // user can add an item on the list
   const addItem = () => {
@@ -73,7 +82,6 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
         })),
         note: formData.note,
       };
-      
 
       const res = await addSale(body).unwrap();
       if (res) {
@@ -173,6 +181,9 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                     />
                   </div>
                 </div>
+                {/* <div className="">
+                  <input type="text" />
+                </div> */}
               </div>
             ))}
             <div className='flex justify-end'>
