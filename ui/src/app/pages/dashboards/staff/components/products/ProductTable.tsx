@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/spinner';
 
 interface Product {
   id: string;
@@ -25,7 +23,6 @@ interface Product {
 
 export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
-  const [prodId, setProdId] = useState<string>('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
