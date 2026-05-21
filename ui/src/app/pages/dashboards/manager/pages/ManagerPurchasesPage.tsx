@@ -66,7 +66,7 @@ export const ManagerPurchasesPage = () => {
         </CardContent>
       </Card>
 
-      <Card className='rounded-3xl border border-border/70 bg-card p-6'>
+      <Card className='rounded-3xl border border-border/70 bg-card p-3'>
         <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <CardTitle>Purchase entries</CardTitle>
