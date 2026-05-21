@@ -31,6 +31,8 @@ import { Purchase } from '../pages/dashboards/admin/components/purchases/Purchas
 import { BusinessBranches } from '../pages/dashboards/admin/pages/BusinessBranches';
 import { Route, Routes } from 'react-router-dom';
 import { NotFound } from './NotFound';
+import { AdminMessagesPage } from '../pages/dashboards/admin/pages/AdminMessagesPage';
+import { AdminNotificationsPage } from '../pages/dashboards/admin/pages/AdminNotificationsPage';
 
 export const AdminRoutes = () => {
   return (
@@ -55,8 +57,10 @@ export const AdminRoutes = () => {
         <Route path='promotions' element={<AdminPromotionsPage />} />
         <Route path='coupons' element={<AdminCouponsPage />} />
         <Route path='history' element={<AdminHistoryPage />} />
+        <Route path='messages' element={<AdminMessagesPage />} />
+        <Route path='notifications' element={<AdminNotificationsPage />} />
+
         <Route path='settings' element={<AdminSettingsPage />}>
-          <Route index element={<div className='p-4'>Select a settings section from the left.</div>} />
           <Route path='payment-settings' element={<PaymentSettings />} />
           <Route path='customer-settings' element={<CustomerSettings />} />
           <Route path='supplier-settings' element={<SupplierSettings />} />
