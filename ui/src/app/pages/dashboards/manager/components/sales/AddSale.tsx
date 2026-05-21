@@ -12,7 +12,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -29,9 +37,10 @@ interface SaleItem {
 
 export const AddSale = ({ addSale, products }: AddSaleProps) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<{ items: SaleItem[]; note: string }>({
+  const [formData, setFormData] = useState<{ items: SaleItem[]; note: string; method: string }>({
     items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
     note: '',
+    method: '',
   });
   // user can add an item on the list
   const addItem = () => {
@@ -74,6 +83,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
           unit_price: Number(item.unit_price),
         })),
         note: formData.note,
+        method: formData.method,
       };
 
       const res = await addSale(body).unwrap();
@@ -81,17 +91,21 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
         console.log('created Sale==>', res);
         toast.success(res.message || 'Sale created successfully');
         setOpen(false);
-        setFormData({ items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }], note: '' });
+        setFormData({
+          items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
+          note: '',
+          method: '',
+        });
       } else {
         return toast.error(res.data.message || 'Failed to add a sale');
       }
-    } catch (error) {
-      toast.error('Failed to create sale');
+    } catch (error: any) {
+      toast.error(error.data.message || 'Failed to create sale');
       console.error(error);
     }
   };
 
-  const handleChange = (field: 'note', value: string) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -187,6 +201,29 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                 <Plus className='h-4 w-4 mr-2' />
                 Add item
               </Button>
+            </div>
+            {/* state */}
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='method' className='text-right'>
+                Payment
+              </Label>
+
+              <Select value={formData.method} onValueChange={(value) => handleChange('method', value)}>
+                <SelectTrigger className='w-full max-w-48 col-span-3'>
+                  <SelectValue placeholder='Select payment status' />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Payment Status</SelectLabel>
+
+                    <SelectItem value='cash'>Cash</SelectItem>
+                    <SelectItem value='mobile_money'>Mobile Money</SelectItem>
+                    <SelectItem value='card'>Card</SelectItem>
+                    <SelectItem value='credit'>Credit</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='note' className='text-right'>

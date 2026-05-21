@@ -34,7 +34,7 @@ class StoreSaleRequest extends FormRequest
             'status' => 'required|string|in:pending,completed,cancelled',
             'note' => 'nullable|string|min:1|max:255',
             'paymentStatus' => 'required|in:paid,pending,partial',
-            'method' => 'required|in:cash,mobile_money,card,debt',
+            'method' => 'required|in:cash,mobile_money,card,credit',
              'items' => 'required|array|min:1',
             //  sale items
              'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
