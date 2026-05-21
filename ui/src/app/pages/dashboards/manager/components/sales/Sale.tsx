@@ -3,22 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSaleQuery } from '@/app/store/features/branch/sales/salesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 export const Sale = () => {
   const { id } = useParams<{ id: string }>();
   if (!id) return null;
-  const { data: saleData, isLoading: saleLoading, error } = useSaleQuery(id, { skip: !id });
-  const { data: productsData } = useProductsQuery();
+  const { data: saleData, isLoading: saleLoading } = useSaleQuery(id, { skip: !id });
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;
-  const products = productsData?.products || [];
-  console.log('manager sale==>', sale);
+  // console.log('manager sale==>', sale);
 
   if (!sale) {
     return (
@@ -27,11 +23,6 @@ export const Sale = () => {
       </div>
     );
   }
-
-  const getProductName = (productId: number) => {
-    const product = products.find((p: any) => p.id === productId);
-    return product?.name || `Product ${productId}`;
-  };
 
   return (
     <div className='space-y-6'>
@@ -73,19 +64,21 @@ export const Sale = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>No</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Quantity</TableHead>
-                  <TableHead>Unit Price</TableHead>
-                  <TableHead>Subtotal</TableHead>
+                  <TableHead>Unit Price (UGX)</TableHead>
+                  <TableHead>Total (UGX) </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sale.sale_items?.map((item: any) => (
+                {sale.sale_items?.map((item: any, i: number) => (
                   <TableRow key={item.id}>
-                    <TableCell className='font-medium'>{getProductName(item.product_id)}</TableCell>
+                    <TableCell className='font-medium'>{i + 1}</TableCell>
+                    <TableCell className='font-medium'>{item.business_branch_product.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
-                    <TableCell>UGX {Number(item.unit_price).toLocaleString()}</TableCell>
-                    <TableCell>UGX {Number(item.subtotal).toLocaleString()}</TableCell>
+                    <TableCell> {Number(item.unit_price).toLocaleString()}</TableCell>
+                    <TableCell> {Number(item.subtotal).toLocaleString()}</TableCell>
                   </TableRow>
                 )) || (
                   <TableRow>

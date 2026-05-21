@@ -10,10 +10,10 @@ export const ManagerProductsPage = () => {
 
   if (isLoading) return <PageLoadingState />;
   return (
-    <Card className='rounded-3xl border border-border/70 bg-card p-6'>
-      <CardHeader>
+    <Card className='rounded-3xl border border-border/70 bg-card p-3'>
+      <CardHeader className='flex items-center justify-between'>
         <CardTitle>Products</CardTitle>
-        <CardDescription>Manage your products here.</CardDescription>
+        {/* <CardDescription>Manage your products here.</CardDescription> */}
         <div className='flex gap-2'>
           <AddProduct addProduct={addProduct} />
         </div>
