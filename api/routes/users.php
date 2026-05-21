@@ -10,6 +10,10 @@ Route::post('/signup', [UserController::class, 'signup']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [UserController::class, 'me']);
     Route::post('/logout', [UserController::class, 'logout']);    
-    Route::patch('/update', [UserController::class, 'update']);
+    Route::put('/workers/{worker}', [UserController::class, 'update']);
+    Route::get('/workers', [UserController::class, 'workers']);
+    Route::get('/workers/{worker}', [UserController::class, 'worker']);
+    Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
+
 
 });

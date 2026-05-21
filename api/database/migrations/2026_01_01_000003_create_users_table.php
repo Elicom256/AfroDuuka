@@ -22,8 +22,10 @@ return new class extends Migration
             $table->foreignId('business_id')->nullable()->constrained("businesses")->cascadeOnDelete();
             $table->foreignId('business_branch_id')->nullable()->constrained("business_branches")->cascadeOnDelete();
             $table->foreignId("role_id")->nullable()->constrained("roles")->cascadeOnDelete();
+
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -21,6 +21,7 @@ class UpdateUserRequest extends FormRequest
     {
         $this->merge([
             'business_id' => Auth::user()->business_id,
+            "business_branch_id" => Auth::user()->business_branch_id
         ]);
     }
     public function rules(): array
@@ -31,7 +32,7 @@ class UpdateUserRequest extends FormRequest
             'username' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',
             'business_id' => 'nullable|exists:businesses,id',
-            'business_branch_id' => 'nullable|exists:business_branches,id',
+            'business_branch_id' => 'required|exists:business_branches,id',
             'role_id' => 'nullable|exists:roles,id',
             "branch_powers" => "nullable|in:allowed,none",
             "status" => "nullable|in:active,suspended,sucked"
