@@ -16,8 +16,14 @@ import {
   AdminPromotionsPage,
   AdminCouponsPage,
   AdminHistoryPage,
-  AdminSettingsPage,
 } from '../pages/dashboards/admin/pages/admin-placeholder-pages';
+import { AdminSettingsPage } from '../pages/dashboards/admin/pages/settings';
+import { PaymentSettings } from '../pages/dashboards/admin/components/settings/PaymentSettings';
+import { CustomerSettings } from '../pages/dashboards/admin/components/settings/CustomerSettings';
+import { SupplierSettings } from '../pages/dashboards/admin/components/settings/SupplierSettings';
+import { ReportsSettings } from '../pages/dashboards/admin/components/settings/ReportsSettings';
+import { PromotionsSettings } from '../pages/dashboards/admin/components/settings/PromotionsSettings';
+import { AttendanceSettings } from '../pages/dashboards/admin/components/settings/AttendanceSettings';
 import { AddBusinessForm } from '../pages/dashboards/admin/components/AddBusinessForm';
 import { Product } from '../pages/dashboards/admin/components/products/Product';
 import { Sale } from '../pages/dashboards/admin/components/sales/Sale';
@@ -49,7 +55,15 @@ export const AdminRoutes = () => {
         <Route path='promotions' element={<AdminPromotionsPage />} />
         <Route path='coupons' element={<AdminCouponsPage />} />
         <Route path='history' element={<AdminHistoryPage />} />
-        <Route path='settings' element={<AdminSettingsPage />} />
+        <Route path='settings' element={<AdminSettingsPage />}>
+          <Route index element={<div className='p-4'>Select a settings section from the left.</div>} />
+          <Route path='payment-settings' element={<PaymentSettings />} />
+          <Route path='customer-settings' element={<CustomerSettings />} />
+          <Route path='supplier-settings' element={<SupplierSettings />} />
+          <Route path='reports-settings' element={<ReportsSettings />} />
+          <Route path='promotions-settings' element={<PromotionsSettings />} />
+          <Route path='attendance-settings' element={<AttendanceSettings />} />
+        </Route>
         <Route path='products/:id' element={<Product />} />
         <Route path='branches' element={<BusinessBranches />} />
       </Route>
