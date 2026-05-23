@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateCustomersSettingsRequest extends FormRequest
 {
@@ -12,18 +13,20 @@ class UpdateCustomersSettingsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+   public function prepareForValidation()
+    {
+        $businessId = Auth::user()->business_id;
+        return $this->merge([
+            "business_id" => $businessId
+        ]);
+    }
     public function rules(): array
     {
         return [
-            //
+            "status" => "required|in:enabled,disabled"
         ];
     }
 }

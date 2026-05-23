@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomersSettingsRequest;
 use App\Http\Requests\UpdateCustomersSettingsRequest;
-use App\Models\CustomersSettings;
+use App\Models\CoreSettings\CustomersSettings;
 
 class CustomersSettingsController extends Controller
 {
@@ -14,7 +14,8 @@ class CustomersSettingsController extends Controller
      */
     public function index()
     {
-        //
+         $setting = CustomersSettings::first();
+        return response()->json(["settings" =>$setting, "message" => "Customer settings"]);
     }
 
     /**
@@ -36,9 +37,11 @@ class CustomersSettingsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCustomersSettingsRequest $request, CustomersSettings $customersSettings)
+    public function update(UpdateCustomersSettingsRequest $request, CustomersSettings $customersSetting)
     {
-        //
+        $validated = $request->validated();
+        $setting = $customersSetting->update($validated);
+        return response()->json(["message" => "Setting updated", "setting" => $setting]);
     }
 
     /**
