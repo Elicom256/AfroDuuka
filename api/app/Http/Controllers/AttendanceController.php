@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
 use App\Models\Attendance;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
@@ -13,7 +14,11 @@ class AttendanceController extends Controller
      */
     public function index()
     {
-        //
+        $business_branch_id = Auth::user()->business_branch_id;
+        $attendances = Attendance::where("business_branch_id", $business_branch_id)
+                      ->orderByDesc("created_at")
+                      ->get();
+        return response()->json(["message" => "Attendances fetched", "attendances" => $attendances]);             
     }
 
     /**

@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\CoreSettings\AttendanceSettings;
+use App\Models\CoreSettings\CreditSetting;
 use App\Models\CoreSettings\CustomersSettings;
+use App\Models\CoreSettings\DebitSetting;
 use App\Models\CoreSettings\PaymentStatus;
 use App\Models\CoreSettings\PromotionsSettings;
 use App\Models\CoreSettings\ReportsSettings;
@@ -19,6 +21,8 @@ class CoreBusinessSettings
         $settings[] = CustomersSettings::create(["business_id" => $businessId, "status" => "disabled"]);
         $settings[] = PromotionsSettings::create(["business_id" => $businessId, "status" => "disabled"]);
         $settings[] = ReportsSettings::create(["business_id" => $businessId, "status" => "disabled"]);
+        $settings[] = CreditSetting::create(["business_id" => $businessId, "status" => "disabled"]);
+        $settings[] = DebitSetting::create(["business_id" => $businessId, "status" => "disabled"]);
 
         $paymentMethods = ["mobile_money", "card", "cash", "credit", "cryptocurrency"];
         
