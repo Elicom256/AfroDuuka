@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePromotionsSettingsRequest;
 use App\Http\Requests\UpdatePromotionsSettingsRequest;
-use App\Models\PromotionsSettings;
+use App\Models\CoreSettings\PromotionsSettings;
 
 class PromotionsSettingsController extends Controller
 {
@@ -14,7 +14,8 @@ class PromotionsSettingsController extends Controller
      */
     public function index()
     {
-        //
+        $setting = PromotionsSettings::first();
+        return response()->json(["settings" =>$setting, "message" => "Promotions settings"]);
     }
 
     /**
@@ -30,15 +31,17 @@ class PromotionsSettingsController extends Controller
      */
     public function show(PromotionsSettings $promotionsSettings)
     {
-        //
+        return response()->json(["message" => "Setting updated", "setting" => $promotionsSettings]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePromotionsSettingsRequest $request, PromotionsSettings $promotionsSettings)
+    public function update(UpdatePromotionsSettingsRequest $request, PromotionsSettings $promotionsSetting)
     {
-        //
+         $validated = $request->validated();
+        $setting = $promotionsSetting->update($validated);
+        return response()->json(["message" => "Setting updated", "setting" => $setting]);
     }
 
     /**

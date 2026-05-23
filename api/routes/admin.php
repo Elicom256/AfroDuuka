@@ -17,12 +17,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch("/update-business", [BusinessController::class, "store"]);
 
     // ============ Branches =============
-    Route::get("/branches", [BusinessBranchController::class, "index"]);
-    Route::post("/branches", [BusinessBranchController::class, "store"]);
-    Route::put("/branches/{branch}", [BusinessBranchController::class, "update"]);
-    Route::get("/branches/{branch}", [BusinessBranchController::class, "show"]);
-    Route::delete("/branches/{branch}", [BusinessBranchController::class, "delete"]);
-    Route::get("/branches/branch/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
+    Route::apiResource("branches", BusinessBranchController::class);
+    // Route::get("/branches", [BusinessBranchController::class, "index"]);
+    // Route::post("/branches", [BusinessBranchController::class, "store"]);
+    // Route::put("/branches/{branch}", [BusinessBranchController::class, "update"]);
+    // Route::get("/branches/{branch}", [BusinessBranchController::class, "show"]);
+    // Route::delete("/branches/{branch}", [BusinessBranchController::class, "delete"]);
+    // Route::get("/branches/branch/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
 
     // ============ Roles =============
     Route::get("/roles", [RoleController::class, "index"]);

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports_settings', function (Blueprint $table) {
             $table->id();
-             $table->foreignId("business_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
             $table->enum("status", ["enabled", "disabled"]);
 
             $table->unique(["business_id", "status"]);

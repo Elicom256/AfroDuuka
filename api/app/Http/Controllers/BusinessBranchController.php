@@ -49,31 +49,33 @@ class BusinessBranchController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BusinessBranch $businessBranch)
+    public function show(BusinessBranch $branch)
     {
-        //
+       
+        // $test = BusinessBranch::find($branch);
+        //  dd($test);
+        return response()->json(["message" => "Fetched branch!", "branch" => $branch], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BusinessBranch $businessBranch)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBusinessBranchRequest $request, BusinessBranch $businessBranch)
+    public function update(UpdateBusinessBranchRequest $request, BusinessBranch $branch)
     {
-        //
+        $validated = $request->validated();
+        $branch->update($validated);
+        
+        return response()->json([
+            "message" => "updated $branch->name branch!",
+             "branch" => $branch
+             ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BusinessBranch $businessBranch)
+    public function destroy(BusinessBranch $branch)
     {
         //
     }

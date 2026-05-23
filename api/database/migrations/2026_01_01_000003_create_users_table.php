@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string("firstname")->nullable();
+            $table->string("lastname")->nullable();
             $table->string("username")->nullable();
             $table->string('email')->unique();
             $table->string('phone')->unique();
-            $table->string("nin")->nullable();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('address')->nullable();
+            $table->string("nin")->nullable()->unique();
             $table->string('password');
             $table->enum("status", ["active", "suspended", "sucked"])->default("active");
             $table->enum("branch_powers", ["allowed", "none"])->default("none");
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->foreignId('business_branch_id')->nullable()->constrained("business_branches")->cascadeOnDelete();
             $table->foreignId("role_id")->nullable()->constrained("roles")->cascadeOnDelete();
 
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

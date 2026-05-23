@@ -11,7 +11,7 @@ import { Loader2, Truck, UserCheck } from 'lucide-react';
 export const SupplierSettings = () => {
   const { data, isLoading } = useGetSupplierSettingsQuery();
   const [updateSetting, { isLoading: isSaving }] = useUpdateSupplierSettingsMutation();
-
+  console.log('useGetSupplierSettingsQuery==>', data);
   const [autoApprove, setAutoApprove] = useState(false);
 
   useEffect(() => {

@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Override;
 
 class StoreSupplierRequest extends FormRequest
 {
@@ -16,21 +18,56 @@ class StoreSupplierRequest extends FormRequest
         return Auth::check();
     }
 
-    public function prepareForValidation()
+    #[Override]
+    protected function prepareForValidation(): void
     {
-        return $this->merge([
-            "business_id" => Auth::user()->business_id,
+        $user = Auth::user();
+
+        $this->merge([
+            "business_id" => $user->business_id,
+            "business_branch_id" => $user->business_branch_id,
+            "status" => "active",
+
+            "role_id" => Role::where("name", "supplier")
+                ->where("business_id", $user->business_id)
+                ->value("id"),
         ]);
     }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
-            'business_id' => "required|exists:businesses,id",
-            'name' => "nullable|string|min:1|max:255", 
-            'email' => "required|email",
-            'phone' => "required|string|min:1|max:255",
-            'address' => "nullable|string|min:1|max:255",
-            'status' => "nullable|string|min:1|max:255", 
-            ];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Shared/User Model Data
+            |--------------------------------------------------------------------------
+            */
+
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'nullable|string|min:6',
+            'username' => 'nullable|string|max:255|unique:users,username',
+            'phone' => 'nullable|string|digits:10|unique:users,phone',
+            'nin' => 'nullable|string|max:255|unique:users,nin',
+            'address' => 'nullable|string|max:255',
+            'status' => 'required|in:active,inactive',
+            'business_id' => 'nullable|exists:businesses,id',
+            'business_branch_id' => 'nullable|exists:business_branches,id',
+            'role_id' => 'nullable|exists:roles,id',
+            'branch_powers' => 'nullable|in:allowed,none',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Supplier Model Data
+            |--------------------------------------------------------------------------
+            */
+
+            'company_name' => 'nullable|string|max:255',
+        ];
     }
 }

@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceSettingsRequest;
 use App\Http\Requests\UpdateAttendanceSettingsRequest;
-use App\Models\AttendanceSettings;
+use App\Models\CoreSettings\AttendanceSettings;
+
 
 class AttendanceSettingsController extends Controller
 {
@@ -14,7 +15,8 @@ class AttendanceSettingsController extends Controller
      */
     public function index()
     {
-        //
+        $setting = AttendanceSettings::first();
+        return response()->json(["settings" =>$setting, "message" => "Attendance settings"]);
     }
 
     /**
@@ -36,9 +38,11 @@ class AttendanceSettingsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAttendanceSettingsRequest $request, AttendanceSettings $attendanceSettings)
+    public function update(UpdateAttendanceSettingsRequest $request, AttendanceSettings $attendanceSetting)
     {
-        //
+         $validated = $request->validated();
+        $setting = $attendanceSetting->update($validated);
+        return response()->json(["message" => "Setting updated", "setting" => $setting]);
     }
 
     /**

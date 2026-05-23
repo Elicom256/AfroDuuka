@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePaymentStatusRequest;
 use App\Http\Requests\UpdatePaymentStatusRequest;
-use App\Models\PaymentStatus;
+use App\Models\CoreSettings\PaymentStatus;
+
+// use App\Models\PaymentStatus;
 
 class PaymentStatusController extends Controller
 {
@@ -14,7 +16,8 @@ class PaymentStatusController extends Controller
      */
     public function index()
     {
-        //
+        $setting = PaymentStatus::all();
+        return response()->json(["settings" =>$setting, "message" => "Payments settings"]);
     }
 
     /**
@@ -38,7 +41,9 @@ class PaymentStatusController extends Controller
      */
     public function update(UpdatePaymentStatusRequest $request, PaymentStatus $paymentStatus)
     {
-        //
+         $validated = $request->validated();
+        $setting = $paymentStatus->update($validated);
+        return response()->json(["message" => "Setting updated", "setting" => $setting]);
     }
 
     /**
