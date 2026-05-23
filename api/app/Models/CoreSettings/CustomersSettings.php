@@ -2,11 +2,12 @@
 
 namespace App\Models\CoreSettings;
 
+use App\Models\BaseModel;
 use App\Models\Business;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CustomersSettings extends Model
+class CustomersSettings extends BaseModel
 {
     /** @use HasFactory<\Database\Factories\CustomersSettingsFactory> */
     use HasFactory;

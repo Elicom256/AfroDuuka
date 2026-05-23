@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSuppliersSettingsRequest;
 use App\Http\Requests\UpdateSuppliersSettingsRequest;
-use App\Models\SuppliersSettings;
+use App\Models\CoreSettings\SuppliersSettings as CoreSettingsSuppliersSettings;
 
 class SuppliersSettingsController extends Controller
 {
@@ -13,7 +13,8 @@ class SuppliersSettingsController extends Controller
      */
     public function index()
     {
-        //
+        $setting = CoreSettingsSuppliersSettings::first();
+        return response()->json(["settings" =>$setting, "message" => "Supplier settings"]);
     }
 
     /**
@@ -27,7 +28,7 @@ class SuppliersSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SuppliersSettings $suppliersSettings)
+    public function show(SuppliersSettingsController $suppliersSettings)
     {
         //
     }
@@ -35,7 +36,7 @@ class SuppliersSettingsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSuppliersSettingsRequest $request, SuppliersSettings $suppliersSettings)
+    public function update(UpdateSuppliersSettingsRequest $request, SuppliersSettingsController $suppliersSettings)
     {
         //
     }
@@ -43,7 +44,7 @@ class SuppliersSettingsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SuppliersSettings $suppliersSettings)
+    public function destroy(SuppliersSettingsController $suppliersSettings)
     {
         //
     }
