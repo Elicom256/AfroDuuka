@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,13 +12,16 @@ class Supplier extends BaseModel
     use SoftDeletes;
 
     protected $fillable = [
-        'business_id', 
-        'name', 
-        'email', 
-        'phone', 
-        'address', 
+        'user_id', 
+        'supplier_code', 
+        'company_name',
         'status'
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function purchases(): HasMany
     {

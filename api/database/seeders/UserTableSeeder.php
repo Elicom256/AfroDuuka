@@ -47,10 +47,11 @@ class UserTableSeeder extends Seeder
                 "phone" => "0781490822"
             ],
         ];
-
         $branches = BusinessBranch::where("business_id", $business_id)->get();
 foreach ($branches as $branch) {
         foreach ($users as $name => $data) {
+            $nin = strtoupper( 'CM' . rand(10, 99) . rand(10000000, 99999999) . chr(rand(65, 90)) . chr(rand(65, 90)));
+
             // Get role by name + business
             $role = Role::where("business_id", $business_id)
                 ->where("name", $data["role"])
@@ -60,23 +61,25 @@ foreach ($branches as $branch) {
                 continue; // or throw exception if you prefer strict mode
             }
 
-            $username = strtolower(str_replace(' ', '_', $name));
-
-            
+             $baseUsername = explode("@", $data["email"])[0];
+            $generatedUsername = "@" . $baseUsername . rand(11, 999);
+            $parts = explode(" ", $name, 2);
                 $data = User::updateOrCreate(
                 [
                     "email" => $data["email"],
                 ],
                 [
-                    "name" => $name,
-                    "username" => "@" . $username,
+                    "firstname" => $parts[0],
+                    "lastname" => $parts[1],
+                    "username" => $generatedUsername,
                     "password" => Hash::make("password"),
                     "phone" => $data['phone'],
                     "business_id" => $business_id,
                     "business_branch_id" => $branch->id,
                     "role_id" => $role->id,
                     "status" => "active",
-                    "branch_powers" => "none"
+                    "branch_powers" => "none",
+                    "nin" => $nin
                 ]
             );
             }

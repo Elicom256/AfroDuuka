@@ -32,6 +32,19 @@ class BusinessService
             'business_id' => $business->id,
         ]);
 
+        $roles = Role::all();
+        $new_roles = [ "admin", "manager", "editor", "staff", "worker", "customer", "supplier"];
+        foreach ($new_roles as $new_role){
+            foreach ($roles as $role){
+            if($new_role === $role?->name){
+                continue;
+            }
+            Role::create([
+                "name" => $new_role,
+                'business_id' => $business->id
+                ]);
+        }
+        }
         // Update the user's profile with business_id and role_id
         $user->update([
             'business_id' => $business->id,

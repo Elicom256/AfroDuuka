@@ -5,9 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Supplier;
+use App\Services\SupplierService;
 
 class SupplierController extends Controller
 {
+    protected $supplierService;
+    public function __construct(SupplierService $supplierService)
+    {
+        $this->supplierService = $supplierService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -23,7 +29,7 @@ class SupplierController extends Controller
     public function store(StoreSupplierRequest $request)
     {
         $validated = $request->validated();
-        $supplier = Supplier::create($validated);
+        $supplier = $this->supplierService->createSupplier($validated);
         return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
     }
 

@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
+use App\Models\BusinessBranch;
+use App\Models\Role;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class SupplierTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $suppliers = [
@@ -47,11 +48,51 @@ class SupplierTableSeeder extends Seeder
         ];
 
         $businessId = Business::where("email", "testbusinessone@gmail.com")->value("id");
-        foreach ($suppliers as $supplier) {
+       
+        $businessBranch = BusinessBranch::where("name", "Main Branch")
+                          ->where("business_id", $businessId)->value("id");
+        $role = Role::where("name", "supplier")
+                          ->where("business_id", $businessId)->value("id");                  
+        foreach ($suppliers as $supplierData) {
+             $supplierCount = Supplier::with("user",  function ($q) use($businessId){
+            $q->where("business_id", $businessId);
+        })->count();
+        $supplierCode = "SUP-" . str_pad( $supplierCount + 1, 5, "0", STR_PAD_LEFT );
+      $nin = strtoupper( 'CM' . rand(10, 99) . rand(10000000, 99999999) . chr(rand(65, 90)) . chr(rand(65, 90)));
+            // 1. Create User first
+            $user = User::updateOrCreate(
+                [
+                    "email" => $supplierData["email"]
+                ],
+                [
+                    "firstname" => explode(" ", $supplierData["name"])[0],
+                    "lastname" => explode(" ", $supplierData["name"], 2)[1] ?? "",
+                    "email" => $supplierData["email"],
+                    "phone" => $supplierData["phone"],
+                    "address" => $supplierData["address"],
+                    "business_id" => $businessId,
+                    "business_branch_id" => $businessBranch,
+                    "role_id" => $role, // optionally set supplier role
+                    "username" => strtoupper(explode("@", $supplierData["email"])[0]),
+                    "password" => Hash::make("password"),
+                    "status" => "active",
+                    "nin" => $nin
+                ]
+            );
+      
+            // 2. Create Supplier profile
             Supplier::updateOrCreate(
-                ["email" => $supplier['email']],
-                 [...$supplier, "business_id" =>$businessId, "status" => "active"]);
+                [
+                    "user_id" => $user->id,
+                ],
+                [
+                    "company_name" => $supplierData["name"],
+                    "supplier_code" => $supplierCode,
+                    "status" => "active",
+                ]
+            );
         }
+
         $this->command->info("✅ Seeded " . count($suppliers) . " Suppliers Successfully!");
     }
 }

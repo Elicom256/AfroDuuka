@@ -10,11 +10,9 @@ return new class extends Migration
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
-            $table->string('name');
-            $table->string('email')->unique()->nullable();
-            $table->string('phone')->nullable();
-            $table->text('address')->nullable();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('supplier_code')->unique();     // internal code/ID
+            $table->string('company_name')->nullable();    // if customer is a company
             $table->enum('status', ["active", "suspended"])->default("active");
             $table->timestamps();
             $table->softDeletes();

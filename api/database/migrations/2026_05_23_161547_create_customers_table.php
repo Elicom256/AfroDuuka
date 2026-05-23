@@ -17,11 +17,11 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('customer_code')->unique();     // internal code/ID
             $table->string('company_name')->nullable();    // if customer is a company
-            $table->string('contact_person')->nullable();  // main contact name
-            $table->string('address')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->text('remarks')->nullable();
             $table->timestamps();
+
+            // $table->unique(["user_id", "nin"]);
         });
     }
 

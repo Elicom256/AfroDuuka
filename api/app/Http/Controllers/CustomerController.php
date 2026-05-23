@@ -5,15 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Services\CustomerService;
 
 class CustomerController extends Controller
 {
+   protected $customerService;
+    public function __construct(CustomerService $customerService)
+    {
+        $this->customerService = $customerService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $customers = Customer::with("user")->where("status", "active")->get();
+        return response()->json(["message" => "Fetched all customers", "customer" => $customers], 200);
     }
 
     /**
@@ -21,7 +28,9 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $customer = $this->customerService->customer($validated);
+        return response()->json(["message" => "Created a customer", "customer" => $customer], 201);
     }
 
     /**
@@ -29,7 +38,8 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        //
+        $customer = $customer->load("user");
+        return response()->json(["message" => "Fetched a customer", "customer" => $customer], 200);
     }
 
     /**
@@ -37,7 +47,9 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        //
+         $validated = $request->validated();
+        $customer->update($validated);
+        return response()->json(["message" => "Updated a customer", "customer" => $customer], 201);
     }
 
     /**
@@ -45,6 +57,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        $customer->delete();
+        return response()->json(["message" => "Deleted a customer"], 201);
     }
 }

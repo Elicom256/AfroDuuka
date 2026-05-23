@@ -22,7 +22,7 @@ class RoleTableSeeder extends Seeder
             throw new \Exception("Business not found");
         }
 
-        $roles = [ "admin", "manager", "editor", "staff", "worker",];
+        $roles = [ "admin", "manager", "editor", "staff", "worker", "supplier", "customer"];
 
         foreach ($roles as $roleName) {
             Role::updateOrCreate(

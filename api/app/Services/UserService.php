@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Worker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -43,8 +44,8 @@ class UserService
     {
         $admin = Auth::user();
         // dd($admin);
-            return User::create([
-            'name' => $data['name'],
+            $user = User::create([
+            // 'name' => $data['name'],
             'email' => $data['email'],
             'username' => "@" . $data['name'],
             'phone' => $data['phone'],
@@ -52,7 +53,16 @@ class UserService
             'business_id' => $admin->business_id,
             'role_id' => $data['role_id'],
         ]);
+
+        Worker::create([
+            "user_id" => $user->id,
+            "firstname" => $data["firstname"],
+            "lastname" => $data["lastname"],
+            "nin" => $data["nin"]
+        ]);
+        return $user;
     }
+
 
     // create account for admin
     public function createAccount(array $data){
@@ -82,16 +92,22 @@ class UserService
     /**
      * Update user information
      */
-    public function updateUser(User $user, array $data)
+    public function updateUser(User $user, array $validated)
     {
-        $user->update([
-            'name' => $data['name'] ?? $user->name,
-            'email' => $data['email'] ?? $user->email,
-            'username' => "@" . $data['username'] ?? $user->username,
-            'business_id' => $data['business_id'] ?? $user->business_id,
-            'role_id' => $data['role_id'] ?? $user->role_id,
+       $user->update([
+            // 'name' => $validated['name'] ?? $user->name,
+            'email' => $validated['email'] ?? $user->email,
+            'username' => "@" . $validated['username'] ?? $user->username,
+            'business_id' => $validated['business_id'] ?? $user->business_id,
+            'role_id' => $validated['role_id'] ?? $user->role_id,
         ]);
-
+        $worker = Worker::where("user_id", $user?->id)->first();
+        $worker->update([
+            "firstname" => $validated["firstname"] ?? $worker->firstname ,
+            "lastname" => $validated["lastname"] ?? $worker->lastname,
+            "nin" => $validated["nin"] ?? $worker->nin
+            ]);
+            
         return $user->load('business', 'role');
     }
 

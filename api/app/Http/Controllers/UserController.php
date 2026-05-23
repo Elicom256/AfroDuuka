@@ -170,15 +170,16 @@ class UserController extends Controller
     /**
      * Update the specified user in storage
      */
-    public function update(UpdateUserRequest $request, User $worker)
+    public function update(UpdateUserRequest $request, User $user)
     {
         try {
-            $user = Auth::user();
+            // $user = Auth::user();
             $validated = $request->validated();
-            $updated_user = $worker->update($validated);
+            $user = $this->userService->updateUser($user,$validated);
+            // $updated_user = $worker->update($validated);
             return response()->json([
                 'message' => 'User updated successfully',
-                'data' => $updated_user,
+                'data' => $user,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
