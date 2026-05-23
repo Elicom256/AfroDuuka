@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('payment_statuses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
+            $table->enum("method", ["mobile_money", "card", "cash", "credit", "cryptocurrency"]);
+            $table->enum("status", ["enabled", "disabled"]);
+
+            $table->unique(["business_id", "method", "status"]);
             $table->timestamps();
         });
     }

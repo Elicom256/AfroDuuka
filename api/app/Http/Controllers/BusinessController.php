@@ -6,14 +6,17 @@ use App\Http\Requests\StoreBusinessRequest;
 use App\Http\Requests\UpdateBusinessRequest;
 use App\Models\Business;
 use App\Services\BusinessService;
+use App\Services\CoreBusinessSettings;
 
 class BusinessController extends Controller
 {
     protected $businessService;
+    protected $coreBusinessSettings;
 
-   public function __construct(BusinessService $businessService)
+   public function __construct(BusinessService $businessService, CoreBusinessSettings $coreBusinessSettings)
    {
     $this->businessService = $businessService;
+    $this->coreBusinessSettings = $coreBusinessSettings;
    }
     public function index()
     {
@@ -28,9 +31,12 @@ class BusinessController extends Controller
         $user = $request->user();
         
         $business = $this->businessService->create( $request->validated(), $user);
+        $businessId = $business->id;
+        $settings = $this->coreBusinessSettings->coreSettings($businessId);
         return response()->json([
             'message' => 'Business created successfully',
-            'business' => $business
+            'business' => $business,
+            "core_settings" => $settings
         ], 201);
     }
 
