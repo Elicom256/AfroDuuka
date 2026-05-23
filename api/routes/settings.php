@@ -5,6 +5,7 @@ use App\Http\Controllers\Settings\CustomersSettingsController;
 use App\Http\Controllers\Settings\PaymentStatusController;
 use App\Http\Controllers\Settings\PromotionsSettingsController;
 use App\Http\Controllers\Settings\ReportsSettingsController;
+use App\Http\Controllers\SuppliersSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware("auth:sanctum")->group(function(){
@@ -14,6 +15,7 @@ Route::middleware("auth:sanctum")->group(function(){
     Route::get("/payment-settings", [PaymentStatusController::class, "index"]);
     Route::get("/promotion-settings", [PromotionsSettingsController::class, "index"]);
     Route::get("/reports-settings", [ReportsSettingsController::class, "index"]);
+    Route::get("/supplier-settings", [SuppliersSettingsController::class, "index"]);
 
     // ======= post ============
     Route::post("/attendance-settings", [AttendanceSettingsController::class, "store"]);

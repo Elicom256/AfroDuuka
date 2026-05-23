@@ -33,3 +33,7 @@ Route::prefix("admin")->group(function(){
 Route::prefix("purchases")->group(function(){
     require __DIR__.'/purchases.php';
 });
+
+Route::prefix("settings")->group(function(){
+  require __DIR__.'/settings.php';
+});
