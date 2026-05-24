@@ -6,24 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('workers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->constrained()->cascadeOnDelete();
-            $table->string("firstname")->nullable();
-            $table->string("lastname")->nullable();
-            $table->string("nin")->nullable();
+
+            // core identity
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('employee_code')->unique();
+            $table->string('department')->nullable();
+            $table->string('position')->nullable();
+            $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'intern'])
+                ->default('full_time');
+            $table->decimal('salary', 12, 2)->nullable();
+            $table->date('hire_date')->nullable();
+            $table->enum('status', ['active', 'inactive', 'suspended'])
+                ->default('active');
+            $table->text('remarks')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('workers');

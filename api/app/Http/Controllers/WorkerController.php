@@ -5,15 +5,26 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreWorkerRequest;
 use App\Http\Requests\UpdateWorkerRequest;
 use App\Models\Worker;
+use App\Services\WorkerService;
+use Illuminate\Support\Facades\Auth;
 
 class WorkerController extends Controller
 {
+    protected $workerService;
+    public function __construct(WorkerService $workerService)
+    {
+        $this->workerService = $workerService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        dd("tested");
+        $business_id = Auth::user()->business_id;
+        
+        $workers = Worker::with("user")->where("business_id", $business_id)->get();
+        return response()->json(["message" => "Added Worker", "worker" => $workers]);
     }
 
     /**
@@ -21,7 +32,10 @@ class WorkerController extends Controller
      */
     public function store(StoreWorkerRequest $request)
     {
-        //
+        // dd($request->all());
+        $validated = $request->validated();
+        $worker = $this->workerService->addWorker($validated);
+        return response()->json(["message" => "Added Worker", "worker" => $worker]);
     }
 
     /**

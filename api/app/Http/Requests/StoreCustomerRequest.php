@@ -36,9 +36,8 @@ class StoreCustomerRequest extends FormRequest
             'status' => 'required|in:active,inactive',
             // customer
             // 'user_id' => 'required|exists:users,id',
-            'customer_code' => 'required|string|max:255|unique:customers,customer_code',
+            'customer_code' => 'nullable|string|max:255|unique:customers,customer_code',
             'company_name' => 'nullable|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
 
             // user model
@@ -52,7 +51,7 @@ class StoreCustomerRequest extends FormRequest
             'branch_powers' => 'nullable|in:allowed,none',
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
-            'nin' => 'nullable|string|max:255|unique:customers,nin',
+            'nin' => 'nullable|string|max:255|unique:users,nin',
             'address' => 'nullable|string|max:255',
         ];
     }

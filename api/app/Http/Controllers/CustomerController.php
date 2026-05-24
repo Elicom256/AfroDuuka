@@ -29,7 +29,7 @@ class CustomerController extends Controller
     public function store(StoreCustomerRequest $request)
     {
         $validated = $request->validated();
-        $customer = $this->customerService->customer($validated);
+        $customer = $this->customerService->createCustomer($validated);
         return response()->json(["message" => "Created a customer", "customer" => $customer], 201);
     }
 
