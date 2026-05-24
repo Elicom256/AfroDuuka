@@ -24,8 +24,8 @@ class Business extends Model
         return $this->hasMany(Category::class);
     }
 
-    public function suppliers(): HasMany
-    {
-        return $this->hasMany(Supplier::class);
-    }
+    // public function suppliers(): HasMany
+    // {
+    //     return $this->hasMany(Supplier::class);
+    // }
 }

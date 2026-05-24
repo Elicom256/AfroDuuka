@@ -47,18 +47,18 @@ class UserService
             $user = User::create([
             // 'name' => $data['name'],
             'email' => $data['email'],
+            "firstname" => $data["firstname"],
+            "lastname" => $data["lastname"],
             'username' => "@" . $data['name'],
             'phone' => $data['phone'],
             'password' => Hash::make("password"),
             'business_id' => $admin->business_id,
             'role_id' => $data['role_id'],
+            "nin" => $data["nin"] ?? null
         ]);
 
         Worker::create([
             "user_id" => $user->id,
-            "firstname" => $data["firstname"],
-            "lastname" => $data["lastname"],
-            "nin" => $data["nin"]
         ]);
         return $user;
     }
