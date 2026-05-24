@@ -24,4 +24,20 @@ class WorkerService
             ]);
         });
     }
+
+    // update worker 
+    public function updateWorker(Worker $worker, array $data){
+        return $this->profileService->updateProfile($worker->user, $data, function($user, $data) use($worker){
+            $worker->update([
+                "user_id" => $user->id,
+                "department" => $data["department"] ?? $worker->department,
+                "position" => $data["position"] ?? $worker->position,
+                "employment_type" => $data["employment_type"] ?? $worker->employment_type,
+                "salary" => $data["salary"] ?? $worker->salary,
+                "hire_date" => $data["hire_date"] ?? $worker->hire_date,
+                "status" => "active" ?? $worker->active,
+            ]);
+            return $worker;
+        } );
+    }
 }

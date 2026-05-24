@@ -10,6 +10,7 @@ class ProfileService
 {
     public function create(array $data, callable $createProfile)
     {
+        // ==== dependency injection + Callback pattern + transaction wrapping
         return DB::transaction(function () use ($data, $createProfile) {
 
             // username fallback
@@ -36,6 +37,29 @@ class ProfileService
             // 2. Attach profile (CUSTOM logic injected)
             $profile = $createProfile($user, $data);
 
+            return $profile->load("user");
+        });
+    }
+
+
+    // update
+     public function updateProfile(User $user, array $data, callable $updateProfile)
+    {
+        return DB::transaction(function () use ($user, $data, $updateProfile) {
+            // 1. Create user (shared logic)
+            $user->update([
+                "firstname" => $data["firstname"] ?? $user->firstname,
+                "lastname" => $data["lastname"] ?? $user->lastname,
+                "email" => $data["email"] ?? $user->email,
+                "username" => $data["username"] ?? $user->username,
+                "phone" => $data["phone"] ?? $user->phone,
+                "nin" => $data["nin"] ?? $user->nin,
+                "address" => $data["address"] ?? $user->address,
+                "status" => $data["status"] ?? $user->status,
+            ]);
+
+            // 2. Attach profile (CUSTOM logic injected)
+            $profile = $updateProfile($user, $data);
             return $profile->load("user");
         });
     }
