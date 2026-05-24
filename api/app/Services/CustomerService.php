@@ -24,4 +24,19 @@ class CustomerService
             ]);
         });
     }
+
+    // update customer
+    public function updateCustomer(Customer $customer, array $data)
+    {
+        return $this->profileService->updateProfile($customer->user, $data, function ($user, $data) use ($customer) {
+
+             $customer->update([
+                // "user_id" => $user->id,
+                "company_name" => $data["company_name"] ?? null,
+                "remarks" => $data["remarks"] ?? null,
+                "status" => $data["status"] ?? "active",
+            ]);
+            return $customer;
+        });
+    }
 }
