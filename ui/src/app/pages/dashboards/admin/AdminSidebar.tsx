@@ -40,6 +40,7 @@ const navSections = [
     title: 'People',
     items: [
       { label: 'Workers', to: '/admin/workers', icon: Users },
+      { label: 'Suppliers', to: '/admin/suppliers', icon: Users2 },
       { label: 'Customers', to: '/admin/customers', icon: Users2 },
     ],
   },
@@ -77,7 +78,8 @@ type AdminSidebarProps = {
 
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { data } = useLoggedinUserQuery();
-  // console.log('data of user==>', data?.data);
+  const role = data?.data.role.name;
+  console.log('data of user==>', role);
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -98,7 +100,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
                 return (
                   <NavLink
                     key={item.to}
-                    to={item.to}
+                    to={!role || role !== 'admin' ? 'login' : item.to}
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(

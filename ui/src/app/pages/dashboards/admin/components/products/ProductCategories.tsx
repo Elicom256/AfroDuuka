@@ -14,7 +14,7 @@ import { EditProductCategory } from './EditProductCategory';
 export const ProductCategories = () => {
   const { data, isLoading } = useProductCategoriesQuery();
   const [remove, { isLoading: deleting }] = useDeleteProductCategoryMutation();
-
+console.log("Categories==>", data)
   const handleDelete = async (id: number) => {
     try {
       const res = await remove(id).unwrap();

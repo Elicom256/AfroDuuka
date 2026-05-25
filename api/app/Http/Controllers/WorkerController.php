@@ -20,11 +20,10 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        dd("tested");
-        $business_id = Auth::user()->business_id;
-        
-        $workers = Worker::with("user")->where("business_id", $business_id)->get();
-        return response()->json(["message" => "Added Worker", "worker" => $workers]);
+        // $business_id = Auth::user()->business_id;
+        // dd("Elicom");
+        $workers = Worker::with("user.role")->get();
+        return response()->json(["message" => "Fetched all Workers", "workers" => $workers]);
     }
 
     /**
@@ -43,7 +42,7 @@ class WorkerController extends Controller
      */
     public function show(Worker $worker)
     {
-        //
+        return response()->json(["message" => "Fetched Worker", "worker" => $worker]);
     }
 
     /**

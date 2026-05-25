@@ -48,14 +48,14 @@ class UpdateCustomerRequest extends FormRequest
             'nullable',
             'string',
             'digits:10',
-            // Rule::unique('users', 'phone')->ignore($userId),
+            Rule::unique('users', 'phone')->ignore($userId),
         ],
         'nin' => [
             'sometimes',
             'nullable',
             'string',
             'digits:10',
-            // Rule::unique('users', 'nin')->ignore($userId),
+            Rule::unique('users', 'nin')->ignore($userId),
         ],
 
             'email' => 'nullable|email',

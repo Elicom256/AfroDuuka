@@ -4,9 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
+import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 interface Product {
   id: string;
@@ -21,25 +22,30 @@ interface Product {
   status: string;
   description: string;
   category: string;
+  product: {
+    name: string;
+    sku: string;
+  };
 }
 
 export const ProductTable = () => {
   const { data: products, isLoading: loadProducts } = useProductsQuery();
-  const [prodId, setProdId] = useState<string>('');
-  console.log('products==>', products);
-
+  const { data: branchProducts, isLoading: loadBranchProducts } = useBranchProductsQuery();
+  const navigate = useNavigate();
+  console.log('products==>', branchProducts);
+  const bproducts = branchProducts?.products;
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // Adjust as needed
 
   if (loadProducts) return <PageLoadingState />;
 
   const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
+  // const startIndex = (currentPage - 1) * itemsPerPage;
+  // const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['No', 'CID', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
+  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
-    setProdId(id);
+    // setProdId(id);
     // try {
     //   const res = await remove(id).unwrap();
     //   if (res) {
@@ -63,12 +69,12 @@ export const ProductTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedProducts?.map((product: Product, i: number) => (
-            <TableRow key={product.id}>
+          {bproducts?.map((product: Product, i: number) => (
+            <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
               <TableCell>{i + 1}</TableCell>
-              <TableCell>{product.category_id}</TableCell>
+              {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
-              <TableCell>{product.sku}</TableCell>
+              <TableCell>{product?.product.sku}</TableCell>
               {/* <TableCell>{product.barcode}</TableCell> */}
               <TableCell>{Number(product.price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
@@ -78,15 +84,8 @@ export const ProductTable = () => {
               {/* <TableCell>{product.description}</TableCell> */}
               {/* <TableCell>{product.category}</TableCell> */}
               <TableCell className='grid grid-cols-2 place-items-center gap-2'>
-                <Link to={`/admin/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
-                  <Eye size={20} />
-                </Link>
                 <div className='h-6 flex items-center'>
                   {
-                    // isLoading && prodId === product.id ? (
-                    //   <Spinner className='size-4' />
-                    // ) :
-                    // <span>tt</span>
                     <Trash2
                       size={20}
                       className='text-red-400 cursor-pointer'

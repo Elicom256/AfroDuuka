@@ -23,13 +23,13 @@ export const AdminProductsPage = () => {
         <ProductTable />
       </CardContent>
       <CardFooter className='flex justify-between'>
-        <div className="">
+        <div className='flex items-center gap-4'>
+          <Link to='/admin/business-products/' className='hover:underline text-blue-400'>
+            Manage Business Products
+          </Link>
           <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
-          Manage product categories
-        </Link>
-        <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
-          Manage product Types
-        </Link>
+            Manage product Types
+          </Link>
         </div>
         <div className='grid grid-cols-2 text-xs'>
           {/* <span className='text'>Note</span> */}
