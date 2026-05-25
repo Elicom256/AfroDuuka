@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Services\CustomerService;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
@@ -19,6 +20,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
+        dd(Auth::user()->business_id);
         $customers = Customer::with("user")->where("status", "active")->get();
         return response()->json(["message" => "Fetched all customers", "customer" => $customers], 200);
     }

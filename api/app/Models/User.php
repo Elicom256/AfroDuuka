@@ -53,4 +53,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(BusinessBranch::class);
     }
+    public function worker(){
+        return $this->belongsTo(Worker::class);
+    }
 }

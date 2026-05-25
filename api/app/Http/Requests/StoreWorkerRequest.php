@@ -36,6 +36,7 @@ class StoreWorkerRequest extends FormRequest
      */
     public function rules(): array
     {
+        
         return [
             /*
             |--------------------------------------------------------------------------
@@ -57,7 +58,6 @@ class StoreWorkerRequest extends FormRequest
             */
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
-
             'email' => 'required|email|unique:users,email',
             'password' => 'nullable|string|min:6',
             'username' => 'nullable|string|max:255|unique:users,username',

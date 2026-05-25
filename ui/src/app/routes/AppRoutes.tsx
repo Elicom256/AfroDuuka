@@ -8,28 +8,28 @@ import { AdminRoutes } from './AdminRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { ManagerRoutes } from './ManagerRoutes';
 import { StaffDashboard } from './StaffDashboard';
+import { NotFound } from './NotFound';
 
 export const AppRoutes = () => {
   const { data } = useLoggedinUserQuery();
-
   const role = data?.data.role.name;
-  // console.log('Roles==>', data?.data);
+
   return (
-    <div>
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='login' element={<Login />} />
-        <Route path='signup' element={<SignUp />} />
-        <Route path='about' element={<About />} />
-        <Route path='documentation' element={<Documentation />} />
-      </Routes>
-      {role === 'admin' ? (
-        <AdminRoutes />
-      ) : role === 'manager' ? (
-        <ManagerRoutes />
-      ) : role === 'staff' ? (
-        <StaffDashboard />
-      ) : null}
-    </div>
+    <Routes>
+      {/* Public routes */}
+      <Route path='/' element={<Home />} />
+      <Route path='login' element={<Login />} />
+      <Route path='signup' element={<SignUp />} />
+      <Route path='about' element={<About />} />
+      <Route path='documentation' element={<Documentation />} />
+
+      {/* Role-based protected routes */}
+      {role === 'admin' && <Route path='/*' element={<AdminRoutes />} />}
+      {role === 'manager' && <Route path='/*' element={<ManagerRoutes />} />}
+      {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}
+
+      {/* Fallback */}
+      <Route path='*' element={<NotFound />} />
+    </Routes>
   );
 };
