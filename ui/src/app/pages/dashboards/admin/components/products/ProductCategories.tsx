@@ -3,7 +3,7 @@ import {
   useProductCategoriesQuery,
 } from '@/app/store/features/business/products/productsQuery';
 import { ArrowLeftCircle, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -14,12 +14,15 @@ import { EditProductCategory } from './EditProductCategory';
 export const ProductCategories = () => {
   const { data, isLoading } = useProductCategoriesQuery();
   const [remove, { isLoading: deleting }] = useDeleteProductCategoryMutation();
-console.log("Categories==>", data)
+  const navigate = useNavigate();
+
+  console.log('Categories==>', data);
   const handleDelete = async (id: number) => {
     try {
       const res = await remove(id).unwrap();
       console.log('Deleted==>', res);
       toast.success('Category deleted successfully');
+      // return navigate('../products');
     } catch (error) {
       toast.error('Failed to delete category');
     }

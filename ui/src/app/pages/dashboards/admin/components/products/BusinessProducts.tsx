@@ -1,8 +1,4 @@
-import {
-  useDeleteProductCategoryMutation,
-  useProductCategoriesQuery,
-  useProductsQuery,
-} from '@/app/store/features/business/products/productsQuery';
+import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { ArrowLeftCircle, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,28 +6,28 @@ import { Button } from '@/components/ui/button';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { AddProductCategory } from './AddProductCategory';
-import { EditProductCategory } from './EditProductCategory';
 import { EditBusinessProduct } from './EditBusinessProduct';
 
 export const BusinessProducts = () => {
   const { data, isLoading } = useProductsQuery();
-  const navigate = useNavigate()
-  const [remove, { isLoading: deleting }] = useDeleteProductCategoryMutation();
+  const navigate = useNavigate();
+  const [remove, { isLoading: deleting }] = useDeleteProductMutation();
   const products = data?.products;
   console.log('Products in bs==>', data);
   const handleDelete = async (id: number) => {
     try {
       const res = await remove(id).unwrap();
       console.log('Deleted==>', res);
-      toast.success('Category deleted successfully');
+      toast.success(res.message || 'Category deleted successfully');
+      if (res) {
+        return navigate('../products');
+      }
     } catch (error) {
       toast.error('Failed to delete category');
     }
   };
 
   if (isLoading) return <PageLoadingState />;
-
-  const categories = data?.categories || [];
 
   return (
     <div className='p-6'>
@@ -50,8 +46,8 @@ export const BusinessProducts = () => {
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {products.map((product: any) => (
-          <Card key={product.id} className='hover:shadow-md transition-shadow' onClick={()=>navigate(`/admin/business-products/${product.id}`)} >
-            <CardHeader>
+          <Card key={product.id} className='hover:shadow-md transition-shadow'>
+            <CardHeader onClick={() => navigate(`/admin/business-products/${product.id}`)}>
               <CardAction className='rounded-full bg-white/20 px-2'>CatID: {product.category_id}</CardAction>
               <CardTitle className='text-lg'>{product.name}</CardTitle>
               <CardDescription>{product.description || 'No description'}</CardDescription>

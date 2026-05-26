@@ -1,25 +1,48 @@
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
-import { ArrowLeftCircle } from 'lucide-react';
-import { useBranchProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { ArrowLeftCircle, Trash2 } from 'lucide-react';
+import {
+  useBranchProductQuery,
+  useDeleteBranchProductMutation,
+} from '@/app/store/features/branch/products/branchProductsQuery';
+import { toast } from 'sonner';
 
 export const Product = () => {
   const { id } = useParams();
   const { data, isLoading, error } = useBranchProductQuery(id as string, { skip: !id });
+  const [deleteProd, { isLoading: isDeleting }] = useDeleteBranchProductMutation();
+  const navigate = useNavigate();
+  // console.log('product==>', data);
+
   const [editOpen, setEditOpen] = useState(false);
-  
+
   if (isLoading) return <PageLoadingState />;
   if (error) return <div>Error loading product</div>;
   if (!data) return <div>Product not found</div>;
 
   const product = data?.product;
-  console.log('product==>', product);
-
+  // console.log('product==>', product);
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await deleteProd(id).unwrap();
+      console.log('Deleted ==>', res);
+      if (res) {
+        toast.success(res.message);
+      }
+      return navigate('../products');
+    } catch (error) {
+      console.log('Error on del==>', error);
+      toast.error('Failed to delete product');
+    }
+  };
+  if (isDeleting) {
+    return <PageLoadingState />;
+  }
   return (
     <div className=''>
       {product ? (
@@ -35,7 +58,11 @@ export const Product = () => {
               <h1 className='text-3xl font-bold'>Product Details</h1>
               <span>Product Id: {product?.id}</span>
             </div>
-            <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
+
+            <div className='flex items-center gap-4'>
+              <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
+              {<Trash2 size={20} className='text-red-400 cursor-pointer' onClick={() => handleDelete(product.id)} />}
+            </div>
           </div>
 
           <Card>
@@ -81,7 +108,7 @@ export const Product = () => {
 
                 <div className='flex items-center gap-2'>
                   <label className='text-sm font-medium text-gray-500'>Category ID</label>
-                  <p className=''>{product.category_id ?? '-'}</p>
+                  <p className=''>{product.product_id ?? '-'}</p>
                 </div>
               </div>
               <div className='flex items-center gap-2'>

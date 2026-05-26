@@ -51,13 +51,13 @@ export const productsQuery = createApi({
       invalidatesTags: ['ProductsAPI'],
     }),
     // delete one product by id
-    // deleteProduct: builder.mutation<any, any>({
-    //   query: (id) => ({
-    //     url: `/business-products/${id}`,
-    //     method: 'DELETE',
-    //   }),
-    //   invalidatesTags: ['ProductsAPI'],
-    // }),
+    deleteProduct: builder.mutation<any, any>({
+      query: (id) => ({
+        url: `/business-products/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ProductsAPI'],
+    }),
 
     // ============= PRODUCTS CATEGORIES PART ==============
     // get products
@@ -110,6 +110,7 @@ export const {
   useProductQuery,
   useAddProductMutation,
   useUpdateProductMutation,
+  useDeleteProductMutation,
   useProductCategoriesQuery,
   useProductCategoryQuery,
   useAddProductCategoryMutation,

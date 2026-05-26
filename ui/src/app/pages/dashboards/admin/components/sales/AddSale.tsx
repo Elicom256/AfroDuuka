@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,7 +30,7 @@ interface AddSaleProps {
 }
 
 interface SaleItem {
-  product_id: string;
+  business_branch_product_id: string;
   quantity: string;
   unit_price: string;
 }
@@ -38,17 +38,17 @@ interface SaleItem {
 export const AddSale = ({ addSale, products }: AddSaleProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<{ items: SaleItem[]; note: string }>({
-    items: [{ product_id: '', quantity: '', unit_price: '' }],
+    items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
     note: '',
-    
   });
   // user can add an item on the list
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { product_id: '', quantity: '', unit_price: '' }],
+      items: [...prev.items, { business_branch_product_id: '', quantity: '', unit_price: '' }],
     }));
   };
+
   // user can remove an item on the list
   const removeItem = (index: number) => {
     setFormData((prev) => ({
@@ -66,7 +66,9 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.unit_price);
+    const validItems = formData.items.filter(
+      (item) => item.business_branch_product_id && item.quantity && item.unit_price,
+    );
 
     if (validItems.length === 0) {
       toast.error('Please add at least one sale item.');
@@ -76,7 +78,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
     try {
       const body = {
         items: validItems.map((item) => ({
-          product_id: Number(item.product_id),
+          business_branch_product_id: Number(item.business_branch_product_id),
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
         })),
@@ -88,7 +90,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
         console.log('created Sale==>', res);
         toast.success(res.message || 'Sale created successfully');
         setOpen(false);
-        setFormData({ items: [{ product_id: '', quantity: '', unit_price: '' }], note: '' });
+        setFormData({ items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }], note: '' });
       }
     } catch (error) {
       toast.error('Failed to create sale');
@@ -100,7 +102,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const selectedIds = formData.items.map((i) => i.product_id);
+  const selectedIds = formData.items.map((i) => i.business_branch_product_id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -133,18 +135,37 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                 </div>
                 <div className='grid gap-4 pt-4'>
                   <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor={`product_id-${index}`} className='text-right'>
+                    <Label htmlFor={`business_branch_product_id-${index}`} className='text-right'>
                       Product
                     </Label>
-                    <Select value={item.product_id} onValueChange={(value) => updateItem(index, 'product_id', value)}>
-                      <SelectTrigger id={`product_id-${index}`} className='col-span-3'>
+                    <Select
+                      value={item.business_branch_product_id}
+                      onValueChange={(value) => {
+                        const selectedProduct = products.find((p) => String(p.id) === value);
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          items: prev.items.map((item, i) =>
+                            i === index
+                              ? {
+                                  ...item,
+                                  business_branch_product_id: value,
+                                  unit_price: selectedProduct?.price || '',
+                                }
+                              : item,
+                          ),
+                        }));
+                      }}
+                    >
+                      <SelectTrigger id={`business_branch_product_id-${index}`} className='col-span-3'>
                         <SelectValue placeholder='Select product' />
                       </SelectTrigger>
                       <SelectContent>
                         {products
                           .filter(
                             (product) =>
-                              !selectedIds.includes(String(product.id)) || String(product.id) === item.product_id,
+                              !selectedIds.includes(String(product.id)) ||
+                              String(product.id) === item.business_branch_product_id,
                           )
                           .map((product) => (
                             <SelectItem key={product.id} value={String(product.id)}>
