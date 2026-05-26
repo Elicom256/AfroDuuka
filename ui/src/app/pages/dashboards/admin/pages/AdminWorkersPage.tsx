@@ -13,16 +13,17 @@ import { WorkersTable, type WorkerItem } from '../components/workers-table';
 import { WorkerFormDialog } from '../components/worker-form-dialog';
 import { useRolesQuery } from '@/app/store/features/business/roles/rolesQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
+import { useBranchWorkersQuery } from '@/app/store/features/branch';
 
 export const AdminWorkersPage = () => {
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
-  const {data:sections} =useBranchesQuery() 
+  const { data: test } = useBranchWorkersQuery();
+  const { data: sections } = useBranchesQuery();
   const [deleteWorker, { isLoading: isDeleting }] = useDeleteWorkerMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<WorkerItem | null>(null);
   const { data: roles } = useRolesQuery();
-  const branches = sections?.branches
-  console.log('branches==>', branches);
+  const branches = sections?.branches;
 
   const openNewWorker = () => {
     setSelectedWorker(null);
@@ -34,8 +35,8 @@ export const AdminWorkersPage = () => {
     console.log('worker here==>', worker);
     setDialogOpen(true);
   };
-  const workers = data?.data;
- 
+  const workers = data?.workers;
+  console.log('workers==>', workers);
 
   const handleDelete = async (worker: WorkerItem) => {
     const confirmed = window.confirm(`Delete ${worker.name ?? 'this worker'}?`);
@@ -93,7 +94,6 @@ export const AdminWorkersPage = () => {
           setDialogOpen(open);
           if (!open) setSelectedWorker(null);
         }}
-        
         roles={roles}
         branches={branches}
         selectedWorker={selectedWorker}

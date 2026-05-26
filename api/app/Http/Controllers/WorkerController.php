@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreWorkerRequest;
 use App\Http\Requests\UpdateWorkerRequest;
+use App\Models\User;
 use App\Models\Worker;
 use App\Services\WorkerService;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class WorkerController extends Controller
     {
         // $business_id = Auth::user()->business_id;
         // dd("Elicom");
-        $workers = Worker::with("user.role")->get();
+        $workers = Worker::with("user.role", "user.businessBranch")->get();
         return response()->json(["message" => "Fetched all Workers", "workers" => $workers]);
     }
 

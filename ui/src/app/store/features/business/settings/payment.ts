@@ -18,6 +18,13 @@ export const paymentSettingsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['PaymentSettingsAPI'],
     }),
+    allowedPaymentMethods: builder.query<any, void>({
+      query: () => ({
+        url: '/allowed',
+        method: 'GET',
+      }),
+      providesTags: ['PaymentSettingsAPI'],
+    }),
     updatePaymentSettings: builder.mutation<any, any>({
       query: (body) => ({ url: '/', method: 'PUT', body }),
       invalidatesTags: ['PaymentSettingsAPI'],
@@ -25,4 +32,5 @@ export const paymentSettingsQuery = createApi({
   }),
 });
 
-export const { useGetPaymentSettingsQuery, useUpdatePaymentSettingsMutation } = paymentSettingsQuery;
+export const { useGetPaymentSettingsQuery, useUpdatePaymentSettingsMutation, useAllowedPaymentMethodsQuery } =
+  paymentSettingsQuery;

@@ -12,21 +12,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AddSaleProps {
-  addSale: any;
-  products: any[];
+  addSale: any; // RTK Query mutation
+  products: any[]; // BusinessBranchProduct list
+  customers: any[]; // ← New: Pass customers
+  paymentMethods: any[]; // ← Already have this
 }
 
 interface SaleItem {
@@ -35,13 +29,19 @@ interface SaleItem {
   unit_price: string;
 }
 
-export const AddSale = ({ addSale, products }: AddSaleProps) => {
+export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSaleProps) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<{ items: SaleItem[]; note: string }>({
-    items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
+
+  const [formData, setFormData] = useState({
+    items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }] as SaleItem[],
+    customer_id: '', // nullable
+    method: '', // payment method
+    paymentStatus: 'paid', // default
     note: '',
+    reference: '', // optional receipt/cheque number
   });
-  // user can add an item on the list
+
+  // Add new item row
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
@@ -49,14 +49,15 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
     }));
   };
 
-  // user can remove an item on the list
+  // Remove item row
   const removeItem = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.length > 1 ? prev.items.filter((_, i) => i !== index) : prev.items,
     }));
   };
-  // user can update item in the list
+
+  // Update item field
   const updateItem = (index: number, field: keyof SaleItem, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -64,14 +65,24 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
     }));
   };
 
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const validItems = formData.items.filter(
       (item) => item.business_branch_product_id && item.quantity && item.unit_price,
     );
 
     if (validItems.length === 0) {
       toast.error('Please add at least one sale item.');
+      return;
+    }
+
+    if (!formData.method) {
+      toast.error('Please select a payment method.');
       return;
     }
 
@@ -82,24 +93,31 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
         })),
+        customer_id: formData.customer_id || null,
+        method: formData.method,
+        paymentStatus: formData.paymentStatus,
         note: formData.note,
+        reference: formData.reference || null,
       };
 
       const res = await addSale(body).unwrap();
-      if (res) {
-        console.log('created Sale==>', res);
-        toast.success(res.message || 'Sale created successfully');
-        setOpen(false);
-        setFormData({ items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }], note: '' });
-      }
-    } catch (error) {
-      toast.error('Failed to create sale');
+
+      toast.success(res.message || 'Sale recorded successfully!');
+
+      // Reset form
+      setOpen(false);
+      setFormData({
+        items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
+        customer_id: '',
+        method: '',
+        paymentStatus: 'paid',
+        note: '',
+        reference: '',
+      });
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to create sale');
       console.error(error);
     }
-  };
-
-  const handleChange = (field: 'note', value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const selectedIds = formData.items.map((i) => i.business_branch_product_id);
@@ -109,63 +127,94 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
       <DialogTrigger asChild>
         <Button>
           <Plus className='h-4 w-4 mr-2' />
-          Add Sale
+          Record Sale
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-106.25 max-h-[80vh] overflow-y-auto'>
+
+      <DialogContent className='sm:max-w-[1100px] max-h-[85vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>Record a Sale</DialogTitle>
-          <DialogDescription>Add a new sales record for a product.</DialogDescription>
+          <DialogTitle>Record New Sale</DialogTitle>
+          <DialogDescription>
+            Enter sale details. Customer and payment method are required for proper tracking.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className='grid gap-4 py-4'>
+
+        <form onSubmit={handleSubmit} className='space-y-6'>
+          {/* Customer Selection */}
+          <div className='grid grid-cols-4 items-center gap-4'>
+            <Label htmlFor='customer_id' className='text-right'>
+              Customer <span className='text-red-500'>*</span>
+            </Label>
+            <Select value={formData.customer_id} onValueChange={(v) => handleChange('customer_id', v)}>
+              <SelectTrigger className='col-span-3'>
+                <SelectValue placeholder='Select customer (optional - walk-in)' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='Walk-in Customer (No record)'>Walk-in Customer (No record)</SelectItem>
+                {customers?.map((cust: any) => (
+                  <SelectItem key={cust.id} value={String(cust.id)}>
+                    {cust.firstname} {cust.lastname} {cust.company_name ? `(${cust.company_name})` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Items Section */}
+          <div className='space-y-4'>
+            <div className='flex justify-between items-center'>
+              <h3 className='font-medium'>Sale Items</h3>
+              <Button type='button' variant='secondary' onClick={addItem}>
+                <Plus className='h-4 w-4 mr-2' />
+                Add Item
+              </Button>
+            </div>
+
             {formData.items.map((item, index) => (
-              <div key={index} className='rounded-lg border p-4'>
-                <div className='flex items-center justify-between gap-4'>
-                  <p className='text-sm font-medium'>Item {index + 1}</p>
+              <div key={index} className='rounded-lg border p-4 '>
+                <div className='flex justify-between mb-3'>
+                  <p className='font-medium text-sm'>Item {index + 1}</p>
                   <Button
                     variant='ghost'
+                    size='sm'
                     type='button'
                     onClick={() => removeItem(index)}
                     disabled={formData.items.length === 1}
-                    className='h-9 w-9 p-0'
                   >
                     <Trash2 className='h-4 w-4' />
                   </Button>
                 </div>
-                <div className='grid gap-4 pt-4'>
-                  <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor={`business_branch_product_id-${index}`} className='text-right'>
-                      Product
-                    </Label>
+
+                <div className='grid grid-cols-12 gap-4'>
+                  {/* Product */}
+                  <div className='col-span-5'>
+                    <Label>Product</Label>
                     <Select
                       value={item.business_branch_product_id}
                       onValueChange={(value) => {
-                        const selectedProduct = products.find((p) => String(p.id) === value);
-
+                        const selected = products.find((p) => String(p.id) === value);
                         setFormData((prev) => ({
                           ...prev,
-                          items: prev.items.map((item, i) =>
-                            i === index
+                          items: prev.items.map((i, idx) =>
+                            idx === index
                               ? {
-                                  ...item,
+                                  ...i,
                                   business_branch_product_id: value,
-                                  unit_price: selectedProduct?.price || '',
+                                  unit_price: selected?.price?.toString() || '',
                                 }
-                              : item,
+                              : i,
                           ),
                         }));
                       }}
                     >
-                      <SelectTrigger id={`business_branch_product_id-${index}`} className='col-span-3'>
+                      <SelectTrigger>
                         <SelectValue placeholder='Select product' />
                       </SelectTrigger>
                       <SelectContent>
                         {products
                           .filter(
-                            (product) =>
-                              !selectedIds.includes(String(product.id)) ||
-                              String(product.id) === item.business_branch_product_id,
+                            (p) =>
+                              !selectedIds.includes(String(p.id)) || String(p.id) === item.business_branch_product_id,
                           )
                           .map((product) => (
                             <SelectItem key={product.id} value={String(product.id)}>
@@ -175,57 +224,74 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor={`quantity-${index}`} className='text-right'>
-                      Quantity
-                    </Label>
+
+                  {/* Quantity */}
+                  <div className='col-span-3'>
+                    <Label>Quantity</Label>
                     <Input
-                      id={`quantity-${index}`}
                       type='number'
                       value={item.quantity}
                       onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                      className='col-span-3'
                       required
                     />
                   </div>
-                  <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor={`unit_price-${index}`} className='text-right'>
-                      Unit Price
-                    </Label>
+
+                  {/* Unit Price */}
+                  <div className='col-span-4'>
+                    <Label>Unit Price (UGX)</Label>
                     <Input
-                      id={`unit_price-${index}`}
                       type='number'
                       value={item.unit_price}
                       onChange={(e) => updateItem(index, 'unit_price', e.target.value)}
-                      className='col-span-3'
                       required
                     />
                   </div>
                 </div>
-                {/* <div className="">
-                  <input type="text" />
-                </div> */}
               </div>
             ))}
-            <div className='flex justify-end'>
-              <Button type='button' variant='secondary' onClick={addItem}>
-                <Plus className='h-4 w-4 mr-2' />
-                Add item
-              </Button>
+          </div>
+
+          {/* Payment & Extra Info */}
+          <div className='grid grid-cols-2 gap-6'>
+            <div className='w-fulll'>
+              <Label>Payment Method</Label>
+              <Select value={formData.method} onValueChange={(v) => handleChange('method', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select payment method' />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods?.map((pm: any) => (
+                    <SelectItem key={pm.id || pm} value={String(pm.id)}>
+                      {pm.method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='note' className='text-right'>
-                Note
-              </Label>
-              <Textarea
-                id='note'
-                value={formData.note}
-                onChange={(e) => handleChange('note', e.target.value)}
-                className='col-span-3'
+
+            <div>
+              <Label>Reference / Receipt No.</Label>
+              <Input
+                value={formData.reference}
+                onChange={(e) => handleChange('reference', e.target.value)}
+                placeholder='Optional receipt or transaction ID'
               />
             </div>
           </div>
+
+          <div className='grid gap-1'>
+            <Label>Note</Label>
+            <Textarea
+              value={formData.note}
+              onChange={(e) => handleChange('note', e.target.value)}
+              placeholder='Any additional notes...'
+            />
+          </div>
+
           <DialogFooter>
+            <Button type='button' variant='outline' onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
             <Button type='submit'>Save Sale</Button>
           </DialogFooter>
         </form>

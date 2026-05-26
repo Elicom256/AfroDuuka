@@ -20,6 +20,12 @@ class PaymentStatusController extends Controller
         return response()->json(["settings" =>$setting, "message" => "Payments settings"]);
     }
 
+public function allowed()
+    {
+        $methods = PaymentStatus::all();
+        return response()->json(["methods" =>$methods, "message" => "Allowed Payments settings"]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
