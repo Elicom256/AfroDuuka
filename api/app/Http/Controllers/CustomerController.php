@@ -20,9 +20,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        dd(Auth::user()->business_id);
         $customers = Customer::with("user")->where("status", "active")->get();
-        return response()->json(["message" => "Fetched all customers", "customer" => $customers], 200);
+        return response()->json(["message" => "Fetched all customers", "customers" => $customers], 200);
     }
 
     /**

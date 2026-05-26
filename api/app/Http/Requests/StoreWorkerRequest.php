@@ -43,7 +43,7 @@ class StoreWorkerRequest extends FormRequest
             | Worker-specific data
             |--------------------------------------------------------------------------
             */
-            'employee_code' => 'required|string|max:255|unique:workers,employee_code',
+            'employee_code' => 'nullable|string|max:255|unique:workers,employee_code',
             'department' => 'nullable|string|max:255',
             'position' => 'nullable|string|max:255',
             'employment_type' => ['nullable', Rule::in(['full_time', 'part_time', 'contract', 'intern'])],

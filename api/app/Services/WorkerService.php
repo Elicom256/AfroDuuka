@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Worker;
+use Illuminate\Support\Facades\Auth;
 
 class WorkerService
 {
@@ -12,9 +13,12 @@ class WorkerService
     {
         
         return $this->profileService->create($data, function($user, $data){
+            $work = Worker::with("user", function($q){
+                $q->where("business_id", Auth::user()->business_id);
+            })->count();
             return Worker::create([
                     "user_id" => $user->id,
-                    "employee_code" => "EMP-" . str_pad(Worker::count() + 1, 5, "0", STR_PAD_LEFT),
+                    "employee_code" => "EMP-" . str_pad($work + 1, 5, "0", STR_PAD_LEFT),
                     "department" => $data["department"] ?? null,
                     "position" => $data["position"] ?? null,
                     "employment_type" => $data["employment_type"] ?? "full_time",

@@ -15,15 +15,26 @@ import { useRegisterWorkerMutation, useUpdateWorkerMutation } from '@/app/store/
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
+type WorkerFormData = {
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: string;
+  role_id: string;
+  business_branch_id: string;
+  // Optional fields you might want later
+  department?: string;
+  position?: string;
+  employment_type?: string;
+};
+
 type WorkerFormDialogProps = {
   open: boolean;
-  roles: any;
+  roles: any[];
   branches: any[];
-  selectedWorker: any;
-  setDialogOpen: any;
+  selectedWorker: any; // null when creating
+  setDialogOpen: (open: boolean) => void;
   onOpenChange: (open: boolean) => void;
-  // onSubmit: (values: { name: string; email: string; phone: string; role: string }) => void | Promise<void>;
-  // isLoading?: boolean;
 };
 
 export const WorkerFormDialog = ({
@@ -34,163 +45,200 @@ export const WorkerFormDialog = ({
   branches,
   setDialogOpen,
 }: WorkerFormDialogProps) => {
-  const [register, { isLoading }] = useRegisterWorkerMutation();
-  const [updateWorker, { isLoading: isUpdating }] = useUpdateWorkerMutation();
+  const [registerWorker] = useRegisterWorkerMutation();
+  const [updateWorker] = useUpdateWorkerMutation();
 
-  const [worker, setWorker] = useState({
-    name: '',
+  const [formData, setFormData] = useState<WorkerFormData>({
+    firstname: '',
+    lastname: '',
     email: '',
     phone: '',
     role_id: '',
     business_branch_id: '',
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form when dialog opens/closes or worker changes
   useEffect(() => {
     if (selectedWorker) {
-      setWorker({
-        name: selectedWorker.name || '',
-        email: selectedWorker.email ?? '',
-        phone: selectedWorker.phone ?? '',
-        role_id: selectedWorker.role_id ?? '',
-        business_branch_id: selectedWorker.business_branch_id ?? '',
+      setFormData({
+        firstname: selectedWorker.firstname || selectedWorker.name?.split(' ')[0] || '',
+        lastname: selectedWorker.lastname || selectedWorker.name?.split(' ').slice(1).join(' ') || '',
+        email: selectedWorker.email || '',
+        phone: selectedWorker.phone || '',
+        role_id: selectedWorker.role_id?.toString() || '',
+        business_branch_id: selectedWorker.business_branch_id?.toString() || '',
       });
-      // console.log('selectedWorker==>', selectedWorker);
+    } else {
+      setFormData({
+        firstname: '',
+        lastname: '',
+        email: '',
+        phone: '',
+        role_id: '',
+        business_branch_id: '',
+      });
     }
-  }, [selectedWorker]);
-  console.log('selectedWorker==>', selectedWorker);
+  }, [selectedWorker, open]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setWorker((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'role' ? Number(value) : name !== 'name' ? value.trim() : value,
+      [name]: value,
     }));
-    console.log(value);
   };
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
+      const payload = {
+        ...formData,
+        // You can add defaults here if needed
+      };
+
       if (selectedWorker) {
-        const res = await updateWorker({ id: selectedWorker.id, userData: worker }).unwrap();
-        console.log('Update res==>', res);
-        if (res) {
-          toast.success(res.message || 'Worker updated successfully!.');
-          setDialogOpen(false);
-          return;
-        }
+        // Update
+        const res = await updateWorker({
+          id: selectedWorker.id,
+          userData: payload,
+        }).unwrap();
+
+        toast.success(res.message || 'Worker updated successfully');
       } else {
-        console.log('Hitting a wrong endpoint');
-        const res = await register(worker).unwrap();
-        if (res) {
-          toast.success(res.message);
-          setWorker({ name: '', email: '', phone: '', role_id: '', business_branch_id: '' });
-          setDialogOpen(false);
-        }
-        console.log('Worker data==>', res);
-        return res;
+        // Create
+        const res = await registerWorker(payload).unwrap();
+        toast.success(res.message || 'Worker created successfully');
       }
-    } catch (error) {
-      toast.error('Failed to add worker!');
-      return console.log('error==>', error);
+
+      setDialogOpen(false);
+    } catch (error: any) {
+      const message = error?.data?.message || 'Failed to save worker';
+      toast.error(message);
+      console.error('Worker save error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const isLoading = isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-lg'>
         <DialogHeader>
-          <DialogTitle>Add worker</DialogTitle>
-          <DialogDescription>Create a new worker and assign a role. </DialogDescription>
+          <DialogTitle>{selectedWorker ? 'Edit Worker' : 'Add New Worker'}</DialogTitle>
+          <DialogDescription>
+            {selectedWorker
+              ? 'Update worker information and role'
+              : 'Create a new worker account with role and branch assignment'}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='grid gap-4'>
-          <div className='grid gap-2'>
-            <Label htmlFor='worker-name'>Name</Label>
-            <Input
-              id='name'
-              name='name'
-              value={worker.name}
-              onChange={handleInputChange}
-              placeholder='Jane Doe'
-              required
-            />
+        <form onSubmit={handleSubmit} className='grid gap-4 py-2'>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <Label htmlFor='firstname'>First Name</Label>
+              <Input
+                id='firstname'
+                name='firstname'
+                value={formData.firstname}
+                onChange={handleChange}
+                placeholder='Jane'
+                required
+              />
+            </div>
+            <div className='grid gap-2'>
+              <Label htmlFor='lastname'>Last Name</Label>
+              <Input
+                id='lastname'
+                name='lastname'
+                value={formData.lastname}
+                onChange={handleChange}
+                placeholder='Doe'
+                required
+              />
+            </div>
           </div>
 
           <div className='grid gap-2'>
-            <Label htmlFor='worker-email'>Email</Label>
+            <Label htmlFor='email'>Email Address</Label>
             <Input
               id='email'
               type='email'
               name='email'
-              value={worker.email}
-              onChange={handleInputChange}
-              placeholder='jane@example.com'
+              value={formData.email}
+              onChange={handleChange}
+              placeholder='jane@company.com'
               required
             />
           </div>
 
           <div className='grid gap-2'>
-            <Label htmlFor='worker-phone'>Phone</Label>
+            <Label htmlFor='phone'>Phone Number</Label>
             <Input
               id='phone'
               type='tel'
               name='phone'
-              value={worker.phone}
-              onChange={handleInputChange}
-              placeholder='+254 700 000 000'
-              required
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder='+256 700 123 456'
             />
           </div>
 
           <div className='grid gap-2'>
-            <Label htmlFor='worker-role'>Role</Label>
+            <Label htmlFor='role_id'>Role</Label>
             <select
-              id='role'
+              id='role_id'
               name='role_id'
-              value={worker.role_id}
-              onChange={handleInputChange}
-              className='h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10'
+              value={formData.role_id}
+              onChange={handleChange}
+              className='h-11 rounded-lg border border-input bg-background px-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/10'
               required
             >
               <option value='' disabled>
                 Choose a role
               </option>
-              {roles?.map((role: any) => (
+              {roles?.map((role) => (
                 <option key={role.id} value={role.id}>
                   {role.name}
                 </option>
               ))}
             </select>
           </div>
-          {/* branch */}
+
           <div className='grid gap-2'>
-            <Label htmlFor='worker-role'>Branch</Label>
+            <Label htmlFor='business_branch_id'>Branch</Label>
             <select
-              id='branch'
+              id='business_branch_id'
               name='business_branch_id'
-              value={worker.business_branch_id}
-              onChange={handleInputChange}
-              className='h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10'
+              value={formData.business_branch_id}
+              onChange={handleChange}
+              className='h-11 rounded-lg border border-input bg-background px-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/10'
               required
             >
               <option value='' disabled>
                 Choose a branch
               </option>
-              {branches?.map((branch: any) => (
+              {branches?.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>
               ))}
             </select>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className='mt-6'>
             <DialogClose asChild>
-              <Button type='button' variant='outline'>
+              <Button type='button' variant='outline' disabled={isLoading}>
                 Cancel
               </Button>
             </DialogClose>
             <Button type='submit' disabled={isLoading}>
-              {isLoading || isUpdating ? <LoadingState /> : selectedWorker ? 'Update Worker' : 'Save changes'}
+              {isLoading ? <LoadingState /> : selectedWorker ? 'Update Worker' : 'Create Worker'}
             </Button>
           </DialogFooter>
         </form>
