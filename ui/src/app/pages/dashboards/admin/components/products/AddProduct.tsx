@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,14 +28,26 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   // console.log('Category==>', data);
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
+    markup_percentage: 0,
     cost_price: '',
+    price: '',
     quantity: '',
     reorder_level: '',
     description: '',
     product_id: '',
-    markup_percentage: '',
   });
+
+  useEffect(() => {
+    const cost = Number(formData.cost_price) || 0;
+    const markup = Number(formData.markup_percentage) || 0;
+
+    const calculatedPrice = cost + (cost * markup) / 100;
+
+    setFormData((prev) => ({
+      ...prev,
+      price: calculatedPrice.toString(),
+    }));
+  }, [formData.cost_price, formData.markup_percentage]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,7 +64,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     console.log('Adding product:', res);
     setOpen(false);
   };
-
+  console.log('test markup==>', typeof formData.markup_percentage);
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -84,6 +96,19 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='cost_price' className='text-right'>
+                Cost Price
+              </Label>
+              <Input
+                id='cost_price'
+                type='number'
+                value={formData.cost_price}
+                onChange={(e) => handleChange('cost_price', e.target.value)}
+                className='col-span-3'
+                required
+              />
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='sku' className='text-right'>
                 Markup Percentage
               </Label>
@@ -99,30 +124,19 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='price' className='text-right'>
-                Price
+                Selling Price
               </Label>
               <Input
                 id='price'
                 type='number'
                 value={formData.price}
+                // readOnly
                 onChange={(e) => handleChange('price', e.target.value)}
                 className='col-span-3'
                 required
               />
             </div>
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='cost_price' className='text-right'>
-                Cost Price
-              </Label>
-              <Input
-                id='cost_price'
-                type='number'
-                value={formData.cost_price}
-                onChange={(e) => handleChange('cost_price', e.target.value)}
-                className='col-span-3'
-                required
-              />
-            </div>
+
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='quantity' className='text-right'>
                 Quantity

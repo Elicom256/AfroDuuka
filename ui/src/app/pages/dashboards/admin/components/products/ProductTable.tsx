@@ -25,6 +25,7 @@ interface Product {
   status: string;
   description: string;
   category: string;
+  markup_percentage: number;
   product: {
     name: string;
     sku: string;
@@ -46,7 +47,7 @@ export const ProductTable = () => {
   // const startIndex = (currentPage - 1) * itemsPerPage;
   // const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status'];
+  const tableHeaders = ['No', 'Name', 'SKU', 'CP', 'MP (%)', 'Price', 'Quantity', 'RL', 'Status'];
 
   return (
     <div>
@@ -70,8 +71,12 @@ export const ProductTable = () => {
               <TableCell>{product.name}</TableCell>
               <TableCell>{product?.product?.sku ?? null}</TableCell>
               {/* <TableCell>{product.barcode}</TableCell> */}
-              <TableCell>{Number(product.price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
+              <TableCell>{(product.markup_percentage * 100).toFixed(2)}</TableCell>
+
+              {/* <TableCell>{Number(product.markup_percentage) * 100}</TableCell> */}
+              <TableCell>{Number(product.price)}</TableCell>
+
               <TableCell>{product.quantity}</TableCell>
               <TableCell>{product.reorder_level ?? '-'}</TableCell>
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>

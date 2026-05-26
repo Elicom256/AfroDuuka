@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('status', ["active", "inactive", "damaged", "out_of_stock", "discontinued"])->default("active");
 
             $table->timestamps();
-            // $table->unique(['business_branch_id', 'id']);
+            $table->unique(['business_branch_id', 'name']);
         });
     }
 

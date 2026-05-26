@@ -13,18 +13,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
-import { useAddProductCategoryMutation } from '@/app/store/features/business/products/productsQuery';
+import {
+  useAddProductCategoryMutation,
+  useAddProductMutation,
+  useProductCategoriesQuery,
+  useProductsQuery,
+} from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AddProductCategoryProps {}
 
 export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
   const [open, setOpen] = useState(false);
-  const [addCategory, { isLoading }] = useAddProductCategoryMutation();
+  const [addCategory, { isLoading }] = useAddProductMutation();
+  const { data: cats } = useProductCategoriesQuery();
+  const categories = cats?.categories ?? [];
+  console.log('categoryProducts==>', categories);
   const [formData, setFormData] = useState<any>({
     name: '',
     description: '',
+    category_id: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -37,6 +47,9 @@ export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
     }
     console.log('Adding category:', formData);
     setOpen(false);
+  };
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -61,10 +74,40 @@ export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
               <Input
                 id='name'
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => handleChange('name', e.target.value)}
                 className='col-span-3'
                 required
               />
+            </div>
+
+            {/* <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='barcode' className='text-right'>
+                Barcode
+              </Label>
+              <Input
+                id='barcode'
+                value={formData.barcode}
+                onChange={(e) => handleChange('barcode', e.target.value)}
+                className='col-span-3'
+              />
+            </div> */}
+
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='category_id' className='text-right'>
+                Category
+              </Label>
+              <Select value={formData.category_id} onValueChange={(value) => handleChange('category_id', value)}>
+                <SelectTrigger className='col-span-3'>
+                  <SelectValue placeholder='Select category' />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories?.map((cat: any) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='description' className='text-right'>
@@ -73,13 +116,13 @@ export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
               <Textarea
                 id='description'
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => handleChange('description', e.target.value)}
                 className='col-span-3'
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type='submit'>{isLoading ? <LoadingState /> : 'Add Category'}</Button>
+            <Button type='submit'>{isLoading ? <LoadingState /> : 'Update Product'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -26,7 +26,7 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
         $product = Product::create($validated);
-        return response()->json(["message" => "Product created", "product" => $product], 201);
+        return response()->json(["message" => "Added new product", "product" => $product], 201);
     }
 
     /**
