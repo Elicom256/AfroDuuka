@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('sku');
             $table->string('barcode')->nullable()->index();
+            $table->string('description')->nullable();
             
             $table->enum('status', ["active", "inactive", "discontinued"])->default("active");
             $table->timestamps();

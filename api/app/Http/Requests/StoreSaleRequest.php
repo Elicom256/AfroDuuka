@@ -23,7 +23,8 @@ class StoreSaleRequest extends FormRequest
         $this->merge([
             'business_branch_id' => Auth::user()->business_branch_id,
             'status' => "pending",
-            "paymentStatus" => "paid"
+            "paymentStatus" => "paid",
+            "method" => $this->method ?? "cash"
         ]);
     }
     public function rules(): array

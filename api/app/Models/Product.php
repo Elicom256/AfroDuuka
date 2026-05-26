@@ -18,6 +18,7 @@ class Product extends BaseModel
         'sku',
         'barcode',
         'status',
+        'description'
     ];
 
     protected $casts = [
