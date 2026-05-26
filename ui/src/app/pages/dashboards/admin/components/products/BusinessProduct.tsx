@@ -1,24 +1,43 @@
-import { useProductQuery } from '@/app/store/features/business/products/productsQuery';
+import { useDeleteProductMutation, useProductQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
-import { ArrowLeftCircle } from 'lucide-react';
+import { ArrowLeftCircle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const BusinessProduct = () => {
   const { id } = useParams();
   const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
   const [editOpen, setEditOpen] = useState(false);
-  console.log('product==>', data);
+  const navigate = useNavigate();
+
+  const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
+
   if (isLoading) return <PageLoadingState />;
   if (error) return <div>Error loading product</div>;
   if (!data) return <div>Product not found</div>;
 
   const product = data?.product;
 
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await remove(id).unwrap();
+      console.log('Deleted==>', res);
+      toast.success(res.message || 'Category deleted successfully');
+      if (res) {
+        return navigate('../products');
+      }
+    } catch (error) {
+      toast.error('Failed to delete category');
+    }
+  };
+  if (isDeleting) {
+    return <PageLoadingState />;
+  }
   return (
     <div className='container mx-auto p-6'>
       <div className='mb-4'>
@@ -32,7 +51,16 @@ export const BusinessProduct = () => {
           <h1 className='text-3xl font-bold'>Product Details</h1>
           <span>Product Id: {product.id}</span>
         </div>
-        <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
+        <Button
+          variant='outline'
+          size='sm'
+          className='text-red-400 hover:text-red-600'
+          onClick={() => handleDelete(product.id)}
+          disabled={isDeleting}
+        >
+          <Trash2 className='h-4 w-4 mr-2' />
+          Delete
+        </Button>{' '}
       </div>
 
       <Card>

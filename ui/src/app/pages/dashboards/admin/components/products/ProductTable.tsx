@@ -7,7 +7,10 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import {
+  useBranchProductsQuery,
+  useDeleteBranchProductMutation,
+} from '@/app/store/features/branch/products/branchProductsQuery';
 
 interface Product {
   id: string;
@@ -29,35 +32,22 @@ interface Product {
 }
 
 export const ProductTable = () => {
-  const { data: products, isLoading: loadProducts } = useProductsQuery();
   const { data: branchProducts, isLoading: loadBranchProducts } = useBranchProductsQuery();
   const navigate = useNavigate();
   console.log('products==>', branchProducts);
   const bproducts = branchProducts?.products;
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Adjust as needed
+  // const itemsPerPage = 10; // Adjust as needed
+  console.log('bproducts==>', bproducts);
 
-  if (loadProducts) return <PageLoadingState />;
+  if (loadBranchProducts) return <PageLoadingState />;
 
-  const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
+  // const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
   // const startIndex = (currentPage - 1) * itemsPerPage;
   // const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
-  const handleDelete = async (id: string) => {
-    // setProdId(id);
-    // try {
-    //   const res = await remove(id).unwrap();
-    //   if (res) {
-    //     toast.success(res.message);
-    //   }
-    //   setProdId('');
-    //   return;
-    // } catch (error) {
-    //   console.log('Error on del==>', error);
-    //   toast.error('Failed to delete product');
-    // }
-  };
+  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status'];
+
   return (
     <div>
       <Table>
@@ -70,11 +60,15 @@ export const ProductTable = () => {
         </TableHeader>
         <TableBody>
           {bproducts?.map((product: Product, i: number) => (
-            <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
+            <TableRow
+              key={product.id}
+              onClick={() => navigate(`/admin/products/${product.id}`)}
+              className='cursor-pointer'
+            >
               <TableCell>{i + 1}</TableCell>
               {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
-              <TableCell>{product?.product.sku}</TableCell>
+              <TableCell>{product?.product?.sku ?? null}</TableCell>
               {/* <TableCell>{product.barcode}</TableCell> */}
               <TableCell>{Number(product.price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
@@ -83,22 +77,14 @@ export const ProductTable = () => {
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>
               {/* <TableCell>{product.description}</TableCell> */}
               {/* <TableCell>{product.category}</TableCell> */}
-              <TableCell className='grid grid-cols-2 place-items-center gap-2'>
-                <div className='h-6 flex items-center'>
-                  {
-                    <Trash2
-                      size={20}
-                      className='text-red-400 cursor-pointer'
-                      onClick={() => handleDelete(product.id)}
-                    />
-                  }
-                </div>
-              </TableCell>
+              {/* <TableCell className='grid grid-cols-2 place-items-center gap-2'>
+               
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {/* <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} /> */}
     </div>
   );
 };
