@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -18,12 +19,22 @@ class StoreProductRequest extends FormRequest
 
      // * Prepare data before validation.
     protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'business_id' => Auth::user()->business_id,
-            'status' => "active",
-        ]);
-    }
+{
+    $user = Auth::user();
+
+    // Generate a simple SKU: prefix + product count + random string
+    $count = Product::count() + 1;
+    $random = strtoupper(substr(md5(uniqid()), 0, 6)); // 6‑char random
+
+    $sku = "SKU-" . $user->business_id . "-" . $count . "-" . $random;
+
+    $this->merge([
+        'business_id' => $user->business_id,
+        'status'      => "active",
+        'sku'         => $sku,
+    ]);
+}
+
 
      // * Get validation rules.
 
@@ -67,29 +78,6 @@ class StoreProductRequest extends FormRequest
                 'max:255',
             ],
 
-            'price' => [
-                'required',
-                'numeric',
-                'min:0',
-            ],
-
-            'cost_price' => [
-                'required',
-                'numeric',
-                'min:0',
-            ],
-
-            'quantity' => [
-                'required',
-                'integer',
-                'min:0',
-            ],
-
-            'reorder_level' => [
-                'required',
-                'integer',
-                'min:0',
-            ],
 
             'status' => [
                 'required',

@@ -18,20 +18,20 @@ class ProductsTableSeeder extends Seeder
 
     $products = [
         [
-            'name' => 'Mouse',
-            'sku' => 'WM-1001',
+            'name' => 'Phones',
+            'sku' => 'PN-1001',
             'barcode' => '890100000001',
             'status' => 'active',
         ],
         [
-            'name' => 'Mechanical Keyboard',
-            'sku' => 'MK-1002',
+            'name' => 'Iron Boxes',
+            'sku' => 'IB-1002',
             'barcode' => '890100000002',
             'status' => 'active',
         ],
         [
-            'name' => 'USB',
-            'sku' => 'UC-1003',
+            'name' => 'Computers',
+            'sku' => 'PC-1003',
             'barcode' => '890100000003',
             'status' => 'active',
         ],

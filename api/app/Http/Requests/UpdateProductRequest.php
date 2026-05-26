@@ -47,20 +47,6 @@ public function rules(): array
                 'max:255',
             ],
 
-            'sku' => [
-                'nullable',
-                'string',
-                'max:255',
-
-                // unique sku per business
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where(
-                        'business_id',
-                        Auth::user()->business_id
-                    );
-                }),
-            ],
-
             'barcode' => [
                 'nullable',
                 'string',

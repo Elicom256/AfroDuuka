@@ -25,7 +25,7 @@ export const AdminProductsPage = () => {
       <CardFooter className='flex justify-between'>
         <div className='flex items-center gap-4'>
           <Link to='/admin/business-products/' className='hover:underline text-blue-400'>
-            Manage Business Products
+            Manage Products Categories
           </Link>
           <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
             Manage product Types
@@ -51,6 +51,12 @@ export const AdminProductsPage = () => {
           <div className='flex items-center gap-2'>
             <span className=''>RL: </span>
             <span className='text-gray-300'>Re-order/Restock Level</span>
+          </div>
+
+          {/* MP */}
+          <div className='flex items-center gap-2'>
+            <span className=''>MP</span>
+            <span className='text-gray-300'>Markup Percentage</span>
           </div>
         </div>
       </CardFooter>
