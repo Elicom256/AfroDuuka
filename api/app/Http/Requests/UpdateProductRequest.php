@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -35,19 +36,19 @@ public function rules(): array
             ],
 
             'category_id' => [
-                'required',
+                'nullable',
                 'exists:categories,id',
             ],
 
             'name' => [
-                'required',
+                'nullable',
                 'string',
                 'min:1',
                 'max:255',
             ],
 
             'sku' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
 
@@ -67,19 +68,19 @@ public function rules(): array
             ],
 
             'price' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:0',
             ],
 
             'cost_price' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:0',
             ],
 
             'quantity' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
@@ -91,13 +92,15 @@ public function rules(): array
             ],
 
             'status' => [
-                'required',
+                'nullable',
                 'in:active,innactive',
             ],
 
             'description' => [
                 'nullable',
                 'string',
+                "min:1",
+                "max:255"
             ],
         ];
     }

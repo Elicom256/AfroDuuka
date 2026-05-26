@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Override;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -16,8 +18,13 @@ class StoreCategoryRequest extends FormRequest
         return Auth::check();
     }
 
-    // prepare for validation
-     // * @return array<string, ValidationRule|array<mixed>|string>
+   public function prepareForValidation(){
+        $user = Auth::user();
+        $this->merge([
+            "business_id" => $user->business_id,
+            "status" => "active"
+        ]);
+    }
 
     public function rules(): array
     {
@@ -25,7 +32,7 @@ class StoreCategoryRequest extends FormRequest
             'business_id' => 'required|exists:businesses,id',
             'name' => 'required|string|min:1|max:255',
             'description' => 'required|string|min:1|max:255',
-            'status' => 'required|boolean',
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

@@ -50,7 +50,7 @@ class CategoryTableSeeder extends Seeder
                 ],
                 [
                     "description" => strtolower($category["description"]),
-                    "status" => 1,
+                    "status" => "active",
                 ]
             );
               $this->command->info("✅ Seeded " . $category['name'] . " Successfully!");

@@ -13,7 +13,7 @@ return new class extends Migration
          $table->foreignId('business_id')->constrained()->cascadeOnDelete();
          $table->string('name');
          $table->text('description')->nullable();
-         $table->boolean('status')->default(1);
+         $table->enum('status', ["active", "inactive"])->default(1);
          $table->timestamps();
      });
     }

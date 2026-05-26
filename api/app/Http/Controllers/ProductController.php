@@ -24,7 +24,6 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        //
         $validated = $request->validated();
         $product = Product::create($validated);
         return response()->json(["message" => "Product created", "product" => $product], 201);
@@ -33,18 +32,20 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $pdt)
+    public function show(Product $business_product)
     {
-        $product = Product::find($pdt);
-        return response()->json(["message"=>"Product fetched!", "product" => $product], 200);
+        // $product = Product::find($pdt);
+        return response()->json(["message"=>"Product fetched!", "product" => $business_product], 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $business_product)
     {
-        //
+         $validated = $request->validated();
+        $business_product->update($validated);
+        return response()->json(["message" => "Product Updated", "product" => $business_product], 201);
     }
 
     /**
