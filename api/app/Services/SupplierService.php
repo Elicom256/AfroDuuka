@@ -11,12 +11,7 @@ class SupplierService
     public function createSupplier(array $data): Supplier
     {
         return $this->profileService->create($data, function ($user, $data) {
-
-            // $supplierCount = Supplier::count();
-            // dd($supplierCount);
             $supplierCode = "SUP-" . str_pad(Supplier::count() + 1, 5, "0", STR_PAD_LEFT);
-            // $supplierCode = "SUP-" . str_pad( $supplierCount + 1, 5, "0", STR_PAD_LEFT );
-
             return Supplier::create([
                 "user_id" => $user->id,
                 "supplier_code" => $supplierCode,
