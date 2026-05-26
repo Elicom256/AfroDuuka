@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('quantity')->default(0);
             $table->decimal('cost_price', 12, 2)->default(0);
             $table->decimal('price', 12, 2)->default(0);
+            $table->decimal('markup_percentage', 5, 2)->default(0)->after('cost_price');
             $table->integer('reorder_level')->default(0);
             $table->string('name');
             $table->text('description')->nullable();

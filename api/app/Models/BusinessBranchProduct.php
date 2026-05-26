@@ -18,6 +18,7 @@ class BusinessBranchProduct extends Model
         'name',
         'cost_price',
         'price',
+        'markup_percentage',
         'reorder_level',
         'description',
         'status',

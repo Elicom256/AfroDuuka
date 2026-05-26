@@ -19,9 +19,10 @@ class UpdateBusinessBranchProductRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $user = Auth::user();
-
+        $markup_percentage = $this->markup_percentage / 100;
         $this->merge([
             'business_branch_id' => $user?->business_branch_id,
+            'markup_percentage' => $markup_percentage
         ]);
     }
 
@@ -33,6 +34,7 @@ class UpdateBusinessBranchProductRequest extends FormRequest
             'quantity' => ['required', 'integer', 'min:0'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
+            'markup_percentage' => ['nullable', 'numeric', 'min:0'],
             'reorder_level' => ['nullable', 'integer', 'min:0'],
             'name' => ['nullable', 'string', 'max:1000'],
             'description' => ['nullable', 'string', 'max:1000'],
