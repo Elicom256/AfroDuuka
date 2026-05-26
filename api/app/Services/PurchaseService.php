@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Business;
 use App\Models\BusinessBranchProduct;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -26,9 +27,20 @@ class PurchaseService
                  "cost_price" => $item["cost_price"],
                  "subtotal" => $item["cost_price"] * $item["quantity"]
              ]);
+             $businessProduct = BusinessBranchProduct::find($item["business_branch_product_id"]);
+             if($businessProduct){
+                $price = $item["cost_price"] * (1 + $businessProduct->markup_percentage) ?? $businessProduct->price;
+                $businessProduct->increment("quantity", $item["quantity"]);
+                $businessProduct->update([
+                    "cost_price" => $item["cost_price"],
+                    "price" => $price,
+                ]);
+                
+             }
             //  increment the product by qty
-              BusinessBranchProduct::where("id", $item["business_branch_product_id"])
-                     ->increment("quantity", $item["quantity"]);
+              // BusinessBranchProduct::where("id", $item["business_branch_product_id"])
+              //        ->increment("quantity", $item["quantity"]);
+
         }
        
         return $purchase->load("purchaseItems");

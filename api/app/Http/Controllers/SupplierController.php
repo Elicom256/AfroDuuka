@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Supplier;
 use App\Services\SupplierService;
+use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
 {
@@ -19,7 +20,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        $suppliers = Supplier::all();
+        $business_id = Auth::user()->business_id;
+        $suppliers = Supplier::with("user")->get();
         return response()->json(["message" => "Fetched suppliers", "suppliers" => $suppliers]);
     }
 

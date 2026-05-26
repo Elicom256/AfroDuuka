@@ -28,13 +28,13 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   // console.log('Category==>', data);
   const [formData, setFormData] = useState({
     name: '',
-
     price: '',
     cost_price: '',
     quantity: '',
     reorder_level: '',
     description: '',
     product_id: '',
+    markup_percentage: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -81,21 +81,21 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 className='col-span-3'
-                required
               />
             </div>
-            {/* <div className='grid grid-cols-4 items-center gap-4'>
+            <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='sku' className='text-right'>
-                SKU
+                Markup Percentage
               </Label>
               <Input
                 id='sku'
-                value={formData.sku}
-                onChange={(e) => handleChange('sku', e.target.value)}
+                type='number'
+                value={formData.markup_percentage}
+                onChange={(e) => handleChange('markup_percentage', e.target.value)}
                 className='col-span-3'
                 required
               />
-            </div> */}
+            </div>
 
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='price' className='text-right'>
