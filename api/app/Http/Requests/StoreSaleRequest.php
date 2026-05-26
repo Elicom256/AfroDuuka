@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreSaleRequest extends FormRequest
 {
@@ -16,31 +16,64 @@ class StoreSaleRequest extends FormRequest
         return Auth::check();
     }
 
-   // * Prepare data before validation.
+    /**
+     * Prepare data before validation
+     */
     protected function prepareForValidation(): void
     {
+        $user = Auth::user();
 
         $this->merge([
-            'business_branch_id' => Auth::user()->business_branch_id,
-            'status' => "pending",
-            "paymentStatus" => "paid",
-            "method" => $this->method ?? "cash"
+            'business_branch_id' => $user->business_branch_id,
+            'business_id'        => $user->business_id,           // Good to have for CashFlow
+            'status'             => $this->input('status', 'completed'),
+            'paymentStatus'      => $this->input('paymentStatus', 'paid'),
+            'method'             => $this->input('method', 'cash'),
+            'currency'           => $this->input('currency', 'UGX'),
         ]);
     }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         return [
             'business_branch_id' => 'required|exists:business_branches,id',
-            'total_amount' => 'nullable|numeric',
-            'status' => 'required|string|in:pending,completed,cancelled',
-            'note' => 'nullable|string|min:1|max:255',
+            'business_id'        => 'required|exists:businesses,id',
+
+            // Customer (nullable - walk-in allowed)
+            'customer_id' => 'nullable|exists:customers,id',
+
+            // Sale Header
+            'total_amount' => 'nullable|numeric|min:0',
+            'status'       => 'required|in:pending,completed,cancelled',
+            'note'         => 'nullable|string|max:500',
+
+            // Payment Information
             'paymentStatus' => 'required|in:paid,pending,partial',
-            'method' => 'required|in:cash,mobile_money,card,credit',
-             'items' => 'required|array|min:1',
-            //  sale items
-             'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
-             'items.*.quantity' => 'required|integer|min:1',
-             'items.*.unit_price' => 'required|numeric|min:0',
+            'method'        => 'required|exists:payment_statuses,id',
+            'reference'     => 'nullable|string|max:100',           // Receipt number, transaction ID, etc.
+            'currency'      => 'required|string|size:3',
+
+            // Sale Items (Required)
+            'items' => 'required|array|min:1',
+            'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
+            'items.*.quantity'                   => 'required|integer|min:1',
+            'items.*.unit_price'                 => 'required|numeric|min:0',
+        ];
+    }
+
+    /**
+     * Custom validation messages
+     */
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'At least one product is required.',
+            'items.min' => 'At least one product must be added.',
+            'items.*.quantity.min' => 'Quantity must be at least 1.',
+            'method.in' => 'Invalid payment method selected.',
         ];
     }
 }

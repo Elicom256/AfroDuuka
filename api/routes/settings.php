@@ -30,4 +30,7 @@ Route::middleware("auth:sanctum")->group(function(){
     Route::put("/supplier-settings/{suppliersSetting}", [SuppliersSettingsController::class, "update"]);
     Route::put("/credit-settings", [CreditSettingController::class, "update"]);
     Route::put("/debit-settings", [DebitSettingController::class, "update"]);
+
+    // allowed
+    Route::get("/payment-settings/allowed", [PaymentStatusController::class, "allowed"]);
 });

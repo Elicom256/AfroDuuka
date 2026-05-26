@@ -7,13 +7,17 @@ import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useAllowedPaymentMethodsQuery } from '@/app/store/features/business/settings/payment';
 
 export const AdminSalesPage = () => {
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useBranchProductsQuery();
+  const { data: methods } = useAllowedPaymentMethodsQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
+  const paymentMethods = methods?.methods;
+  console.log('paymentMethods==>', paymentMethods);
   if (isLoading) return <PageLoadingState />;
 
   const sales = data?.sales ?? data ?? [];
@@ -22,7 +26,7 @@ export const AdminSalesPage = () => {
     const all = sale.sale_items.reduce((acc: number, val: any) => acc + val.quantity, 0);
     return sum + all;
   }, 0);
-  console.log('sales==>', data);
+  // console.log('sales==>', data);
 
   const totals = sales.reduce((acc: number, val: any) => Number(acc) + Number(val.total_amount as string), 0);
   const totalOrders = sales.length;
@@ -58,7 +62,7 @@ export const AdminSalesPage = () => {
             <CardTitle>Sales entries</CardTitle>
             <CardDescription>Manage sales records linked to products.</CardDescription>
           </div>
-          <AddSale addSale={addSale} products={products} />
+          <AddSale addSale={addSale} products={products} paymentMethods={paymentMethods} />
         </CardHeader>
         <CardContent>
           <SalesTable sales={sales} products={products} />

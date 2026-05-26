@@ -26,4 +26,9 @@ class Worker extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function businessBranch(): BelongsTo
+    {
+        return $this->belongsTo(BusinessBranch::class, "business_branch_id");
+    }
 }

@@ -51,7 +51,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
       </Card>
     );
   }
-  console.log('user yesss=>', workers);
+  // console.log('user yesss=>', workers);
 
   if (workers?.length === 0) {
     return (
@@ -69,6 +69,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Emp Code</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Phone</TableHead>
@@ -81,11 +82,12 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
           {workers &&
             workers.map((worker: any) => (
               <TableRow key={worker.id}>
-                <TableCell>{worker.name || '—'}</TableCell>
-                <TableCell>{worker.email || '—'}</TableCell>
-                <TableCell>{worker.phone || '—'}</TableCell>
-                <TableCell>{worker.business_branch.name || '—'}</TableCell>
-                <TableCell>{(worker?.role as any)?.name || '—'}</TableCell>
+                <TableCell>{worker.employee_code || '—'}</TableCell>
+                <TableCell>{`${worker.user.firstname ?? '-'} ${worker.user.lastname}`}</TableCell>
+                <TableCell>{worker.user.email || '—'}</TableCell>
+                <TableCell>{worker.user.phone || '—'}</TableCell>
+                <TableCell>{worker.user.business_branch.name ?? '—'}</TableCell>
+                <TableCell>{(worker?.user.role as any)?.name || '—'}</TableCell>
                 <TableCell>
                   <div className='flex flex-wrap gap-2'>
                     <Button size='icon-sm' variant='outline' onClick={() => onEdit(worker)}>
