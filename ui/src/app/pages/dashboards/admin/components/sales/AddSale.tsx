@@ -131,7 +131,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-[1100px] max-h-[85vh] overflow-y-auto'>
+      <DialogContent className='sm:max-w-275 max-h-[85vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Record New Sale</DialogTitle>
           <DialogDescription>

@@ -4,14 +4,21 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\BusinessBranchProduct;
+use App\Models\CoreSettings\PaymentStatus;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 
 class PurchaseService
 {
+     protected $cashFlowService;
+    public function __construct(CashFlowService $cashFlowService)
+    {
+        $this->cashFlowService = $cashFlowService;
+    }
     public function savePurchase($validated)
     {
+        
         $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
         $purchase = Purchase::create([
             "supplier_id" => $validated["supplier_id"],
@@ -19,6 +26,7 @@ class PurchaseService
             "total_amount" => $total_amount,
             "note" => $validated["note"] ?? null
         ]);
+        $method = PaymentStatus::find($validated["method"])->value("method");
         foreach ($validated["items"] as $item) {
              PurchaseItem::create([
                 "purchase_id" => $purchase->id,
@@ -34,14 +42,11 @@ class PurchaseService
                 $businessProduct->update([
                     "cost_price" => $item["cost_price"],
                     "price" => $price,
-                ]);
-                
+                ]);  
              }
-            //  increment the product by qty
-              // BusinessBranchProduct::where("id", $item["business_branch_product_id"])
-              //        ->increment("quantity", $item["quantity"]);
-
         }
+         // ==================== CREATE CASH FLOW ====================
+    $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated, $method);
        
         return $purchase->load("purchaseItems");
     }

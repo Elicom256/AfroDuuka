@@ -17,6 +17,11 @@ use function PHPUnit\Framework\throwException;
 
 class SaleItemService
 {
+    protected $cashFlowService;
+    public function __construct(CashFlowService $cashFlowService)
+    {
+        $this->cashFlowService = $cashFlowService;
+    }
    public function handleSaveSaleItem(array $validated, string $business_branch_id){
       $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
       // create sale header
@@ -54,32 +59,10 @@ class SaleItemService
       "paymentStatus" => $validated["paymentStatus"],
     ]);
     // ==================== CREATE CASH FLOW ====================
-        $this->createCashFlowForSale($sale, $totalAmount, $validated, $method);
+    $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated, $method);
+        // $this->createCashFlowForSale($sale, $totalAmount, $validated, $method);
     return $sale->load(["saleItems", "salePayment"]);
    }
 
-   /**
-     * Create CashFlow record for this sale
-     */
-    private function createCashFlowForSale(Sale $sale, float $amount, array $validated, string $method): void
-    {
-      $user = Auth::user();
-        CashFlow::create([
-            'transaction_code' => $validated["transaction_code"] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0'.STR_PAD_LEFT),
-            'type' => 'sale',
-            'amount' => $amount,
-            'currency' => $validated['currency'] ?? 'UGX',
-            'business_id' => $user->business_id,
-            'business_branch_id' => $sale->business_branch_id,
-            'customer_id' => $sale->customer_id,
-            'sale_id' => $sale->id,
-            'description' => $sale->note ?? "Walk-in sale",
-            'category' => 'product_sales',
-            'payment_method' => $method ?? 'cash',
-            'reference' => $validated['reference'] ?? null,
-            'status' => 'completed',
-            'transaction_date' => now()->toDateString(),
-            'created_by' => $user->id,
-        ]);
-    }
+  
 }

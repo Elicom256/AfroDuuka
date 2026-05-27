@@ -12,14 +12,18 @@ import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useAllowedPaymentMethodsQuery } from '@/app/store/features/business/settings/payment';
 
 export const AdminPurchasesPage = () => {
   const { data, isLoading } = usePurchasesQuery();
   const { data: productData } = useBranchProductsQuery();
   const { data: sup } = useSuppliersQuery();
+  const { data: methods } = useAllowedPaymentMethodsQuery();
+
   const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();
   const [editPurchase, setEditPurchase] = useState<any>(null);
+  const paymentMethods = methods?.methods;
   const suppliers = sup?.suppliers || [];
   console.log('suppliers==>', suppliers);
   if (isLoading || loadNewPurchase) return <PageLoadingState />;
@@ -72,7 +76,12 @@ export const AdminPurchasesPage = () => {
             <CardTitle>Purchase entries</CardTitle>
             <CardDescription>Manage purchase orders linked to suppliers.</CardDescription>
           </div>
-          <AddPurchase addPurchase={addPurchase} products={products} suppliers={suppliers} />
+          <AddPurchase
+            addPurchase={addPurchase}
+            products={products}
+            suppliers={suppliers}
+            paymentMethods={paymentMethods}
+          />
         </CardHeader>
         <CardContent>
           <PurchasesTable purchases={purchases} products={products} />
