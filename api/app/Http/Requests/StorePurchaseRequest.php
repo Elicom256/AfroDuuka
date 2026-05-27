@@ -48,7 +48,7 @@ class StorePurchaseRequest extends FormRequest
             'note'         => 'nullable|string|max:500',
 
             // Payment Information
-            'method'        => 'required|exists:payment_statuses,id',
+            'payment_status_id'  => 'required|exists:payment_statuses,id',
             'reference'      => 'nullable|string|max:100',           // Invoice number, receipt, etc.
             'currency'       => 'required|string|size:3',
 
@@ -70,7 +70,9 @@ class StorePurchaseRequest extends FormRequest
             'items.required' => 'At least one product is required.',
             'items.min' => 'You must add at least one item to this purchase.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
-            'payment_method.in' => 'Invalid payment method selected.',
+            // 👇 Add this line
+             'payment_status_id.exists'   => 'Selected payment method is invalid.',
+             'payment_status_id.required' => 'Payment method is required.',
         ];
     }
 }

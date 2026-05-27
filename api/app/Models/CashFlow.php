@@ -29,7 +29,7 @@ class CashFlow extends BaseModel
         'purchase_id',
         'description',
         'category',
-        'payment_method',
+        'payment_method_id',
         'reference',
         'status',
         'transaction_date',

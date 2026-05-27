@@ -28,6 +28,7 @@ class SaleItemService
       $sale = Sale::create([
          'business_branch_id' => $business_branch_id,
           "total_amount" => $totalAmount,
+          "customer_id" => $validated["customer_id"],
           'note' => $validated["note"] ?? null,
            "status" => "completed" 
            ]);
@@ -50,16 +51,16 @@ class SaleItemService
         BusinessBranchProduct::where('id', $item['business_branch_product_id'])
             ->decrement('quantity', $item['quantity']);
     }
-    $method = PaymentStatus::find($validated["method"])->value("method");
+    $method = PaymentStatus::find($validated["payment_status_id"])->value("method");
    //  to be removed
     SalePayment::create([
       "sale_id" => $sale->id,
-      "method" => $method,
+      "method" => $method ?? "cash",
       "amount" => $totalAmount,
       "paymentStatus" => $validated["paymentStatus"],
     ]);
     // ==================== CREATE CASH FLOW ====================
-    $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated, $method);
+    $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
         // $this->createCashFlowForSale($sale, $totalAmount, $validated, $method);
     return $sale->load(["saleItems", "salePayment"]);
    }
