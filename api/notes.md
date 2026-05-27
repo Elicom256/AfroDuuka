@@ -186,3 +186,11 @@ php artisan make:controller --api --model=modelname --resource --requests
 
 - purchase, purchaseItem
 - Sale, SaleItem
+
+**Notifications →** Super practical. You can trigger alerts when stock drops below a threshold, when a big purchase is recorded, or when a sale affects critical inventory. This keeps managers proactive without digging into reports.
+
+**Analytics →** Adds value for decision‑making. Charts for sales vs purchases, profit margins, supplier performance, and customer trends. This is where you turn raw data into insights.
+
+**Reports →** Useful for exporting summaries (daily sales, monthly purchases, cashflow statements). It’s more static than analytics but essential for compliance and bookkeeping.
+
+**Finances →** Since you already have cashflow integration, this module can consolidate inflows/outflows, categorize expenses, and show balances. It’s the bridge between operations and accounting.

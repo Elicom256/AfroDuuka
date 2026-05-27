@@ -16,7 +16,7 @@ import { branchCustomersQuery } from '../features/branch/customers/branchCustome
 import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
 import { branchReportsQuery } from '../features/branch/reports/branchReportsQuery';
 import { branchFinancesQuery } from '../features/branch/finances/branchFinancesQuery';
-import { branchNotificationsQuery } from '../features/branch/notifications/notificationsQuery';
+import { notificationsApi } from '../features/branch/notifications/notificationsQuery';
 import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
@@ -47,7 +47,6 @@ export const store = configureStore({
     [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
     [branchReportsQuery.reducerPath]: branchReportsQuery.reducer,
     [branchFinancesQuery.reducerPath]: branchFinancesQuery.reducer,
-    [branchNotificationsQuery.reducerPath]: branchNotificationsQuery.reducer,
     [branchMessagesQuery.reducerPath]: branchMessagesQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
@@ -58,6 +57,7 @@ export const store = configureStore({
     [promotionsSettingsQuery.reducerPath]: promotionsSettingsQuery.reducer,
     [reportsSettingsQuery.reducerPath]: reportsSettingsQuery.reducer,
     [supplierSettingsQuery.reducerPath]: supplierSettingsQuery.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -79,7 +79,6 @@ export const store = configureStore({
       branchSuppliersQuery.middleware,
       branchReportsQuery.middleware,
       branchFinancesQuery.middleware,
-      branchNotificationsQuery.middleware,
       branchMessagesQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
@@ -90,6 +89,7 @@ export const store = configureStore({
       promotionsSettingsQuery.middleware,
       reportsSettingsQuery.middleware,
       supplierSettingsQuery.middleware,
+      notificationsApi.middleware,
     ),
 });
 

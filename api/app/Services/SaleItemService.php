@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BusinessBranchProduct;
 use App\Models\CashFlow;
 use App\Models\CoreSettings\PaymentStatus;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -23,6 +24,8 @@ class SaleItemService
         $this->cashFlowService = $cashFlowService;
     }
    public function handleSaveSaleItem(array $validated, string $business_branch_id){
+    $notificationService = app(NotificationService::class);
+    $user = Auth::user();
       $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
       // create sale header
       $sale = Sale::create([
@@ -40,6 +43,15 @@ class SaleItemService
       if($product->quantity < $item["quantity"]){
          throw new Exception("Products available are few to what you want to sale", 301);
       }
+    //   Low stock check
+    if ($product->quantity <= $product->reorder_level) {
+    $notificationService->lowStockAlert(
+        $user,
+        $product->name ?? $product->id,
+        $product->quantity,
+        $product->reorder_level
+    );
+}
         SaleItem::create([
             'sale_id' => $sale->id,
             'business_branch_product_id' => $item['business_branch_product_id'],
@@ -59,9 +71,13 @@ class SaleItemService
       "amount" => $totalAmount,
       "paymentStatus" => $validated["paymentStatus"],
     ]);
+    $customer = Customer::with("user")->where("id", $validated["customer_id"])->first()->user;
+    $customerName = $customer->firstname . " " . $customer->lastname;
     // ==================== CREATE CASH FLOW ====================
     $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
-        // $this->createCashFlowForSale($sale, $totalAmount, $validated, $method);
+     // ==================== CREATE NOTIFICATION  ====================
+    $notificationService->newSaleRecorded($user, number_format($totalAmount) , $customerName);
+
     return $sale->load(["saleItems", "salePayment"]);
    }
 

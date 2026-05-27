@@ -8,6 +8,8 @@ use App\Models\CoreSettings\PaymentStatus;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\Supplier;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseService
 {
@@ -18,7 +20,8 @@ class PurchaseService
     }
     public function savePurchase($validated)
     {
-        
+        $notificationService = app(NotificationService::class);
+        $user = Auth::user();
         $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
         $purchase = Purchase::create([
             "supplier_id" => $validated["supplier_id"],
@@ -45,8 +48,11 @@ class PurchaseService
                 ]);  
              }
         }
+        $supplier = Supplier::find($purchase->supplier_id);
          // ==================== CREATE CASH FLOW ====================
     $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
+         // ==================== CREATE PURCHASE NOTIFICATION  ====================
+    $notificationService->newPurchaseRecorded($user, $supplier->company_name, number_format($total_amount));
        
         return $purchase->load("purchaseItems");
     }
