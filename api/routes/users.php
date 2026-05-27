@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,5 +16,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/workers/{worker}', [UserController::class, 'worker']);
     Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
 
+    // ================== NOTIFICATIONS ======================
+    Route::apiResource('notifications', NotificationController::class)->only([
+        'index', 'destroy'
+    ]);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
 
 });

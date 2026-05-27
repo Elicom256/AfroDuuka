@@ -1,15 +1,9 @@
 import { Bell } from 'lucide-react';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
-import { PageLoadingState } from '@/utils/PageLoadingState';
-import { useBranchNotificationsQuery } from '@/app/store/features/branch';
-import { resolveList } from './components/manager-page-utils';
 
 export const ManagerNotificationsPage = () => {
-  const { data, isLoading } = useBranchNotificationsQuery();
-  const notifications = resolveList(data, 'notifications');
+  let notifications: any = [];
   const unreadCount = notifications.filter((item: any) => !item.read).length;
-
-  if (isLoading) return <PageLoadingState />;
 
   return (
     <div className='space-y-6'>

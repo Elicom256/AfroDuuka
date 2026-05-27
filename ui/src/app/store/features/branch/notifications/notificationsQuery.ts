@@ -1,27 +1,58 @@
+// app/store/features/notifications/notificationsQuery.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-export const branchNotificationsQuery = createApi({
-  reducerPath: 'branchNotificationsPath',
+export const notificationsApi = createApi({
+  reducerPath: 'notificationsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/notifications`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/users/notifications`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
+        // console.log('Available token==>', token);
       }
       return headers;
     },
   }),
-  tagTypes: ['BranchNotificationsAPI'],
+  tagTypes: ['Notifications'],
   endpoints: (builder) => ({
-    branchNotifications: builder.query<any, void>({
+    getNotifications: builder.query({
       query: () => ({
         url: '/',
         method: 'GET',
       }),
-      providesTags: ['BranchNotificationsAPI'],
+      providesTags: ['Notifications'],
+    }),
+
+    markAsRead: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/${id}/read`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
+
+    markAllAsRead: builder.mutation<any, void>({
+      query: () => ({
+        url: '/mark-all-read',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
+
+    deleteNotification: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notifications'],
     }),
   }),
 });
 
-export const { useBranchNotificationsQuery } = branchNotificationsQuery;
+export const {
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
+} = notificationsApi;

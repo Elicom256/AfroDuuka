@@ -18,7 +18,6 @@ export {
 } from './suppliers/branchSuppliersQuery';
 export { branchReportsQuery, useBranchReportsQuery, useBranchReportQuery } from './reports/branchReportsQuery';
 export { branchFinancesQuery, useBranchFinancesQuery } from './finances/branchFinancesQuery';
-export { branchNotificationsQuery, useBranchNotificationsQuery } from './notifications/notificationsQuery';
 export { branchMessagesQuery, useBranchMessagesQuery } from './messages/messagesQuery';
 export { branchPromotionsQuery, useBranchPromotionsQuery } from './promotions/promotionsQuery';
 export { branchAttendanceQuery, useBranchAttendanceQuery } from './attendance/attendanceQuery';

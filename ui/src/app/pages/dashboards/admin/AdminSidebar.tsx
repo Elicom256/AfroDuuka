@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
+import { useGetNotificationsQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 
 const navSections = [
   {
@@ -32,8 +33,6 @@ const navSections = [
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
       { label: 'Sales', to: '/admin/sales', icon: DollarSign },
       { label: 'Purchases', to: '/admin/purchases', icon: Truck },
-      { label: 'Orders', to: '/admin/orders', icon: ShoppingBag },
-      { label: 'Inventory', to: '/admin/inventory', icon: AlertTriangle },
     ],
   },
   {
@@ -50,7 +49,6 @@ const navSections = [
       { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
       { label: 'Reports', to: '/admin/reports', icon: TrendingUp },
       { label: 'Finances', to: '/admin/finances', icon: DollarSign },
-      { label: 'Suppliers', to: '/admin/suppliers', icon: Truck },
       { label: 'Branches', to: '/admin/branches', icon: Truck },
     ],
   },
@@ -77,9 +75,13 @@ type AdminSidebarProps = {
 };
 
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
-  const { data } = useLoggedinUserQuery();
-  const role = data?.data.role.name;
-  console.log('data of user==>', role);
+  const { data: userData } = useLoggedinUserQuery();
+  const { data: notificationsData } = useGetNotificationsQuery(undefined, { pollingInterval: 720000 });
+
+  const role = userData?.data?.role?.name;
+  const notifications = notificationsData?.notifications || [];
+  const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -88,7 +90,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
       </div>
 
       <div className='flex-1 overflow-y-auto p-3 space-y-8'>
-        {data && data?.data.business ? (
+        {userData && userData?.data?.business ? (
           navSections.map((section) => (
             <div key={section.title} className='space-y-1'>
               <h4 className='px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2'>
@@ -97,14 +99,16 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
 
               {section.items.map((item) => {
                 const Icon = item.icon;
+                const isNotifications = item.to === '/admin/notifications';
+
                 return (
                   <NavLink
                     key={item.to}
-                    to={!role || role !== 'admin' ? 'login' : item.to}
+                    to={!role || role !== 'admin' ? '/login' : item.to}
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
+                        'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 relative',
                         isActive
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -113,20 +117,27 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
                   >
                     <Icon className='h-4 w-4' />
                     {item.label}
+
+                    {/* Unread Badge - Only for Notifications */}
+                    {isNotifications && unreadCount > 0 && (
+                      <div className='ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium bg-red-500 text-white rounded-full'>
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </div>
+                    )}
                   </NavLink>
                 );
               })}
             </div>
           ))
         ) : (
-          <Link to='create-business' className='hover:underline'>
+          <Link to='/create-business' className='hover:underline'>
             Add Business
           </Link>
         )}
       </div>
 
-      {/* Optional Footer */}
-      <div className='p-4 border-t border-border mt-auto'>{data && <UserProfile data={data} />}</div>
+      {/* Footer */}
+      <div className='p-4 border-t border-border mt-auto'>{userData && <UserProfile data={userData} />}</div>
     </nav>
   );
 };
