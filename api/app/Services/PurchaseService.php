@@ -26,7 +26,7 @@ class PurchaseService
             "total_amount" => $total_amount,
             "note" => $validated["note"] ?? null
         ]);
-        $method = PaymentStatus::find($validated["method"])->value("method");
+        // $method = PaymentStatus::find($validated["payment_status_id"])->value("method");
         foreach ($validated["items"] as $item) {
              PurchaseItem::create([
                 "purchase_id" => $purchase->id,
@@ -46,7 +46,7 @@ class PurchaseService
              }
         }
          // ==================== CREATE CASH FLOW ====================
-    $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated, $method);
+    $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
        
         return $purchase->load("purchaseItems");
     }

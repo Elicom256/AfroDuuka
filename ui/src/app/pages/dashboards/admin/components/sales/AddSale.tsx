@@ -35,7 +35,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
   const [formData, setFormData] = useState({
     items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }] as SaleItem[],
     customer_id: '', // nullable
-    method: '', // payment method
+    payment_status_id: '', // payment method
     paymentStatus: 'paid', // default
     note: '',
     reference: '', // optional receipt/cheque number
@@ -81,7 +81,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
       return;
     }
 
-    if (!formData.method) {
+    if (!formData.payment_status_id) {
       toast.error('Please select a payment method.');
       return;
     }
@@ -94,7 +94,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           unit_price: Number(item.unit_price),
         })),
         customer_id: formData.customer_id || null,
-        method: formData.method,
+        payment_status_id: formData.payment_status_id,
         paymentStatus: formData.paymentStatus,
         note: formData.note,
         reference: formData.reference || null,
@@ -109,7 +109,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
       setFormData({
         items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
         customer_id: '',
-        method: '',
+        payment_status_id: '',
         paymentStatus: 'paid',
         note: '',
         reference: '',
@@ -153,7 +153,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                 <SelectItem value='Walk-in Customer (No record)'>Walk-in Customer (No record)</SelectItem>
                 {customers?.map((cust: any) => (
                   <SelectItem key={cust.id} value={String(cust.id)}>
-                    {cust.firstname} {cust.lastname} {cust.company_name ? `(${cust.company_name})` : ''}
+                    {cust.user.firstname} {cust.user.lastname} {cust.company_name ? `(${cust.company_name})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -255,7 +255,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           <div className='grid grid-cols-2 gap-6'>
             <div className='w-fulll'>
               <Label>Payment Method</Label>
-              <Select value={formData.method} onValueChange={(v) => handleChange('method', v)}>
+              <Select value={formData.payment_status_id} onValueChange={(v) => handleChange('payment_status_id', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder='Select payment method' />
                 </SelectTrigger>

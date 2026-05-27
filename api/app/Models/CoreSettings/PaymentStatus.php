@@ -12,7 +12,7 @@ class PaymentStatus extends BaseModel
     /** @use HasFactory<\Database\Factories\PaymentStatusFactory> */
     use HasFactory;
 
-    protected $fillable = ["business_id", "status"];
+    protected $fillable = ["business_id", "method", "status"];
 
     public function business(){
         return $this->belongsTo(Business::class);

@@ -12,7 +12,7 @@ class CashFlowService
      /**
      * Create CashFlow record for this sale
      */
-    public function createCashFlowForSale(Sale $sale, float $amount, array $validated, string $method): void
+    public function createCashFlowForSale(Sale $sale, float $amount, array $validated): void
     {
       $user = Auth::user();
         CashFlow::create([
@@ -22,11 +22,11 @@ class CashFlowService
             'currency' => $validated['currency'] ?? 'UGX',
             'business_id' => $user->business_id,
             'business_branch_id' => $sale->business_branch_id,
-            'customer_id' => $sale->customer_id,
+            'customer_id' => $sale->customer_id ?? null,
             'sale_id' => $sale->id,
             'description' => $sale->note ?? "Walk-in sale",
             'category' => 'product_sales',
-            'payment_method' => $method ?? 'cash',
+            'payment_status_id' => $validated["payment_status_id"],
             'reference' => $validated['reference'] ?? null,
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
@@ -35,7 +35,7 @@ class CashFlowService
     }
 
     // ================= cash flow purchase ====================
-    public function createCashFlowForPurchase(Purchase $purchase, float $amount, array $validated, string $method): void
+    public function createCashFlowForPurchase(Purchase $purchase, float $amount, array $validated): void
     {
       $user = Auth::user();
         CashFlow::create([
@@ -45,11 +45,11 @@ class CashFlowService
             'currency' => $validated['currency'] ?? 'UGX',
             'business_id' => $user->business_id,
             'business_branch_id' => $purchase->business_branch_id,
-            // 'customer_id' => $purchase->customer_id,
+            'supplier_id' => $purchase->supplier_id ?? null,
             'purchase_id' => $purchase->id,
             'description' => $purchase->note ?? "Walk-in purchase",
             'category' => 'product_sales',
-            'payment_method' => $method ?? 'cash',
+            'payment_status_id' => $validated["payment_status_id"],
             'reference' => $validated['reference'] ?? null,
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),

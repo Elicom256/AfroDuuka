@@ -35,7 +35,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const [formData, setFormData] = useState({
     items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }] as PurchaseItem[],
     supplier_id: '',
-    method: '',
+    payment_status_id: '',
     reference: '',
     note: '',
   });
@@ -82,7 +82,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
       return;
     }
 
-    if (!formData.method) {
+    if (!formData.payment_status_id) {
       toast.error('Please select a payment method.');
       return;
     }
@@ -95,24 +95,25 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           quantity: Number(item.quantity),
           cost_price: Number(item.cost_price),
         })),
-        method: formData.method,
+        payment_status_id: formData.payment_status_id,
         reference: formData.reference || null,
         note: formData.note,
       };
-
+      console.log('Data to be sent==>', formData);
       const res = await addPurchase(body).unwrap();
-
-      toast.success(res.message || 'Purchase recorded successfully');
-
-      // Reset form
-      setOpen(false);
-      setFormData({
-        items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }],
-        supplier_id: '',
-        method: '',
-        reference: '',
-        note: '',
-      });
+      if (res) {
+        toast.success(res.message || 'Purchase recorded successfully');
+        // Reset form
+        setOpen(false);
+        setFormData({
+          items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }],
+          supplier_id: '',
+          payment_status_id: '',
+          reference: '',
+          note: '',
+        });
+        return res;
+      }
     } catch (error: any) {
       toast.error(error?.data?.message || 'Failed to create purchase');
       console.error(error);
@@ -242,7 +243,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           <div className='grid grid-cols-2 gap-6'>
             <div>
               <Label>Payment Method</Label>
-              <Select value={formData.method} onValueChange={(v) => handleChange('method', v)}>
+              <Select value={formData.payment_status_id} onValueChange={(v) => handleChange('payment_status_id', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder='Select payment method' />
                 </SelectTrigger>

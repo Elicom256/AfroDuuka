@@ -28,7 +28,7 @@ class StoreSaleRequest extends FormRequest
             'business_id'        => $user->business_id,           // Good to have for CashFlow
             'status'             => $this->input('status', 'completed'),
             'paymentStatus'      => $this->input('paymentStatus', 'paid'),
-            'method'             => $this->input('method', 'cash'),
+            'payment_status_id'             => $this->input('payment_status_id', null),
             'currency'           => $this->input('currency', 'UGX'),
         ]);
     }
@@ -52,7 +52,7 @@ class StoreSaleRequest extends FormRequest
 
             // Payment Information
             'paymentStatus' => 'required|in:paid,pending,partial',
-            'method'        => 'required|exists:payment_statuses,id',
+            'payment_status_id' => 'required|exists:payment_statuses,id',
             'reference'     => 'nullable|string|max:100',           // Receipt number, transaction ID, etc.
             'currency'      => 'required|string|size:3',
 
@@ -74,6 +74,9 @@ class StoreSaleRequest extends FormRequest
             'items.min' => 'At least one product must be added.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
             'method.in' => 'Invalid payment method selected.',
+            // 👇 Add this line
+             'payment_status_id.required' => 'Payment method is required.',
+             'payment_status_id.exists'   => 'Selected payment method is invalid.',
         ];
     }
 }

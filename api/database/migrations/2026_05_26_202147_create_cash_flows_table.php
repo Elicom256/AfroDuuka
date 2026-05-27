@@ -37,7 +37,7 @@ return new class extends Migration
         $table->enum('category', ['product_sales', 'product_purchases', 'raw_materials', 'rent',])->nullable();         // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
         
         // Payment details
-        $table->string('payment_method')->nullable();   // cash, bank, mobile_money, card
+        $table->foreignId('payment_status_id')->nullable()->constrained()->cascadeOnDelete();
         $table->string('reference')->nullable();        // receipt number, cheque number, transaction ID
         
         // Status & Dates
