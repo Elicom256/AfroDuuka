@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Override;
 
 class StorePurchaseRequest extends FormRequest
 {
@@ -18,38 +16,61 @@ class StorePurchaseRequest extends FormRequest
         return Auth::check();
     }
 
-    // #[Override]
-    public function prepareForValidation()
+    /**
+     * Prepare data before validation
+     */
+    protected function prepareForValidation(): void
     {
-        return $this->merge([
-            "business_branch_id" => Auth::user()->business_branch_id,
-            "status" => "pending"
+        $user = Auth::user();
+
+        $this->merge([
+            'business_id'        => $user->business_id,
+            'business_branch_id' => $user->business_branch_id,
+            'status'             => $this->input('status', 'completed'),
+            'currency'           => $this->input('currency', 'UGX'),
         ]);
     }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         return [
-             // Purchase fields
-            'supplier_id' => ['required','exists:products,id' ],
-            "business_branch_id" => ['required','exists:business_branches,id'],
-            // 'total_amount' => ['nullable', 'numeric', 'min:0'],
-            'status'       =>  ['required', Rule::in(['pending', 'completed', 'cancelled'])],
-             'note' => ['nullable', 'string', 'min:1', 'max:255'],
+            'supplier_id' => 'required|exists:suppliers,id',
 
-             // Purchase items
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.business_branch_product_id' => ['required', 'exists:business_branch_products,id' ],
-            'items.*.quantity' => [ 'required', 'integer', 'min:1' ],
-            'items.*.cost_price' => [ 'required', 'numeric', 'min:0'],
-            // 'items.*.subtotal' => [ 'nullable', 'numeric', 'min:0' ],
+            'business_id'        => 'required|exists:businesses,id',
+            'business_branch_id' => 'required|exists:business_branches,id',
+
+            // Purchase Header
+            'total_amount' => 'nullable|numeric|min:0',
+            'status'       => 'required|in:pending,completed,cancelled',
+            'note'         => 'nullable|string|max:500',
+
+            // Payment Information
+            'method'        => 'required|exists:payment_statuses,id',
+            'reference'      => 'nullable|string|max:100',           // Invoice number, receipt, etc.
+            'currency'       => 'required|string|size:3',
+
+            // Purchase Items
+            'items' => 'required|array|min:1',
+            'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
+            'items.*.quantity'                   => 'required|integer|min:1',
+            'items.*.cost_price'                 => 'required|numeric|min:0',
         ];
     }
+
+    /**
+     * Custom validation messages
+     */
     public function messages(): array
     {
         return [
-            'items.required' => 'At least one purchase item is required.',
-            'items.*.product_id.required' => 'Each item must have a product.',
+            'supplier_id.required' => 'Supplier is required for every purchase.',
+            'items.required' => 'At least one product is required.',
+            'items.min' => 'You must add at least one item to this purchase.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
+            'payment_method.in' => 'Invalid payment method selected.',
         ];
     }
 }

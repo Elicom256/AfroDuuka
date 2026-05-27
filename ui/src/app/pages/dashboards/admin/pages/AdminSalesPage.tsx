@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAddSaleMutation, useSalesQuery, useUpdateSaleMutation } from '@/app/store/features/branch/sales/salesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useAllowedPaymentMethodsQuery } from '@/app/store/features/business/settings/payment';
+import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 
 export const AdminSalesPage = () => {
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useBranchProductsQuery();
   const { data: methods } = useAllowedPaymentMethodsQuery();
+  const { data: buyers } = useCustomersQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
   const paymentMethods = methods?.methods;
-  console.log('paymentMethods==>', paymentMethods);
+  const customers = buyers?.customers;
+  // console.log('paymentMethods==>', paymentMethods);
   if (isLoading) return <PageLoadingState />;
 
   const sales = data?.sales ?? data ?? [];
@@ -62,7 +64,7 @@ export const AdminSalesPage = () => {
             <CardTitle>Sales entries</CardTitle>
             <CardDescription>Manage sales records linked to products.</CardDescription>
           </div>
-          <AddSale addSale={addSale} products={products} paymentMethods={paymentMethods} />
+          <AddSale addSale={addSale} products={products} paymentMethods={paymentMethods} customers={customers} />
         </CardHeader>
         <CardContent>
           <SalesTable sales={sales} products={products} />
