@@ -73,7 +73,7 @@ class PurchaseService
         $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));    
         $purchases = $query->get();
         $totalPurchases = $purchases->sum("total_amount");
-        $totalTransactions = $purchases->coun();
+        $totalTransactions = $purchases->count();
         $avgPurchases = $totalPurchases ? $totalPurchases / $totalTransactions : 0;
         $testAvg = $purchases->average("total_amount");
 
@@ -92,10 +92,10 @@ class PurchaseService
 
     return [
             'total_sales'        => round($totalPurchases, 2),
-            'avg_sale'           => round($avgPurchases, 2),
+            'avg_purchase'           => round($avgPurchases, 2),
             'test_avg'           => round($testAvg, 2),
             'total_transactions' => $totalTransactions,
-            'sales_trend'        => $purchasesTrend,
+            'purchase_trend'        => $purchasesTrend,
             'period'             => $period,
         ];
     }

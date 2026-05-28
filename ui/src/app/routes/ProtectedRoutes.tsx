@@ -6,7 +6,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 export const ProtectedRoutes: React.FC = () => {
   const { data, isLoading } = useLoggedinUserQuery();
   const user = data?.data;
-  console.log('token of tokens==>', data);
+  // console.log('token of tokens==>', data);
   if (isLoading) {
     return <PageLoadingState />;
   }

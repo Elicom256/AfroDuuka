@@ -1,101 +1,117 @@
-import { usePurchaseAnalyticsQuery, usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Line } from 'react-chartjs-2';
 import { ShoppingCart } from 'lucide-react';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import { periods } from './helper';
+import { SummaryCardContent } from './SummaryCardContent';
+import { LoadingState } from '@/utils/LoadingState';
+import { Error } from './Error';
+import { usePurchaseAnalyticsQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 
 export const PurchasesAnalytics = () => {
-  const { data, isLoading, isError } = usePurchaseAnalyticsQuery(undefined);
-  const purchases = data?.data || [];
+  const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
+  const { data, isLoading, isError, error } = usePurchaseAnalyticsQuery(selectedPeriod);
+  const chartRef = useRef<any>(null);
+
+  const analytics = data?.data;
+  console.log('analytics==>', analytics);
+  const chartData = useMemo(() => {
+    if (!analytics?.purchase_trend) return null;
+
+    return {
+      labels: analytics.purchase_trend.map((item: any) => item.date),
+      datasets: [
+        {
+          label: 'Daily Purchases (UGX)',
+          data: analytics.purchase_trend.map((item: any) => item.amount),
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249, 115, 22, 0.08)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 3,
+        },
+      ],
+    };
+  }, [analytics]);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M` },
+      },
+    },
+  };
+
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) chartRef.current.destroy();
+    };
+  }, []);
+
+  const handlePeriodChange = (period: string) => setSelectedPeriod(period);
 
   if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (isError) {
+    return <Error error={error} />;
+  }
+
+  if (!analytics?.purchase_trend?.length) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <ShoppingCart className='h-6 w-6' />
-            Purchases Analytics
+            <ShoppingCart className='h-6 w-6' /> Purchases Analytics
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Skeleton className='h-64 w-full' />
+        <CardContent className='py-12 text-center'>
+          <p className='text-muted-foreground'>No purchase data available for this period.</p>
         </CardContent>
       </Card>
     );
   }
-
-  if (isError || !purchases.length) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <ShoppingCart className='h-6 w-6' />
-            Purchases Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className='text-sm text-muted-foreground'>No purchases data available</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const totalPurchases = purchases.reduce(
-    (sum: number, purchase: any) => sum + (purchase.total_amount || purchase.total || 0),
-    0,
-  );
-  const avgPurchase = purchases.length > 0 ? totalPurchases / purchases.length : 0;
-
-  // Group purchases by date
-  const purchasesByDate: Record<string, number> = {};
-  purchases.forEach((purchase: any) => {
-    const date = new Date(purchase.created_at || purchase.date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-    purchasesByDate[date] = (purchasesByDate[date] || 0) + (purchase.total_amount || purchase.total || 0);
-  });
-
-  const chartData = {
-    labels: Object.keys(purchasesByDate).slice(-7),
-    datasets: [
-      {
-        label: 'Daily Purchases',
-        data: Object.values(purchasesByDate).slice(-7),
-        backgroundColor: 'rgba(255, 159, 64, 0.6)',
-        borderColor: 'rgba(255, 159, 64, 1)',
-        borderWidth: 2,
-      },
-    ],
-  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='flex items-center gap-2'>
-          <ShoppingCart className='h-6 w-6' />
-          Purchases Analytics
-        </CardTitle>
-        <CardDescription>Last 7 days of purchases</CardDescription>
-      </CardHeader>
-      <CardContent className='space-y-4'>
-        <div className='grid gap-2 sm:grid-cols-2'>
-          <div className='rounded-lg bg-muted p-3'>
-            <p className='text-xs text-muted-foreground'>Total Purchases</p>
-            <p className='text-xl font-semibold'>KSH {totalPurchases.toLocaleString()}</p>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+          <div>
+            <CardTitle className='flex items-center gap-2'>
+              <ShoppingCart className='h-6 w-6' /> Purchases Analytics
+            </CardTitle>
+            <CardDescription className='capitalize'>{analytics.period.replace(/_/g, ' ')}</CardDescription>
           </div>
-          <div className='rounded-lg bg-muted p-3'>
-            <p className='text-xs text-muted-foreground'>Avg Purchase</p>
-            <p className='text-xl font-semibold'>
-              KSH {avgPurchase.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-            </p>
+
+          <div className='flex gap-1 bg-muted p-1 rounded-lg'>
+            {periods.map((p) => (
+              <Button
+                key={p.value}
+                variant={selectedPeriod === p.value ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => handlePeriodChange(p.value)}
+                className='text-xs font-medium'
+              >
+                {p.label}
+              </Button>
+            ))}
           </div>
         </div>
-        <div className='h-64 w-full'>
-          <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+      </CardHeader>
+
+      <CardContent className='space-y-6'>
+        <SummaryCardContent analytics={analytics} />
+
+        <div className='h-80 w-full pt-2'>
+          <Line ref={chartRef} data={chartData!} options={chartOptions} key={`purchases-${selectedPeriod}`} />
         </div>
       </CardContent>
     </Card>
