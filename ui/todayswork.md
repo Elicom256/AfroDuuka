@@ -1,57 +1,61 @@
-# DuukaFlow Project — Admin Settings
+# DuukaFlow Project — Admin Analytics
 
 ## Goal
 
-Implement the **Settings page** in the Admin dashboard.
+Implement the `AdminAnalyticsPage` with modular analytics components.  
+Each analytic (Sales, Purchases, Inventory, Customers, Suppliers) should live in its own component file, e.g. `SalesAnalytics.tsx`.
 
-## Tasks
+## Task
 
-1. **Create Settings Page**
-    - Location: `src/app/pages/dashboards/admin/pages/settings.tsx`
-    - Purpose: Centralized settings management for the business.
-
-2. **Settings Components**
-    - Each setting should be an independent component.
-    - Location: `src/app/pages/dashboards/admin/components/settings/`
-    - Components to implement:
-        - PaymentSettings → manage payment methods [mobile money, card, cash, credit, crypto]
-        - CustomerSettings → allow adding customers
-        - SupplierSettings → allow adding suppliers
-        - ReportsSettings → toggle business performance reports
-        - PromotionsSettings → toggle promotions
-        - AttendanceSettings → add attendance tracking for workers
-
-3. **Store Integration**
-    - Location: `src/app/store/features/business/settings/`
-    - Create feature files for:
-        - `attendance-settings`
-        - `customer-settings`
-        - `payment-settings`
-        - `promotion-settings`
-        - `reports-settings`
-    - Base URL:
-        ```js
-        baseUrl: `${import.meta.env.VITE_BASE_URL}/settings`;
-        ```
-
-4. **Routing**
-    - All settings routes should be nested under `/settings`.
-    - Example:
-        - `/settings/payment-settings`
-        - `/settings/customer-settings`
-        - `/settings/supplier-settings`
-        - `/settings/reports-settings`
-        - `/settings/promotions-settings`
-        - `/settings/attendance-settings`
-
-5. **UI & Design**
-    - Use **shadcn UI components** for consistency.
-    - Use **lucide-react icons** for settings navigation.
-    - Split reusable UI into smaller components where necessary.
+- Create `AdminAnalyticsPage.tsx` as the parent container.
+- Inside `src/app/pages/dashboards/admin/components/analytics/`, add child components:
+  - `SalesAnalytics.tsx`
+  - `PurchasesAnalytics.tsx`
+  - `InventoryAnalytics.tsx`
+  - `CustomersAnalytics.tsx`
+  - `SuppliersAnalytics.tsx`
+- Each child component should:
+  - Use **shadcn/ui Card** as the wrapper.
+  - Render a **Chart.js** visualization via `react-chartjs-2`.
+  - Accept props for data (e.g. salesData, purchaseData).
+  - Keep styling compact (icons `h-6 w-6`, values `text-xl`).
+- `AdminAnalyticsPage.tsx` should import and render all child components in a responsive grid.
 
 ## Constraints
 
-- ✅ Do not hallucinate features.
-- ✅ Implementation must be consistent with **shadcn + lucide** design system.
-- ✅ Follow feature owner engineering practices.
-- ✅ Deliver working components, not static placeholders.
+- ✅ Use real data as it's being fetched in store
+- ✅ Split code into components (no bloated parent).
+- ✅ Use shadcn/ui for layout consistency.
+- ✅ Use react-chartjs-2 for charts.
+- ✅ Keep UI/UX compact and dashboard-friendly.
+- ✅ No hallucination — follow existing project patterns.
+
+## Example
+
+```tsx
+// SalesAnalytics.tsx
+import { Card, CardContent } from '@/components/ui/card';
+import { Bar } from 'react-chartjs-2';
+
+export const SalesAnalytics = ({ salesData }) => {
+  const chartData = {
+    labels: salesData.map((s) => s.month),
+    datasets: [
+      {
+        label: 'Sales',
+        data: salesData.map((s) => s.total),
+        backgroundColor: 'rgba(75,192,192,0.6)',
+      },
+    ],
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <h3 className='text-sm font-semibold mb-2'>Monthly Sales</h3>
+        <Bar data={chartData} />
+      </CardContent>
+    </Card>
+  );
+};
+```
