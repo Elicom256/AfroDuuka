@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Line } from 'react-chartjs-2';
-import { DollarSign, TrendingUp } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,42 +18,27 @@ import {
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { periods } from './helper';
 import { SummaryCardContent } from './SummaryCardContent';
+import { LoadingState } from '@/utils/LoadingState';
+import { Error } from './Error';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Types
-interface SalesTrend {
-  date: string;
-  amount: number;
-  count: number;
-}
-
-interface SalesAnalyticsData {
-  total_sales: number;
-  avg_sale: number;
-  total_transactions: number;
-  sales_trend: SalesTrend[];
-  period: string;
-}
-
 export const SalesAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
-
   const { data, isLoading, isError, error } = useGetSalesAnalyticsQuery(selectedPeriod);
+  const chartRef = useRef<any>(null);
 
-  const analytics = data?.data as SalesAnalyticsData | undefined;
-  console.log('analytics', data);
+  const analytics = data?.data;
 
-  // Memoized chart data
   const chartData = useMemo(() => {
     if (!analytics?.sales_trend) return null;
 
     return {
-      labels: analytics.sales_trend.map((item) => item.date),
+      labels: analytics.sales_trend.map((item: any) => item.date),
       datasets: [
         {
           label: 'Daily Sales (UGX)',
-          data: analytics.sales_trend.map((item) => item.amount),
+          data: analytics.sales_trend.map((item: any) => item.amount),
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.08)',
           borderWidth: 3,
@@ -68,76 +53,40 @@ export const SalesAnalytics = () => {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false,
-        callbacks: {
-          label: (context: any) => ` UGX ${context.parsed.y.toLocaleString()}`,
-        },
-      },
-    },
+    plugins: { legend: { display: false } },
     scales: {
       y: {
         beginAtZero: true,
-        ticks: {
-          callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M`,
-        },
+        ticks: { callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M` },
       },
     },
   };
 
-  const handlePeriodChange = (period: string) => {
-    setSelectedPeriod(period);
-  };
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, []);
 
-  // Loading State
+  const handlePeriodChange = (period: string) => setSelectedPeriod(period);
+
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <DollarSign className='h-6 w-6' />
-            Sales Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className='h-80 w-full' />
-        </CardContent>
-      </Card>
-    );
+    return <LoadingState />;
   }
 
-  // Error State
   if (isError) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <DollarSign className='h-6 w-6' />
-            Sales Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert variant='destructive'>
-            <AlertDescription>
-              Failed to load sales analytics. {(error as any)?.data?.message && `(${(error as any).data.message})`}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
+    return <Error error={error} />;
   }
 
-  // Empty State
-  if (!analytics || analytics?.sales_trend?.length === 0) {
+  if (!analytics?.sales_trend?.length) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <DollarSign className='h-6 w-6' />
-            Sales Analytics
+            <DollarSign className='h-6 w-6' /> Sales Analytics
           </CardTitle>
         </CardHeader>
         <CardContent className='py-12 text-center'>
@@ -148,20 +97,18 @@ export const SalesAnalytics = () => {
   }
 
   return (
-    <Card className=''>
+    <Card>
       <CardHeader>
         <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
           <div>
             <CardTitle className='flex items-center gap-2'>
-              <DollarSign className='h-6 w-6' />
-              Sales Analytics
+              <DollarSign className='h-6 w-6' /> Sales Analytics
             </CardTitle>
             <CardDescription className='capitalize'>{analytics.period.replace(/_/g, ' ')}</CardDescription>
           </div>
 
-          {/* Period Selector */}
           <div className='flex gap-1 bg-muted p-1 rounded-lg'>
-            {periods?.map((p) => (
+            {periods.map((p) => (
               <Button
                 key={p.value}
                 variant={selectedPeriod === p.value ? 'default' : 'ghost'}
@@ -179,8 +126,9 @@ export const SalesAnalytics = () => {
       <CardContent className='space-y-6'>
         <SummaryCardContent analytics={analytics} />
 
-        {/* Chart */}
-        <div className='h-80 w-full pt-2'>{chartData && <Line data={chartData} options={chartOptions} />}</div>
+        <div className='h-80 w-full pt-2'>
+          <Line ref={chartRef} data={chartData!} options={chartOptions} key={`sales-${selectedPeriod}`} />
+        </div>
       </CardContent>
     </Card>
   );

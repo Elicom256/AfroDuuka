@@ -63,10 +63,11 @@ class SaleController extends Controller
    /**
  * Get Sales Analytics
  */
-public function purchasesAnalytics()
+public function salesAnalytics()
 {
     try {
-        $period = request()->query('period', 'last_7_days');
+        // $period = request()->query('period', 'last_7_days');
+        $period = request()->query("period", "last_7_days");
         $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month'];
         if (!in_array($period, $allowedPeriods)) {
             $period = 'last_7_days'; // fallback
@@ -80,7 +81,7 @@ public function purchasesAnalytics()
 
     } catch (\Exception $e) {
         return response()->json([
-            "message" => "Failed to fetch sales analytics",
+            "message" => "Failed to fetch purchases analytics",
             "error" => $e->getMessage()
         ], 500);
     }
