@@ -9,14 +9,17 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Supplier;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseService
 {
-     protected $cashFlowService;
-    public function __construct(CashFlowService $cashFlowService)
+     protected CashFlowService $cashFlowService;
+     protected AnalyticsTrendHelper $analyticsTrendHelper;
+    public function __construct(CashFlowService $cashFlowService, AnalyticsTrendHelper $analyticsTrendHelper)
     {
         $this->cashFlowService = $cashFlowService;
+        $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
     public function savePurchase($validated)
     {
@@ -56,4 +59,46 @@ class PurchaseService
        
         return $purchase->load("purchaseItems");
     }
+
+    // ================== PURCHASE ANALYTICS
+    public function analytics(string $period = "last_7_days"){
+        $user = Auth::user();
+        $branchId = $user->business_branch_id;
+
+        $query = Purchase::where('business_branch_id', $branchId)
+                     ->where('status', 'completed');
+        // $days = $this->getDaysFromPeriod($period);
+        $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
+
+        $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));    
+        $purchases = $query->get();
+        $totalPurchases = $purchases->sum("total_amount");
+        $totalTransactions = $purchases->coun();
+        $avgPurchases = $totalPurchases ? $totalPurchases / $totalTransactions : 0;
+        $testAvg = $purchases->average("total_amount");
+
+        // ============ group by date =============
+    $purchaseTrend = $purchases->groupBy(function($purchase){
+        return Carbon::parse($purchase->created_at)->format("M d");
+    })->map(function ($group){
+        return [
+                'date'   => $group->first()->created_at->format('M d'),
+                'amount' => $group->sum('total_amount'),
+                'count'  => $group->count(),
+            ];
+    })->values();
+
+    $purchasesTrend = $this->analyticsTrendHelper->fillMissingDates($purchaseTrend, $days);
+
+    return [
+            'total_sales'        => round($totalPurchases, 2),
+            'avg_sale'           => round($avgPurchases, 2),
+            'test_avg'           => round($testAvg, 2),
+            'total_transactions' => $totalTransactions,
+            'sales_trend'        => $purchasesTrend,
+            'period'             => $period,
+        ];
+    }
+    
+    
 }

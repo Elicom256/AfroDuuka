@@ -3,14 +3,14 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const purchasesQuery = createApi({
   reducerPath: 'purchasesPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/purchases`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/purchases/branch-purchases`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
       return headers;
-    },  
+    },
   }),
   tagTypes: ['PurchasesAPI'],
   endpoints: (builder) => ({
@@ -25,6 +25,15 @@ export const purchasesQuery = createApi({
       query: (id) => ({
         url: `/${id}`,
         method: 'GET',
+      }),
+      providesTags: ['PurchasesAPI'],
+    }),
+
+    purchaseAnalytics: builder.query({
+      query: (period = 'last_7_days') => ({
+        url: '/analytics?period=last_7_days',
+        method: 'GET',
+        params: { period },
       }),
       providesTags: ['PurchasesAPI'],
     }),
@@ -60,4 +69,5 @@ export const {
   useAddPurchaseMutation,
   useUpdatePurchaseMutation,
   useDeletePurchaseMutation,
+  usePurchaseAnalyticsQuery,
 } = purchasesQuery;

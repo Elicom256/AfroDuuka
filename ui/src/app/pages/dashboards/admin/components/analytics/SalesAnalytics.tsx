@@ -16,6 +16,8 @@ import {
   Legend,
 } from 'chart.js';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
+import { periods } from './helper';
+import { SummaryCardContent } from './SummaryCardContent';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -34,20 +36,13 @@ interface SalesAnalyticsData {
   period: string;
 }
 
-const periods = [
-  { label: '7 Days', value: 'last_7_days' },
-  { label: '30 Days', value: 'last_30_days' },
-  { label: 'This Month', value: 'this_month' },
-  { label: 'Last Month', value: 'last_month' },
-];
-
 export const SalesAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
 
   const { data, isLoading, isError, error } = useGetSalesAnalyticsQuery(selectedPeriod);
 
   const analytics = data?.data as SalesAnalyticsData | undefined;
-  console.log("analytics", data)
+  console.log('analytics', data);
 
   // Memoized chart data
   const chartData = useMemo(() => {
@@ -87,7 +82,7 @@ export const SalesAnalytics = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value: number) => `UGX ${(value / 1000).toFixed(1)}K`,
+          callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M`,
         },
       },
     },
@@ -127,7 +122,7 @@ export const SalesAnalytics = () => {
         <CardContent>
           <Alert variant='destructive'>
             <AlertDescription>
-              Failed to load sales analytics. {error?.data?.message && `(${error.data.message})`}
+              Failed to load sales analytics. {(error as any)?.data?.message && `(${(error as any).data.message})`}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -153,7 +148,7 @@ export const SalesAnalytics = () => {
   }
 
   return (
-    <Card>
+    <Card className=''>
       <CardHeader>
         <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
           <div>
@@ -166,7 +161,7 @@ export const SalesAnalytics = () => {
 
           {/* Period Selector */}
           <div className='flex gap-1 bg-muted p-1 rounded-lg'>
-            {periods.map((p) => (
+            {periods?.map((p) => (
               <Button
                 key={p.value}
                 variant={selectedPeriod === p.value ? 'default' : 'ghost'}
@@ -182,23 +177,7 @@ export const SalesAnalytics = () => {
       </CardHeader>
 
       <CardContent className='space-y-6'>
-        {/* Summary Stats */}
-        <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-          <div className='rounded-xl bg-muted p-5'>
-            <p className='text-sm text-muted-foreground'>Total Sales</p>
-            <p className='text-3xl font-semibold mt-2'>UGX {Number(analytics.total_sales).toLocaleString()}</p>
-          </div>
-
-          <div className='rounded-xl bg-muted p-5'>
-            <p className='text-sm text-muted-foreground'>Average Sale</p>
-            <p className='text-3xl font-semibold mt-2'>UGX {Number(analytics.avg_sale).toLocaleString()}</p>
-          </div>
-
-          <div className='rounded-xl bg-muted p-5'>
-            <p className='text-sm text-muted-foreground'>Transactions</p>
-            <p className='text-3xl font-semibold mt-2'>{analytics.total_transactions}</p>
-          </div>
-        </div>
+        <SummaryCardContent analytics={analytics} />
 
         {/* Chart */}
         <div className='h-80 w-full pt-2'>{chartData && <Line data={chartData} options={chartOptions} />}</div>
