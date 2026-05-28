@@ -59,6 +59,28 @@ class SaleController extends Controller
         return response()->json(["message" => "Sale Fetched!", "sale" => $newSale]);
     }
 
+
+   /**
+ * Get Sales Analytics
+ */
+public function salesAnalytics()
+{
+    try {
+        $analytics = $this->saleItemService->analytics(request()->query('period', 'last_7_days'));
+
+        return response()->json([
+            "message" => "Sales analytics fetched successfully",
+            "data" => $analytics
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            "message" => "Failed to fetch sales analytics",
+            "error" => $e->getMessage()
+        ], 500);
+    }
+}
+
     /**
      * Update the specified resource in storage.
      */
