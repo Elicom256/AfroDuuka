@@ -19,11 +19,15 @@ use function PHPUnit\Framework\throwException;
 
 class SaleItemService
 {
-    protected $cashFlowService;
-    public function __construct(CashFlowService $cashFlowService)
+    protected CashFlowService $cashFlowService;
+    protected AnalyticsTrendHelper $analyticsTrendHelper;
+
+    public function __construct(CashFlowService $cashFlowService, AnalyticsTrendHelper $analyticsTrendHelper)
     {
         $this->cashFlowService = $cashFlowService;
+        $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
+  
    public function handleSaveSaleItem(array $validated, string $business_branch_id){
     $notificationService = app(NotificationService::class);
     $user = Auth::user();
@@ -87,13 +91,14 @@ class SaleItemService
      // * Get sales analytics (Last 7 days by default)
   public function analytics(string $period = 'last_7_days')
     {
+
         $user = Auth::user();
         $branchId = $user->business_branch_id;
 
         $query = Sale::where('business_branch_id', $branchId)
                      ->where('status', 'completed');
 
-        $days = $this->getDaysFromPeriod($period);
+        $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
 
         $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));
 
@@ -115,7 +120,8 @@ class SaleItemService
         })->values();
 
         // Fill missing dates with 0
-        $salesTrend = $this->fillMissingDates($salesTrend, $days);
+        // $salesTrend = $this->fillMissingDates($salesTrend, $days);
+        $salesTrend = $this->analyticsTrendHelper->fillMissingDates($salesTrend, $days);
 
         return [
             'total_sales'        => round($totalSales, 2),
@@ -126,41 +132,5 @@ class SaleItemService
         ];
     }
 
-    /**
-     * Get number of days based on period
-     */
-    private function getDaysFromPeriod(string $period): int
-    {
-        return match (strtolower($period)) {
-            'last_7_days'  => 7,
-            'last_30_days' => 30,
-            'this_month'   => Carbon::now()->daysInMonth,
-            'last_month'   => Carbon::now()->subMonth()->daysInMonth,
-            default        => 7,
-        };
-    }
-
-    /**
-     * Fill missing dates with zero values for clean chart
-     */
-    private function fillMissingDates($data, int $days = 7)
-    {
-        $filled = [];
-        $startDate = Carbon::now()->subDays($days - 1);
-
-        for ($i = 0; $i < $days; $i++) {
-            $currentDate = $startDate->copy()->addDays($i);
-            $dateLabel = $currentDate->format('M d');
-
-            $existing = $data->firstWhere('date', $dateLabel);
-
-            $filled[] = [
-                'date'   => $dateLabel,
-                'amount' => $existing['amount'] ?? 0,
-                'count'  => $existing['count'] ?? 0,
-            ];
-        }
-
-        return $filled;
-    }
+   
 }

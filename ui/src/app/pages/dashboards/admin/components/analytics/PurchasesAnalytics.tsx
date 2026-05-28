@@ -1,4 +1,4 @@
-import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
+import { usePurchaseAnalyticsQuery, usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bar } from 'react-chartjs-2';
@@ -8,7 +8,7 @@ import { ShoppingCart } from 'lucide-react';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const PurchasesAnalytics = () => {
-  const { data, isLoading, isError } = usePurchasesQuery();
+  const { data, isLoading, isError } = usePurchaseAnalyticsQuery(undefined);
   const purchases = data?.data || [];
 
   if (isLoading) {

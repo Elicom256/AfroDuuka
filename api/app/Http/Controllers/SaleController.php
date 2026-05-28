@@ -63,10 +63,15 @@ class SaleController extends Controller
    /**
  * Get Sales Analytics
  */
-public function salesAnalytics()
+public function purchasesAnalytics()
 {
     try {
-        $analytics = $this->saleItemService->analytics(request()->query('period', 'last_7_days'));
+        $period = request()->query('period', 'last_7_days');
+        $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month'];
+        if (!in_array($period, $allowedPeriods)) {
+            $period = 'last_7_days'; // fallback
+        }
+        $analytics = $this->saleItemService->analytics($period);
 
         return response()->json([
             "message" => "Sales analytics fetched successfully",
