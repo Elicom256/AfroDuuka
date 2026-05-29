@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\BusinessBranchProduct;
+use App\Models\PurchaseItem;
+use App\Models\Sale;
 use App\Models\SaleItem;
 // use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class BusinessBranchProductService
 {
+    protected AnalyticsTrendHelper $analyticsTrendHelper;
+    public function __construct(AnalyticsTrendHelper $analyticsTrendHelper)
+    {
+        $this->analyticsTrendHelper = $analyticsTrendHelper;
+    }
 public function analytics(string $business_branch_id)
 {
     $products = BusinessBranchProduct::query()
@@ -105,6 +112,56 @@ public function analytics(string $business_branch_id)
         "fastMoving" => $fastMoving,
         "topProducts" => $topProducts,
         "poorMarginProducts" => $poorMarginProducts,
+    ];
+}
+
+// ================== product performance metrics==================
+  public function productPerformance(BusinessBranchProduct $product, string $period = "last_7_days") {
+
+    $dates = $this->analyticsTrendHelper->getPeriodDates($period);
+    $date_range = [$dates["start"], $dates["end"]];
+    // SALES
+    $sales = SaleItem::where("business_branch_product_id", $product->id)
+        ->whereBetween("created_at", $date_range)
+        ->sum("subtotal");
+
+    // PURCHASES
+    $purchases = PurchaseItem::where("business_branch_product_id", $product->id)
+        ->whereBetween("created_at", $date_range)
+        ->sum("subtotal");
+
+    // GROSS PROFIT MARGIN
+    $gpm = 0;
+    if ($sales > 0) {
+        $gpm = (($sales - $purchases) / $sales) * 100;
+    }
+
+    // CURRENT MONTH SALES
+    $currentMonthSales = SaleItem::where( "business_branch_product_id", $product->id)
+                         ->whereBetween("created_at", [ now()->startOfMonth(), now()->endOfMonth() ])
+                         ->sum("subtotal");
+
+    // LAST MONTH SALES
+    $lastMonthSales = SaleItem::where( "business_branch_product_id", $product->id )
+                      ->whereBetween("created_at", [now()->subMonth()->startOfMonth(),now()->subMonth()->endOfMonth()
+                      ])
+                      ->sum("subtotal");
+
+    // SALES GROWTH
+    $salesGrowth = 0;
+    $growthLabel = null;
+    if($lastMonthSales == 0 && $currentMonthSales > 0){
+        $growthLabel = "New";
+    }elseif ($lastMonthSales > 0) {
+        $salesGrowth = ( ($currentMonthSales - $lastMonthSales) / $lastMonthSales) * 100;
+    }
+
+    return [
+        "sales" => round($sales, 2),
+        "purchases" => round($purchases, 2),
+        "gpm" => round($gpm, 2),
+        "sales_growth" => round($salesGrowth, 2),
+        "growth_label" => $growthLabel
     ];
 }
 }

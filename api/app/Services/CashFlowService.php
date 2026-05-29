@@ -69,13 +69,13 @@ public function analytics(string $business_branch_id, string $period = "last_7_d
     // ✅ Total Revenue
     $totalRevenue = CashFlow::where("business_branch_id", $business_branch_id)
                              ->where("type", "sale")
-                             ->where("created_at", ">=", $date_range)
+                             ->whereBetween("created_at", $date_range)
                              ->sum("amount");
 
     // ✅ Total Expenses
     $totalExpenses = CashFlow::where("business_branch_id", $business_branch_id)
                     ->where("type", "purchase")
-                    ->where("created_at", ">=", $date_range)
+                    ->whereBetween("created_at", $date_range)
                     ->sum("amount");  
     //  ✅ Net Cash Flow
      $netCashFlow = $totalRevenue - $totalExpenses; 

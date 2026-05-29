@@ -4,6 +4,7 @@ import { InventoryAnalytics } from '../components/analytics/InventoryAnalytics';
 import { CustomersAnalytics } from '../components/analytics/CustomersAnalytics';
 import { SuppliersAnalytics } from '../components/analytics/SuppliersAnalytics';
 import { CashFlowAnalytics } from '../components/analytics/CashFlowAnalytics';
+import { PerformanceMetrics } from '../components/analytics/PerformanceMetrics';
 
 export const AdminAnalyticsPage = () => {
   return (
@@ -23,6 +24,7 @@ export const AdminAnalyticsPage = () => {
         <CashFlowAnalytics />
         {/* 2. TopProductsWidget */}
         {/* 3. PerformanceMetrics */}
+        <PerformanceMetrics/>
       </div>
     </div>
   );
