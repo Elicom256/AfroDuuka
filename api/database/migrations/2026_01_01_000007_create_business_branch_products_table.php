@@ -25,6 +25,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('status', ["active", "inactive", "damaged", "out_of_stock", "discontinued"])->default("active");
 
+            $table->timestamp('last_sold_at')->nullable()->index();
             $table->timestamps();
             $table->unique(['business_branch_id', 'name']);
         });

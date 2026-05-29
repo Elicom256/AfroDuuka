@@ -5,10 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessBranchProductRequest;
 use App\Http\Requests\UpdateBusinessBranchProductRequest;
 use App\Models\BusinessBranchProduct;
+use App\Services\BusinessBranchProductService;
 use Illuminate\Support\Facades\Auth;
+use PhpParser\Node\Stmt\TryCatch;
 
 class BusinessBranchProductController extends Controller
 {
+    protected BusinessBranchProductService $businessBranchProductService;
+    public function __construct(BusinessBranchProductService $businessBranchProductService)
+    {
+        $this->businessBranchProductService = $businessBranchProductService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -40,6 +47,25 @@ class BusinessBranchProductController extends Controller
         // dd($businessBranchProduct);
 
         return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);
+    }
+
+    public function inventoryAnalytics(){
+        
+        try {
+            $user = Auth::user();
+            $business_branch_id = $user->business_branch_id;
+            $products = BusinessBranchProduct::where("business_branch_id", $business_branch_id);
+            $inventory = $this->businessBranchProductService->analytics($products, $business_branch_id);
+            return response()->json([
+            "message" => "Failed to fetch inventory analytics!",
+            "data" => $inventory
+           ]);
+        } catch (\Exception $e) {
+           return response()->json([
+            "message" => "Failed to fetch inventory analytics!",
+            "error" => $e->getMessage()
+           ]);
+        }
     }
 
     /**

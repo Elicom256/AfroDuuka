@@ -10,7 +10,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // ======== CRUD ============
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('business-products', ProductController::class);
-    Route::apiResource('business-branch-products', BusinessBranchProductController::class);
+    Route::get("/business-branch-products/analytics", [BusinessBranchProductController::class, "inventoryAnalytics"]);
+    Route::apiResource('business-branch-products', BusinessBranchProductController::class)->only([
+        "index", "show", "store", "update", "delete"
+    ]);
+
+   
     //  ============ others ============
     Route::get("/business-branch-products/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
 });

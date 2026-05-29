@@ -3,12 +3,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Package } from 'lucide-react';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import {
+  useBranchProductAnalyticsQuery,
+  useBranchProductsQuery,
+} from '@/app/store/features/branch/products/branchProductsQuery';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const InventoryAnalytics = () => {
   const { data, isLoading, isError } = useBranchProductsQuery();
+  const { data: testdata, error } = useBranchProductAnalyticsQuery();
+  console.log('useBranchProductAnalyticsQuery==>', testdata ?? error);
   const products = data?.data || [];
 
   if (isLoading) {
