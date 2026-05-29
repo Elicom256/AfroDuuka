@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BusinessBranchProduct extends Model
 {
@@ -26,9 +27,9 @@ class BusinessBranchProduct extends Model
     ];
 
     protected $casts = ["last_sold_at"];
-     public function saleItems(): BelongsToMany
+     public function saleItems(): HasMany
     {
-        return $this->belongsToMany(SaleItem::class);
+        return $this->hasMany(SaleItem::class);
     }
 
      public function product()

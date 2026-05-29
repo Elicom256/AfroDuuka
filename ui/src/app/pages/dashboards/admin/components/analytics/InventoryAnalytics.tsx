@@ -1,90 +1,95 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Doughnut } from 'react-chartjs-2';
+import { Package, AlertTriangle } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Package } from 'lucide-react';
-import {
-  useBranchProductAnalyticsQuery,
-  useBranchProductsQuery,
-} from '@/app/store/features/branch/products/branchProductsQuery';
+
+import { useBranchProductAnalyticsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+
+import { LoadingState } from '@/utils/LoadingState';
+import { Error } from './Error';
+import { InventorySummary } from './InventorySummary';
+import { Footer } from 'react-day-picker';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const InventoryAnalytics = () => {
-  const { data, isLoading, isError } = useBranchProductsQuery();
-  const { data: testdata, error } = useBranchProductAnalyticsQuery();
-  console.log('useBranchProductAnalyticsQuery==>', testdata ?? error);
-  const products = data?.data || [];
+  const { data, isLoading, isError, error } = useBranchProductAnalyticsQuery();
 
+  const analytics = data?.data;
+
+  // All hooks must be at the top level
+  const statusChartData = useMemo(() => {
+    const breakdown = analytics?.statusBreakdown || [];
+    const labels = breakdown.map((item: any) => item.status);
+    const values = breakdown.map((item: any) => item.totalByStatus || item.totalbystatus);
+
+    return {
+      labels: labels.length ? labels : ['No Data'],
+      datasets: [
+        {
+          data: values.length ? values : [1],
+          backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
+          borderWidth: 2,
+        },
+      ],
+    };
+  }, [analytics]);
+
+  // Early returns AFTER all hooks
   if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (isError) {
+    return <Error error={error} />;
+  }
+
+  if (!analytics) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Package className='h-6 w-6' />
-            Inventory Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className='h-64 w-full' />
+        <CardContent className='py-12 text-center'>
+          <p className='text-muted-foreground'>No inventory data available</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (isError || !products.length) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Package className='h-6 w-6' />
-            Inventory Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className='text-sm text-muted-foreground'>No inventory data available</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const {
+    totalInventoryValue = 0,
+    totalPotentialRevenue = 0,
+    totalExpectedProfit = 0,
+    lowStock = 0,
+    outOfStock = 0,
+  } = analytics;
 
-  const totalItems = products.reduce((sum: number, product: any) => sum + (product.quantity || product.stock || 0), 0);
-  const lowStockCount = products.filter((p: any) => (p.quantity || p.stock || 0) < 10).length;
-  const totalValue = products.reduce(
-    (sum: number, product: any) =>
-      sum + (product.quantity || product.stock || 0) * (product.price || product.unit_price || 0),
-    0,
-  );
-
-  // Top products by stock
-  const topProducts = products
-    .sort((a: any, b: any) => (b.quantity || b.stock || 0) - (a.quantity || a.stock || 0))
-    .slice(0, 5);
-
-  const chartData = {
-    labels: topProducts.map((p: any) => p.product_name || p.name),
-    datasets: [
-      {
-        label: 'Stock Quantity',
-        data: topProducts.map((p: any) => p.quantity || p.stock || 0),
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(54, 162, 235, 0.8)',
-          'rgba(255, 206, 86, 0.8)',
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(153, 102, 255, 0.8)',
-        ],
-        borderColor: [
-          'rgba(75, 192, 192, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-        ],
-        borderWidth: 2,
-      },
-    ],
-  };
+  const summaryStats = [
+    {
+      title: 'TIV',
+      description: 'Total Inventory Value',
+      value: `UGX ${Number(totalInventoryValue).toLocaleString()}`,
+    },
+    {
+      title: 'PR',
+      description: 'Potential Revenue',
+      value: `UGX ${Number(totalPotentialRevenue).toLocaleString()}`,
+      valueClassName: 'text-emerald-600',
+    },
+    {
+      title: 'EP',
+      description: 'Expected Profit',
+      value: `UGX ${Number(totalExpectedProfit).toLocaleString()}`,
+      valueClassName: 'text-emerald-600',
+    },
+    {
+      title: 'LS',
+      description: 'Low Stock',
+      value: lowStock,
+      icon: AlertTriangle,
+      valueClassName: 'text-orange-600',
+      className: 'border border-orange-200',
+    },
+  ];
 
   return (
     <Card>
@@ -93,29 +98,50 @@ export const InventoryAnalytics = () => {
           <Package className='h-6 w-6' />
           Inventory Analytics
         </CardTitle>
-        <CardDescription>Stock levels and product distribution</CardDescription>
+        <CardDescription>Stock health and value overview</CardDescription>
       </CardHeader>
-      <CardContent className='space-y-4'>
-        <div className='grid gap-2 sm:grid-cols-3'>
-          <div className='rounded-lg bg-muted p-3'>
-            <p className='text-xs text-muted-foreground'>Total Items</p>
-            <p className='text-xl font-semibold'>{totalItems.toLocaleString()}</p>
-          </div>
-          <div className='rounded-lg bg-muted p-3'>
-            <p className='text-xs text-muted-foreground'>Low Stock</p>
-            <p className='text-xl font-semibold text-orange-600'>{lowStockCount}</p>
-          </div>
-          <div className='rounded-lg bg-muted p-3'>
-            <p className='text-xs text-muted-foreground'>Inventory Value</p>
-            <p className='text-xl font-semibold'>
-              KSH {totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-            </p>
+
+      <CardContent className='space-y-6'>
+        <InventorySummary stats={summaryStats} />
+
+        {/* Status Breakdown Chart */}
+        <div>
+          <h3 className='text-lg font-medium mb-3'>Stock Status Breakdown</h3>
+          <div className='h-80 w-full flex items-center justify-center'>
+            <Doughnut
+              data={statusChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+              }}
+            />
           </div>
         </div>
-        <div className='h-64 w-full'>
-          <Doughnut data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+
+        {/* Additional Insights */}
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='rounded-xl border p-4 flex flex-col items-center justify-center'>
+            <h4 className='font-medium mb-2'>Out of Stock</h4>
+            <p className='text-3xl font-bold text-red-600'>{outOfStock}</p>
+          </div>
+
+          <div className='rounded-xl border p-4 flex flex-col items-center justify-center'>
+            <h4 className='font-medium mb-2'>Slow Moving Items</h4>
+            <p className='text-3xl font-bold'>{analytics.slowMoving?.length || 0}</p>
+          </div>
         </div>
       </CardContent>
+      <Footer className='border-t pt-4 px-1'>
+        <div className='flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground'>
+          {summaryStats.map((stat) => (
+            <div key={stat.title} className='flex items-center gap-1'>
+              <span className='font-semibold text-foreground'>{stat.title}:</span>
+              <span className='text-sm italic'>{stat.description}</span>
+            </div>
+          ))}
+        </div>
+      </Footer>
     </Card>
   );
 };

@@ -52,10 +52,8 @@ class BusinessBranchProductController extends Controller
     public function inventoryAnalytics(){
         
         try {
-            $user = Auth::user();
-            $business_branch_id = $user->business_branch_id;
-            $products = BusinessBranchProduct::where("business_branch_id", $business_branch_id);
-            $inventory = $this->businessBranchProductService->analytics($products, $business_branch_id);
+            $business_branch_id = Auth::user()->business_branch_id;
+            $inventory = $this->businessBranchProductService->analytics($business_branch_id);
             return response()->json([
             "message" => "Failed to fetch inventory analytics!",
             "data" => $inventory
