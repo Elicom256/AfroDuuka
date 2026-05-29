@@ -17,7 +17,7 @@ export const PurchasesAnalytics = () => {
   const chartRef = useRef<any>(null);
 
   const analytics = data?.data;
-  console.log('analytics==>', analytics);
+  // console.log('analytics==>', analytics);
   const chartData = useMemo(() => {
     if (!analytics?.purchase_trend) return null;
 
