@@ -91,12 +91,13 @@ class PurchaseService
     $purchasesTrend = $this->analyticsTrendHelper->fillMissingDates($purchaseTrend, $days);
 
     return [
-            'total_sales'        => round($totalPurchases, 2),
+            'total_purchases'        => round($totalPurchases, 2),
             'avg_purchase'           => round($avgPurchases, 2),
             'test_avg'           => round($testAvg, 2),
             'total_transactions' => $totalTransactions,
             'purchase_trend'        => $purchasesTrend,
             'period'             => $period,
+            "lable"              => "purchases"
         ];
     }
     

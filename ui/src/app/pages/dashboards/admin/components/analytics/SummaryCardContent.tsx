@@ -4,13 +4,14 @@ interface SummaryCardContentProps {
 }
 
 export const SummaryCardContent = ({ analytics, currency = 'UGX' }: SummaryCardContentProps) => {
+  console.log('analytics here==>', analytics);
   const stats = [
     {
-      label: 'Total Sales',
+      label: analytics.lable === 'sales' ? 'Total Sales' : 'Total Purchases',
       value: `${currency} ${Number(analytics.total_sales ?? analytics.total_purchases).toLocaleString()}`,
     },
     {
-      label: 'Average Sale',
+      label: analytics.lable === 'sales' ? 'Average Sale' : 'Average Purchases',
       value: `${currency} ${Number(analytics.avg_sale ?? analytics.avg_purchase).toLocaleString()}`,
     },
     {

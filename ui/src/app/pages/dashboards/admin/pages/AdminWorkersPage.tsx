@@ -13,11 +13,11 @@ import { WorkersTable, type WorkerItem } from '../components/workers-table';
 import { WorkerFormDialog } from '../components/worker-form-dialog';
 import { useRolesQuery } from '@/app/store/features/business/roles/rolesQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
-import { useBranchWorkersQuery } from '@/app/store/features/branch';
+// import { useBranchWorkersQuery } from '@/app/store/features/branch';
 
 export const AdminWorkersPage = () => {
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
-  const { data: test } = useBranchWorkersQuery();
+  // const { data: test } = useBranchWorkersQuery();
   const { data: sections } = useBranchesQuery();
   const [deleteWorker, { isLoading: isDeleting }] = useDeleteWorkerMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,7 +29,7 @@ export const AdminWorkersPage = () => {
     setSelectedWorker(null);
     setDialogOpen(true);
   };
-  console.log('worker here==>', test);
+  // console.log('worker here==>', test);
 
   const openEditWorker = (worker: WorkerItem) => {
     setSelectedWorker(worker);
