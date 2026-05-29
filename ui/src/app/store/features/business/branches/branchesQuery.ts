@@ -59,6 +59,15 @@ export const branchesQuery = createApi({
       }),
       providesTags: ['BranchesAPI'],
     }),
+    // ============== cashflow analytics ===================
+    cashFlowAnalytics: builder.query<any, any>({
+      query: (period = 'last_7_days') => ({
+        url: '/cashflow/analytics',
+        method: 'GET',
+        params: { period },
+      }),
+      providesTags: ['BranchesAPI'],
+    }),
   }),
 });
 
@@ -69,4 +78,5 @@ export const {
   useUpdateBranchMutation,
   useDeleteBranchMutation,
   useBranchDynamicsQuery,
+  useCashFlowAnalyticsQuery,
 } = branchesQuery;

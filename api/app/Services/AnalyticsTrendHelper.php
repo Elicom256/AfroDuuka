@@ -43,4 +43,44 @@ class AnalyticsTrendHelper
 
         return $filled;
     }
+// 
+public function getPeriodDates(string $period): array
+{
+    return match (strtolower($period)) {
+
+        'last_7_days' => [
+            'start' => Carbon::now()->subDays(7),
+            'end' => Carbon::now(),
+        ],
+
+        'last_30_days' => [
+            'start' => Carbon::now()->subDays(30),
+            'end' => Carbon::now(),
+        ],
+
+        'this_month' => [
+            'start' => Carbon::now()->startOfMonth(),
+            'end' => Carbon::now()->endOfMonth(),
+        ],
+
+        'last_month' => [
+            'start' => Carbon::now()->subMonth()->startOfMonth(),
+            'end' => Carbon::now()->subMonth()->endOfMonth(),
+        ],
+        'this_year' => [
+            'start' => Carbon::now()->startOfYear(),
+            'end' => Carbon::now()->endOfYear(),
+        ],
+
+        'last_year' => [
+            'start' => Carbon::now()->subYear()->startOfYear(),
+            'end' => Carbon::now()->subYear()->endOfYear(),
+        ],
+
+        default => [
+            'start' => Carbon::now()->subDays(7),
+            'end' => Carbon::now(),
+        ],
+    };
+}
 }
