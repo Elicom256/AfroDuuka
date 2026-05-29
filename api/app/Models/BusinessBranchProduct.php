@@ -22,8 +22,10 @@ class BusinessBranchProduct extends Model
         'reorder_level',
         'description',
         'status',
+        'last_sold_at'
     ];
 
+    protected $casts = ["last_sold_at"];
      public function saleItems(): BelongsToMany
     {
         return $this->belongsToMany(SaleItem::class);

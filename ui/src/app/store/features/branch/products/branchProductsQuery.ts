@@ -32,6 +32,14 @@ export const bsbranchProductsQuery = createApi({
       providesTags: ['BranchProductsAPI'],
     }),
 
+    // analytics
+    branchProductAnalytics: builder.query<any, void>({
+      query: () => ({
+        url: '/analytics',
+        method: 'GET',
+      }),
+      providesTags: ['BranchProductsAPI'],
+    }),
     // get one product by id
     addBranchProduct: builder.mutation<any, any>({
       query: (body) => ({
@@ -67,6 +75,7 @@ export const {
   useBranchProductsQuery,
   useAddBranchProductMutation,
   useBranchProductQuery,
+  useBranchProductAnalyticsQuery,
   useUpdateBranchProductMutation,
   useDeleteBranchProductMutation,
 } = bsbranchProductsQuery;

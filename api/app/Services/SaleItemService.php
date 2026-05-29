@@ -65,8 +65,10 @@ class SaleItemService
             'subtotal' => $item['quantity'] * $item['unit_price'],
         ]);
         // decrement product stock
-        BusinessBranchProduct::where('id', $item['business_branch_product_id'])
-            ->decrement('quantity', $item['quantity']);
+        $product->decrement("quantity", $item['quantity']);
+        $product->update(['last_sold_at' => now()]);
+        // BusinessBranchProduct::where('id', $item['business_branch_product_id'])
+        //     ->decrement('quantity', $item['quantity']);
     }
     $method = PaymentStatus::find($validated["payment_status_id"])->value("method");
    //  to be removed
