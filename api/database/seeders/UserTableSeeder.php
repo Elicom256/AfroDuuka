@@ -6,6 +6,8 @@ use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Worker;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -48,6 +50,7 @@ class UserTableSeeder extends Seeder
             ],
         ];
         $branches = BusinessBranch::where("business_id", $business_id)->get();
+        $workers = [];
 foreach ($branches as $branch) {
         foreach ($users as $name => $data) {
             $nin = strtoupper( 'CM' . rand(10, 99) . rand(10000000, 99999999) . chr(rand(65, 90)) . chr(rand(65, 90)));
@@ -82,6 +85,25 @@ foreach ($branches as $branch) {
                     "nin" => $nin
                 ]
             );
+                $work = Worker::with("user", function($q) use ($business_id){
+                $q->where("business_id", $business_id);
+            })->count();
+                $deps = ["tech", "marketing", "managerial", "security"];
+                // seed worker
+                if(!in_array($data->id, $workers)){
+                    $workers[] = $data->id;
+                    Worker::updateOrCreate([
+                    "user_id" => $data->id,
+                    "employee_code" => "EMP-" . str_pad($work + 1, 5, "0", STR_PAD_LEFT),
+                    "department" => $deps[array_rand($deps)],
+                    // "position" => $data["position"] ?? null,
+                    // "employment_type" => $data["employment_type"] ?? "full_time",
+                    "salary" => rand(500000, 1200000),
+                    "hire_date" => Carbon::now(),
+                    // "status" => "active",
+                ]);
+                }
+
             }
            
         }

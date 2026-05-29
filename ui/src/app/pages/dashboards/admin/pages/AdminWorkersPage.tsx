@@ -29,10 +29,10 @@ export const AdminWorkersPage = () => {
     setSelectedWorker(null);
     setDialogOpen(true);
   };
+  console.log('worker here==>', test);
 
   const openEditWorker = (worker: WorkerItem) => {
     setSelectedWorker(worker);
-    console.log('worker here==>', worker);
     setDialogOpen(true);
   };
   const workers = data?.workers;

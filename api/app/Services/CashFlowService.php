@@ -5,10 +5,16 @@ namespace App\Services;
 use App\Models\CashFlow;
 use App\Models\Purchase;
 use App\Models\Sale;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class CashFlowService
 {
+     protected AnalyticsTrendHelper $analyticsTrendHelper;
+    public function __construct( AnalyticsTrendHelper $analyticsTrendHelper)
+    {
+        $this->analyticsTrendHelper = $analyticsTrendHelper;
+    }
      /**
      * Create CashFlow record for this sale
      */
@@ -56,4 +62,28 @@ class CashFlowService
             'created_by' => $user->id,
         ]);
     }
+
+public function analytics(string $business_branch_id, string $period = "last_7_days"){
+    $dates = $this->analyticsTrendHelper->getPeriodDates($period);
+    $date_range = [$dates["start"], $dates["end"]];
+    // ✅ Total Revenue
+    $totalRevenue = CashFlow::where("business_branch_id", $business_branch_id)
+                             ->where("type", "sale")
+                             ->where("created_at", ">=", $date_range)
+                             ->sum("amount");
+
+    // ✅ Total Expenses
+    $totalExpenses = CashFlow::where("business_branch_id", $business_branch_id)
+                    ->where("type", "purchase")
+                    ->where("created_at", ">=", $date_range)
+                    ->sum("amount");  
+    //  ✅ Net Cash Flow
+     $netCashFlow = $totalRevenue - $totalExpenses; 
+
+     return [
+        "total_revenue" => $totalRevenue,
+        "total_expenses" => $totalExpenses,
+        "net_cash_flow" => $netCashFlow
+    ];
+}
 }

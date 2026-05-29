@@ -3,6 +3,7 @@ import { PurchasesAnalytics } from '../components/analytics/PurchasesAnalytics';
 import { InventoryAnalytics } from '../components/analytics/InventoryAnalytics';
 import { CustomersAnalytics } from '../components/analytics/CustomersAnalytics';
 import { SuppliersAnalytics } from '../components/analytics/SuppliersAnalytics';
+import { CashFlowAnalytics } from '../components/analytics/CashFlowAnalytics';
 
 export const AdminAnalyticsPage = () => {
   return (
@@ -18,6 +19,10 @@ export const AdminAnalyticsPage = () => {
         <InventoryAnalytics />
         <CustomersAnalytics />
         <SuppliersAnalytics />
+        {/* 1. CashFlowAnalytics (Very Important) */}
+        <CashFlowAnalytics />
+        {/* 2. TopProductsWidget */}
+        {/* 3. PerformanceMetrics */}
       </div>
     </div>
   );
