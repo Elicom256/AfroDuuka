@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Doughnut } from 'react-chartjs-2';
-import { Package, AlertTriangle } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, BadgeDollarSign, Wallet } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 import { useBranchProductAnalyticsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
@@ -17,7 +17,7 @@ export const InventoryAnalytics = () => {
   const { data, isLoading, isError, error } = useBranchProductAnalyticsQuery();
 
   const analytics = data?.data;
-
+  console.log('analytics==>', analytics);
   // All hooks must be at the top level
   const statusChartData = useMemo(() => {
     const breakdown = analytics?.statusBreakdown || [];
@@ -68,18 +68,21 @@ export const InventoryAnalytics = () => {
       title: 'TIV',
       description: 'Total Inventory Value',
       value: `UGX ${Number(totalInventoryValue).toLocaleString()}`,
+      icon: Wallet,
     },
     {
       title: 'PR',
       description: 'Potential Revenue',
       value: `UGX ${Number(totalPotentialRevenue).toLocaleString()}`,
       valueClassName: 'text-emerald-600',
+      icon: TrendingUp,
     },
     {
       title: 'EP',
       description: 'Expected Profit',
       value: `UGX ${Number(totalExpectedProfit).toLocaleString()}`,
       valueClassName: 'text-emerald-600',
+      icon: BadgeDollarSign,
     },
     {
       title: 'LS',

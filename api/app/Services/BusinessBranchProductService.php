@@ -17,19 +17,21 @@ public function analytics(string $business_branch_id)
         ->where("business_branch_id", $business_branch_id);
 
     $totalInventoryValue = (clone $products)
-        ->where("quantity", ">", 0)
-        ->selectRaw("SUM(quantity * cost_price) as totalIV")
-        ->value("totalIV");
-
+        // ->where("quantity", ">", 0)
+        ->selectRaw("SUM(quantity * cost_price) as total")
+        ->first()
+        ->total;
     $totalPotentialRevenue = (clone $products)
         ->where("quantity", ">", 0)
-        ->selectRaw("SUM(quantity * price) as totalProfit")
-        ->value("totalProfit");
+        ->selectRaw("COALESCE(SUM(quantity * price), 0) as total")
+        ->first()
+        ->total;
 
-    $totalExpectedProfit = (clone $products)
+    $profits = (clone $products)
         ->where("quantity", ">", 0)
-        ->selectRaw("SUM((price - cost_price) * quantity) as totalExpectedProfit")
-        ->value("totalExpectedProfit");
+        ->selectRaw("COALESCE(SUM((price - cost_price) * quantity), 0) as total")
+        ->first()
+        ->total;
 
     $lowStock = (clone $products)
         ->where("quantity", ">", 0)
@@ -94,7 +96,7 @@ public function analytics(string $business_branch_id)
     return [
         "totalInventoryValue" => $totalInventoryValue,
         "totalPotentialRevenue" => $totalPotentialRevenue,
-        "totalExpectedProfit" => $totalExpectedProfit,
+        "totalExpectedProfit" => $profits,
         "lowStock" => $lowStock,
         "outOfStock" => $outOfStock,
         "statusBreakdown" => $statusBreakdown,
@@ -102,7 +104,7 @@ public function analytics(string $business_branch_id)
         "deadStock" => $deadStock,
         "fastMoving" => $fastMoving,
         "topProducts" => $topProducts,
-        "poorMarginProducts" => $poorMarginProducts
+        "poorMarginProducts" => $poorMarginProducts,
     ];
 }
 }

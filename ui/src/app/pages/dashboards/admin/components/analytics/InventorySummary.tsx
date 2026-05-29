@@ -16,14 +16,14 @@ type InventorySummaryProps = {
 
 export const InventorySummary = ({ stats }: InventorySummaryProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
 
         return (
           <div
             key={index}
-            className={`rounded-2xl bg-muted p-5 transition-all hover:shadow-sm ${stat.className || ''}`}
+            className={`rounded-2xl bg-muted p-2 transition-all hover:shadow-sm ${stat.className || ''}`}
           >
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">{stat.title}</p>
@@ -31,7 +31,7 @@ export const InventorySummary = ({ stats }: InventorySummaryProps) => {
             </div>
 
             <p
-              className={`mt-3 text-2xl font-semibold tracking-tight ${stat.valueClassName || ''}`}
+              className={`mt-2 sm font-semibold italic tracking-tight ${stat.valueClassName || ''}`}
             >
               {stat.value}
             </p>
