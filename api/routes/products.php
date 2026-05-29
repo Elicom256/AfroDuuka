@@ -11,6 +11,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('business-products', ProductController::class);
     Route::get("/business-branch-products/analytics", [BusinessBranchProductController::class, "inventoryAnalytics"]);
+    Route::get("/business-branch-products/{businessBranchProduct}/metrics", 
+    [BusinessBranchProductController::class, "productMetrics"]);
     Route::apiResource('business-branch-products', BusinessBranchProductController::class)->only([
         "index", "show", "store", "update", "delete"
     ]);

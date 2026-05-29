@@ -55,12 +55,34 @@ class BusinessBranchProductController extends Controller
             $business_branch_id = Auth::user()->business_branch_id;
             $inventory = $this->businessBranchProductService->analytics($business_branch_id);
             return response()->json([
-            "message" => "Failed to fetch inventory analytics!",
+            "message" => "Fetch inventory analytics!",
             "data" => $inventory
-           ]);
+           ], 200);
         } catch (\Exception $e) {
            return response()->json([
             "message" => "Failed to fetch inventory analytics!",
+            "error" => $e->getMessage()
+           ], 500);
+        }
+    }
+
+    // product performance analytics
+    public function productMetrics(BusinessBranchProduct $businessBranchProduct){
+        
+        try {
+            $period = request()->query("period", "last_7_days");
+            $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'last_year'];
+            if (!in_array($period, $allowedPeriods)) {
+                $period = 'last_7_days'; // fallback
+            }
+            $product = $this->businessBranchProductService->productPerformance($businessBranchProduct, $period);
+            return response()->json([
+            "message" => "Fetched Product Metrics!",
+            "data" => $product
+           ], 200);
+        } catch (\Exception $e) {
+             return response()->json([
+            "message" => "Failed to fetch Product Metrics!",
             "error" => $e->getMessage()
            ]);
         }
