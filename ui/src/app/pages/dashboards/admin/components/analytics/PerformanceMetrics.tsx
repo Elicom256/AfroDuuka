@@ -6,6 +6,6 @@ export const PerformanceMetrics = () => {
 
   const { data, error } = useBranchProductMetricsQuery({ id: '8', period: selectedPeriod }, { pollingInterval: 5000 });
   const analytics = data?.data;
-  console.log('performance metrics==>', analytics ?? error);
+  // console.log('performance metrics==>', analytics ?? error);
   return <div>PerformanceMetrics</div>;
 };

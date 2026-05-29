@@ -17,7 +17,7 @@ export const InventoryAnalytics = () => {
   const { data, isLoading, isError, error } = useBranchProductAnalyticsQuery();
 
   const analytics = data?.data;
-  console.log('analytics==>', analytics);
+  // console.log('analytics==>', analytics);
   // All hooks must be at the top level
   const statusChartData = useMemo(() => {
     const breakdown = analytics?.statusBreakdown || [];

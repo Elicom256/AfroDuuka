@@ -131,6 +131,7 @@ class SaleItemService
             'total_transactions' => $totalTransactions,
             'sales_trend'        => $salesTrend,
             'period'             => $period,
+            "lable"              => "sales"
         ];
     }
 
