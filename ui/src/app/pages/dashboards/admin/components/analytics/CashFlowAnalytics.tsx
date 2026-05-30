@@ -1,10 +1,127 @@
-import { useCashFlowAnalyticsQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Bar } from 'react-chartjs-2';
+import { TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { useCashFlowAnalyticsQuery } from '@/app/store/features/business/branches/branchesQuery';
+import { Error } from './Error';
+import { LoadingState } from '@/utils/LoadingState';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+const periods = [
+  { label: '7 Days', value: 'last_7_days' },
+  { label: '30 Days', value: 'last_30_days' },
+  { label: 'This Month', value: 'this_month' },
+];
 
 export const CashFlowAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
+  const { data, isLoading, isError, error } = useCashFlowAnalyticsQuery(selectedPeriod);
 
-  const { data, error } = useCashFlowAnalyticsQuery(selectedPeriod);
-  // console.log('cash flow==>', data ?? error);
-  return <div>CashFlowAnalytics</div>;
+  const analytics = data?.data;
+
+  const handlePeriodChange = (period: string) => setSelectedPeriod(period);
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (isError || !analytics) {
+    return <Error error={error} />;
+  }
+
+  const { total_revenue, total_expenses, net_cash_flow } = analytics;
+  const isPositive = net_cash_flow >= 0;
+
+  const chartData = {
+    labels: ['Revenue', 'Expenses'],
+    datasets: [
+      {
+        label: 'Amount (UGX)',
+        data: [Number(total_revenue), Number(total_expenses)],
+        backgroundColor: ['#10b981', '#ef4444'],
+        borderRadius: 8,
+        barThickness: 60,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => ` UGX ${context.parsed.y.toLocaleString()}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value: string | number) => {
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            return `UGX ${(num / 1000000).toFixed(1)}M`;
+          },
+        },
+      },
+    },
+  } as const; // ← This helps TypeScript
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+          <div>
+            <CardTitle className='flex items-center gap-2'>
+              <TrendingUp className='h-6 w-6' />
+              Cash Flow Analytics
+            </CardTitle>
+            <CardDescription className='capitalize'>{selectedPeriod.replace(/_/g, ' ')}</CardDescription>
+          </div>
+
+          <div className='flex gap-1 bg-muted p-1 rounded-lg'>
+            {periods.map((p) => (
+              <Button
+                key={p.value}
+                variant={selectedPeriod === p.value ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => handlePeriodChange(p.value)}
+                className='text-xs'
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className='space-y-6'>
+        {/* Net Cash Flow Highlight */}
+        <div
+          className={`rounded-2xl p-2 text-center ${isPositive ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}
+        >
+          <p className='text-sm text-muted-foreground'>Net Cash Flow</p>
+          <p
+            className={`text-lg font-semibold mt-2 flex items-center justify-center gap-2 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
+          >
+            {isPositive ? <ArrowUp className='h-8 w-8' /> : <ArrowDown className='h-8 w-8' />}
+            UGX {Number(net_cash_flow).toLocaleString()}
+          </p>
+        </div>
+
+        {/* Revenue vs Expenses Bar Chart */}
+        <div>
+          <h3 className='text-lg font-medium mb-3'>Revenue vs Expenses</h3>
+          <div className='h-70 w-full'>
+            <Bar data={chartData} options={chartOptions} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };

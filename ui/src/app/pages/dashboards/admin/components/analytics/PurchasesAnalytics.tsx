@@ -1,8 +1,6 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Line } from 'react-chartjs-2';
 import { ShoppingCart } from 'lucide-react';
 import { periods } from './helper';
@@ -44,16 +42,20 @@ export const PurchasesAnalytics = () => {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M` },
+        ticks: {
+          callback: (value: string | number) => {
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            return `UGX ${(num / 1000000).toFixed(2)}M`;
+          },
+        },
       },
     },
-  };
-
-  useEffect(() => {
-    return () => {
-      if (chartRef.current) chartRef.current.destroy();
-    };
-  }, []);
+  } as const;
+  // useEffect(() => {
+  //   return () => {
+  //     if (chartRef.current) chartRef.current.destroy();
+  //   };
+  // }, []);
 
   const handlePeriodChange = (period: string) => setSelectedPeriod(period);
 

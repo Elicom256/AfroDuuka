@@ -17,14 +17,15 @@ export const AdminAnalyticsPage = () => {
       <div className='grid gap-6 lg:grid-cols-2'>
         <SalesAnalytics />
         <PurchasesAnalytics />
-        <InventoryAnalytics />
-        <CustomersAnalytics />
-        <SuppliersAnalytics />
+
+        {/* <CustomersAnalytics /> */}
+        {/* <SuppliersAnalytics /> */}
         {/* 1. CashFlowAnalytics (Very Important) */}
         <CashFlowAnalytics />
         {/* 2. TopProductsWidget */}
         {/* 3. PerformanceMetrics */}
-        <PerformanceMetrics/>
+        <PerformanceMetrics />
+        <InventoryAnalytics />
       </div>
     </div>
   );
