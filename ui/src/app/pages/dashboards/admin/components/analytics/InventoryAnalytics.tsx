@@ -62,7 +62,7 @@ export const InventoryAnalytics = () => {
     lowStock = 0,
     outOfStock = 0,
   } = analytics;
-
+  console.log('analytics==>', analytics);
   const summaryStats = [
     {
       title: 'TIV',

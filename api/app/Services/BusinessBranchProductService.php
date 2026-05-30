@@ -41,7 +41,7 @@ public function analytics(string $business_branch_id)
         ->total;
 
     $lowStock = (clone $products)
-        ->where("quantity", ">", 0)
+        ->where("quantity", ">=", 0)
         ->whereColumn("quantity", "<=", "reorder_level")
         ->count();
 

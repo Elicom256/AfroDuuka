@@ -61,7 +61,7 @@ class CashFlowController extends Controller
             // $cFlow = CashFlow::where("business_branch_id", $business_branch_id)->get();
             $cashFlow = $this->cashFlowService->analytics($business_branch_id, $period);
             return response()->json([
-            "message" => "Failed to fetch inventory analytics!",
+            "message" => "Fetched inventory analytics!",
             "data" => $cashFlow
            ]);
         } catch (\Exception $e) {
