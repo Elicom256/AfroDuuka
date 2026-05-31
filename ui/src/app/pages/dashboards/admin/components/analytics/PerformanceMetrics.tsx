@@ -10,7 +10,7 @@ import { useBranchProductMetricsQuery } from '@/app/store/features/branch/produc
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
-import { periods } from './helper';
+import { periods } from '../periodHelper';
 import { MetricsCards } from './MetricsCards';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);

@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Line } from 'react-chartjs-2';
 import { DollarSign } from 'lucide-react';
 import {
@@ -16,7 +14,7 @@ import {
   Legend,
 } from 'chart.js';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
-import { periods } from './helper';
+import { periods } from '../periodHelper';
 import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
@@ -57,10 +55,15 @@ export const SalesAnalytics = () => {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { callback: (value: number) => `UGX ${(value / 1000000).toFixed(2)}M` },
+        ticks: {
+          callback: (value: string | number) => {
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            return `UGX ${(num / 1000000).toFixed(2)}M`;
+          },
+        },
       },
     },
-  };
+  } as const;
 
   // Cleanup
   useEffect(() => {

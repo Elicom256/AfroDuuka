@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Line } from 'react-chartjs-2';
 import { ShoppingCart } from 'lucide-react';
-import { periods } from './helper';
+import { periods } from '../periodHelper';
 import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
