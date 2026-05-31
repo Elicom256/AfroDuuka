@@ -22,3 +22,5 @@ barcode support
 mobile support
 backups
 accounting logic
+
+**expirey dates on products**

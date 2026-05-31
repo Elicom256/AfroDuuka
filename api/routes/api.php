@@ -37,3 +37,7 @@ Route::prefix("purchases")->group(function(){
 Route::prefix("settings")->group(function(){
   require __DIR__.'/settings.php';
 });
+
+Route::prefix('reports')->group(function () {
+    require __DIR__.'/reports.php';
+});
