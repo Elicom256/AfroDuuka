@@ -9,7 +9,7 @@ export const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
   const workers = data?.workers;
-  console.log('workers==>', workers);
+  // console.log('workers==>', workers);
   return (
     <div className='space-y-6'>
       <div className='grid gap-6 xl:grid-cols-[2fr_1fr]'>

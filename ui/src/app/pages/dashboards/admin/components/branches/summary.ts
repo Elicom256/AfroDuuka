@@ -1,3 +1,1 @@
-export const summary=[
-    {title:""}
-]
+export const summary = [{ title: '' }];
