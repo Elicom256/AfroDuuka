@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('type', [ 'salary', 'wage', 'bonus', 'commission', 'allowance', 'deduction', 'advance']);
             $table->date('payment_date');
             $table->string('reference')->nullable();
-            $table->string('status')->default('pending');
+            $table->enum('status', ["pending", "paid", "failed"])->default('pending');
             $table->text('description')->nullable();
             
             $table->timestamps();

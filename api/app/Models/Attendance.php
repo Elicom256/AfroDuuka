@@ -10,9 +10,9 @@ class Attendance extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceFactory> */
     use HasFactory;
-    protected $fillable = ["worker_id", "status", "check_in", "check_out", "remarks"];
+    protected $fillable = ["business_branch_id", "worker_id", "status", "check_in", "check_out", "remarks"];
 
-    protected $casts = ["check_out" => "date", "remarks" => "date"];
+    protected $casts = ["check_out" => "date"];
     public function worker():BelongsTo{
         return $this->belongsTo(Worker::class);
     }

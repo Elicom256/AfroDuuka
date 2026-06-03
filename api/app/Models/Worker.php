@@ -35,4 +35,7 @@ class Worker extends Model
     public function attendance():HasMany{
         return $this->hasMany(Attendance::class);
     }
+    public function employeeRemuneration(){
+        return $this->hasMany(EmployeeRemuneration::class);
+    }
 }

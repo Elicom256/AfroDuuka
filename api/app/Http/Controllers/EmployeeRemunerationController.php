@@ -7,24 +7,29 @@ use App\Http\Requests\UpdateEmployeeRemunerationRequest;
 use App\Models\ActivityLog;
 use App\Models\EmployeeRemuneration;
 use App\Models\Worker;
+use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class EmployeeRemunerationController extends Controller
 {
+    protected ActivityLogService $activity_log;
+    public function __construct(ActivityLogService $activityLog)
+    {
+        $this->activity_log = $activityLog;
+    }
     public function index(): JsonResponse
     {
         $user = Auth::user();
 
         $remunerations = EmployeeRemuneration::with(['worker.user', 'worker.businessBranch'])
             ->whereHas('worker.user', function ($query) use ($user) {
-                $query->where('business_id', $user->business_id);
+                $query->where('business_branch_id', $user->business_branch_id)
+                      ->where('business_id', $user->business_id);
             })
-            ->when($user->business_branch_id, function ($query) use ($user) {
-                $query->where('business_branch_id', $user->business_branch_id);
-            })
+            
             ->orderBy('payment_date', 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         return response()->json([
             'message' => 'Fetched employee remunerations',
@@ -46,14 +51,8 @@ class EmployeeRemunerationController extends Controller
         $validated['business_branch_id'] = $worker->business_branch_id;
 
         $remuneration = EmployeeRemuneration::create($validated);
-
-        ActivityLog::log(
-            $user,
-            'created_employee_remuneration',
-            $remuneration,
-            sprintf('Created remuneration for worker ID %s.', $worker->id),
-            ['amount' => $remuneration->amount, 'payment_date' => $remuneration->payment_date]
-        );
+        $employee =$worker->load("user");
+        $this->activity_log->activity("Recorded Employee Remuneration", $employee->user->name ." ". "has been paid");
 
         return response()->json([
             'message' => 'Employee remuneration created successfully',
