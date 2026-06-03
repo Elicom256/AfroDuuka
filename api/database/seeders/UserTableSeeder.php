@@ -49,9 +49,8 @@ class UserTableSeeder extends Seeder
                 "phone" => "0781490822"
             ],
         ];
-        $branches = BusinessBranch::where("business_id", $business_id)->get();
+        $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id");
         $workers = [];
-foreach ($branches as $branch) {
         foreach ($users as $name => $data) {
             $nin = strtoupper( 'CM' . rand(10, 99) . rand(10000000, 99999999) . chr(rand(65, 90)) . chr(rand(65, 90)));
 
@@ -78,7 +77,7 @@ foreach ($branches as $branch) {
                     "password" => Hash::make("password"),
                     "phone" => $data['phone'],
                     "business_id" => $business_id,
-                    "business_branch_id" => $branch->id,
+                    "business_branch_id" => $branchId,
                     "role_id" => $role->id,
                     "status" => "active",
                     "branch_powers" => "none",
@@ -106,7 +105,7 @@ foreach ($branches as $branch) {
 
             }
            
-        }
+    
         if($data){
             $this->command->info("✅ Seeded Users Successfully!");
         }else{

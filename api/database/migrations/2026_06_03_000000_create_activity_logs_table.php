@@ -13,11 +13,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('business_id')->nullable()->constrained('businesses')->cascadeOnDelete();
             $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
-            $table->string('subject_type');
-            $table->unsignedBigInteger('subject_id');
             $table->string('action');
             $table->text('description')->nullable();
-            $table->json('metadata')->nullable();
             $table->timestamps();
         });
     }

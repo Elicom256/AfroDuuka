@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreEmployeeRemunerationRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class StoreEmployeeRemunerationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     /**
@@ -28,8 +29,8 @@ class StoreEmployeeRemunerationRequest extends FormRequest
             'type' => ['required', 'string', 'max:80'],
             'payment_date' => ['required', 'date'],
             'reference' => ['nullable', 'string', 'max:150'],
-            'description' => ['nullable', 'string'],
             'status' => ['nullable', 'in:pending,paid,failed'],
+            'description' => ['nullable', 'string'],
         ];
     }
 }

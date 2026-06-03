@@ -14,8 +14,6 @@ class ActivityLog extends BaseModel
         'user_id',
         'business_id',
         'business_branch_id',
-        'subject_type',
-        'subject_id',
         'action',
         'description',
         'metadata',

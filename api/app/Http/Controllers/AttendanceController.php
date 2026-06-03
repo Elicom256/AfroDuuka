@@ -5,10 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
 use App\Models\Attendance;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
+     protected ActivityLogService $activity_log;
+    public function __construct(ActivityLogService $activityLog)
+    {
+        $this->activity_log = $activityLog;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -21,6 +27,7 @@ class AttendanceController extends Controller
                        })
                        ->orderByDesc("created_at")
                        ->get();
+                    //    dd($attendances);
         return response()->json(["message" => "Attendances fetched", "attendances" => $attendances]);             
     }
 
@@ -29,7 +36,8 @@ class AttendanceController extends Controller
      */
    public function store(StoreAttendanceRequest $request)
 {
-    $branchId = Auth::user()->business_branch_id;
+    $user = Auth::user();
+    $branchId = $user->business_branch_id;
     $records = collect($request->validated()['attendances'])
         ->map(function ($attendance) use ($branchId) {
             return [
@@ -42,7 +50,7 @@ class AttendanceController extends Controller
         ->toArray();
 
     Attendance::insert($records);
-
+    $this->activity_log->activity("Recorded Employee Attendance", count($records) . " ". "employees have been recorded");
     return response()->json([
         'message' => count($records) . ' attendance records saved successfully'
     ]);

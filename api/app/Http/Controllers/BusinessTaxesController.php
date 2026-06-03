@@ -6,19 +6,23 @@ use App\Http\Requests\StoreBusinessTaxesRequest;
 use App\Http\Requests\UpdateBusinessTaxesRequest;
 use App\Models\ActivityLog;
 use App\Models\BusinessTaxes;
+use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessTaxesController extends Controller
 {
+     protected ActivityLogService $activity_log;
+    public function __construct(ActivityLogService $activityLog)
+    {
+        $this->activity_log = $activityLog;
+    }
     public function index(): JsonResponse
     {
         $user = Auth::user();
-        $query = BusinessTaxes::with('businessBranch')
-            ->where('business_id', $user->business_id);
-
-        if ($user->business_branch_id) {
-            $query->where('business_branch_id', $user->business_branch_id);
+        $query = BusinessTaxes::with('business');
+        if ($user->business_id) {
+            $query->where('business_id', $user->business_id);
         }
 
         $taxes = $query->orderBy('id', 'desc')->paginate(15);
@@ -31,20 +35,10 @@ class BusinessTaxesController extends Controller
 
     public function store(StoreBusinessTaxesRequest $request): JsonResponse
     {
-        $user = Auth::user();
         $validated = $request->validated();
-        $validated['business_id'] = $user->business_id;
-        $validated['business_branch_id'] = $validated['business_branch_id'] ?? $user->business_branch_id;
-
         $tax = BusinessTaxes::create($validated);
 
-        ActivityLog::log(
-            $user,
-            'created_business_tax',
-            $tax,
-            sprintf('Created business tax "%s" for branch id %s.', $tax->name, $tax->business_branch_id),
-            ['rate' => $tax->rate, 'type' => $tax->type]
-        );
+        $this->activity_log->activity("Recorded Employee Attendance", $tax->name . " ". "has been obligated to");
 
         return response()->json([
             'message' => 'Business tax created successfully',

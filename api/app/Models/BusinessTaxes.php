@@ -12,7 +12,7 @@ class BusinessTaxes extends BaseModel
 
     protected $fillable = [
         'business_id',
-        'business_branch_id',
+        // 'business_branch_id',
         'name',
         'rate',
         'type',
@@ -24,8 +24,8 @@ class BusinessTaxes extends BaseModel
         'rate' => 'decimal:2',
     ];
 
-    public function businessBranch(): BelongsTo
+    public function business(): BelongsTo
     {
-        return $this->belongsTo(BusinessBranch::class);
+        return $this->belongsTo(Business::class);
     }
 }

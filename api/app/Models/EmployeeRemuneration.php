@@ -3,16 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EmployeeRemuneration extends BaseModel
+class EmployeeRemuneration extends Model
 {
     /** @use HasFactory<\Database\Factories\EmployeeRemunerationFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'business_id',
-        'business_branch_id',
+        // 'business_id',
+        // 'business_branch_id',
         'worker_id',
         'amount',
         'type',
@@ -32,8 +33,8 @@ class EmployeeRemuneration extends BaseModel
         return $this->belongsTo(Worker::class);
     }
 
-    public function businessBranch(): BelongsTo
-    {
-        return $this->belongsTo(BusinessBranch::class, 'business_branch_id');
-    }
+    // public function businessBranch(): BelongsTo
+    // {
+    //     return $this->belongsTo(BusinessBranch::class, 'business_branch_id');
+    // }
 }

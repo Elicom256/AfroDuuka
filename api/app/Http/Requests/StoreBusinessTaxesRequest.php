@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreBusinessTaxesRequest extends FormRequest
 {
@@ -12,9 +13,18 @@ class StoreBusinessTaxesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
+    
+protected function prepareForValidation():void{
+    $user = Auth::user();
+            $this->merge([
+                "business_id" => $user->business_id,
+                //  "business_branch_id" => $user->business_branch_id,
+                 "status" => "active"
+            ]);
+    }
     /**
      * Get the validation rules that apply to the request.
      *
@@ -23,7 +33,8 @@ class StoreBusinessTaxesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_branch_id' => ['nullable', 'exists:business_branches,id'],
+            'business_id' => ['nullable', 'exists:businesses,id'],
+            // 'business_branch_id' => ['nullable', 'exists:business_branches,id'],
             'name' => ['required', 'string', 'max:150'],
             'rate' => ['required', 'numeric', 'min:0'],
             'type' => ['required', 'string', 'max:80'],

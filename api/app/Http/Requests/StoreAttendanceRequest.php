@@ -31,8 +31,8 @@ class StoreAttendanceRequest extends FormRequest
         'attendances.*.session' => 'nullable|in:morning,afternoon,evening,night',
         'attendances.*.status' => 'required|in:present,absent,late,excused',
 
-        'attendances.*.check_in' => 'nullable|date_format:H:i',
-        'attendances.*.check_out' => 'nullable|date_format:H:i|after:attendances.*.check_in',
+        'attendances.*.check_in' => 'nullable|date',
+        'attendances.*.check_out' => 'nullable|date|after:attendances.*.check_in',
 
         'attendances.*.remarks' => 'nullable|string|max:255',
     ];
