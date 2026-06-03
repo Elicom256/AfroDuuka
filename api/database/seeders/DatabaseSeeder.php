@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BusinessBranchProductSeeder::class);
         $this->call(BusinessTaxesSeeder::class);
         $this->call(AttendanceSeeder::class);
+        $this->call(BusinessTaxPaymentsSeeder::class);
         // User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
