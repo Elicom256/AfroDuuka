@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\BusinessTaxesController;
+use App\Http\Controllers\BusinessTaxPaymentsController;
 use App\Http\Controllers\EmployeeRemunerationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
@@ -40,6 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::apiResource("business-taxes", BusinessTaxesController::class);
      // ============== employee remuneration ===================
      Route::apiResource("employee-remunerations", EmployeeRemunerationController::class);
+      // ============== employee remuneration ===================
+     Route::apiResource("tax-payments", BusinessTaxPaymentsController::class);
 
 
 });
