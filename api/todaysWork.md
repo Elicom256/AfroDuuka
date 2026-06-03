@@ -1,21 +1,15 @@
 # Todays Work (Don't go beyond this)
 
-## 1. CashFlowAnalytics (Very Important)
+## 1. EmployeeRemuneration and BusinessTaxes modules
 
-✅ Total Revenue
-✅ Total Expenses
-✅ Net Cash Flow
-✅ Cash Flow Trend (Last 30 days)
+These modules have been scafolded, check their models and wire up the crud
+on returning the data in controllers, remember to apply modern Laravel Pagination
+employee_remunerations migration is done to, so do the rest of the work
 
-## 2. TopProductsWidget
+**To Implement:** Implement the business audit_logs to. you'll check how the application is flowing (Business branches) so that you implement a meaningful module
 
-Top 5 best selling products
-Revenue generated
-Quantity sold
+## Constraints
 
-## 3. PerformanceMetrics (KPIs)
-**Gross Profit Margin (GPM)**
-Gross Profit Margin=((Revenue−Cost of GoodsSold) / Revenue) ​× 100
-**Average Order Value** 
-**Sales Growth % (vs last month)**
-Sales Growth %=((Current Month Sales−Previous Month Sales) / Previous Month Sales) ​× 100
+✅ clean code
+✅ Do not hallucinate
+✅ Your decisions should portray a picture of a real engineer

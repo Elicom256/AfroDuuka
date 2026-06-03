@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\BusinessCategoryController;
 use App\Http\Controllers\BusinessController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\BusinessTaxesController;
+use App\Http\Controllers\EmployeeRemunerationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::get("/branches/cashflow/analytics", [CashFlowController::class, "analytics"]);
 
     // ============ Branches =============
-    Route::apiResource("branches", BusinessBranchController::class)->only(["index", "show", "store", "update", "delete"]);
+    Route::apiResource("branches", BusinessBranchController::class)->only(["index", "show", "store", "update", "destroy"]);
     // ============ Roles =============
     Route::apiResource("roles", RoleController::class);
      // ============== Worker managed by admin===================
@@ -31,6 +34,12 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::apiResource("suppliers", SupplierController::class);
      // ============== customers ===================
      Route::apiResource("customers", CustomerController::class);
+     // ============== attendances ===================
+     Route::apiResource("attendances", AttendanceController::class);
+     // ============== business tax settings ===================
+     Route::apiResource("business-taxes", BusinessTaxesController::class);
+     // ============== employee remuneration ===================
+     Route::apiResource("employee-remunerations", EmployeeRemunerationController::class);
 
 
 });
