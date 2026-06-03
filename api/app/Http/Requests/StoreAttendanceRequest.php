@@ -22,34 +22,27 @@ class StoreAttendanceRequest extends FormRequest
         ]);
     }
 
-    public function rules(): array
-    {
-        return [
-            // 🔎 Core fields
-            'employee_id'        => 'required|exists:users,id',
-            'business_branch_id' => 'required|exists:business_branches,id',
-            'date'               => 'required|date_format:m/d/Y',
-            'session'            => 'required|in:morning,afternoon,evening',
-            'status'             => 'required|in:present,absent,late,excused',
+   public function rules(): array
+{
+    return [
+        'attendances' => 'required|array|min:1',
 
-            // ⏱ Optional time tracking
-            'check_in'           => 'nullable|date_format:H:i',
-            'check_out'          => 'nullable|date_format:H:i|after:check_in',
+        'attendances.*.worker_id' => 'required|exists:workers,id',
+        'attendances.*.session' => 'nullable|in:morning,afternoon,evening,night',
+        'attendances.*.status' => 'required|in:present,absent,late,excused',
 
-            // 📝 Notes
-            'remarks'            => 'nullable|string|max:255',
-        ];
-    }
+        'attendances.*.check_in' => 'nullable|date_format:H:i',
+        'attendances.*.check_out' => 'nullable|date_format:H:i|after:attendances.*.check_in',
+
+        'attendances.*.remarks' => 'nullable|string|max:255',
+    ];
+}
 
     public function messages(): array
     {
         return [
-            'employee_id.required'        => 'Employee is required',
-            'employee_id.exists'          => 'Employee must exist',
-            'business_branch_id.required' => 'Branch is required',
-            'business_branch_id.exists'   => 'Branch must exist',
-            'date.required'               => 'Date is required',
-            'date.date_format'            => 'Date must be in mm/dd/yyyy format',
+            'worker_id.required'        => 'Employee is required',
+            'worker_id.exists'          => 'Employee must exist',
             'session.required'            => 'Session is required',
             'session.in'                  => 'Session must be morning, afternoon, or evening',
             'status.required'             => 'Status is required',

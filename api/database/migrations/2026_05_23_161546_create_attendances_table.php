@@ -13,10 +13,8 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('business_branch_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->date('date');
-            $table->enum('session', ['morning', 'afternoon', 'evening'])->default('morning');
+            $table->foreignId('worker_id')->constrained()->cascadeOnDelete();
+            $table->enum('session', ['morning', 'afternoon', 'evening', 'night'])->default('morning');
             $table->enum('status', ['present', 'absent', 'late', 'excused'])->default('present');
             $table->timestamp('check_in')->nullable();
             $table->timestamp('check_out')->nullable();
