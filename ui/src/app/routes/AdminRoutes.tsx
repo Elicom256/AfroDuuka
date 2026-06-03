@@ -30,6 +30,10 @@ import { AdminCustomersPage } from '../pages/dashboards/admin/pages/AdminCustome
 import { AdminAnalyticsPage } from '../pages/dashboards/admin/pages/AdminAnalyticsPage';
 import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPage';
 import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinancesPage';
+import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
+import { AdminEmployeeRemunerationPage } from '../pages/dashboards/admin/pages/AdminEmployeeRemunerationPage';
+import { AdminAttendancePage } from '../pages/dashboards/admin/pages/AdminAttendancePage';
+import { AdminBusinessActivityLogs } from '../pages/dashboards/admin/pages/AdminBusinessActivityLogs';
 import { AdminPromotionsPage } from '../pages/dashboards/admin/pages/AdminPromotionsPage';
 import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPage';
 import { AdminHistoryPage } from '../pages/dashboards/admin/pages/AdminHistoryPage';
@@ -42,7 +46,7 @@ export const AdminRoutes = () => {
           <Route index element={<AdminDashboardPage />} />
 
           <Route path='workers' element={<AdminWorkersPage />} />
-           <Route path='suppliers' element={<AdminSuppliersPage />} />
+          <Route path='suppliers' element={<AdminSuppliersPage />} />
 
           <Route path='create-business' element={<AddBusinessForm />} />
           <Route path='products' element={<AdminProductsPage />} />
@@ -59,6 +63,10 @@ export const AdminRoutes = () => {
           <Route path='analytics' element={<AdminAnalyticsPage />} />
           <Route path='reports' element={<AdminReportsPage />} />
           <Route path='finances' element={<AdminFinancesPage />} />
+          <Route path='attendance' element={<AdminAttendancePage />} />
+          <Route path='taxes' element={<AdminTaxesPage />} />
+          <Route path='remuneration' element={<AdminEmployeeRemunerationPage />} />
+          <Route path='activity-logs' element={<AdminBusinessActivityLogs />} />
           <Route path='promotions' element={<AdminPromotionsPage />} />
           <Route path='coupons' element={<AdminCouponsPage />} />
           <Route path='history' element={<AdminHistoryPage />} />
