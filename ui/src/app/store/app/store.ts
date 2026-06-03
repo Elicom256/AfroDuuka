@@ -27,6 +27,10 @@ import { paymentSettingsQuery } from '../features/business/settings/payment';
 import { promotionsSettingsQuery } from '../features/business/settings/promotions';
 import { reportsSettingsQuery } from '../features/business/settings/reports';
 import { supplierSettingsQuery } from '../features/business/settings/supplier';
+import { adminAttendanceQuery } from '../features/business/admin/attendanceQuery';
+import { adminTaxesQuery } from '../features/business/admin/taxesQuery';
+import { adminEmployeeRemunerationQuery } from '../features/business/admin/employeeRemunerationQuery';
+import { adminBusinessActivityLogsQuery } from '../features/business/admin/businessActivityLogsQuery';
 
 export const store = configureStore({
   reducer: {
@@ -51,6 +55,10 @@ export const store = configureStore({
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [branchHistoryQuery.reducerPath]: branchHistoryQuery.reducer,
+    [adminAttendanceQuery.reducerPath]: adminAttendanceQuery.reducer,
+    [adminTaxesQuery.reducerPath]: adminTaxesQuery.reducer,
+    [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
+    [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
     [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
     [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
@@ -83,6 +91,10 @@ export const store = configureStore({
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       branchHistoryQuery.middleware,
+      adminAttendanceQuery.middleware,
+      adminTaxesQuery.middleware,
+      adminEmployeeRemunerationQuery.middleware,
+      adminBusinessActivityLogsQuery.middleware,
       attendanceSettingsQuery.middleware,
       customerSettingsQuery.middleware,
       paymentSettingsQuery.middleware,
