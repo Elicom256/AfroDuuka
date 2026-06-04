@@ -69,9 +69,9 @@ class UserController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $users = User::where("business_id", $user->business_id)
-        ->whereHas('role', function ($q) {
-            $q->where('name', '!=', 'admin');
+        $roles = ['customer', 'supplier', 'admin'];
+        $users = User::whereHas('role', function ($q) use ($roles) {
+            $q->whereNotIn('name', $roles);
           })
         ->with(['business', 'role', "businessBranch"])
         ->get();

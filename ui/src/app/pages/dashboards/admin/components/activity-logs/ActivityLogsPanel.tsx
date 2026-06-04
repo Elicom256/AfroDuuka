@@ -1,30 +1,16 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
 type ActivityLogsPanelProps = {
   logs: any[];
+  total: number;
+  distinct: number;
 };
 
-const formatTime = (value: unknown) => {
-  if (!value) return '—';
-  const date = new Date(value as string);
-  return Number.isNaN(date.getTime())
-    ? String(value)
-    : date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-};
-
-export const ActivityLogsPanel = ({ logs }: ActivityLogsPanelProps) => {
-  const records = Array.isArray(logs) ? logs : [];
-  const total = records.length;
-  const successCount = records.filter(
-    (record) => String(record.status || record.result || '').toLowerCase() === 'success',
-  ).length;
-  const failureCount = records.filter((record) =>
-    ['error', 'failed', 'failure'].includes(String(record.status || record.result || '').toLowerCase()),
-  ).length;
-  const activeUsers = new Set(records.map((record) => record.user?.id || record.actor_id || record.user_id)).size;
-
+export const ActivityLogsPanel = ({ logs, total, distinct }: ActivityLogsPanelProps) => {
+  const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
@@ -43,7 +29,7 @@ export const ActivityLogsPanel = ({ logs }: ActivityLogsPanelProps) => {
             <CardDescription>Completed actions and confirmations.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-semibold'>{successCount}</p>
+            <p className='text-3xl font-semibold'>{total}</p>
           </CardContent>
         </Card>
         <Card className='rounded-3xl border border-border/70 bg-card p-4'>
@@ -52,7 +38,7 @@ export const ActivityLogsPanel = ({ logs }: ActivityLogsPanelProps) => {
             <CardDescription>Individuals who triggered activity log entries.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-semibold'>{activeUsers}</p>
+            <p className='text-3xl font-semibold'>{distinct}</p>
           </CardContent>
         </Card>
       </div>
@@ -74,14 +60,14 @@ export const ActivityLogsPanel = ({ logs }: ActivityLogsPanelProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.length === 0 ? (
+              {logs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className='text-center py-10 text-muted-foreground'>
                     No activity log entries to display.
                   </TableCell>
                 </TableRow>
               ) : (
-                records.slice(0, 12).map((record, index) => {
+                logs.map((record, index) => {
                   const status = String(record.status || record.result || 'unknown').toLowerCase();
                   const variant =
                     status === 'success'
@@ -91,9 +77,11 @@ export const ActivityLogsPanel = ({ logs }: ActivityLogsPanelProps) => {
                         : 'outline';
                   return (
                     <TableRow key={record.id ?? index}>
-                      <TableCell>{formatTime(record.created_at || record.timestamp || record.logged_at)}</TableCell>
-                      <TableCell>{record.user?.name || record.actor?.name || record.user_name || 'System'}</TableCell>
-                      <TableCell>{record.action || record.event || record.activity || '—'}</TableCell>
+                      <TableCell>{formatted(record.created_at)}</TableCell>
+                      <TableCell>
+                        {record.user?.username || record.actor?.name || record.user_name || 'System'}
+                      </TableCell>
+                      <TableCell>{record.action ?? '—'}</TableCell>
                       <TableCell>{record.resource || record.module || record.target || '—'}</TableCell>
                       <TableCell>
                         <Badge variant={variant as any}>{String(status).toUpperCase()}</Badge>

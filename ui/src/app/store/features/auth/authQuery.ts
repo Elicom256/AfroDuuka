@@ -57,7 +57,21 @@ export const authQuery = createApi({
       }),
       invalidatesTags: ['UsersAPI'],
     }),
+
+    businessUsers: builder.query<any, void>({
+      query: () => ({
+        url: '/',
+        method: 'GET',
+      }),
+      providesTags: ['UsersAPI'],
+    }),
   }),
 });
-export const { useLoginMutation, useRegisterMutation, useLoggedinUserQuery, useUpdateUserMutation, useLogoutMutation } =
-  authQuery;
+export const {
+  useBusinessUsersQuery,
+  useLoginMutation,
+  useRegisterMutation,
+  useLoggedinUserQuery,
+  useUpdateUserMutation,
+  useLogoutMutation,
+} = authQuery;

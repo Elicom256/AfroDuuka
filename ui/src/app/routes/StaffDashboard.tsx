@@ -6,8 +6,14 @@ import { StaffProductsPage } from '../pages/dashboards/staff/pages/StaffProducts
 import { StaffInventoryPage } from '../pages/dashboards/staff/pages/StaffInventoryPage';
 import { StaffSalesOverviewPage } from '../pages/dashboards/staff/pages/StaffSalesOverviewPage';
 import { NotFound } from './NotFound';
+import { PageLoadingState } from '@/utils/PageLoadingState';
+import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
 export const StaffDashboard = () => {
+  const { isLoading } = useLoggedinUserQuery();
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
   return (
     <Routes>
       <Route path='staff' element={<StaffLayout />}>
@@ -18,7 +24,7 @@ export const StaffDashboard = () => {
         <Route path='sales-overview' element={<StaffSalesOverviewPage />} />
       </Route>
       {/* unmatched */}
-      <Route path='*' element={<NotFound />} />
+      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };

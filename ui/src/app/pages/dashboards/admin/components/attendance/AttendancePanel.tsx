@@ -1,31 +1,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
 type AttendancePanelProps = {
-  attendance: any[];
+  attendances: any[];
+  absentCount: number;
+  presentCount: number;
 };
 
-const formatDate = (value: unknown) => {
-  if (!value) return '—';
-  const date = new Date(value as string);
-  return Number.isNaN(date.getTime())
-    ? String(value)
-    : date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-};
-
-export const AttendancePanel = ({ attendance }: AttendancePanelProps) => {
-  const records = Array.isArray(attendance) ? attendance : [];
-  const presentCount = records.filter(
-    (record) => String(record.status || record.attendance_status || '').toLowerCase() === 'present',
-  ).length;
-  const absentCount = records.filter(
-    (record) => String(record.status || record.attendance_status || '').toLowerCase() === 'absent',
-  ).length;
-  const lateCount = records.filter(
-    (record) => String(record.status || record.attendance_status || '').toLowerCase() === 'late',
-  ).length;
-  const total = records.length;
+export const AttendancePanel = ({ attendances, absentCount, presentCount }: AttendancePanelProps) => {
+  const total = attendances.length;
+  const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
 
   return (
     <div className='space-y-6'>
@@ -50,11 +36,11 @@ export const AttendancePanel = ({ attendance }: AttendancePanelProps) => {
         </Card>
         <Card className='rounded-3xl border border-border/70 bg-card p-4'>
           <CardHeader>
-            <CardTitle>Absent / Late</CardTitle>
+            <CardTitle>Absent </CardTitle>
             <CardDescription>Missed shifts and late arrivals.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-semibold'>{absentCount + lateCount}</p>
+            <p className='text-3xl font-semibold'>{absentCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -77,39 +63,28 @@ export const AttendancePanel = ({ attendance }: AttendancePanelProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.length === 0 ? (
+              {total === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className='text-center py-10 text-muted-foreground'>
                     No attendance records available.
                   </TableCell>
                 </TableRow>
               ) : (
-                records.slice(0, 12).map((record, index) => {
-                  const status = String(record.status || record.attendance_status || 'Unknown').toLowerCase();
-                  const label =
-                    status === 'present'
-                      ? 'success'
-                      : status === 'late'
-                        ? 'secondary'
-                        : status === 'absent'
-                          ? 'destructive'
-                          : 'outline';
+                attendances?.map((record, index) => {
                   return (
                     <TableRow key={record.id ?? index}>
-                      <TableCell>{formatDate(record.date || record.created_at || record.logged_at)}</TableCell>
+                      <TableCell>{formatted(record.check_in || record.created_at)}</TableCell>
                       <TableCell>
-                        {record.employee?.name || record.user?.firstname
-                          ? `${record.user?.firstname || ''} ${record.user?.lastname || ''}`.trim()
-                          : record.employee_name || record.worker_name || '—'}
+                        {`${record.worker?.user?.firstname || ''} ${record.worker?.user?.lastname || ''}`.trim() ||
+                          record.worker?.user?.email ||
+                          '—'}
                       </TableCell>
+                      <TableCell>{record.worker?.user?.business_branch?.name || '—'}</TableCell>
                       <TableCell>
-                        {record.branch?.name || record.business_branch?.name || record.location || '—'}
+                        <Badge variant={record.status === 'present' ? 'secondary' : ('' as any)}>{record.status}</Badge>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={label as any}>{String(status).toUpperCase()}</Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(record.clock_in || record.time_in || record.check_in)}</TableCell>
-                      <TableCell>{formatDate(record.clock_out || record.time_out || record.check_out)}</TableCell>
+                      <TableCell>{formatted(record.check_in ?? record.created_at)}</TableCell>
+                      <TableCell>{formatted(record.check_out ?? record.created_at)}</TableCell>
                     </TableRow>
                   );
                 })

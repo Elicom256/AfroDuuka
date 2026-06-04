@@ -19,18 +19,36 @@ class AttendanceController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        $business_branch_id = Auth::user()->business_branch_id;
-        $attendances = Attendance::with(["worker.user"])
-                       ->whereHas("worker.user", function ($query) use($business_branch_id) {
-                            $query->where("business_branch_id", $business_branch_id);
-                       })
-                       ->orderByDesc("created_at")
-                       ->get();
-                    //    dd($attendances);
-        return response()->json(["message" => "Attendances fetched", "attendances" => $attendances]);             
-    }
+{
+    $user = Auth::user();
 
+    $query = Attendance::with(['worker.user.businessBranch'])
+        ->whereHas('worker.user', function ($q) use ($user) {
+            $q->where('business_branch_id', $user->business_branch_id)
+              ->where('business_id', $user->business_id);
+        });
+
+    // stats (global, not paginated)
+    $presentCount = (clone $query)
+        ->where('status', 'present')
+        ->count();
+
+    $absentCount = (clone $query)
+        ->where('status', 'absent')
+        ->count();
+
+    // paginated data
+    $attendances = $query
+        ->orderByDesc('created_at')
+        ->paginate(10);
+
+    return response()->json([
+        'message' => 'Attendances fetched',
+        'attendances' => $attendances,
+        'presentCount' => $presentCount,
+        'absentCount' => $absentCount,
+    ]);
+}
     /**
      * Store a newly created resource in storage.
      */

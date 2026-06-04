@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\BusinessCategoryController;
@@ -39,10 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::apiResource("attendances", AttendanceController::class);
      // ============== business tax settings ===================
      Route::apiResource("business-taxes", BusinessTaxesController::class);
-     // ============== employee remuneration ===================
-     Route::apiResource("employee-remunerations", EmployeeRemunerationController::class);
-      // ============== employee remuneration ===================
+       // ============== business tax payments ===================
      Route::apiResource("tax-payments", BusinessTaxPaymentsController::class);
-
+     // ============== employee remuneration ===================
+     Route::apiResource("employee-remuneration", EmployeeRemunerationController::class);
+     // ============== activity logs ===================
+     Route::apiResource("activity-logs", ActivityLogController::class)->only(["index", "show", "destroy"]);
 
 });

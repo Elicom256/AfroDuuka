@@ -9,14 +9,11 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { ManagerRoutes } from './ManagerRoutes';
 import { StaffDashboard } from './StaffDashboard';
 import { NotFound } from './NotFound';
-import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const AppRoutes = () => {
-  const { data, isLoading } = useLoggedinUserQuery();
+  const { data } = useLoggedinUserQuery();
   const role = data?.data.role.name;
-  if (isLoading) {
-    return <PageLoadingState />;
-  }
+
   return (
     <Routes>
       {/* Public routes */}
