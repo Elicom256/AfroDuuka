@@ -4,10 +4,11 @@ import { AttendancePanel } from '../components/attendance/AttendancePanel';
 
 export const AdminAttendancePage = () => {
   const { data, isLoading } = useGetAdminAttendanceQuery();
-
+  const attendances = data?.attendances?.data ?? [];
+  const absentCount = data?.absentCount;
+  const presentCount = data?.presentCount;
+  console.log('attendances==>', attendances);
   if (isLoading) return <PageLoadingState />;
-
-  const attendance = Array.isArray(data) ? data : (data?.attendance ?? data?.records ?? []);
 
   return (
     <div className='space-y-6'>
@@ -15,7 +16,7 @@ export const AdminAttendancePage = () => {
         <h1 className='text-3xl font-bold tracking-tight'>Attendance</h1>
         <p className='text-muted-foreground'>Monitor employee presence, attendance trends, and shift records.</p>
       </div>
-      <AttendancePanel attendance={attendance} />
+      <AttendancePanel attendances={attendances} presentCount={presentCount} absentCount={absentCount} />
     </div>
   );
 };

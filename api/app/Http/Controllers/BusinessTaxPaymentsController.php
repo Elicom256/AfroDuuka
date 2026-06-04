@@ -19,6 +19,7 @@ class BusinessTaxPaymentsController extends Controller
         $query = BusinessTaxPayment::with(['businessBranch', 'businessTax', 'createdBy']);
 
         // Filtering
+        $totalTax = 0;
         if ($request->has('business_branch_id')) {
             $query->byBranch($request->business_branch_id);
         }
@@ -36,11 +37,13 @@ class BusinessTaxPaymentsController extends Controller
         }
 
         // Sorting & Pagination
-        $perPage = $request->input('per_page', 15);
+        // $perPage = $request->input('per_page', 15);
 
-        $payments = $query->latest()->paginate($perPage);
-
-        return BusinessTaxPaymentResource::collection($payments);
+        $payments = $query->latest()->paginate(10);
+        $totalTax = $query->sum("paid_amount");
+        $outstanding = $query->sum("balance");
+        return response()->json(["paidTaxes" => $payments, "totalTax" => $totalTax, "outstanding" => $outstanding]);
+        // return BusinessTaxPaymentResource::collection($payments, $totalTax, $outstanding);
     }
 
     /**

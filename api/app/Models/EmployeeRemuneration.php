@@ -12,8 +12,6 @@ class EmployeeRemuneration extends Model
     use HasFactory;
 
     protected $fillable = [
-        // 'business_id',
-        // 'business_branch_id',
         'worker_id',
         'amount',
         'type',

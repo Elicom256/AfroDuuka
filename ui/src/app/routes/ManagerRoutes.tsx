@@ -22,8 +22,14 @@ import { Purchase } from '../pages/dashboards/manager/components/purchases/Purch
 import { ManagerProductTypes } from '../pages/dashboards/manager/components/products/ManagerProductTypes';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
 import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
+import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
+import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const ManagerRoutes = () => {
+  const {  isLoading } = useLoggedinUserQuery();
+      if (isLoading) {
+        return <PageLoadingState />;
+      }
   return (
     <Routes>
       <Route path='manager' element={<ManagerLayout />}>
@@ -50,7 +56,7 @@ export const ManagerRoutes = () => {
         <Route path='product-categories' element={<ManagerProductTypes />} />
       </Route>
       {/* unmatched */}
-      <Route path='*' element={<NotFound />} />
+      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };

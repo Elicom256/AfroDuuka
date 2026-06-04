@@ -18,6 +18,11 @@ export const adminEmployeeRemunerationQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['AdminRemunerationAPI'],
     }),
+
+    storeAdminEmployeeRemuneration: builder.query<any, void>({
+      query: () => ({ url: '/', method: 'POST' }),
+      providesTags: ['AdminRemunerationAPI'],
+    }),
   }),
 });
 

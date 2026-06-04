@@ -1,34 +1,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 
 type RemunerationPanelProps = {
   payroll: any[];
+  totalPaid: number;
+  employeeCount: number;
+  pending: number;
 };
 
-const formatCurrency = (value: unknown) => {
-  const amount = Number(value ?? 0);
-  if (Number.isNaN(amount)) return 'UGX 0';
-  return `UGX ${amount.toLocaleString()}`;
-};
-
-const formatDate = (value: unknown) => {
-  if (!value) return '—';
-  const date = new Date(value as string);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString('en-US');
-};
-
-export const RemunerationPanel = ({ payroll }: RemunerationPanelProps) => {
-  const records = Array.isArray(payroll) ? payroll : [];
-  const totalPaid = records.reduce((sum, item) => sum + Number(item.amount ?? item.paid_amount ?? 0), 0);
-  const paidCount = records.filter(
-    (item) => String(item.status || item.payment_status || '').toLowerCase() === 'paid',
-  ).length;
-  const pendingCount = records.filter(
-    (item) => String(item.status || item.payment_status || '').toLowerCase() === 'pending',
-  ).length;
-  const employeeCount = new Set(records.map((item) => item.employee?.id ?? item.user?.id ?? item.employee_id)).size;
-
+export const RemunerationPanel = ({ payroll, totalPaid, employeeCount, pending }: RemunerationPanelProps) => {
+  const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
@@ -38,7 +21,7 @@ export const RemunerationPanel = ({ payroll }: RemunerationPanelProps) => {
             <CardDescription>Employee disbursements over the active period.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-semibold'>{formatCurrency(totalPaid)}</p>
+            <p className='text-3xl font-semibold'>{Number(totalPaid).toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card className='rounded-3xl border border-border/70 bg-card p-4'>
@@ -56,7 +39,7 @@ export const RemunerationPanel = ({ payroll }: RemunerationPanelProps) => {
             <CardDescription>Remuneration items still awaiting approval.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-semibold'>{pendingCount}</p>
+            <p className='text-3xl font-semibold'>{pending}</p>
           </CardContent>
         </Card>
       </div>
@@ -78,31 +61,26 @@ export const RemunerationPanel = ({ payroll }: RemunerationPanelProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.length === 0 ? (
+              {payroll.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className='text-center py-10 text-muted-foreground'>
                     No payroll records found.
                   </TableCell>
                 </TableRow>
               ) : (
-                records.slice(0, 12).map((item, index) => {
-                  const status = String(item.status || item.payment_status || 'unknown').toLowerCase();
-                  const variant = status === 'paid' ? 'default' : status === 'pending' ? 'secondary' : 'outline';
+                payroll.slice(0, 12).map((item, index) => {
                   return (
                     <TableRow key={item.id ?? index}>
                       <TableCell>
-                        {item.employee?.name ||
-                          `${item.user?.firstname || ''} ${item.user?.lastname || ''}`.trim() ||
-                          item.employee_name ||
+                        {`${item.worker?.user?.firstname || ''} ${item.worker?.user?.lastname || ''}`.trim() ||
+                          item.worker?.user?.email ||
                           '—'}
                       </TableCell>
+                      <TableCell>{item.worker?.user?.business_branch?.name ?? '—'}</TableCell>
+                      <TableCell>{Number(item.amount).toLocaleString()}</TableCell>
+                      <TableCell>{formatted(item.payment_date)}</TableCell>
                       <TableCell>
-                        {item.employee?.branch?.name || item.branch?.name || item.business_branch?.name || '—'}
-                      </TableCell>
-                      <TableCell>{formatCurrency(item.amount ?? item.paid_amount)}</TableCell>
-                      <TableCell>{formatDate(item.pay_period || item.payout_period || item.period)}</TableCell>
-                      <TableCell>
-                        <Badge variant={variant as any}>{String(status).toUpperCase()}</Badge>
+                        <Badge variant='secondary'>{item?.status}</Badge>
                       </TableCell>
                     </TableRow>
                   );

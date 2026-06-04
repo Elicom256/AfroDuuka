@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const adminTaxesQuery = createApi({
   reducerPath: 'adminTaxesPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/taxes`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -15,10 +15,55 @@ export const adminTaxesQuery = createApi({
   tagTypes: ['AdminTaxesAPI'],
   endpoints: (builder) => ({
     getAdminTaxes: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/business-taxes', method: 'GET' }),
       providesTags: ['AdminTaxesAPI'],
+    }),
+
+    getAdminTax: builder.query<any, string>({
+      query: (id) => ({ url: `/business-taxes/${id}`, method: 'GET' }),
+      providesTags: ['AdminTaxesAPI'],
+    }),
+
+    deleteAdminTax: builder.mutation<any, string>({
+      query: (id) => ({ url: `/business-taxes/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['AdminTaxesAPI'],
+    }),
+
+    updateAdminTax: builder.mutation<any, string>({
+      query: (id) => ({ url: `/business-taxes/${id}`, method: 'PUT' }),
+      invalidatesTags: ['AdminTaxesAPI'],
+    }),
+
+    // =========== Business tax payments ================
+    getAdminTaxePayments: builder.query<any, void>({
+      query: () => ({ url: '/tax-payments', method: 'GET' }),
+      providesTags: ['AdminTaxesAPI'],
+    }),
+
+    getAdminTaxPayment: builder.query<any, string>({
+      query: (id) => ({ url: `/tax-payments/${id}`, method: 'GET' }),
+      providesTags: ['AdminTaxesAPI'],
+    }),
+
+    deleteAdminTaxPayment: builder.mutation<any, string>({
+      query: (id) => ({ url: `/tax-payments/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['AdminTaxesAPI'],
+    }),
+
+    updateAdminTaxPayment: builder.mutation<any, string>({
+      query: (id) => ({ url: `/tax-payments/${id}`, method: 'PUT' }),
+      invalidatesTags: ['AdminTaxesAPI'],
     }),
   }),
 });
 
-export const { useGetAdminTaxesQuery } = adminTaxesQuery;
+export const {
+  useGetAdminTaxesQuery,
+  useGetAdminTaxQuery,
+  useUpdateAdminTaxMutation,
+  useDeleteAdminTaxMutation,
+  useGetAdminTaxePaymentsQuery,
+  useGetAdminTaxPaymentQuery,
+  useUpdateAdminTaxPaymentMutation,
+  useDeleteAdminTaxPaymentMutation,
+} = adminTaxesQuery;

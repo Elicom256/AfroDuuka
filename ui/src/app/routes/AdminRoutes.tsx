@@ -37,8 +37,14 @@ import { AdminBusinessActivityLogs } from '../pages/dashboards/admin/pages/Admin
 import { AdminPromotionsPage } from '../pages/dashboards/admin/pages/AdminPromotionsPage';
 import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPage';
 import { AdminHistoryPage } from '../pages/dashboards/admin/pages/AdminHistoryPage';
+import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
+import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const AdminRoutes = () => {
+  const {  isLoading } = useLoggedinUserQuery();
+    if (isLoading) {
+      return <PageLoadingState />;
+    }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
@@ -85,7 +91,7 @@ export const AdminRoutes = () => {
         </Route>
       </Route>
       {/* unmatched */}
-      <Route path='*' element={<NotFound />} />
+      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };

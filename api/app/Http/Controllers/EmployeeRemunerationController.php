@@ -19,23 +19,41 @@ class EmployeeRemunerationController extends Controller
         $this->activity_log = $activityLog;
     }
     public function index(): JsonResponse
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $remunerations = EmployeeRemuneration::with(['worker.user', 'worker.businessBranch'])
-            ->whereHas('worker.user', function ($query) use ($user) {
-                $query->where('business_branch_id', $user->business_branch_id)
-                      ->where('business_id', $user->business_id);
-            })
-            
-            ->orderBy('payment_date', 'desc')
-            ->paginate(10);
+    $query = EmployeeRemuneration::with([
+        'worker.user.businessBranch',
+    ])
+    ->whereHas('worker.user', function ($query) use ($user) {
+        $query->where('business_branch_id', $user->business_branch_id)
+            ->where('business_id', $user->business_id);
+    });
 
-        return response()->json([
-            'message' => 'Fetched employee remunerations',
-            'employee_remunerations' => $remunerations,
-        ]);
-    }
+    $totalPaid = (clone $query)
+        ->where('status', 'paid')
+        ->sum('amount');
+
+    $employeeCount = (clone $query)
+        ->distinct('worker_id')
+        ->count('worker_id');
+
+    $pending = (clone $query)
+        ->where('status', 'pending')
+        ->count();
+
+    $remunerations = $query
+        ->orderByDesc('payment_date')
+        ->paginate(10);
+
+    return response()->json([
+        'message' => 'Fetched employee remunerations',
+        'employee_remunerations' => $remunerations,
+        'totalPaid' => $totalPaid,
+        'employeeCount' => $employeeCount,
+        'pending' => $pending,
+    ]);
+}
 
     public function store(StoreEmployeeRemunerationRequest $request): JsonResponse
     {
