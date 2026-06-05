@@ -2,11 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\ActivityLog;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\BusinessTaxes;
 use App\Models\BusinessTaxPayment;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -18,6 +20,9 @@ class BusinessTaxPaymentsSeeder extends Seeder
     public function run(): void
     {
         $business = Business::where('email', 'testbusinessone@gmail.com')->first();
+        $userId = User::with("role")->where("business_id", $business->id)->whereHas("role", function($q){
+            $q->where("name", "admin");
+        })->value("id");
 
         if (!$business) {
             $this->command->warn('❌ Business not found. Skipping BusinessTaxPaymentsSeeder.');
@@ -82,7 +87,7 @@ class BusinessTaxPaymentsSeeder extends Seeder
 
                 $dueDate = Carbon::create($year, $month, 30); // Last day of the quarter
 
-                BusinessTaxPayment::create([
+               $payment = BusinessTaxPayment::create([
                     'business_branch_id' => $branch->id,
                     'business_tax_id'    => $tax->id,
                     
@@ -113,7 +118,16 @@ class BusinessTaxPaymentsSeeder extends Seeder
                 ]);
 
                 $count++;
+               ActivityLog::create([
+                     "user_id" => $userId,
+                     "business_id" => $business->id,
+                     "business_branch_id" => $branch->id,
+                     "action" => " Tax Payments",
+                     "description" =>"Business Tax Payments seeded successfully"
+                 ]);
             }
+            // log
+
         }
 
         $this->command->info("✅ Business Tax Payments seeded successfully! ({$count} records created)");
