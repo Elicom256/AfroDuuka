@@ -14,7 +14,7 @@ export const AdminBusinessActivityLogs = () => {
   });
 
   const { data: doers, isLoading: fetchingUsers } = useBusinessUsersQuery();
-  const { data, isLoading } = useGetAdminBusinessActivityLogsQuery(param);
+  const { data, isLoading, error } = useGetAdminBusinessActivityLogsQuery(param);
 
   if (isLoading || fetchingUsers) return <PageLoadingState />;
 
@@ -22,7 +22,7 @@ export const AdminBusinessActivityLogs = () => {
   const logs = data?.logs?.data ?? [];
   const total = data?.total;
   const distinct = data?.distinct;
-  // console.log('activity logs==>', doers);
+  console.log('activity logs==>', data ?? error);
 
   return (
     <div className='space-y-6'>

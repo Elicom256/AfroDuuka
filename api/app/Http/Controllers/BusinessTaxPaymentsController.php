@@ -6,11 +6,17 @@ use App\Http\Requests\StoreBusinessTaxPaymentRequest;
 use App\Http\Requests\UpdateBusinessTaxPaymentRequest;
 use App\Models\BusinessTaxPayment;
 use App\Http\Resources\BusinessTaxPaymentResource;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessTaxPaymentsController extends Controller
 {
+      protected ActivityLogService $activity_log;
+    public function __construct(ActivityLogService $activityLog)
+    {
+        $this->activity_log = $activityLog;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -57,6 +63,10 @@ class BusinessTaxPaymentsController extends Controller
         $data['created_by'] = $data['created_by'] ?? Auth::user()->id;
 
         $payment = BusinessTaxPayment::create($data);
+        $this->activity_log->activity(
+            "Paid Tax", $payment->paid_amount . " ". "has been paid as a tax for taxId $payment->business_tax_id"
+        );
+
 
         return response()->json([
             'message' => 'Tax payment recorded successfully',

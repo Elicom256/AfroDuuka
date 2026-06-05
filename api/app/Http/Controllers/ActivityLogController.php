@@ -13,7 +13,7 @@ class ActivityLogController extends Controller
     public function index(Request $request)
     {
         $query = ActivityLog::query()
-            ->with(['user', 'business', 'branch'])
+            ->with(['user', 'business', 'businessBranch'])
             ->latest();
 
         if ($request->filled('user_id')) {
@@ -73,7 +73,7 @@ class ActivityLogController extends Controller
         ActivityLog::findOrFail($id)->delete();
 
         return response()->json([
-            'message' => 'Activity log deleted'
+            'message' => 'Activity log archieved!'
         ]);
     }
 }

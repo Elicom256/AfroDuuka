@@ -45,7 +45,7 @@ export const adminBusinessActivityLogsQuery = createApi({
     }),
 
     // ❌ DESTROY
-    deleteAdminBusinessActivityLog: builder.mutation<any, number>({
+    deleteAdminBusinessActivityLog: builder.mutation<any, string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'DELETE',
