@@ -32,7 +32,7 @@ class Worker extends Model
 {
     return $this->user?->businessBranch ?? null;
 }
-    public function attendance():HasMany{
+    public function attendances():HasMany{
         return $this->hasMany(Attendance::class);
     }
     public function employeeRemuneration(){

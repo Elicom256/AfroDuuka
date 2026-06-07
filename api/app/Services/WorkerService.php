@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Attendance;
 use App\Models\Worker;
 use Illuminate\Support\Facades\Auth;
 
@@ -9,9 +10,9 @@ class WorkerService
 {
      public function __construct(private ProfileService $profileService) {}
 
+
     public function addWorker(array $data)
     {
-        
         return $this->profileService->create($data, function($user, $data){
             $work = Worker::with("user", function($q){
                 $q->where("business_id", Auth::user()->business_id);
@@ -43,5 +44,16 @@ class WorkerService
             ]);
             return $worker;
         } );
+    }
+
+    // attendances
+    public function workerAttendanceHistory(string $workerId){
+        $attendance = Attendance::where("worker_id", $workerId);
+        $present = (clone $attendance)->where("status", "present")->count();
+        $absent = (clone $attendance)->where("status", "absent")->count();
+        return [
+            "present" => $present,
+            "absent" => $absent
+        ];
     }
 }

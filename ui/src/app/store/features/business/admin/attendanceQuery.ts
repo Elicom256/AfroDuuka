@@ -14,11 +14,22 @@ export const adminAttendanceQuery = createApi({
   }),
   tagTypes: ['AdminAttendanceAPI'],
   endpoints: (builder) => ({
-    getAdminAttendance: builder.query<any, void>({
+    employeeAttendances: builder.query<any, void>({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['AdminAttendanceAPI'],
+    }),
+
+    employeeAttendance: builder.query<any, string>({
+      query: () => ({ url: '/', method: 'GET' }),
+      providesTags: ['AdminAttendanceAPI'],
+    }),
+
+    recordEmployeeattendance: builder.mutation<any, any>({
+      query: (body) => ({ url: '/', method: 'POST', body }),
+      invalidatesTags: ['AdminAttendanceAPI'],
     }),
   }),
 });
 
-export const { useGetAdminAttendanceQuery } = adminAttendanceQuery;
+export const { useEmployeeAttendanceQuery, useEmployeeAttendancesQuery, useRecordEmployeeattendanceMutation } =
+  adminAttendanceQuery;

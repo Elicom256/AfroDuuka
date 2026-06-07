@@ -1,9 +1,9 @@
-import { useGetAdminAttendanceQuery } from '@/app/store/features/business/admin/attendanceQuery';
+import { useEmployeeAttendancesQuery } from '@/app/store/features/business/admin/attendanceQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AttendancePanel } from '../components/attendance/AttendancePanel';
 
 export const AdminAttendancePage = () => {
-  const { data, isLoading } = useGetAdminAttendanceQuery();
+  const { data, isLoading } = useEmployeeAttendancesQuery();
   const attendances = data?.attendances?.data ?? [];
   const absentCount = data?.absentCount;
   const presentCount = data?.presentCount;

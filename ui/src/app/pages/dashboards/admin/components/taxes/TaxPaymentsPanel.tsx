@@ -1,7 +1,9 @@
+import { Footer } from '@/app/pages/public/Footer';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 type TaxRecord = {
   id?: string | number;
@@ -24,7 +26,7 @@ type TaxesPanelProps = {
   headers: any[];
 };
 
-export const TaxesPanel = ({ taxes, totalTax, outstanding, openFilings, headers }: TaxesPanelProps) => {
+export const TaxPaymentsPanel = ({ taxes, totalTax, outstanding, openFilings, headers }: TaxesPanelProps) => {
   const dateFormat = (date: any) => {
     return format(new Date(date), 'dd MMM yyyy');
   };
@@ -63,9 +65,7 @@ export const TaxesPanel = ({ taxes, totalTax, outstanding, openFilings, headers 
                     <TableCell>{dateFormat(tax.due_date)}</TableCell>
                     <TableCell>{dateFormat(tax.payment_date)}</TableCell>
                     <TableCell>
-                      <Badge variant={tax.balance ? 'secondary' : 'default'}>
-                        {tax.status}
-                      </Badge>
+                      <Badge variant={tax.balance ? 'secondary' : 'default'}>{tax.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))
@@ -73,6 +73,9 @@ export const TaxesPanel = ({ taxes, totalTax, outstanding, openFilings, headers 
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter>
+          <Link to='/admin/obligated-taxes'>Taxes Obligated to</Link>
+        </CardFooter>
       </Card>
     </div>
   );

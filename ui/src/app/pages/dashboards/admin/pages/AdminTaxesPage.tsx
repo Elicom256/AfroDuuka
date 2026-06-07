@@ -1,10 +1,9 @@
 import { useGetAdminTaxePaymentsQuery, useGetAdminTaxesQuery } from '@/app/store/features/business/admin/taxesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { TaxesPanel } from '../components/taxes/TaxesPanel';
+import { TaxPaymentsPanel } from '../components/taxes/TaxPaymentsPanel';
 import { SummaryCard } from '../components/taxes/SummaryCard';
 
 export const AdminTaxesPage = () => {
-  // const { data, isLoading } = useGetAdminTaxesQuery();
   const { data, isLoading } = useGetAdminTaxePaymentsQuery();
 
   if (isLoading) return <PageLoadingState />;
@@ -43,13 +42,13 @@ export const AdminTaxesPage = () => {
           <SummaryCard key={card.title} title={card.title} description={card.description} value={card.value} />
         ))}
       </div>
-        <TaxesPanel
-          taxes={taxes}
-          headers={headers}
-          totalTax={totalTax}
-          outstanding={outstanding}
-          openFilings={openFilings}
-        />
+      <TaxPaymentsPanel
+        taxes={taxes}
+        headers={headers}
+        totalTax={totalTax}
+        outstanding={outstanding}
+        openFilings={openFilings}
+      />
     </div>
   );
 };
