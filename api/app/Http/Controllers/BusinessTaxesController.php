@@ -46,13 +46,13 @@ class BusinessTaxesController extends Controller
         ], 201);
     }
 
-    public function show(BusinessTaxes $businessTaxes): JsonResponse
+    public function show(BusinessTaxes $businessTax): JsonResponse
     {
-        $businessTaxes->load('businessBranch');
+        // $businessTaxes->load('business');
 
         return response()->json([
             'message' => 'Fetched business tax',
-            'business_tax' => $businessTaxes,
+            'business_tax' => $businessTax,
         ]);
     }
 

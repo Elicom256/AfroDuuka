@@ -22,6 +22,14 @@ export const workersQuery = createApi({
       }),
       providesTags: ['WorkersAPI'],
     }),
+
+    getWorkerInfo: builder.query<any, string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['WorkersAPI'],
+    }),
     // register worker
     registerWorker: builder.mutation<any, any>({
       query: (body) => ({
@@ -50,5 +58,5 @@ export const workersQuery = createApi({
     }),
   }),
 });
-export const { useGetWorkersInfoQuery, useDeleteWorkerMutation, useRegisterWorkerMutation, useUpdateWorkerMutation } =
+export const { useGetWorkersInfoQuery, useGetWorkerInfoQuery, useDeleteWorkerMutation, useRegisterWorkerMutation, useUpdateWorkerMutation } =
   workersQuery;

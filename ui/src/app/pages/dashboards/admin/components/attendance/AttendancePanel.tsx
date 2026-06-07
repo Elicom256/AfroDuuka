@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 type AttendancePanelProps = {
   attendances: any[];
@@ -10,6 +11,7 @@ type AttendancePanelProps = {
 };
 
 export const AttendancePanel = ({ attendances, absentCount, presentCount }: AttendancePanelProps) => {
+  const navigate = useNavigate();
   const total = attendances.length;
   const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
 
@@ -72,7 +74,7 @@ export const AttendancePanel = ({ attendances, absentCount, presentCount }: Atte
               ) : (
                 attendances?.map((record, index) => {
                   return (
-                    <TableRow key={record.id ?? index}>
+                    <TableRow key={record.id ?? index} onClick={() => navigate(`/admin/attendance/${record.id}`)}>
                       <TableCell>{formatted(record.check_in || record.created_at)}</TableCell>
                       <TableCell>
                         {`${record.worker?.user?.firstname || ''} ${record.worker?.user?.lastname || ''}`.trim() ||

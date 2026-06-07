@@ -7,7 +7,7 @@ interface SalesTableProps {
   products: any[];
 }
 
-export const SalesTable = ({ sales }: SalesTableProps) => {
+export const SalesTable = ({ sales }: SalesTableProps) => { 
   const navigate = useNavigate();
   console.log('sale==>', sales);
   return (

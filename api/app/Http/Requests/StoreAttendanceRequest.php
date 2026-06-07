@@ -17,40 +17,50 @@ class StoreAttendanceRequest extends FormRequest
     {
         $branchId = Auth::user()->business_branch_id;
 
+        $attendances = $this->input('attendances', []);
+
+        foreach ($attendances as $key => $attendance) {
+            $status = $attendance['status'] ?? null;
+
+            $attendances[$key]['business_branch_id'] = $branchId;
+
+            // Auto set check_in based on status
+            if (in_array($status, ['present', 'late'])) {
+                $attendances[$key]['check_in'] = Carbon::now()->toDateTimeString();
+                $attendances[$key]['remarks'] = "reported for work today! Recorded as present";
+            } else {
+                $attendances[$key]['check_in'] = null;
+                $attendances[$key]['remarks'] = "did not report for work today! Recorded as absent";
+            }
+        }
+
         $this->merge([
-            'business_branch_id' => $branchId,
+            'attendances' => $attendances,
         ]);
     }
 
-   public function rules(): array
-{
-    return [
-        'attendances' => 'required|array|min:1',
-
-        'attendances.*.worker_id' => 'required|exists:workers,id',
-        'attendances.*.session' => 'nullable|in:morning,afternoon,evening,night',
-        'attendances.*.status' => 'required|in:present,absent,late,excused',
-
-        'attendances.*.check_in' => 'nullable|date',
-        'attendances.*.check_out' => 'nullable|date|after:attendances.*.check_in',
-
-        'attendances.*.remarks' => 'nullable|string|max:255',
-    ];
-}
+    public function rules(): array
+    {
+        return [
+            'attendances' => 'required|array|min:1',
+            'attendances.*.worker_id' => 'required|exists:workers,id',
+            'attendances.*.session' => 'required|in:morning,afternoon,evening,night',
+            'attendances.*.status' => 'required|in:present,absent,late,excused',
+            'attendances.*.check_in' => 'nullable|date',        // Still keep for validation
+            'attendances.*.check_out' => 'nullable|date|after_or_equal:attendances.*.check_in',
+            'attendances.*.remarks' => 'nullable|string|max:255',
+        ];
+    }
 
     public function messages(): array
     {
         return [
-            'worker_id.required'        => 'Employee is required',
-            'worker_id.exists'          => 'Employee must exist',
-            'session.required'            => 'Session is required',
-            'session.in'                  => 'Session must be morning, afternoon, or evening',
-            'status.required'             => 'Status is required',
-            'status.in'                   => 'Status must be present, absent, late, or excused',
-            'check_in.date_format'        => 'Check‑in must be in HH:MM format',
-            'check_out.date_format'       => 'Check‑out must be in HH:MM format',
-            'check_out.after'             => 'Check‑out must be after check‑in',
-            'remarks.max'                 => 'Remarks may not exceed 255 characters',
+            'attendances.*.worker_id.required' => 'Employee is required',
+            'attendances.*.worker_id.exists' => 'Employee must exist',
+            'attendances.*.session.required' => 'Session is required',
+            'attendances.*.status.required' => 'Status is required',
+            'attendances.*.check_out.after_or_equal' => 'Check-out must be after or equal to check-in',
+            'attendances.*.remarks.max' => 'Remarks may not exceed 255 characters',
         ];
     }
 }

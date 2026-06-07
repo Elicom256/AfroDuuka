@@ -39,12 +39,16 @@ import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPa
 import { AdminHistoryPage } from '../pages/dashboards/admin/pages/AdminHistoryPage';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { TaxesObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxesObligatedTo';
+import { Attendance } from '../pages/dashboards/admin/components/attendance/Attendance';
+import { Worker } from '../pages/dashboards/admin/components/workers/Worker';
+import { TaxObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxObligatedTo';
 
 export const AdminRoutes = () => {
-  const {  isLoading } = useLoggedinUserQuery();
-    if (isLoading) {
-      return <PageLoadingState />;
-    }
+  const { isLoading } = useLoggedinUserQuery();
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
@@ -52,6 +56,7 @@ export const AdminRoutes = () => {
           <Route index element={<AdminDashboardPage />} />
 
           <Route path='workers' element={<AdminWorkersPage />} />
+          <Route path='workers/:id' element={<Worker />} />
           <Route path='suppliers' element={<AdminSuppliersPage />} />
 
           <Route path='create-business' element={<AddBusinessForm />} />
@@ -70,7 +75,10 @@ export const AdminRoutes = () => {
           <Route path='reports' element={<AdminReportsPage />} />
           <Route path='finances' element={<AdminFinancesPage />} />
           <Route path='attendance' element={<AdminAttendancePage />} />
+          <Route path='attendance/:id' element={<Attendance />} />
           <Route path='taxes' element={<AdminTaxesPage />} />
+          <Route path='obligated-taxes' element={<TaxesObligatedTo />} />
+          <Route path='obligated-taxes/:id' element={<TaxObligatedTo />} />
           <Route path='remuneration' element={<AdminEmployeeRemunerationPage />} />
           <Route path='activity-logs' element={<AdminBusinessActivityLogs />} />
           <Route path='promotions' element={<AdminPromotionsPage />} />

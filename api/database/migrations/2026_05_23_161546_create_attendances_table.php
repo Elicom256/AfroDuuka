@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('remarks')->nullable();
             $table->timestamps();
 
-            $table->unique(['worker_id', 'session', 'check_in', 'check_out']); // avoid duplicates
+            $table->unique(['worker_id', 'session', 'check_in']); // avoid duplicates
         });
     }
 

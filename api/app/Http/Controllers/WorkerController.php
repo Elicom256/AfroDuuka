@@ -47,7 +47,9 @@ class WorkerController extends Controller
      */
     public function show(Worker $worker)
     {
-        return response()->json(["message" => "Fetched Worker", "worker" => $worker]);
+        $worker = $worker->load("user.role", "attendances");
+        $att = $this->workerService->workerAttendanceHistory($worker->id);
+        return response()->json(["message" => "Fetched Worker", "worker" => $worker, "attendance_history" => $att]);
     }
 
     /**
