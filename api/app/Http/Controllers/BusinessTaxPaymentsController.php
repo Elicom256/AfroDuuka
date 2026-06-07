@@ -89,16 +89,13 @@ class BusinessTaxPaymentsController extends Controller
      */
     public function update(UpdateBusinessTaxPaymentRequest $request, BusinessTaxPayment $businessTaxPayment)
     {
-        $data = $request->validated();
-        
-        // Auto set updated_by
-        $data['updated_by'] = $data['updated_by'] ?? Auth::user()->id;
+        $validated = $request->validated();
 
-        $businessTaxPayment->update($data);
-
+        $businessTaxPayment = $businessTaxPayment->update($validated);
+// new BusinessTaxPaymentResource($businessTaxPayment->fresh())
         return response()->json([
             'message' => 'Tax payment updated successfully',
-            'data' => new BusinessTaxPaymentResource($businessTaxPayment->fresh())
+            'data' => $businessTaxPayment
         ]);
     }
 

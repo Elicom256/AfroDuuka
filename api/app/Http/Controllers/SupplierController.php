@@ -49,6 +49,11 @@ class SupplierController extends Controller
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
         //
+        $code = $supplier->code;
+        $validated = $request->validated();
+        $supplier = $this->supplierService->updateSupplier( $validated, $code);
+        return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
+
     }
 
     /**
