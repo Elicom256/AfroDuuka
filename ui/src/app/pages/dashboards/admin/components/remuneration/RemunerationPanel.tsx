@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -8,10 +9,24 @@ type RemunerationPanelProps = {
   totalPaid: number;
   employeeCount: number;
   pending: number;
+  onEditRow?: (item: any) => void;
 };
 
-export const RemunerationPanel = ({ payroll, totalPaid, employeeCount, pending }: RemunerationPanelProps) => {
+export const RemunerationPanel = ({
+  payroll,
+  totalPaid,
+  employeeCount,
+  pending,
+  onEditRow,
+}: RemunerationPanelProps) => {
   const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
+
+  const statusVariant = (status?: string) => {
+    if (status === 'paid') return 'default';
+    if (status === 'failed') return 'destructive';
+    return 'secondary';
+  };
+
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
@@ -46,8 +61,10 @@ export const RemunerationPanel = ({ payroll, totalPaid, employeeCount, pending }
 
       <Card className='rounded-3xl border border-border/70 bg-card overflow-hidden'>
         <CardHeader>
-          <CardTitle>Employee remittance</CardTitle>
-          <CardDescription>Payroll rows for the latest payout cycle.</CardDescription>
+          <div>
+            <CardTitle>Employee remittance</CardTitle>
+            <CardDescription>Payroll rows for the latest payout cycle.</CardDescription>
+          </div>
         </CardHeader>
         <CardContent className='p-0'>
           <Table>
@@ -58,12 +75,13 @@ export const RemunerationPanel = ({ payroll, totalPaid, employeeCount, pending }
                 <TableHead>Amount</TableHead>
                 <TableHead>Payroll Period</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {payroll.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className='text-center py-10 text-muted-foreground'>
+                  <TableCell colSpan={6} className='text-center py-10 text-muted-foreground'>
                     No payroll records found.
                   </TableCell>
                 </TableRow>
@@ -80,7 +98,12 @@ export const RemunerationPanel = ({ payroll, totalPaid, employeeCount, pending }
                       <TableCell>{Number(item.amount).toLocaleString()}</TableCell>
                       <TableCell>{formatted(item.payment_date)}</TableCell>
                       <TableCell>
-                        <Badge variant='secondary'>{item?.status}</Badge>
+                        <Badge variant={statusVariant(item?.status)}>{item?.status ?? 'Unknown'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant='outline' size='sm' onClick={() => onEditRow?.(item)}>
+                          Edit status
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );

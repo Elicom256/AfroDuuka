@@ -29,8 +29,8 @@ export const adminTaxesQuery = createApi({
       invalidatesTags: ['AdminTaxesAPI'],
     }),
 
-    updateAdminTax: builder.mutation<any, string>({
-      query: (id) => ({ url: `/business-taxes/${id}`, method: 'PUT' }),
+    updateAdminTax: builder.mutation<any, { id: string | number; body: any }>({
+      query: ({ id, body }) => ({ url: `/business-taxes/${id}`, method: 'PUT', body }),
       invalidatesTags: ['AdminTaxesAPI'],
     }),
 
@@ -50,8 +50,8 @@ export const adminTaxesQuery = createApi({
       invalidatesTags: ['AdminTaxesAPI'],
     }),
 
-    updateAdminTaxPayment: builder.mutation<any, string>({
-      query: (id) => ({ url: `/tax-payments/${id}`, method: 'PUT' }),
+    updateAdminTaxPayment: builder.mutation<any, { id: string, body: any }>({
+      query: ({ id, body }) => ({ url: `/tax-payments/${id}`, method: 'PUT', body }),
       invalidatesTags: ['AdminTaxesAPI'],
     }),
   }),

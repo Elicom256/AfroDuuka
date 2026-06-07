@@ -19,11 +19,20 @@ export const adminEmployeeRemunerationQuery = createApi({
       providesTags: ['AdminRemunerationAPI'],
     }),
 
-    storeAdminEmployeeRemuneration: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'POST' }),
-      providesTags: ['AdminRemunerationAPI'],
+    storeAdminEmployeeRemuneration: builder.mutation<any, any>({
+      query: (body) => ({ url: '/', method: 'POST', body }),
+      invalidatesTags: ['AdminRemunerationAPI'],
+    }),
+
+    updateAdminEmployeeRemuneration: builder.mutation<any, { id: string | number; body: any }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['AdminRemunerationAPI'],
     }),
   }),
 });
 
-export const { useGetAdminEmployeeRemunerationQuery } = adminEmployeeRemunerationQuery;
+export const {
+  useGetAdminEmployeeRemunerationQuery,
+  useStoreAdminEmployeeRemunerationMutation,
+  useUpdateAdminEmployeeRemunerationMutation,
+} = adminEmployeeRemunerationQuery;
