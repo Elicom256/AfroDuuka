@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import { Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -30,6 +32,25 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
   const [selected, setSelected] = useState<Record<number, boolean>>({});
 
   const navigate = useNavigate();
+
+  const submitAttendance = async () => {
+    const attendances = (workers || []).map((w: any) => ({
+      worker_id: w.id,
+      session,
+      status: selected[w.id] ? 'present' : 'absent',
+    }));
+
+    try {
+      const res = await recordAttendance({ attendances }).unwrap();
+      console.log('response==>', res.message);
+      toast.success(res.message ?? 'Attendance submitted successfully');
+      setAllPresent(false);
+      setSelected({});
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to submit attendance');
+      console.error('record attendance error', err);
+    }
+  };
 
   if (recording) {
     return <PageLoadingState />;
@@ -96,39 +117,23 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
             <span className='text-sm'>Mark all as present</span>
           </label>
 
-          <label className='flex items-center gap-2'>
-            <span className='text-sm'>Session</span>
-            <select
-              value={session}
-              onChange={(e) => setSession(e.target.value as any)}
-              className='ml-2 rounded-md border px-2 py-1 text-sm'
-            >
-              <option value='morning'>Morning</option>
-              <option value='afternoon'>Afternoon</option>
-              <option value='evening'>Evening</option>
-            </select>
-          </label>
+          <div className='space-y-1'>
+            <span className='text-sm text-muted-foreground'>Session</span>
+            <Select value={session} onValueChange={(value: 'morning' | 'afternoon' | 'evening') => setSession(value)}>
+              <SelectTrigger className='w-44'>
+                <SelectValue placeholder='Select session' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='morning'>Morning</SelectItem>
+                <SelectItem value='afternoon'>Afternoon</SelectItem>
+                <SelectItem value='evening'>Evening</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>
-          <Button
-            onClick={async () => {
-              const attendances = (workers || []).map((w: any) => ({
-                worker_id: w.id,
-                session,
-                status: selected[w.id] ? 'present' : 'absent',
-              }));
-              try {
-                await recordAttendance({ attendances }).unwrap();
-                setAllPresent(false);
-                setSelected({});
-              } catch (err) {
-                console.error('record attendance error', err);
-              }
-            }}
-          >
-            Submit Attendance
-          </Button>
+          <Button onClick={submitAttendance}>Submit Attendance</Button>
         </div>
       </div>
 
