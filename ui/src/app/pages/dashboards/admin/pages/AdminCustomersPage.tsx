@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Edit, Plus } from 'lucide-react';
 import { CustomerFormDialog } from '../components/customers/CustomerFormDialog';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminCustomersPage = () => {
+  const navigate = useNavigate();
   const { data, isLoading: fetchingCustomers } = useCustomersQuery();
   const customers = data?.customers || [];
   console.log('customers==>', customers);
@@ -41,7 +43,11 @@ export const AdminCustomersPage = () => {
           <p>No customers found.</p>
         ) : (
           customers.map((customer: any) => (
-            <div key={customer.id} className='border p-4 rounded-lg flex justify-between items-center'>
+            <div
+              key={customer.id}
+              onClick={() => navigate(`/admin/customers/${customer.id}`)}
+              className='border p-4 rounded-lg flex justify-between items-center'
+            >
               <div>
                 <p className='font-medium'>
                   {customer.user.firstname} {customer.user.lastname}

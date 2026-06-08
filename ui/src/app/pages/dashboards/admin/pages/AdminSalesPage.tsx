@@ -6,20 +6,19 @@ import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
-import { useAllowedPaymentMethodsQuery } from '@/app/store/features/business/settings/payment';
+import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 
 export const AdminSalesPage = () => {
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useBranchProductsQuery();
-  const { data: methods } = useAllowedPaymentMethodsQuery();
+  const { data: methods } = useGetPaymentSettingsQuery();
   const { data: buyers } = useCustomersQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
   const paymentMethods = methods?.methods;
   const customers = buyers?.customers;
-  // console.log('paymentMethods==>', paymentMethods);
   if (isLoading) return <PageLoadingState />;
 
   const sales = data?.sales ?? data ?? [];

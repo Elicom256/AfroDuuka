@@ -12,13 +12,13 @@ import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
-import { useAllowedPaymentMethodsQuery } from '@/app/store/features/business/settings/payment';
+import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 
 export const AdminPurchasesPage = () => {
   const { data, isLoading } = usePurchasesQuery();
   const { data: productData } = useBranchProductsQuery();
   const { data: sup } = useSuppliersQuery();
-  const { data: methods } = useAllowedPaymentMethodsQuery();
+  const { data: methods } = useGetPaymentSettingsQuery();
 
   const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();

@@ -57,6 +57,8 @@ class WorkerController extends Controller
      */
     public function update(UpdateWorkerRequest $request, Worker $worker)
     {
+                // dd($request->all());
+
         $validated = $request->validated();
         $worker = $this->workerService->updateWorker($worker, $validated);
         return response()->json(["message" => "Updated Worker", "worker" => $worker]);

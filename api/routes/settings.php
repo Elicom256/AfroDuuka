@@ -12,25 +12,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware("auth:sanctum")->group(function(){
     // ========== get ===========
-    Route::get("/attendance-settings", [AttendanceSettingsController::class, "index"]);
-    Route::get("/customer-settings", [CustomersSettingsController::class, "index"]);
-    Route::get("/payment-settings", [PaymentStatusController::class, "index"]);
-    Route::get("/promotion-settings", [PromotionsSettingsController::class, "index"]);
-    Route::get("/reports-settings", [ReportsSettingsController::class, "index"]);
-    Route::get("/supplier-settings", [SuppliersSettingsController::class, "index"]);
-    Route::get("/credit-settings", [CreditSettingController::class, "index"]);
-    Route::get("/debit-settings", [DebitSettingController::class, "index"]);
+    Route::apiResource("attendance-settings", AttendanceSettingsController::class)->only(["index", "update", "show"]);
+    Route::apiResource("customers-settings", CustomersSettingsController::class)->only(["index", "update", "show"]);
+    Route::apiResource("payment-status", PaymentStatusController::class)->only(["index", "update", "show"]);
+    Route::apiResource("promotions-settings", PromotionsSettingsController::class)->only(["index", "update", "show"]);
+    Route::apiResource("reports-settings", ReportsSettingsController::class)->only(["index", "update", "show"]);
+    Route::apiResource("suppliers-settings", SuppliersSettingsController::class)->only(["index", "update", "show"]);
+    Route::apiResource("credit-settings", CreditSettingController::class)->only(["index", "update", "show"]);
+    Route::apiResource("debit-settings", DebitSettingController::class)->only(["index", "update", "show"]);
+    Route::apiResource("debit-settings", PaymentStatusController::class)->only(["index", "update", "show"]);
 
-    // ======= post ============
-    Route::put("/attendance-settings/{attendanceSetting}", [AttendanceSettingsController::class, "update"]);
-    Route::put("/customer-settings/{customersSetting}", [CustomersSettingsController::class, "update"]);
-    Route::put("/payment-settings/{paymentStatus}", [PaymentStatusController::class, "update"]);
-    Route::put("/promotion-settings/{promotionsSetting}", [PromotionsSettingsController::class, "update"]);
-    Route::put("/reports-settings/{reportsSetting}", [ReportsSettingsController::class, "update"]);
-    Route::put("/supplier-settings/{suppliersSetting}", [SuppliersSettingsController::class, "update"]);
-    Route::put("/credit-settings", [CreditSettingController::class, "update"]);
-    Route::put("/debit-settings", [DebitSettingController::class, "update"]);
 
     // allowed
-    Route::get("/payment-settings/allowed", [PaymentStatusController::class, "allowed"]);
 });

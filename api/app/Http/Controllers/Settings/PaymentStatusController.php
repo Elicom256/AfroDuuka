@@ -16,15 +16,16 @@ class PaymentStatusController extends Controller
      */
     public function index()
     {
+        $methods = PaymentStatus::where("status", "enabled")->get();
         $setting = PaymentStatus::all();
-        return response()->json(["settings" =>$setting, "message" => "Payments settings"]);
+        return response()->json(["settings" =>$setting, "message" => "Payments settings", "methods" => $methods]);
     }
 
-public function allowed()
-    {
-        $methods = PaymentStatus::all();
-        return response()->json(["methods" =>$methods, "message" => "Allowed Payments settings"]);
-    }
+// public function allowed()
+//     {
+//         $methods = PaymentStatus::all();
+//         return response()->json(["methods" =>$methods, "message" => "Allowed Payments settings"]);
+//     }
 
     /**
      * Store a newly created resource in storage.
@@ -39,7 +40,9 @@ public function allowed()
      */
     public function show(PaymentStatus $paymentStatus)
     {
-        //
+        abort_if($paymentStatus->status !== "enabled", 404);
+         return response()->json(["methods" => $paymentStatus, "message" => "Payment method fetched", ]);
+
     }
 
     /**

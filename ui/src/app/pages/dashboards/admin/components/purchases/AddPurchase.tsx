@@ -77,10 +77,10 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
       return;
     }
 
-    if (!formData.supplier_id) {
-      toast.error('Please select a supplier.');
-      return;
-    }
+    // if (!formData.supplier_id) {
+    //   toast.error('Please select a supplier.');
+    //   return;
+    // }
 
     if (!formData.payment_status_id) {
       toast.error('Please select a payment method.');

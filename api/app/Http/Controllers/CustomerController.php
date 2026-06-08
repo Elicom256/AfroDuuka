@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use App\Models\CoreSettings\CustomersSettings;
 use App\Models\Customer;
 use App\Services\CustomerService;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,8 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
+        $allowed = CustomersSettings::value("status");
+        abort_if($allowed !== "enabled", 'Customer creation is disabled.', 403);
         $validated = $request->validated();
         $customer = $this->customerService->createCustomer($validated);
         return response()->json(["message" => "Created a customer", "customer" => $customer], 201);

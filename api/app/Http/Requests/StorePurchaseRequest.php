@@ -37,7 +37,7 @@ class StorePurchaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
 
             'business_id'        => 'required|exists:businesses,id',
             'business_branch_id' => 'required|exists:business_branches,id',
