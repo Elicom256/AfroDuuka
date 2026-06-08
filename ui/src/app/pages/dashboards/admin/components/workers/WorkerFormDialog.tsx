@@ -46,8 +46,10 @@ export const WorkerFormDialog = ({
   setDialogOpen,
 }: WorkerFormDialogProps) => {
   const [registerWorker] = useRegisterWorkerMutation();
-  const [updateWorker] = useUpdateWorkerMutation();
+  const [updateWorker, { error }] = useUpdateWorkerMutation();
+  const worker = selectedWorker?.user;
 
+  console.log('selectedWorker==>', worker);
   const [formData, setFormData] = useState<WorkerFormData>({
     firstname: '',
     lastname: '',
@@ -61,14 +63,14 @@ export const WorkerFormDialog = ({
 
   // Reset form when dialog opens/closes or worker changes
   useEffect(() => {
-    if (selectedWorker) {
+    if (worker) {
       setFormData({
-        firstname: selectedWorker.firstname || selectedWorker.name?.split(' ')[0] || '',
-        lastname: selectedWorker.lastname || selectedWorker.name?.split(' ').slice(1).join(' ') || '',
-        email: selectedWorker.email || '',
-        phone: selectedWorker.phone || '',
-        role_id: selectedWorker.role_id?.toString() || '',
-        business_branch_id: selectedWorker.business_branch_id?.toString() || '',
+        firstname: worker.firstname || worker.name?.split(' ')[0] || '',
+        lastname: worker.lastname || worker.name?.split(' ').slice(1).join(' ') || '',
+        email: worker.email || '',
+        phone: worker.phone || '',
+        role_id: worker.role_id?.toString() || '',
+        business_branch_id: worker.business_branch_id?.toString() || '',
       });
     } else {
       setFormData({
@@ -80,8 +82,8 @@ export const WorkerFormDialog = ({
         business_branch_id: '',
       });
     }
-  }, [selectedWorker, open]);
-
+  }, [worker, open]);
+  console.log('error==>', error);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -90,7 +92,7 @@ export const WorkerFormDialog = ({
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -104,12 +106,13 @@ export const WorkerFormDialog = ({
         // Update
         const res = await updateWorker({
           id: selectedWorker.id,
-          userData: payload,
+          body: payload,
         }).unwrap();
 
         toast.success(res.message || 'Worker updated successfully');
       } else {
         // Create
+        console.log('now creating...');
         const res = await registerWorker(payload).unwrap();
         toast.success(res.message || 'Worker created successfully');
       }

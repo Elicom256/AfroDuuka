@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const paymentSettingsQuery = createApi({
   reducerPath: 'paymentSettingsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/payment-settings`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/payment-status`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -18,19 +18,19 @@ export const paymentSettingsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['PaymentSettingsAPI'],
     }),
-    allowedPaymentMethods: builder.query<any, void>({
-      query: () => ({
-        url: '/allowed',
-        method: 'GET',
-      }),
-      providesTags: ['PaymentSettingsAPI'],
-    }),
-    updatePaymentSettings: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'PUT', body }),
+    // allowedPaymentMethods: builder.query<any, void>({
+    //   query: () => ({
+    //     url: '/allowed',
+    //     method: 'GET',
+    //   }),
+    //   providesTags: ['PaymentSettingsAPI'],
+    // }),
+    updatePaymentSettings: builder.mutation<any, { id: string; body: { status: string } }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['PaymentSettingsAPI'],
     }),
   }),
 });
 
-export const { useGetPaymentSettingsQuery, useUpdatePaymentSettingsMutation, useAllowedPaymentMethodsQuery } =
+export const { useGetPaymentSettingsQuery, useUpdatePaymentSettingsMutation } =
   paymentSettingsQuery;

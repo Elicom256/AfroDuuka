@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId("business_id")->constrained()->cascadeOnDelete();
             $table->enum("method", ["mobile_money", "card", "cash", "credit", "cryptocurrency"]);
-            $table->enum("status", ["enabled", "disabled"]);
+            $table->enum("status", ["enabled", "disabled"])->default("disabled");
 
             $table->unique(["business_id", "method", "status"]);
             $table->timestamps();

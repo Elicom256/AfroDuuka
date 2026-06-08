@@ -9,8 +9,12 @@ use App\Http\Controllers\Reports\DeadStockReports;
 use App\Http\Controllers\Reports\InventoryValuationReports;
 use App\Http\Controllers\Reports\SalesByProductReports;
 use App\Http\Controllers\Reports\StockMovementReports;
+use App\Models\CoreSettings\ReportsSettings;
 
 Route::middleware('auth:sanctum')->group(function () {
+
+   // to register a middleware to check if repports are enabled
+
     Route::get('/branch-performance', [BranchPerformanceReports::class, 'index']);
     Route::get('/stock-summary', [StockSummaryReports::class, 'index']);
     Route::get('/low-stock', [LowStockReports::class, 'index']);

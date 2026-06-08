@@ -18,8 +18,8 @@ export const promotionsSettingsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['PromotionsSettingsAPI'],
     }),
-    updatePromotionsSettings: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'PUT', body }),
+    updatePromotionsSettings: builder.mutation<any, { id: string; body: { status: string } }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['PromotionsSettingsAPI'],
     }),
   }),

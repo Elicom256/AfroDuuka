@@ -24,7 +24,7 @@ type TaxesPanelProps = {
   taxes: TaxRecord[];
   headers: any[];
   handleUpdateTaxPaymentStatus?: (id: string | number, status: string) => void;
-  onDeleteTaxPayment?: (id: string | number) => void;
+  onDeleteTaxPayment?: (id: string) => void;
 };
 
 export const TaxPaymentsPanel = ({
@@ -105,7 +105,7 @@ export const TaxPaymentsPanel = ({
                           variant='destructive'
                           size='sm'
                           className='w-full'
-                          onClick={() => onDeleteTaxPayment?.(tax.id ?? '')}
+                          onClick={() => onDeleteTaxPayment?.(tax.id)}
                         >
                           Delete
                         </Button>

@@ -43,6 +43,9 @@ import { TaxesObligatedTo } from '../pages/dashboards/admin/components/taxes/Tax
 import { Attendance } from '../pages/dashboards/admin/components/attendance/Attendance';
 import { Worker } from '../pages/dashboards/admin/components/workers/Worker';
 import { TaxObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxObligatedTo';
+import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplier';
+import { Customer } from '../pages/dashboards/admin/components/customers/Customer';
+import SupplierSettings from '../pages/dashboards/admin/components/settings/SupplierSettings';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -58,6 +61,7 @@ export const AdminRoutes = () => {
           <Route path='workers' element={<AdminWorkersPage />} />
           <Route path='workers/:id' element={<Worker />} />
           <Route path='suppliers' element={<AdminSuppliersPage />} />
+          <Route path='suppliers/:id' element={<Supplier />} />
 
           <Route path='create-business' element={<AddBusinessForm />} />
           <Route path='products' element={<AdminProductsPage />} />
@@ -71,6 +75,8 @@ export const AdminRoutes = () => {
           <Route path='orders' element={<AdminOrdersPage />} />
           <Route path='inventory' element={<AdminInventoryPage />} />
           <Route path='customers' element={<AdminCustomersPage />} />
+          <Route path='customers/:id' element={<Customer />} />
+
           <Route path='analytics' element={<AdminAnalyticsPage />} />
           <Route path='reports' element={<AdminReportsPage />} />
           <Route path='finances' element={<AdminFinancesPage />} />
@@ -93,6 +99,7 @@ export const AdminRoutes = () => {
             <Route path='reports-settings' element={<ReportsSettings />} />
             <Route path='promotions-settings' element={<PromotionsSettings />} />
             <Route path='attendance-settings' element={<AttendanceSettings />} />
+            <Route path='supplier-settings' element={<SupplierSettings />} />
           </Route>
           <Route path='products/:id' element={<Product />} />
           <Route path='branches' element={<BusinessBranches />} />

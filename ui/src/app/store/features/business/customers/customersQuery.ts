@@ -23,9 +23,9 @@ export const customersQuery = createApi({
       providesTags: ['CustomersAPI'],
     }),
     // customer
-    customer: builder.query<any, void>({
-      query: () => ({
-        url: '/',
+    customer: builder.query<any, string>({
+      query: (id) => ({
+        url: `/${id}`,
         method: 'GET',
       }),
       providesTags: ['CustomersAPI'],

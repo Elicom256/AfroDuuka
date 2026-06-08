@@ -40,11 +40,11 @@ export const workersQuery = createApi({
       invalidatesTags: ['WorkersAPI'],
     }),
     // update worker
-    updateWorker: builder.mutation<any, { userData: any; id: string }>({
-      query: ({ userData, id }) => ({
+    updateWorker: builder.mutation<any, { body: any; id: string }>({
+      query: ({ body, id }) => ({
         url: `/${id}`,
         method: 'PUT',
-        body: userData,
+        body,
       }),
       invalidatesTags: ['WorkersAPI'],
     }),
@@ -58,5 +58,10 @@ export const workersQuery = createApi({
     }),
   }),
 });
-export const { useGetWorkersInfoQuery, useGetWorkerInfoQuery, useDeleteWorkerMutation, useRegisterWorkerMutation, useUpdateWorkerMutation } =
-  workersQuery;
+export const {
+  useGetWorkersInfoQuery,
+  useGetWorkerInfoQuery,
+  useDeleteWorkerMutation,
+  useRegisterWorkerMutation,
+  useUpdateWorkerMutation,
+} = workersQuery;

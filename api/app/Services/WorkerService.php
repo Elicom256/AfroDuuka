@@ -35,6 +35,7 @@ class WorkerService
         return $this->profileService->updateProfile($worker->user, $data, function($user, $data) use($worker){
             $worker->update([
                 "user_id" => $user->id,
+                "employee_code" => $worker->employee_code,
                 "department" => $data["department"] ?? $worker->department,
                 "position" => $data["position"] ?? $worker->position,
                 "employment_type" => $data["employment_type"] ?? $worker->employment_type,

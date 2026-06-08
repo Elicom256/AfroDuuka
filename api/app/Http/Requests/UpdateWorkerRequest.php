@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Role;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -18,24 +19,27 @@ class UpdateWorkerRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
-
+        $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")->value("id");
         $this->merge([
             "business_id"        => $user->business_id,
             "business_branch_id" => $user->business_branch_id,
+            "status" => $this->status ?? "active",
+            "role_id" => $this->role_id ?? $role_id
         ]);
     }
 
      protected function failedValidation(Validator $validator)
      {
-        return dd($validator);
+        // return dd($validator);
+        return response()->json(["message"=>"Validation failed", "error" =>$validator]);
      }
 
     public function rules(): array
     {
         // Adjust route param names to match your routes
-        $workerId = $this->route("worker"); 
-        $userId   = $this->route("user");
-
+        $worker = $this->route("worker"); 
+        $userId   = $worker->user_id;
+        // dd($userId);
         return [
             
             'department'      => 'nullable|string|max:255',

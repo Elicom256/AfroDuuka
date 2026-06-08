@@ -55,27 +55,18 @@ export const AdminTaxesPage = () => {
         toast.success(res.message || 'Updated!');
       }
       return res;
-      // await toast.promise(updateTaxPayment({ id, body: { status } }).unwrap(), {
-      //   loading: 'Updating payment status...',
-      //   success: 'Tax payment status updated.',
-      //   error: 'Unable to update payment status.',
-      // });
     } catch (error) {
       console.error('tax payment status update failed', error);
     }
   };
 
-  const handleDeleteTaxPayment = async (id: string | number) => {
-    if (!id) return;
-    const confirmed = window.confirm('Delete this tax payment record?');
-    if (!confirmed) return;
-
+  const handleDeleteTaxPayment = async (id: string) => {
     try {
-      await toast.promise(deleteTaxPayment(String(id)).unwrap(), {
-        loading: 'Deleting tax payment...',
-        success: 'Tax payment deleted.',
-        error: 'Unable to delete tax payment.',
-      });
+      const res = await deleteTaxPayment(id).unwrap();
+      console.log('res delete==>', res, 'id==>', id);
+      if (res) {
+        toast.success(res.message ?? 'deleted!');
+      }
     } catch (error) {
       console.error('delete tax payment failed', error);
     }

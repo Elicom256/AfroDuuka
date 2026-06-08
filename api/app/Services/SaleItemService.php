@@ -78,8 +78,9 @@ class SaleItemService
       "amount" => $totalAmount,
       "paymentStatus" => $validated["paymentStatus"],
     ]);
-    $customer = Customer::with("user")->where("id", $validated["customer_id"])->first()->user;
-    $customerName = $customer->firstname . " " . $customer->lastname;
+    $customer = isset($validated["customer_id"])? 
+                Customer::with("user")->where("id", $validated["customer_id"])->first()?->user : null;
+    $customerName = $customer ? $customer->firstname . " " . $customer->lastname : "unknown";
     // ==================== CREATE CASH FLOW ====================
     $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
      // ==================== CREATE NOTIFICATION  ====================

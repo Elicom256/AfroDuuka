@@ -1,42 +1,54 @@
 import { useEffect, useState } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   useGetSupplierSettingsQuery,
   useUpdateSupplierSettingsMutation,
 } from '@/app/store/features/business/settings/supplier';
 import { Loader2, Truck, UserCheck } from 'lucide-react';
+import { PageLoadingState } from '@/utils/PageLoadingState';
+import { toast } from 'sonner';
 
 export const SupplierSettings = () => {
   const { data, isLoading } = useGetSupplierSettingsQuery();
-  const [updateSetting, { isLoading: isSaving }] = useUpdateSupplierSettingsMutation();
-  console.log('useGetSupplierSettingsQuery==>', data);
+  const [updateSetting, { isLoading: isUpdating }] = useUpdateSupplierSettingsMutation();
+
   const [autoApprove, setAutoApprove] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (data?.autoApprove !== undefined) {
-      setAutoApprove(!!data.autoApprove);
+    if (data?.settings) {
+      setAutoApprove(data.settings.status === 'enabled');
     }
   }, [data]);
 
-  const save = async () => {
-    try {
-      await updateSetting({
-        key: 'supplier-settings',
-        body: { autoApprove },
-      }).unwrap();
+  const toggleSupplierApproval = async () => {
+    if (!data?.settings?.id) return;
 
-      alert('✅ Supplier settings updated successfully!');
-    } catch (e) {
-      console.error(e);
-      alert('❌ Failed to save settings');
+    const settingId = data.settings.id;
+    const oldValue = autoApprove;
+    const newValue = !autoApprove;
+    const status = newValue ? 'enabled' : 'disabled';
+
+    setAutoApprove(newValue);
+    setUpdatingId(settingId);
+
+    try {
+      const payload = { id: settingId, body: { status } };
+      const res = await updateSetting(payload).unwrap();
+      console.log('✅ Success response==>', res);
+      toast.success(res.message || 'Supplier settings updated successfully');
+    } catch (error: any) {
+      console.error('❌ Full error:', error);
+      setAutoApprove(oldValue);
+      const errorMsg = error?.data?.message || error?.message || 'Failed to update';
+      toast.error(errorMsg);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  if (isLoading) {
-    return <p className='text-center py-8 text-muted-foreground'>Loading supplier settings...</p>;
-  }
+  if (isLoading) return <PageLoadingState />;
 
   return (
     <div className='space-y-6'>
@@ -64,27 +76,18 @@ export const SupplierSettings = () => {
               </div>
             </div>
 
-            <Switch
-              checked={autoApprove}
-              onCheckedChange={setAutoApprove}
-              className='scale-125 data-[state=checked]:bg-green-500'
-            />
+            <div className='flex items-center gap-3'>
+              <Switch
+                checked={autoApprove}
+                onCheckedChange={toggleSupplierApproval}
+                disabled={!!(isUpdating && updatingId)}
+                className='scale-125 data-[state=checked]:bg-green-500'
+              />
+              {isUpdating && updatingId && <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />}
+            </div>
           </div>
         </CardContent>
       </Card>
-
-      <div className='flex justify-end pt-2'>
-        <Button onClick={save} disabled={isSaving} size='lg' className='min-w-40'>
-          {isSaving ? (
-            <>
-              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              Saving Changes...
-            </>
-          ) : (
-            'Save Settings'
-          )}
-        </Button>
-      </div>
     </div>
   );
 };

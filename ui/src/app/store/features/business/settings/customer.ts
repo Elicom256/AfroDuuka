@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const customerSettingsQuery = createApi({
   reducerPath: 'customerSettingsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/customer-settings`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/customers-settings`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -18,8 +18,8 @@ export const customerSettingsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['CustomerSettingsAPI'],
     }),
-    updateCustomerSettings: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'PUT', body }),
+    updateCustomerSettings: builder.mutation<any, { id: string; body: { status: string } }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['CustomerSettingsAPI'],
     }),
   }),

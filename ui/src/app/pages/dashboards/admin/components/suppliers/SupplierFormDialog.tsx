@@ -13,7 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {  useAddSupplierMutation, useUpdateSupplierMutation } from '@/app/store/features/business/suppliers/supplierQuery';
+import {
+  useAddSupplierMutation,
+  useUpdateSupplierMutation,
+} from '@/app/store/features/business/suppliers/supplierQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
@@ -52,14 +55,15 @@ export const SupplierFormDialog = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  console.log('selectedSupplier==>', selectedSupplier);
+  const supplier = selectedSupplier?.user;
   useEffect(() => {
     if (selectedSupplier) {
       setFormData({
-        firstname: selectedSupplier.firstname || selectedSupplier.name?.split(' ')[0] || '',
-        lastname: selectedSupplier.lastname || selectedSupplier.name?.split(' ').slice(1).join(' ') || '',
-        email: selectedSupplier.email || '',
-        phone: selectedSupplier.phone || '',
+        firstname: supplier.firstname || supplier.name?.split(' ')[0] || '',
+        lastname: supplier.lastname || supplier.name?.split(' ').slice(1).join(' ') || '',
+        email: supplier.email || '',
+        phone: supplier.phone || '',
         company_name: selectedSupplier.company_name || '',
         remarks: selectedSupplier.remarks || '',
       });
@@ -77,10 +81,10 @@ export const SupplierFormDialog = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -99,6 +103,7 @@ export const SupplierFormDialog = ({
 
       setDialogOpen(false);
     } catch (error: any) {
+      console.log('Error==>', error);
       const message = error?.data?.message || 'Failed to save supplier';
       toast.error(message);
     } finally {
@@ -108,97 +113,95 @@ export const SupplierFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className='max-w-lg'>
         <DialogHeader>
           <DialogTitle>{selectedSupplier ? 'Edit Supplier' : 'Add New Supplier'}</DialogTitle>
           <DialogDescription>
-            {selectedSupplier
-              ? 'Update supplier information'
-              : 'Create a new supplier with company details'}
+            {selectedSupplier ? 'Update supplier information' : 'Create a new supplier with company details'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 py-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="firstname">First Name</Label>
+        <form onSubmit={handleSubmit} className='grid gap-4 py-2'>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <Label htmlFor='firstname'>First Name</Label>
               <Input
-                id="firstname"
-                name="firstname"
+                id='firstname'
+                name='firstname'
                 value={formData.firstname}
                 onChange={handleChange}
-                placeholder="John"
+                placeholder='John'
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="lastname">Last Name</Label>
+            <div className='grid gap-2'>
+              <Label htmlFor='lastname'>Last Name</Label>
               <Input
-                id="lastname"
-                name="lastname"
+                id='lastname'
+                name='lastname'
                 value={formData.lastname}
                 onChange={handleChange}
-                placeholder="Doe"
+                placeholder='Doe'
                 required
               />
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email Address</Label>
+          <div className='grid gap-2'>
+            <Label htmlFor='email'>Email Address</Label>
             <Input
-              id="email"
-              type="email"
-              name="email"
+              id='email'
+              type='email'
+              name='email'
               value={formData.email}
               onChange={handleChange}
-              placeholder="supplier@company.com"
+              placeholder='supplier@company.com'
               required
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="phone">Phone Number</Label>
+          <div className='grid gap-2'>
+            <Label htmlFor='phone'>Phone Number</Label>
             <Input
-              id="phone"
-              type="tel"
-              name="phone"
+              id='phone'
+              type='tel'
+              name='phone'
               value={formData.phone}
               onChange={handleChange}
-              placeholder="+256 700 123 456"
+              placeholder='+256 700 123 456'
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="company_name">Company Name</Label>
+          <div className='grid gap-2'>
+            <Label htmlFor='company_name'>Company Name</Label>
             <Input
-              id="company_name"
-              name="company_name"
+              id='company_name'
+              name='company_name'
               value={formData.company_name}
               onChange={handleChange}
-              placeholder="Acme Supplies Ltd"
+              placeholder='Acme Supplies Ltd'
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="remarks">Remarks / Notes</Label>
+          <div className='grid gap-2'>
+            <Label htmlFor='remarks'>Remarks / Notes</Label>
             <Textarea
-              id="remarks"
-              name="remarks"
+              id='remarks'
+              name='remarks'
               value={formData.remarks}
               onChange={handleChange}
-              placeholder="Additional information about this supplier..."
-              className="min-h-20"
+              placeholder='Additional information about this supplier...'
+              className='min-h-20'
             />
           </div>
 
-          <DialogFooter className="mt-6">
+          <DialogFooter className='mt-6'>
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isSubmitting}>
+              <Button type='button' variant='outline' disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type='submit' disabled={isSubmitting}>
               {isSubmitting ? <LoadingState /> : selectedSupplier ? 'Update Supplier' : 'Create Supplier'}
             </Button>
           </DialogFooter>

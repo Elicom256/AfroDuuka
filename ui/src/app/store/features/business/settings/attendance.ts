@@ -18,8 +18,8 @@ export const attendanceSettingsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['AttendanceSettingsAPI'],
     }),
-    updateAttendanceSettings: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'PUT', body }),
+    updateAttendanceSettings: builder.mutation<any, { id: string; body: { status: string } }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['AttendanceSettingsAPI'],
     }),
   }),

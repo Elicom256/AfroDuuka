@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Role;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -17,19 +18,27 @@ class StoreWorkerRequest extends FormRequest
         return Auth::check();
     }
 
+
     /**
      * Prepare data before validation
      */
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
-        // $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")
+        $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")->value("id");
         $this->merge([
             "business_id" => $user->business_id,
             "business_branch_id" => $user->business_branch_id,
             "status" => "active",
+            "role_id" => $this->role_id ?? $role_id
         ]);
     }
+
+    protected function failedValidation(Validator $validator)
+     {
+        return dd($validator);
+     }
+
 
     /**
      * Validation rules

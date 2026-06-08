@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
+use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\Supplier;
 use App\Services\SupplierService;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
@@ -30,6 +32,8 @@ class SupplierController extends Controller
      */
     public function store(StoreSupplierRequest $request)
     {
+        $allowed = SuppliersSettings::value("status");
+        abort_if($allowed !== "enabled", 'Supplier creation is disabled.', 403);
         $validated = $request->validated();
         $supplier = $this->supplierService->createSupplier($validated);
         return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
@@ -40,7 +44,8 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
-        //
+        $supplier->load("user");
+        return response()->json(["message" => "Supplier Fetched Successfully!", "supplier" => $supplier]);
     }
 
     /**
@@ -49,10 +54,9 @@ class SupplierController extends Controller
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
         //
-        $code = $supplier->code;
         $validated = $request->validated();
-        $supplier = $this->supplierService->updateSupplier( $validated, $code);
-        return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
+        $supplier = $this->supplierService->updateSupplier($supplier, $validated);
+        return response()->json(["message" => "Supplier Updated Successfully!", "supplier" => $supplier]);
 
     }
 
@@ -61,6 +65,7 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        $supplier->delete();
+        return response()->json(["message" => "Deleted Supplier Successfully!"]);
     }
 }

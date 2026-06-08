@@ -4,8 +4,10 @@ import { useSuppliersQuery } from '@/app/store/features/business/suppliers/suppl
 import { Button } from '@/components/ui/button';
 import { Edit, Plus } from 'lucide-react';
 import { SupplierFormDialog } from '../components/suppliers/SupplierFormDialog';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminSuppliersPage = () => {
+  const navigate = useNavigate();
   const { data, isLoading: fetchingSuppliers } = useSuppliersQuery();
   const suppliers = data?.suppliers ?? [];
 
@@ -42,6 +44,7 @@ export const AdminSuppliersPage = () => {
             <div
               key={supplier.id}
               className='border p-4 rounded-lg flex justify-between items-center hover:bg-white/20'
+              onClick={() => navigate(`/admin/suppliers/${supplier?.id}`)}
             >
               <div>
                 <p className='font-medium'>
