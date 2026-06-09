@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -68,10 +69,13 @@ class StoreBusinessTaxPaymentRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $user = Auth::user();
         $this->merge([
+            'business_branch_id' => $user->business_branch_id,
             'paid_amount' => $this->paid_amount ?? 0,
             'status'      => $this->status ?? 'unpaid',
-            "created_by" => Auth::user()->id
+            "created_by" => Auth::user()->id,
+            'payment_date' => Carbon::now(),
         ]);
     }
 }
