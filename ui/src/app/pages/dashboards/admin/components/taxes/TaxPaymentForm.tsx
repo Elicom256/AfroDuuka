@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import {
   useGetAdminTaxesQuery,
   useRecordAdminTaxPaymentMutation,
 } from '@/app/store/features/business/admin/taxesQuery';
+import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 
 interface Tax {
   id: number;
@@ -42,78 +43,105 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
   const [open, setOpen] = useState(false);
 
   const { data, isLoading: isTaxesLoading } = useGetAdminTaxesQuery();
+  const { data: paymentMethods } = useGetPaymentSettingsQuery();
+  const methods = paymentMethods?.methods ?? [];
   const taxes = data?.business_taxes?.data ?? [];
 
   const [recordTaxPayment, { isLoading: isSubmitting }] = useRecordAdminTaxPaymentMutation();
 
-  const [formData, setFormData] = useState<Record<string, any>>({
+  const [formData, setFormData] = useState({
     business_tax_id: '',
-    amount: '', // ← This is the taxable base amount
+    amount: '', // Taxable base amount
     tax_period: '',
+    tax_year: '',
+    tax_quarter: '',
     due_date: format(new Date(), 'yyyy-MM-dd'),
     payment_date: format(new Date(), 'yyyy-MM-dd'),
     paid_amount: '',
     status: 'paid',
     reference_number: '',
-    payment_method: 'mpesa',
+    payment_method_id: '',
     notes: '',
   });
+
+  // Auto-generate tax_period when year or quarter changes
+  useEffect(() => {
+    if (formData.tax_year && formData.tax_quarter) {
+      setFormData((prev) => ({
+        ...prev,
+        tax_period: `${prev.tax_year} ${prev.tax_quarter}`,
+      }));
+    }
+  }, [formData.tax_year, formData.tax_quarter]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.business_tax_id || !formData.amount || !formData.tax_period) {
-      alert('Please fill required fields');
+      alert('Please fill all required fields');
       return;
     }
 
-    // normalize numbers
     const payload = {
-      ...formData,
-      business_tax_id: parseInt(formData.business_tax_id as unknown as string, 10),
-      amount: parseFloat(formData.amount as unknown as string),
-      paid_amount: formData.paid_amount ? parseFloat(formData.paid_amount as unknown as string) : undefined,
-    } as Record<string, any>;
-
+      business_tax_id: parseInt(formData.business_tax_id, 10),
+      amount: parseFloat(formData.amount),
+      tax_period: formData.tax_period,
+      due_date: formData.due_date,
+      payment_date: formData.payment_date,
+      paid_amount: formData.paid_amount ? parseFloat(formData.paid_amount) : undefined,
+      status: formData.status,
+      reference_number: formData.reference_number,
+      payment_method_id: formData.payment_method_id || undefined,
+      notes: formData.notes,
+    };
+    console.log('payload==>', payload);
     try {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        // API typing expects `string` for the mutation body in the query defs; cast to keep runtime behavior
-        await recordTaxPayment(payload as unknown as string).unwrap();
+        const res = await recordTaxPayment(payload).unwrap();
+        console.log('tax payment res==>', res);
       }
 
-      alert('Tax payment recorded successfully!');
       setOpen(false);
-
-      // Reset form
-      setFormData({
-        business_tax_id: '',
-        amount: '',
-        tax_period: '',
-        due_date: format(new Date(), 'yyyy-MM-dd'),
-        payment_date: format(new Date(), 'yyyy-MM-dd'),
-        paid_amount: '',
-        status: 'paid',
-        reference_number: '',
-        payment_method: 'mpesa',
-        notes: '',
-      });
+      resetForm();
     } catch (error: any) {
       console.error(error);
       alert(error?.data?.message || 'Failed to record tax payment');
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      business_tax_id: '',
+      amount: '',
+      tax_period: '',
+      tax_year: '',
+      tax_quarter: '',
+      due_date: format(new Date(), 'yyyy-MM-dd'),
+      payment_date: format(new Date(), 'yyyy-MM-dd'),
+      paid_amount: '',
+      status: 'paid',
+      reference_number: '',
+      payment_method_id: '',
+      notes: '',
+    });
+  };
+
   const updateForm = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => (currentYear - 5 + i).toString());
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+  const paymentStatuses = ['unpaid', 'partial', 'paid', 'overdue', 'waived', 'refunded'];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || <Button>Record Tax Payment</Button>}</DialogTrigger>
 
-      <DialogContent className='sm:max-w-130'>
+      <DialogContent className='sm:max-w-225 max-h-[85vh] overflow-y-scroll'>
         <DialogHeader>
           <DialogTitle>Record Tax Payment</DialogTitle>
           <DialogDescription>
@@ -121,163 +149,207 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-6 py-4'>
-          {/* Tax Type */}
-          <div className='space-y-2'>
-            <Label htmlFor='business_tax_id'>
-              Tax Type <span className='text-red-500'>*</span>
-            </Label>
-            <Select
-              value={formData.business_tax_id}
-              onValueChange={(value) => updateForm('business_tax_id', value)}
-              disabled={isTaxesLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder='Select tax type' />
-              </SelectTrigger>
-              <SelectContent>
-                {taxes.map((tax: Tax) => (
-                  <SelectItem key={tax.id} value={tax.id.toString()}>
-                    {tax.name} ({tax.rate}% {tax.type})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className='space-y-6 py-4 '>
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            {/* Tax Type */}
+            <div className='space-y-2'>
+              <Label htmlFor='business_tax_id'>
+                Tax Type <span className='text-red-500'>*</span>
+              </Label>
+              <Select
+                value={formData.business_tax_id}
+                onValueChange={(value) => updateForm('business_tax_id', value)}
+                disabled={isTaxesLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Select tax type' />
+                </SelectTrigger>
+                <SelectContent>
+                  {taxes.map((tax: Tax) => (
+                    <SelectItem key={tax.id} value={tax.id.toString()}>
+                      {tax.name} ({tax.rate}% {tax.type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Base Amount - Important! */}
-          <div className='space-y-2'>
-            <Label htmlFor='amount'>
-              Base Amount (Taxable Amount) <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              id='amount'
-              type='number'
-              step='0.01'
-              placeholder='1250000.00'
-              value={formData.amount}
-              onChange={(e) => updateForm('amount', e.target.value)}
-              required
-            />
-            <p className='text-xs text-muted-foreground'>
-              This is the amount on which the tax rate will be applied by the backend.
-            </p>
-          </div>
+            {/* Status */}
+            <div className='space-y-2'>
+              <Label>Status</Label>
+              <Select value={formData.status} onValueChange={(value) => updateForm('status', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Tax Period */}
-          <div className='space-y-2'>
-            <Label htmlFor='tax_period'>
-              Tax Period <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              id='tax_period'
-              placeholder='2026-Q2 or FY2026'
-              value={formData.tax_period}
-              onChange={(e) => updateForm('tax_period', e.target.value)}
-              required
-            />
-          </div>
+            {/* Base Amount */}
+            <div className='space-y-2'>
+              <Label htmlFor='amount'>
+                Base Amount (Taxable Amount) <span className='text-red-500'>*</span>
+              </Label>
+              <Input
+                id='amount'
+                type='number'
+                step='0.01'
+                placeholder='1250000.00'
+                value={formData.amount}
+                onChange={(e) => updateForm('amount', e.target.value)}
+                required
+              />
+              <p className='text-xs text-muted-foreground'>
+                This is the amount on which the tax rate will be applied by the backend.
+              </p>
+            </div>
 
-          {/* Due Date */}
-          <div className='space-y-2'>
-            <Label>
-              Due Date <span className='text-red-500'>*</span>
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant='outline'
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !formData.due_date && 'text-muted-foreground',
-                  )}
-                >
-                  <CalendarIcon className='mr-2 h-4 w-4' />
-                  {formData.due_date ? format(new Date(formData.due_date), 'PPP') : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0'>
-                <Calendar
-                  mode='single'
-                  selected={new Date(formData.due_date)}
-                  onSelect={(date) => updateForm('due_date', date ? format(date, 'yyyy-MM-dd') : '')}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+            {/* Tax Period */}
+            <div className='space-y-2'>
+              <Label>
+                Tax Period <span className='text-red-500'>*</span>
+              </Label>
+              <div className='grid grid-cols-2 gap-3'>
+                <Select value={formData.tax_year} onValueChange={(value) => updateForm('tax_year', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Year' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-          {/* Payment Date */}
-          <div className='space-y-2'>
-            <Label>Payment Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant='outline' className={cn('w-full justify-start text-left font-normal')}>
-                  <CalendarIcon className='mr-2 h-4 w-4' />
-                  {formData.payment_date ? format(new Date(formData.payment_date), 'PPP') : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0'>
-                <Calendar
-                  mode='single'
-                  selected={new Date(formData.payment_date)}
-                  onSelect={(date) => updateForm('payment_date', date ? format(date, 'yyyy-MM-dd') : '')}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+                <Select value={formData.tax_quarter} onValueChange={(value) => updateForm('tax_quarter', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Quarter' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {quarters.map((quarter) => (
+                      <SelectItem key={quarter} value={quarter}>
+                        {quarter}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.tax_period && (
+                <p className='text-sm text-muted-foreground mt-1'>Selected: {formData.tax_period}</p>
+              )}
+            </div>
 
-          {/* Paid Amount (Optional - if different from calculated tax) */}
-          <div className='space-y-2'>
-            <Label htmlFor='paid_amount'>Paid Amount (Optional)</Label>
-            <Input
-              id='paid_amount'
-              type='number'
-              step='0.01'
-              placeholder='Leave empty to use calculated tax amount'
-              value={formData.paid_amount}
-              onChange={(e) => updateForm('paid_amount', e.target.value)}
-            />
-          </div>
+            {/* Due Date */}
+            <div className='space-y-2'>
+              <Label>
+                Due Date <span className='text-red-500'>*</span>
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant='outline'
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !formData.due_date && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {formData.due_date ? format(new Date(formData.due_date), 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0'>
+                  <Calendar
+                    mode='single'
+                    selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                    onSelect={(date) => updateForm('due_date', date ? format(date, 'yyyy-MM-dd') : '')}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Reference Number */}
-          <div className='space-y-2'>
-            <Label htmlFor='reference_number'>Reference Number</Label>
-            <Input
-              id='reference_number'
-              placeholder='TAX-20260609-001'
-              value={formData.reference_number}
-              onChange={(e) => updateForm('reference_number', e.target.value)}
-            />
-          </div>
+            {/* Payment Date */}
+            <div className='space-y-2'>
+              <Label>Payment Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant='outline' className={cn('w-full justify-start text-left font-normal')}>
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {formData.payment_date ? format(new Date(formData.payment_date), 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0'>
+                  <Calendar
+                    mode='single'
+                    selected={formData.payment_date ? new Date(formData.payment_date) : undefined}
+                    onSelect={(date) => updateForm('payment_date', date ? format(date, 'yyyy-MM-dd') : '')}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Payment Method */}
-          <div className='space-y-2'>
-            <Label>Payment Method</Label>
-            <Select value={formData.payment_method} onValueChange={(value) => updateForm('payment_method', value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='mpesa'>M-Pesa</SelectItem>
-                <SelectItem value='bank_transfer'>Bank Transfer</SelectItem>
-                <SelectItem value='cash'>Cash</SelectItem>
-                <SelectItem value='cheque'>Cheque</SelectItem>
-                <SelectItem value='card'>Card</SelectItem>
-                <SelectItem value='other'>Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Paid Amount */}
+            <div className='space-y-2'>
+              <Label htmlFor='paid_amount'>Paid Amount (Optional)</Label>
+              <Input
+                id='paid_amount'
+                type='number'
+                step='0.01'
+                placeholder='Leave empty to use calculated tax'
+                value={formData.paid_amount}
+                onChange={(e) => updateForm('paid_amount', e.target.value)}
+              />
+            </div>
 
-          {/* Notes */}
-          <div className='space-y-2'>
-            <Label htmlFor='notes'>Notes</Label>
-            <Textarea
-              id='notes'
-              placeholder='Additional information...'
-              value={formData.notes}
-              onChange={(e) => updateForm('notes', e.target.value)}
-              rows={3}
-            />
+            {/* Reference Number */}
+            <div className='space-y-2'>
+              <Label htmlFor='reference_number'>Reference Number</Label>
+              <Input
+                id='reference_number'
+                placeholder='TAX-20250610-001'
+                value={formData.reference_number}
+                onChange={(e) => updateForm('reference_number', e.target.value)}
+              />
+            </div>
+
+            {/* Payment Method */}
+            <div className='space-y-2'>
+              <Label>Payment Method</Label>
+              <Select
+                value={formData.payment_method_id}
+                onValueChange={(value) => updateForm('payment_method_id', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Select payment method' />
+                </SelectTrigger>
+                <SelectContent>
+                  {methods.map((method: any) => (
+                    <SelectItem key={method.id} value={method.id.toString()}>
+                      {method.method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Notes */}
+            <div className='space-y-2 lg:col-span-2'>
+              <Label htmlFor='notes'>Notes</Label>
+              <Textarea
+                id='notes'
+                placeholder='Additional information...'
+                value={formData.notes}
+                onChange={(e) => updateForm('notes', e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
 
           <DialogFooter>

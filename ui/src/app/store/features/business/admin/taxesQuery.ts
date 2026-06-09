@@ -36,18 +36,18 @@ export const adminTaxesQuery = createApi({
 
     // =========== Business tax payments ================
     getAdminTaxePayments: builder.query<any, void>({
-      query: () => ({ url: '/business-tax-payments', method: 'GET' }),
+      query: () => ({ url: '/business-tax-payment', method: 'GET' }),
       providesTags: ['AdminTaxesAPI'],
     }),
 
     getAdminTaxPayment: builder.query<any, string>({
-      query: (id) => ({ url: `/business-tax-payments/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/business-tax-payment/${id}`, method: 'GET' }),
       providesTags: ['AdminTaxesAPI'],
     }),
 
     recordAdminTaxPayment: builder.mutation<any, string>({
       query: (body) => ({
-        url: `/business-tax-payments`,
+        url: `/business-tax-payment`,
         method: 'POST',
         body,
       }),
@@ -56,14 +56,14 @@ export const adminTaxesQuery = createApi({
 
     deleteAdminTaxPayment: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/business-tax-payments/${id}`,
+        url: `/business-tax-payment/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['AdminTaxesAPI'],
     }),
 
     updateAdminTaxPayment: builder.mutation<any, { id: string; body: any }>({
-      query: ({ id, body }) => ({ url: `/business-tax-payments/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/business-tax-payment/${id}`, method: 'PUT', body }),
       invalidatesTags: ['AdminTaxesAPI'],
     }),
   }),
@@ -78,5 +78,5 @@ export const {
   useGetAdminTaxPaymentQuery,
   useUpdateAdminTaxPaymentMutation,
   useDeleteAdminTaxPaymentMutation,
-  useRecordAdminTaxPaymentMutation
+  useRecordAdminTaxPaymentMutation,
 } = adminTaxesQuery;

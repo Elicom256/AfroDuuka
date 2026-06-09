@@ -25,7 +25,7 @@ protected function prepareForValidation(): void
             "business_id" => $user->business_id,
             'updated_by' => $user->id,
             "business_branch_id" => $user->business_branch_id,
-            // 'status' => $this->status ?? 'paid',
+            // 'paid_amount' => $this->status ?? 'paid',
         ]);
     }
 
@@ -60,7 +60,7 @@ protected function prepareForValidation(): void
                 Rule::unique('business_tax_payments', 'reference_number')->ignore($paymentId)
             ],
 
-            'payment_method'     => ['nullable', 'string', 'max:50', Rule::in(['bank_transfer', 'mpesa', 'cash', 'cheque', 'card', 'other'])],
+            'payment_status_id'     => ['nullable',  'exists:payment_statuses,id'],
 
             'notes'              => ['nullable', 'string', 'max:1000'],
             'payment_metadata'   => ['nullable', 'array'],

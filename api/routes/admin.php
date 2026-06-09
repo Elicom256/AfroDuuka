@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
      // ============== business tax settings ===================
      Route::apiResource("business-taxes", BusinessTaxesController::class);
        // ============== business tax payments ===================
-     Route::apiResource('business-tax-payments', BusinessTaxPaymentsController::class);     // ============== employee remuneration ===================
+     Route::apiResource('business-tax-payment', BusinessTaxPaymentsController::class);     // ============== employee remuneration ===================
      Route::apiResource("employee-remuneration", EmployeeRemunerationController::class);
      // ============== activity logs ===================
      Route::apiResource("activity-logs", ActivityLogController::class)->only(["index", "show", "destroy"]);

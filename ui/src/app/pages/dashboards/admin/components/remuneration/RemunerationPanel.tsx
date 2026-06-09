@@ -73,10 +73,6 @@ export const RemunerationPanel = ({
           {/* payment */}
           <RecordEmployeePayment
             employees={workers}
-            onSubmit={async (data) => {
-              console.log('Submitting:', data);
-              // Call your backend API here
-            }}
           />
         </CardHeader>
         <CardContent className='p-0'>
