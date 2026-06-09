@@ -46,7 +46,7 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
 
   const [recordTaxPayment, { isLoading: isSubmitting }] = useRecordAdminTaxPaymentMutation();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, any>>({
     business_tax_id: '',
     amount: '', // ← This is the taxable base amount
     tax_period: '',
@@ -79,7 +79,8 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        await recordTaxPayment(payload).unwrap();
+        // API typing expects `string` for the mutation body in the query defs; cast to keep runtime behavior
+        await recordTaxPayment(payload as unknown as string).unwrap();
       }
 
       alert('Tax payment recorded successfully!');
@@ -110,11 +111,9 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Record Tax Payment</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger || <Button>Record Tax Payment</Button>}</DialogTrigger>
 
-      <DialogContent className='sm:max-w-[520px]'>
+      <DialogContent className='sm:max-w-130'>
         <DialogHeader>
           <DialogTitle>Record Tax Payment</DialogTitle>
           <DialogDescription>
