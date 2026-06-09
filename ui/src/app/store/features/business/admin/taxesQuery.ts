@@ -45,6 +45,15 @@ export const adminTaxesQuery = createApi({
       providesTags: ['AdminTaxesAPI'],
     }),
 
+    recordAdminTaxPayment: builder.mutation<any, string>({
+      query: (body) => ({
+        url: `/business-tax-payments`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['AdminTaxesAPI'],
+    }),
+
     deleteAdminTaxPayment: builder.mutation<any, string>({
       query: (id) => ({
         url: `/business-tax-payments/${id}`,
@@ -69,4 +78,5 @@ export const {
   useGetAdminTaxPaymentQuery,
   useUpdateAdminTaxPaymentMutation,
   useDeleteAdminTaxPaymentMutation,
+  useRecordAdminTaxPaymentMutation
 } = adminTaxesQuery;

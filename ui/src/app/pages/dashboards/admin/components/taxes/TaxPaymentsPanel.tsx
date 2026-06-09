@@ -1,11 +1,20 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { TaxPaymentForm } from './TaxPaymentForm';
 
 type TaxRecord = {
   id?: string | number;
@@ -48,6 +57,9 @@ export const TaxPaymentsPanel = ({
     <div className='space-y-6'>
       <Card className='overflow-hidden rounded-3xl border border-border/70 bg-card'>
         <CardHeader>
+          <CardAction>
+            <TaxPaymentForm />
+          </CardAction>
           <CardTitle>Tax breakdown</CardTitle>
           <CardDescription>Recent tax filings and payment history.</CardDescription>
         </CardHeader>
