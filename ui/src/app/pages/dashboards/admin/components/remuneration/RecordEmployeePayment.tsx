@@ -52,7 +52,7 @@ const statuses = ['pending', 'paid'] as const;
 
 export const RecordEmployeePayment = ({ employees, onSubmit, trigger }: RecordEmployeePaymentProps) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<PaymentFormData>>({
+  const [formData, setFormData] = useState<Record<string, any>>({
     amount: '',
     type: 'salary',
     payment_date: format(new Date(), 'yyyy-MM-dd'),
@@ -105,7 +105,7 @@ export const RecordEmployeePayment = ({ employees, onSubmit, trigger }: RecordEm
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || <Button>Record Employee Payment</Button>}</DialogTrigger>
-      <DialogContent className='sm:max-w-[500px]'>
+      <DialogContent className='sm:max-w-125'>
         <DialogHeader>
           <DialogTitle>Record Employee Payment</DialogTitle>
           <DialogDescription>Enter the payment details for the employee.</DialogDescription>
