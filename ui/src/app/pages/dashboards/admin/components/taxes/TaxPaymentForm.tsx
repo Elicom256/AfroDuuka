@@ -82,7 +82,7 @@ export const TaxPaymentForm = ({ trigger, onSubmit }: TaxPaymentFormProps) => {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       business_tax_id: parseInt(formData.business_tax_id, 10),
       amount: parseFloat(formData.amount),
       tax_period: formData.tax_period,
