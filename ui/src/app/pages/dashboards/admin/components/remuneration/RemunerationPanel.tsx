@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import { RecordEmployeePayment } from './RecordEmployeePayment';
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
+import { PageLoadingState } from '@/utils/PageLoadingState';
 
 type RemunerationPanelProps = {
   payroll: any[];
@@ -22,7 +23,7 @@ export const RemunerationPanel = ({
   onEditRow,
 }: RemunerationPanelProps) => {
   const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
-  const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
+  const { data, isLoading } = useGetWorkersInfoQuery();
   const workers = data?.workers;
   console.log('workers==>', workers);
   const statusVariant = (status?: string) => {
@@ -30,7 +31,9 @@ export const RemunerationPanel = ({
     if (status === 'failed') return 'destructive';
     return 'secondary';
   };
-
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
@@ -71,9 +74,7 @@ export const RemunerationPanel = ({
           </div>
 
           {/* payment */}
-          <RecordEmployeePayment
-            employees={workers}
-          />
+          <RecordEmployeePayment employees={workers} />
         </CardHeader>
         <CardContent className='p-0'>
           <Table>

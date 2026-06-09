@@ -22,6 +22,7 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStoreAdminEmployeeRemunerationMutation } from '@/app/store/features/business/admin/employeeRemunerationQuery';
 import { toast } from 'sonner';
+import { PageLoadingState } from '@/utils/PageLoadingState';
 
 interface Employee {
   id: number;
@@ -93,9 +94,8 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
       console.log('Remuneration payment==>', res);
       if (res) {
         toast.success(res.message);
-              setOpen(false);
-      resetForm();
-
+        setOpen(false);
+        resetForm();
       }
     } catch (error) {
       console.error('Failed to record payment:', error);
@@ -121,6 +121,9 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || <Button>Record Employee Payment</Button>}</DialogTrigger>
