@@ -82,7 +82,7 @@ class BusinessTaxPaymentsController extends Controller
         $validated = $request->validated();
 
         $businessTaxPayment->update($validated);
-        $businessTaxPayment->refresh(); // or ->fresh()
+        // $businessTaxPayment->refresh(); // or ->fresh()
 
         $this->activity_log->activity(
             "Updated Tax Payment",
@@ -91,7 +91,7 @@ class BusinessTaxPaymentsController extends Controller
 // new BusinessTaxPaymentResource($businessTaxPayment)
         return response()->json([
             'message' => 'Tax payment updated successfully!',
-            'data' => $businessTaxPayment->fresh()
+            'data' => $businessTaxPayment
         ]);
     }
 

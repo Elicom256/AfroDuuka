@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\BusinessTaxes;
+use App\Models\CoreSettings\PaymentStatus;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +43,7 @@ class StoreBusinessTaxPaymentRequest extends FormRequest
             'status'             => ['nullable', Rule::in(['unpaid', 'partial', 'paid', 'overdue', 'waived', 'refunded'])],
 
             'reference_number'   => ['nullable', 'string', 'max:50', 'unique:business_tax_payments,reference_number'],
-            'payment_method'     => ['nullable', 'string', 'max:50', Rule::in(['bank_transfer', 'mpesa', 'cash', 'cheque', 'card', 'other'])],
+            'payment_status_id'     => ['nullable', 'exists:payment_statuses,id'],
 
             'notes'              => ['nullable', 'string', 'max:1000'],
             'payment_metadata'   => ['nullable', 'array'],
@@ -70,10 +72,12 @@ class StoreBusinessTaxPaymentRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
+        $rate = BusinessTaxes::where('id', $this->business_tax_id)->value('rate');
+        $paid_amount =  ($rate / 100) * $this->amount;
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
-            'paid_amount' => $this->paid_amount ?? 0,
-            'status'      => $this->status ?? 'unpaid',
+            'paid_amount' => $paid_amount ?? 0,
+            // 'status'      => $this->status ?? 'unpaid',
             "created_by" => Auth::user()->id,
             'payment_date' => Carbon::now(),
         ]);
