@@ -103,6 +103,7 @@ export const CustomerFormDialog = ({
 
       setDialogOpen(false);
     } catch (error: any) {
+      console.log('error==>', error);
       const message = error?.data?.message || 'Failed to save customer';
       toast.error(message);
     } finally {
