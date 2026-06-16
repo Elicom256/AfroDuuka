@@ -47,6 +47,7 @@ import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplie
 import { Customer } from '../pages/dashboards/admin/components/customers/Customer';
 import SupplierSettings from '../pages/dashboards/admin/components/settings/SupplierSettings';
 import { CurrencySettings } from '../pages/dashboards/admin/components/settings/CurrencySettings';
+import { BusinessInfoSettings } from '../pages/dashboards/admin/components/settings/BusinessInfoSettings';
 import { AdminCurrencyRatesPage } from '../pages/dashboards/admin/pages/AdminCurrencyRatesPage';
 import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
 import { AdminPrintersPage } from '../pages/dashboards/admin/pages/AdminPrintersPage';
@@ -103,6 +104,7 @@ export const AdminRoutes = () => {
           <Route path='notifications' element={<AdminNotificationsPage />} />
 
           <Route path='settings' element={<AdminSettingsPage />}>
+            <Route path='business-info' element={<BusinessInfoSettings />} />
             <Route path='payment-settings' element={<PaymentSettings />} />
             <Route path='customer-settings' element={<CustomerSettings />} />
             <Route path='reports-settings' element={<ReportsSettings />} />

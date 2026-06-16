@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBusinessRequest;
 use App\Models\Business;
 use App\Services\BusinessService;
 use App\Services\CoreBusinessSettings;
+use Illuminate\Http\Request;
 
 class BusinessController extends Controller
 {
@@ -43,17 +44,27 @@ class BusinessController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Business $business)
+    public function show(Request $request)
     {
-        //
+        $business = $request->user()->business;
+        if (!$business) {
+            return response()->json(['message' => 'No business found'], 404);
+        }
+        $business->load('categories', 'users');
+        return response()->json(['data' => $business]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBusinessRequest $request, Business $business)
+    public function update(UpdateBusinessRequest $request)
     {
-        //
+        $business = $request->user()->business;
+        if (!$business) {
+            return response()->json(['message' => 'No business found'], 404);
+        }
+        $business->update($request->validated());
+        return response()->json(['message' => 'Business updated successfully', 'data' => $business]);
     }
 
     /**

@@ -17,6 +17,7 @@ import {
   Search,
   ChevronRight,
   Globe,
+  Building2,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -92,6 +93,7 @@ export const AdminSettingsPage = () => {
     { to: 'reports-settings', label: 'Reports', Icon: BarChart },
     { to: 'promotions-settings', label: 'Promotions', Icon: Gift },
     { to: 'attendance-settings', label: 'Attendance', Icon: Clock },
+    { to: 'business-info', label: 'Business Info', Icon: Building2 },
     { to: 'currency-settings', label: 'Currency', Icon: Globe },
   ];
 
