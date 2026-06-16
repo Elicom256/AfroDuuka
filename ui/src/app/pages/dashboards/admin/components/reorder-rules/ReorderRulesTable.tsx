@@ -1,0 +1,42 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
+export const ReorderRulesTable = ({ rules, onDelete }: any) => {
+  const handleDelete = async (id: string) => {
+    try { await onDelete(id).unwrap(); toast.success('Deleted'); } catch { toast.error('Failed'); }
+  };
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Product</TableHead>
+          <TableHead>Reorder Qty</TableHead>
+          <TableHead>Supplier</TableHead>
+          <TableHead>Auto-Approve</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rules.map((r: any) => (
+          <TableRow key={r.id}>
+            <TableCell className='font-medium'>{r.business_branch_product?.name || '—'}</TableCell>
+            <TableCell>{r.reorder_quantity}</TableCell>
+            <TableCell>{r.preferred_supplier?.user?.firstname || 'Any'}</TableCell>
+            <TableCell>
+              {r.auto_approve
+                ? <Badge variant='default'><CheckCircle className='h-3 w-3 mr-1' /> Yes</Badge>
+                : <Badge variant='secondary'><XCircle className='h-3 w-3 mr-1' /> No</Badge>}
+            </TableCell>
+            <TableCell>
+              <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
