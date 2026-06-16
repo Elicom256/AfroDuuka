@@ -8,7 +8,7 @@ export const authQuery = createApi({
       const token = localStorage.getItem('token');
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
-        console.log('Available token==>', token);
+        // Token is attached silently
       }
       return headers;
     },

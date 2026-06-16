@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Route;
 | its own file for scalability.
 |
 */
-Route::prefix("auth")->group(function(){
-  require __DIR__."/auth.php";
-});
 Route::prefix("users")->group(function(){
   require __DIR__.'/users.php';
 });
@@ -22,9 +19,6 @@ Route::prefix("products")->group(function(){
 });
 Route::prefix("sales")->group(function(){
   require __DIR__.'/sales.php';
-});
-Route::prefix("orders")->group(function(){
-    require __DIR__.'/orders.php';
 });
 Route::prefix("admin")->group(function(){
     require __DIR__.'/admin.php';
@@ -36,6 +30,42 @@ Route::prefix("purchases")->group(function(){
 
 Route::prefix("settings")->group(function(){
   require __DIR__.'/settings.php';
+});
+
+Route::prefix("finances")->group(function () {
+    require __DIR__."/finances.php";
+});
+
+Route::prefix("currency-rates")->group(function () {
+    require __DIR__."/currency-rates.php";
+});
+
+Route::prefix("payment-gateways")->group(function () {
+    require __DIR__."/payment-gateways.php";
+});
+
+Route::prefix("printers")->group(function () {
+    require __DIR__."/printers.php";
+});
+
+Route::prefix("stock-transfers")->group(function () {
+    require __DIR__."/stock-transfers.php";
+});
+
+Route::prefix("reorder-rules")->group(function () {
+    require __DIR__."/reorder-rules.php";
+});
+
+Route::prefix("tax-invoices")->group(function () {
+    require __DIR__."/tax-invoices.php";
+});
+
+Route::prefix("loyalty")->group(function () {
+    require __DIR__."/loyalty.php";
+});
+
+Route::prefix("report-exports")->group(function () {
+    require __DIR__."/report-exports.php";
 });
 
 Route::prefix('reports')->group(function () {

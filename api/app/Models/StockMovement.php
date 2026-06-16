@@ -11,7 +11,8 @@ class StockMovement extends BaseModel
 
     protected $fillable = [
         'business_id',
-        'product_id',
+        'business_branch_id',
+        'business_branch_product_id',
         'type', // in, out, adjustment
         'quantity',
         'reference_type',
@@ -19,9 +20,20 @@ class StockMovement extends BaseModel
         'notes',
     ];
 
-    public function product(): BelongsTo
+    /**
+     * The branch-level product (inventory item) this movement tracks.
+     */
+    public function businessBranchProduct(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(BusinessBranchProduct::class);
+    }
+
+    /**
+     * Shortcut to the base product via the branch product pivot.
+     */
+    public function product()
+    {
+        return $this->businessBranchProduct->product();
     }
 
     /**

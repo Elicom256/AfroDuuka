@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Line } from 'react-chartjs-2';
 import { DollarSign } from 'lucide-react';
 import {
@@ -14,7 +13,8 @@ import {
   Legend,
 } from 'chart.js';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
-import { periods } from '../periodHelper';
+import { PeriodFilterBar } from '../PeriodFilterBar';
+import { type ReportFilter, formatPeriodLabel } from '@/types';
 import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
@@ -22,7 +22,7 @@ import { Error } from './Error';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const SalesAnalytics = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
+  const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
   const { data, isLoading, isError, error } = useGetSalesAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
 
@@ -74,7 +74,7 @@ export const SalesAnalytics = () => {
     };
   }, []);
 
-  const handlePeriodChange = (period: string) => setSelectedPeriod(period);
+  const handlePeriodChange = (period: ReportFilter) => setSelectedPeriod(period);
 
   if (isLoading) {
     return <LoadingState />;
@@ -110,19 +110,7 @@ export const SalesAnalytics = () => {
             <CardDescription className='capitalize'>{analytics.period.replace(/_/g, ' ')}</CardDescription>
           </div>
 
-          <div className='flex gap-1 bg-muted p-1 rounded-lg'>
-            {periods.map((p) => (
-              <Button
-                key={p.value}
-                variant={selectedPeriod === p.value ? 'default' : 'ghost'}
-                size='sm'
-                onClick={() => handlePeriodChange(p.value)}
-                className='text-xs font-medium'
-              >
-                {p.label}
-              </Button>
-            ))}
-          </div>
+          <PeriodFilterBar selected={selectedPeriod} onChange={handlePeriodChange} />
         </div>
       </CardHeader>
 

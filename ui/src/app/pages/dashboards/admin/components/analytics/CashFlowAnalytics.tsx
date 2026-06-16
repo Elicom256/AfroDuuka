@@ -1,28 +1,23 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Bar } from 'react-chartjs-2';
 import { TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { useCashFlowAnalyticsQuery } from '@/app/store/features/business/branches/branchesQuery';
+import { PeriodFilterBar } from '../PeriodFilterBar';
+import { type ReportFilter } from '@/types';
 import { Error } from './Error';
 import { LoadingState } from '@/utils/LoadingState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const periods = [
-  { label: '7 Days', value: 'last_7_days' },
-  { label: '30 Days', value: 'last_30_days' },
-  { label: 'This Month', value: 'this_month' },
-];
-
 export const CashFlowAnalytics = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
+  const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
   const { data, isLoading, isError, error } = useCashFlowAnalyticsQuery(selectedPeriod);
 
   const analytics = data?.data;
 
-  const handlePeriodChange = (period: string) => setSelectedPeriod(period);
+  const handlePeriodChange = (period: ReportFilter) => setSelectedPeriod(period);
 
   if (isLoading) {
     return <LoadingState />;
@@ -84,19 +79,7 @@ export const CashFlowAnalytics = () => {
             <CardDescription className='capitalize'>{selectedPeriod.replace(/_/g, ' ')}</CardDescription>
           </div>
 
-          <div className='flex gap-1 bg-muted p-1 rounded-lg'>
-            {periods.map((p) => (
-              <Button
-                key={p.value}
-                variant={selectedPeriod === p.value ? 'default' : 'ghost'}
-                size='sm'
-                onClick={() => handlePeriodChange(p.value)}
-                className='text-xs'
-              >
-                {p.label}
-              </Button>
-            ))}
-          </div>
+          <PeriodFilterBar selected={selectedPeriod} onChange={handlePeriodChange} />
         </div>
       </CardHeader>
 
