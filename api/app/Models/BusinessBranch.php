@@ -9,10 +9,10 @@ class BusinessBranch extends BaseModel
 {
     use HasFactory;
 
-    protected $fillable = ["business_id", "name", "address", "phone", "status"];
+    protected $fillable = ["business_id", "name", "address", "phone", "currency", "status"];
 
     public function business(){
-        $this->belongsTo(Business::class);
+        return $this->belongsTo(Business::class);
     }
     public function users(){
         $this->belongsToMany(User::class);
@@ -21,6 +21,6 @@ class BusinessBranch extends BaseModel
         $this->hasMany(Purchase::class);
     }
     public function sales(){
-        $this->belongsTo(Sale::class);
+        $this->hasMany(Sale::class);
     }
 }

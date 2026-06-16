@@ -23,7 +23,6 @@ export const PaymentSettings = () => {
 
   const [localSettings, setLocalSettings] = useState<any[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  console.log('settings==>', data);
 
   // Sync backend data
   useEffect(() => {
