@@ -1,12 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLoyaltyProgramsQuery, useLoyaltyCardsQuery, useLoyaltyRewardsQuery } from '@/app/store/features/business/admin/loyaltyQuery';
+import { useLoyaltyProgramsQuery, useCreateLoyaltyProgramMutation, useDeleteLoyaltyProgramMutation, useLoyaltyCardsQuery, useLoyaltyRewardsQuery, useCreateLoyaltyRewardMutation, useDeleteLoyaltyRewardMutation } from '@/app/store/features/business/admin/loyaltyQuery';
 import { Award, Heart, Gift, Users } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { AddLoyaltyProgram } from '../components/loyalty/AddLoyaltyProgram';
+import { LoyaltyProgramsTable } from '../components/loyalty/LoyaltyProgramsTable';
+import { AddLoyaltyReward } from '../components/loyalty/AddLoyaltyReward';
+import { LoyaltyRewardsTable } from '../components/loyalty/LoyaltyRewardsTable';
 
 export const AdminLoyaltyPage = () => {
   const { data: programsData, isLoading: loading1 } = useLoyaltyProgramsQuery();
   const { data: cardsData, isLoading: loading2 } = useLoyaltyCardsQuery();
   const { data: rewardsData, isLoading: loading3 } = useLoyaltyRewardsQuery();
+  const [createProgram] = useCreateLoyaltyProgramMutation();
+  const [deleteProgram] = useDeleteLoyaltyProgramMutation();
+  const [createReward] = useCreateLoyaltyRewardMutation();
+  const [deleteReward] = useDeleteLoyaltyRewardMutation();
 
   if (loading1 || loading2 || loading3) return <PageLoadingState />;
 
@@ -47,21 +55,33 @@ export const AdminLoyaltyPage = () => {
         })}
       </div>
 
-      {programs.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle>Programs</CardTitle></CardHeader>
-          <CardContent>
-            <div className='space-y-2'>
-              {programs.map((p: any) => (
-                <div key={p.id} className='flex justify-between p-3 bg-muted/50 rounded-lg'>
-                  <span className='font-medium'>{p.name}</span>
-                  <span className='text-muted-foreground text-sm capitalize'>{p.type} • {p.points_per_currency} pts/currency</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader className='flex flex-row items-center justify-between'>
+          <CardTitle>Programs ({programs.length})</CardTitle>
+          <AddLoyaltyProgram createProgram={createProgram} />
+        </CardHeader>
+        <CardContent>
+          {programs.length === 0 ? (
+            <p className='text-muted-foreground text-sm text-center py-8'>No loyalty programs yet.</p>
+          ) : (
+            <LoyaltyProgramsTable programs={programs} onDelete={deleteProgram} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className='flex flex-row items-center justify-between'>
+          <CardTitle>Rewards ({rewards.length})</CardTitle>
+          <AddLoyaltyReward createReward={createReward} />
+        </CardHeader>
+        <CardContent>
+          {rewards.length === 0 ? (
+            <p className='text-muted-foreground text-sm text-center py-8'>No rewards configured.</p>
+          ) : (
+            <LoyaltyRewardsTable rewards={rewards} onDelete={deleteReward} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
