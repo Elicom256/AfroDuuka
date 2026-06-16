@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   Search,
   ChevronRight,
+  Globe,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -91,6 +92,7 @@ export const AdminSettingsPage = () => {
     { to: 'reports-settings', label: 'Reports', Icon: BarChart },
     { to: 'promotions-settings', label: 'Promotions', Icon: Gift },
     { to: 'attendance-settings', label: 'Attendance', Icon: Clock },
+    { to: 'currency-settings', label: 'Currency', Icon: Globe },
   ];
 
   const filteredNav = searchQuery

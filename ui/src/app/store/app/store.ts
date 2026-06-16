@@ -31,6 +31,13 @@ import { adminAttendanceQuery } from '../features/business/admin/attendanceQuery
 import { adminTaxesQuery } from '../features/business/admin/taxesQuery';
 import { adminEmployeeRemunerationQuery } from '../features/business/admin/employeeRemunerationQuery';
 import { adminBusinessActivityLogsQuery } from '../features/business/admin/businessActivityLogsQuery';
+import { currencyRatesQuery } from '../features/business/admin/currencyRatesQuery';
+import { paymentGatewaysQuery } from '../features/business/admin/paymentGatewaysQuery';
+import { printersQuery } from '../features/business/admin/printersQuery';
+import { stockTransfersQuery } from '../features/business/admin/stockTransfersQuery';
+import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery';
+import { taxInvoicesQuery } from '../features/business/admin/taxInvoicesQuery';
+import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
 
 export const store = configureStore({
   reducer: {
@@ -59,6 +66,13 @@ export const store = configureStore({
     [adminTaxesQuery.reducerPath]: adminTaxesQuery.reducer,
     [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
     [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
+    [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
+    [paymentGatewaysQuery.reducerPath]: paymentGatewaysQuery.reducer,
+    [printersQuery.reducerPath]: printersQuery.reducer,
+    [stockTransfersQuery.reducerPath]: stockTransfersQuery.reducer,
+    [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
+    [taxInvoicesQuery.reducerPath]: taxInvoicesQuery.reducer,
+    [loyaltyQuery.reducerPath]: loyaltyQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
     [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
     [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
@@ -95,6 +109,13 @@ export const store = configureStore({
       adminTaxesQuery.middleware,
       adminEmployeeRemunerationQuery.middleware,
       adminBusinessActivityLogsQuery.middleware,
+      currencyRatesQuery.middleware,
+      paymentGatewaysQuery.middleware,
+      printersQuery.middleware,
+      stockTransfersQuery.middleware,
+      reorderRulesQuery.middleware,
+      taxInvoicesQuery.middleware,
+      loyaltyQuery.middleware,
       attendanceSettingsQuery.middleware,
       customerSettingsQuery.middleware,
       paymentSettingsQuery.middleware,

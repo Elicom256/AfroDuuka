@@ -46,6 +46,15 @@ import { TaxObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxOb
 import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplier';
 import { Customer } from '../pages/dashboards/admin/components/customers/Customer';
 import SupplierSettings from '../pages/dashboards/admin/components/settings/SupplierSettings';
+import { CurrencySettings } from '../pages/dashboards/admin/components/settings/CurrencySettings';
+import { AdminCurrencyRatesPage } from '../pages/dashboards/admin/pages/AdminCurrencyRatesPage';
+import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
+import { AdminPrintersPage } from '../pages/dashboards/admin/pages/AdminPrintersPage';
+import { AdminStockTransfersPage } from '../pages/dashboards/admin/pages/AdminStockTransfersPage';
+import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReorderRulesPage';
+import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxInvoicesPage';
+import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
+import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -100,7 +109,16 @@ export const AdminRoutes = () => {
             <Route path='promotions-settings' element={<PromotionsSettings />} />
             <Route path='attendance-settings' element={<AttendanceSettings />} />
             <Route path='supplier-settings' element={<SupplierSettings />} />
+            <Route path='currency-settings' element={<CurrencySettings />} />
           </Route>
+          <Route path='currency-rates' element={<AdminCurrencyRatesPage />} />
+          <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
+          <Route path='printers' element={<AdminPrintersPage />} />
+          <Route path='stock-transfers' element={<AdminStockTransfersPage />} />
+          <Route path='reorder-rules' element={<AdminReorderRulesPage />} />
+          <Route path='tax-invoices' element={<AdminTaxInvoicesPage />} />
+          <Route path='loyalty' element={<AdminLoyaltyPage />} />
+          <Route path='report-exports' element={<AdminReportExportsPage />} />
           <Route path='products/:id' element={<Product />} />
           <Route path='branches' element={<BusinessBranches />} />
         </Route>

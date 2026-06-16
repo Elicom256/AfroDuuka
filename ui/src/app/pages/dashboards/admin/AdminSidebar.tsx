@@ -16,6 +16,14 @@ import {
   Gift,
   Bell,
   MessageSquare,
+  Globe,
+  Wallet,
+  Printer,
+  ArrowLeftRight,
+  PackageSearch,
+  FileText,
+  Award,
+  FileDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -61,6 +69,24 @@ const navSections = [
     items: [
       { label: 'Promotions', to: '/admin/promotions', icon: Gift },
       { label: 'Coupons', to: '/admin/coupons', icon: Tag },
+      { label: 'Loyalty', to: '/admin/loyalty', icon: Award },
+    ],
+  },
+  {
+    title: 'Integrations',
+    items: [
+      { label: 'Currency Rates', to: '/admin/currency-rates', icon: Globe },
+      { label: 'Payment Gateways', to: '/admin/payment-gateways', icon: Wallet },
+      { label: 'Printers', to: '/admin/printers', icon: Printer },
+      { label: 'Tax Invoices', to: '/admin/tax-invoices', icon: FileText },
+    ],
+  },
+  {
+    title: 'Inventory',
+    items: [
+      { label: 'Stock Transfers', to: '/admin/stock-transfers', icon: ArrowLeftRight },
+      { label: 'Reorder Rules', to: '/admin/reorder-rules', icon: PackageSearch },
+      { label: 'Report Exports', to: '/admin/report-exports', icon: FileDown },
     ],
   },
   {
