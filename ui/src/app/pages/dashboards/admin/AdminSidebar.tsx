@@ -17,7 +17,6 @@ import {
   Bell,
   MessageSquare,
   Globe,
-  Wallet,
   Printer,
   ArrowLeftRight,
   PackageSearch,
@@ -76,7 +75,6 @@ const navSections = [
     title: 'Integrations',
     items: [
       { label: 'Currency Rates', to: '/admin/currency-rates', icon: Globe },
-      { label: 'Payment Gateways', to: '/admin/payment-gateways', icon: Wallet },
       { label: 'Printers', to: '/admin/printers', icon: Printer },
       { label: 'Tax Invoices', to: '/admin/tax-invoices', icon: FileText },
     ],

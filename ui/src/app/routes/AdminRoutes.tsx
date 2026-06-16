@@ -56,6 +56,7 @@ import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReor
 import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxInvoicesPage';
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
+import { SuperAdminLayout } from '../pages/dashboards/superadmin/SuperAdminLayout';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -114,7 +115,6 @@ export const AdminRoutes = () => {
             <Route path='currency-settings' element={<CurrencySettings />} />
           </Route>
           <Route path='currency-rates' element={<AdminCurrencyRatesPage />} />
-          <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
           <Route path='printers' element={<AdminPrintersPage />} />
           <Route path='stock-transfers' element={<AdminStockTransfersPage />} />
           <Route path='reorder-rules' element={<AdminReorderRulesPage />} />
@@ -125,6 +125,11 @@ export const AdminRoutes = () => {
           <Route path='branches' element={<BusinessBranches />} />
         </Route>
       </Route>
+        {/* Super Admin */}
+        <Route path='superadmin' element={<SuperAdminLayout />}>
+          <Route index element={<AdminPaymentGatewaysPage />} />
+          <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
+        </Route>
       {/* unmatched */}
       {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
