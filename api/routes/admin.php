@@ -22,8 +22,9 @@ use Illuminate\Support\Facades\Route;
 // Route::get("/business-categories", [BusinessCategoryController::class, "index"]);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get("/business-categories", [BusinessCategoryController::class, "index"]);
+    Route::get("/business", [BusinessController::class, "show"]);
     Route::post("/business", [BusinessController::class, "store"]);
-    Route::patch("/update-business", [BusinessController::class, "update"]);
+    Route::patch("/business", [BusinessController::class, "update"]);
      // ============== cashflow analytics ===================
      Route::get("/branches/cashflow/analytics", [CashFlowController::class, "analytics"]);
 
