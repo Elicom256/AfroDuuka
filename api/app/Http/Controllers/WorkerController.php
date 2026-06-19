@@ -23,9 +23,13 @@ class WorkerController extends Controller
     {
         // $business_id = Auth::user()->business_id;
         // dd("Elicom");
-        $workers = Worker::with("user.role", "user.businessBranch")
+        $workers = Worker::with(["user.role", "user.businessBranch", "attendances"])
                   ->whereHas("user.role", function($q){
                     $q->where("name", "!=", "admin");
+                  })
+                  ->with("attendances", function($q){
+                    $q->latest()
+                      ->limit(5);
                   })
                   ->get();
         return response()->json(["message" => "Fetched all Workers", "workers" => $workers]);

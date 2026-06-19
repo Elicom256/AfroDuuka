@@ -31,7 +31,7 @@ export const Sale = () => {
     const product = products.find((p: any) => p.id === productId);
     return product?.name || `Product ${productId}`;
   };
-
+  console.log('sale==>', sale);
   return (
     <div className='space-y-6'>
       <div className='flex items-center gap-4'>
@@ -81,7 +81,7 @@ export const Sale = () => {
               <TableBody>
                 {sale.sale_items?.map((item: any) => (
                   <TableRow key={item.id}>
-                    <TableCell className='font-medium'>{getProductName(item.product_id)}</TableCell>
+                    <TableCell className='font-medium'>{item?.business_branch_product.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>UGX {Number(item.unit_price).toLocaleString()}</TableCell>
                     <TableCell>UGX {Number(item.subtotal).toLocaleString()}</TableCell>

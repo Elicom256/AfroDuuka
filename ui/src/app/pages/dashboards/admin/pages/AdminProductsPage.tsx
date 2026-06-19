@@ -25,10 +25,10 @@ export const AdminProductsPage = () => {
       <CardFooter className='flex justify-between'>
         <div className='flex items-center gap-4'>
           <Link to='/admin/business-products/' className='hover:underline text-blue-400'>
-            Manage Products Categories
+            Manage Products Types
           </Link>
           <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
-            Manage product Types
+            Manage product Categories
           </Link>
         </div>
         <div className='grid grid-cols-2 text-xs'>

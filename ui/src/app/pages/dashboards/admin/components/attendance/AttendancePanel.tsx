@@ -2,19 +2,22 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 type AttendancePanelProps = {
   attendances: any[];
   absentCount: number;
   presentCount: number;
+  employees: any[];
 };
 
-export const AttendancePanel = ({ attendances, absentCount, presentCount }: AttendancePanelProps) => {
+export const AttendancePanel = ({ attendances, absentCount, presentCount, employees }: AttendancePanelProps) => {
   const navigate = useNavigate();
   const total = attendances.length;
   const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
-
+  const headers = ['Name', 'Branch', 'Status', 'Attendance'];
+  // const attendanceheaders = ['Name', 'Branch', 'Status',];
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
@@ -56,12 +59,9 @@ export const AttendancePanel = ({ attendances, absentCount, presentCount }: Atte
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Employee</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Check-out</TableHead>
+                {headers?.map((header, i) => (
+                  <TableHead key={i}>{header}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -72,21 +72,34 @@ export const AttendancePanel = ({ attendances, absentCount, presentCount }: Atte
                   </TableCell>
                 </TableRow>
               ) : (
-                attendances?.map((record, index) => {
+                employees?.map((worker, index) => {
                   return (
-                    <TableRow key={record.id ?? index} onClick={() => navigate(`/admin/attendance/${record.id}`)}>
-                      <TableCell>{formatted(record.check_in || record.created_at)}</TableCell>
+                    <TableRow key={worker.id ?? index} onClick={() => navigate(`/admin/attendance/${worker.id}`)}>
+                      {/* <TableCell>{formatted(worker.check_in || worker.created_at)}</TableCell> */}
                       <TableCell>
-                        {`${record.worker?.user?.firstname || ''} ${record.worker?.user?.lastname || ''}`.trim() ||
-                          record.worker?.user?.email ||
+                        {`${worker?.user?.firstname || ''} ${worker?.user?.lastname || ''}`.trim() ||
+                          worker.worker?.user?.email ||
                           '—'}
                       </TableCell>
-                      <TableCell>{record.worker?.user?.business_branch?.name || '—'}</TableCell>
+                      <TableCell>{worker?.user?.business_branch?.name || '—'}</TableCell>
                       <TableCell>
-                        <Badge variant={record.status === 'present' ? 'secondary' : ('' as any)}>{record.status}</Badge>
+                        <Badge variant={worker.status === 'present' ? 'secondary' : ('' as any)}>{worker.status}</Badge>
                       </TableCell>
-                      <TableCell>{formatted(record.check_in ?? record.created_at)}</TableCell>
-                      <TableCell>{formatted(record.check_out ?? record.created_at)}</TableCell>
+                      <TableCell className='flex gap-2'>
+                        {worker?.attendances?.map((record: any) => (
+                          <div className=''>
+                            {['present', 'late'].includes(record?.status) ? (
+                              <Check className='text-green-400' size={15} />
+                            ) : (
+                              ['absent', 'late', 'excused', null].includes(record?.status) && (
+                                <X className='text-red-400' size={15} />
+                              )
+                            )}
+                          </div>
+                        ))}
+                      </TableCell>
+                      {/* <TableCell>{formatted(worker.check_in ?? worker.created_at)}</TableCell> */}
+                      {/* <TableCell>{formatted(worker.check_out ?? worker.created_at)}</TableCell> */}
                     </TableRow>
                   );
                 })
