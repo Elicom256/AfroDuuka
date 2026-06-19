@@ -27,7 +27,7 @@ export const AdminSalesPage = () => {
     const all = sale.sale_items.reduce((acc: number, val: any) => acc + val.quantity, 0);
     return sum + all;
   }, 0);
-  // console.log('sales==>', data);
+  console.log('sales==>', data);
 
   const totals = sales.reduce((acc: number, val: any) => Number(acc) + Number(val.total_amount as string), 0);
   const totalOrders = sales.length;

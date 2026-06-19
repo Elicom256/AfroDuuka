@@ -89,7 +89,7 @@ export const Purchase = () => {
                 {purchaseItems && purchaseItems.length > 0 ? (
                   purchaseItems.map((item: any) => (
                     <TableRow key={item.id}>
-                      <TableCell className='font-medium'>{getProductName(item.product_id)}</TableCell>
+                      <TableCell className='font-medium'>{item?.business_branch_product.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>UGX {Number(item.cost_price).toLocaleString()}</TableCell>
                       <TableCell>UGX {Number(item.subtotal).toLocaleString()}</TableCell>

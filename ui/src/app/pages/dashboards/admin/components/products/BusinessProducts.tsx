@@ -7,6 +7,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { AddProductCategory } from './AddProductCategory';
 import { EditBusinessProduct } from './EditBusinessProduct';
+import { AddBusinessProduct } from './AddBusinessProduct';
 
 export const BusinessProducts = () => {
   const { data, isLoading } = useProductsQuery();
@@ -39,10 +40,10 @@ export const BusinessProducts = () => {
       </div>
       <div className='mb-6 flex justify-between items-center'>
         <div>
-          <h1 className='text-2xl font-bold'>Product Categories</h1>
-          <p className='text-muted-foreground'>Manage your product categories</p>
+          <h1 className='text-2xl font-bold'>Product Types</h1>
+          <p className='text-muted-foreground'>Manage your product types</p>
         </div>
-        <AddProductCategory />
+        <AddBusinessProduct />
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {products.map((product: any) => (
@@ -76,7 +77,7 @@ export const BusinessProducts = () => {
       </div>
       {products.length === 0 && (
         <div className='text-center py-8'>
-          <p className='text-muted-foreground'>No categories found. Add some categories to get started.</p>
+          <p className='text-muted-foreground'>No types found. Add some types to get started.</p>
         </div>
       )}
     </div>
