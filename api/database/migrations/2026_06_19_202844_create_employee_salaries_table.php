@@ -6,20 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('employee_salaries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('worker_id')->constrained('workers')->cascadeOnDelete();
+            $table->decimal('amount', 12, 2);
+            $table->string('currency', 10)->default('UGX');
+            $table->date('effective_date');
+            $table->date('end_date')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('employee_salaries');

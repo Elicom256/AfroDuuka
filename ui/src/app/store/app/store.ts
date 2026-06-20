@@ -38,6 +38,7 @@ import { stockTransfersQuery } from '../features/business/admin/stockTransfersQu
 import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery';
 import { taxInvoicesQuery } from '../features/business/admin/taxInvoicesQuery';
 import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
+import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQuery';
 
 export const store = configureStore({
   reducer: {
@@ -73,6 +74,7 @@ export const store = configureStore({
     [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
     [taxInvoicesQuery.reducerPath]: taxInvoicesQuery.reducer,
     [loyaltyQuery.reducerPath]: loyaltyQuery.reducer,
+    [employeeSalaryQuery.reducerPath]: employeeSalaryQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
     [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
     [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
@@ -116,6 +118,7 @@ export const store = configureStore({
       reorderRulesQuery.middleware,
       taxInvoicesQuery.middleware,
       loyaltyQuery.middleware,
+      employeeSalaryQuery.middleware,
       attendanceSettingsQuery.middleware,
       customerSettingsQuery.middleware,
       paymentSettingsQuery.middleware,
