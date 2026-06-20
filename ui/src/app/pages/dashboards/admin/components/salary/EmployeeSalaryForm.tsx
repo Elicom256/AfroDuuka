@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -50,14 +50,36 @@ export const EmployeeSalaryForm = ({
   const isEdit = Boolean(editItem);
 
   const [formData, setFormData] = useState({
-    worker_id: editItem?.worker_id?.toString() ?? '',
-    amount: editItem?.amount?.toString() ?? '',
-    currency: editItem?.currency ?? 'UGX',
-    effective_date: editItem?.effective_date ?? format(new Date(), 'yyyy-MM-dd'),
-    end_date: editItem?.end_date ?? '',
-    status: editItem?.status ?? 'active',
+    worker_id: '',
+    amount: '',
+    currency: 'UGX',
+    effective_date: format(new Date(), 'yyyy-MM-dd'),
+    end_date: '',
+    status: 'active',
   });
 
+  useEffect(() => {
+    if (open && editItem) {
+      setFormData({
+        worker_id: editItem.worker_id?.toString() ?? '',
+        amount: editItem.amount?.toString() ?? '',
+        currency: editItem.currency ?? 'UGX',
+        effective_date: editItem.effective_date ?? format(new Date(), 'yyyy-MM-dd'),
+        end_date: editItem.end_date ?? '',
+        status: editItem.status ?? 'active',
+      });
+    } else if (open && !editItem) {
+      // Reset for new entry
+      setFormData({
+        worker_id: '',
+        amount: '',
+        currency: 'UGX',
+        effective_date: format(new Date(), 'yyyy-MM-dd'),
+        end_date: '',
+        status: 'active',
+      });
+    }
+  }, [open, editItem]);
   const updateForm = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -72,7 +94,6 @@ export const EmployeeSalaryForm = ({
       status: 'active',
     });
   };
-  console.log('test error', error);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,7 +101,7 @@ export const EmployeeSalaryForm = ({
     const workerId = formData.worker_id;
     const amount = Number(formData.amount);
 
-    if (!workerId || !formData.effective_date) {
+    if ((!workerId && !isEdit) || (!formData.effective_date && !isEdit)) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -128,7 +149,7 @@ export const EmployeeSalaryForm = ({
 
         <form onSubmit={handleSubmit} className='space-y-6 py-4'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <div className='space-y-2'>
+            <div className={isEdit ? 'hidden' : 'space-y-2'}>
               <Label htmlFor='worker_id'>
                 Employee <span className='text-red-500'>*</span>
               </Label>

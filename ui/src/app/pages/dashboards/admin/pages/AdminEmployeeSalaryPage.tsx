@@ -57,11 +57,11 @@ export const AdminEmployeeSalaryPage = () => {
         onDeleteRow={handleDelete}
       />
 
-      <EmployeeSalaryForm
+      {/* <EmployeeSalaryForm
         editItem={editItem}
         open={formOpen}
         onOpenChange={handleFormClose}
-      />
+      /> */}
     </div>
   );
 };
