@@ -38,4 +38,8 @@ class Worker extends Model
     public function employeeRemuneration(){
         return $this->hasMany(EmployeeRemuneration::class);
     }
+    public function employeeSalaries(): HasMany
+    {
+        return $this->hasMany(EmployeeSalary::class);
+    }
 }

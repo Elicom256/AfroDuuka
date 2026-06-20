@@ -32,6 +32,7 @@ import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPa
 import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinancesPage';
 import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
 import { AdminEmployeeRemunerationPage } from '../pages/dashboards/admin/pages/AdminEmployeeRemunerationPage';
+import { AdminEmployeeSalaryPage } from '../pages/dashboards/admin/pages/AdminEmployeeSalaryPage';
 import { AdminAttendancePage } from '../pages/dashboards/admin/pages/AdminAttendancePage';
 import { AdminBusinessActivityLogs } from '../pages/dashboards/admin/pages/AdminBusinessActivityLogs';
 import { AdminPromotionsPage } from '../pages/dashboards/admin/pages/AdminPromotionsPage';
@@ -93,6 +94,7 @@ export const AdminRoutes = () => {
           <Route path='finances' element={<AdminFinancesPage />} />
           <Route path='attendance' element={<AdminAttendancePage />} />
           <Route path='attendance/:id' element={<Attendance />} />
+          <Route path='employee-salaries' element={<AdminEmployeeSalaryPage />} />
           <Route path='taxes' element={<AdminTaxesPage />} />
           <Route path='obligated-taxes' element={<TaxesObligatedTo />} />
           <Route path='obligated-taxes/:id' element={<TaxObligatedTo />} />

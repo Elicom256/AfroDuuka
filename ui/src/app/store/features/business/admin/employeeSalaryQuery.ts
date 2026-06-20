@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const employeeSalaryQuery = createApi({
-  reducerPath: 'adminEmployeeRemunerationPath',
+  reducerPath: 'adminEmployeeSalaryPath',
   baseQuery: fetchBaseQuery({
     baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/employee-salary`,
     prepareHeaders: (headers) => {
@@ -33,12 +33,18 @@ export const employeeSalaryQuery = createApi({
       query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['EmployeeSalary'],
     }),
+
+    deleteEmployeeSalary: builder.mutation<any, string | number>({
+      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['EmployeeSalary'],
+    }),
   }),
 });
 
 export const {
   useEmployeeSalariesQuery,
+  useEmployeeSalaryQuery,
   useStoreEmployeeSalaryMutation,
   useUpdateEmployeeSalaryMutation,
-  useEmployeeSalaryQuery,
+  useDeleteEmployeeSalaryMutation,
 } = employeeSalaryQuery;

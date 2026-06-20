@@ -12,6 +12,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\BusinessTaxesController;
 use App\Http\Controllers\BusinessTaxPaymentsController;
 use App\Http\Controllers\EmployeeRemunerationController;
+use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
 use App\Models\CoreSettings\SuppliersSettings;
@@ -48,6 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::apiResource('business-tax-payment', BusinessTaxPaymentsController::class);
       // ============== employee remuneration ===================
      Route::apiResource("employee-remuneration", EmployeeRemunerationController::class);
+      // ============== employee salary ===================
+     Route::apiResource("employee-salary", EmployeeSalaryController::class);
      // ============== activity logs ===================
      Route::apiResource("activity-logs", ActivityLogController::class)->only(["index", "show", "destroy"]);
 
