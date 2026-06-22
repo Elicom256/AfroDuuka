@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0.00);
             $table->decimal('paid_amount', 15, 2)->default(0.00);           // Support partial payments
             $table->decimal('balance', 15, 2)->default(0.00);               // amount - paid_amount
+            // $table->string("payment_method")->nullable();
 
             // Tax period & timing (Very important for enterprises)
             $table->string('tax_period');                                   // e.g., '2026-Q1', '2026', 'FY2026'

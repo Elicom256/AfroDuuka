@@ -13,10 +13,22 @@ const statusColors: Record<string, string> = {
 
 export const StockTransfersTable = ({ transfers, onDispatch, onCancel }: any) => {
   const handleDispatch = async (id: string) => {
-    try { await onDispatch(id).unwrap(); toast.success('Dispatched'); } catch (err: any) { toast.error(err?.data?.message || 'Failed'); }
+    try {
+      const res = await onDispatch(id).unwrap();
+      console.log('response==>', res);
+      toast.success(res.message);
+    } catch (err: any) {
+      console.log('response==>', err);
+      toast.error(err?.data?.message || 'Failed');
+    }
   };
   const handleCancel = async (id: string) => {
-    try { await onCancel(id).unwrap(); toast.success('Cancelled'); } catch { toast.error('Failed'); }
+    try {
+      await onCancel(id).unwrap();
+      toast.success('Cancelled');
+    } catch {
+      toast.error('Failed');
+    }
   };
 
   return (
@@ -40,13 +52,19 @@ export const StockTransfersTable = ({ transfers, onDispatch, onCancel }: any) =>
               <span className='font-medium'>{t.to_branch?.name || '—'}</span>
             </TableCell>
             <TableCell>{t.items?.length || 0}</TableCell>
-            <TableCell><Badge className={statusColors[t.status]}>{t.status.replace(/_/g, ' ')}</Badge></TableCell>
+            <TableCell>
+              <Badge className={statusColors[t.status]}>{t.status.replace(/_/g, ' ')}</Badge>
+            </TableCell>
             <TableCell>
               <div className='flex gap-1'>
                 {t.status === 'draft' && (
                   <>
-                    <Button size='sm' variant='outline' onClick={() => handleDispatch(t.id)}><Send className='h-3 w-3 mr-1' /> Dispatch</Button>
-                    <Button size='sm' variant='ghost' onClick={() => handleCancel(t.id)}><XCircle className='h-3 w-3 text-destructive' /></Button>
+                    <Button size='sm' variant='outline' onClick={() => handleDispatch(t.id)}>
+                      <Send className='h-3 w-3 mr-1' /> Dispatch
+                    </Button>
+                    <Button size='sm' variant='ghost' onClick={() => handleCancel(t.id)}>
+                      <XCircle className='h-3 w-3 text-destructive' />
+                    </Button>
                   </>
                 )}
               </div>

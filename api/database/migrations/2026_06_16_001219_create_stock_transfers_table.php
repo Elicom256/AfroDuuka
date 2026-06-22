@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('from_branch_id')->constrained('business_branches')->cascadeOnDelete();
             $table->foreignId('to_branch_id')->constrained('business_branches')->cascadeOnDelete();
-            $table->string('status')->default('draft'); // draft, in_transit, received, cancelled
+            $table->enum('status', ["draft", "in_transit", "received", "cancelled"])->default('draft');
             $table->foreignId('transferred_by')->constrained('users');
             $table->foreignId('received_by')->nullable()->constrained('users');
             $table->timestamp('dispatched_at')->nullable();

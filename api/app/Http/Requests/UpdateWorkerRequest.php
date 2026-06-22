@@ -22,9 +22,9 @@ class UpdateWorkerRequest extends FormRequest
         $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")->value("id");
         $this->merge([
             "business_id"        => $user->business_id,
-            "business_branch_id" => $user->business_branch_id,
-            "status" => $this->status ?? "active",
-            "role_id" => $this->role_id ?? $role_id
+            "business_branch_id" => $this->input("business_branch_id", $user->business_branch_id),
+            "status" => $this->input("status", "active"),
+            "role_id" => $this->input("role_id", $role_id)
         ]);
     }
 
@@ -69,6 +69,7 @@ class UpdateWorkerRequest extends FormRequest
                 Rule::unique('users','nin')->ignore($userId),
             ],
             'address'   => 'nullable|string|max:255',
+            'business_branch_id' => 'nullable|exists:business_branches,id',
             'status'             => 'required|in:active,inactive',
         ];
     }
