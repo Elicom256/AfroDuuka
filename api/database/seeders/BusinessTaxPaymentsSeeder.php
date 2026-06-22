@@ -7,6 +7,8 @@ use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\BusinessTaxes;
 use App\Models\BusinessTaxPayment;
+use App\Models\CoreSettings\PaymentStatus;
+// use App\Models\PaymentStatus;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Database\Seeder;
@@ -56,11 +58,10 @@ class BusinessTaxPaymentsSeeder extends Seeder
             '2026-Q1', '2026-Q2'
         ];
 
-        $paymentMethods = ['bank_transfer', 'mpesa', 'cheque', 'cash'];
-
         $count = 0;
 
         foreach ($taxes as $tax) {
+            $paymentMethodId = PaymentStatus::where("business_id", $business->id)->value("id");
             foreach ($periods as $period) {
                 
                 $amount = rand(15000, 85000);
@@ -106,7 +107,7 @@ class BusinessTaxPaymentsSeeder extends Seeder
                     
                     'status'             => $status,
                     'reference_number'   => 'TXP-' . strtoupper(uniqid()),
-                    'payment_method'     => $paymentMethods[array_rand($paymentMethods)],
+                    'payment_status_id'     => $paymentMethodId,
                     'notes'              => 'Tax payment for ' . $period,
                     'payment_metadata'   => [
                         'transaction_id' => 'TXN' . rand(100000, 999999),

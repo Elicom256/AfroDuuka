@@ -1,5 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useStockTransfersQuery, useCreateStockTransferMutation, useDispatchStockTransferMutation, useCancelStockTransferMutation } from '@/app/store/features/business/admin/stockTransfersQuery';
+import {
+  useStockTransfersQuery,
+  useCreateStockTransferMutation,
+  useDispatchStockTransferMutation,
+  useCancelStockTransferMutation,
+} from '@/app/store/features/business/admin/stockTransfersQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { ArrowLeftRight } from 'lucide-react';
@@ -15,8 +20,9 @@ export const AdminStockTransfersPage = () => {
   const { data: branchesData } = useBranchesQuery();
   const { data: productsData } = useBranchProductsQuery();
   const transfers = data?.data || [];
-  const branches = branchesData?.data || [];
-  const products = productsData?.data || [];
+  const branches = branchesData?.branches || [];
+  const products = productsData?.products || [];
+  // console.log('products==>', products);
 
   if (isLoading) return <PageLoadingState />;
 
@@ -32,7 +38,9 @@ export const AdminStockTransfersPage = () => {
         <AddStockTransfer createTransfer={createTransfer} branches={branches} products={products} />
       </div>
       <Card>
-        <CardHeader><CardTitle>All Transfers ({transfers.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Transfers ({transfers.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {transfers.length === 0 ? (
             <p className='text-muted-foreground text-sm text-center py-8'>No stock transfers yet.</p>

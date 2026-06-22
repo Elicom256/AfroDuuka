@@ -54,6 +54,7 @@ class ProfileService
                 "username" => $data["username"] ?? $user->username,
                 "phone" => $data["phone"] ?? $user->phone,
                 "nin" => $data["nin"] ?? $user->nin,
+                "business_branch_id" => $data["business_branch_id"],
                 "address" => $data["address"] ?? $user->address,
                 "status" => $data["status"] ?? $user->status,
             ]);
