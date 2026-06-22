@@ -15,7 +15,11 @@ class LowStockReports extends Controller
 
     public function index(Request $request)
     {
-        $report = $this->service->lowStock($request->all(), Auth::user());
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->lowStock($params, Auth::user());
 
         return response()->json([
             'message' => 'Low stock report fetched',

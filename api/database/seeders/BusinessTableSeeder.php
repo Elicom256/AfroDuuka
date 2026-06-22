@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Business;
 use App\Models\BusinessCategory;
 use App\Models\Category;
+use App\Models\Country;
 use App\Services\CoreBusinessSettings;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -25,10 +26,12 @@ class BusinessTableSeeder extends Seeder
     
         //seed a business
         $business_category_id = BusinessCategory::where("name", "electronics")->value("id");
+        $country_id = Country::where("iso_alpha2", "UG")->value("id");
        $result = Business::updateOrCreate(
             ["email" => "testbusinessone@gmail.com"],
             [
             "business_category_id" => $business_category_id,
+            "country_id" => $country_id,
             "name" => "Test Whole Sallers",
             "phone" => "+256781234567",
             "address" => "Kabale-Kisoro Road"

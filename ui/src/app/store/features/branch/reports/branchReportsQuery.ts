@@ -17,16 +17,16 @@ export const branchReportsQuery = createApi({
   tagTypes: ['Reports'],
   endpoints: (builder) => ({
     branchPerformance: builder.query<any, { id: string; period: string }>({
-      query: (id, period = 'last_7_days') => ({
-        url: `/branch-performance/${id}`,
+      query: ({ id, period }) => ({
+        url: `/branch-performance`,
         method: 'GET',
-        params: { period },
+        params: { id, period },
       }),
       providesTags: ['Reports'],
     }),
 
     stockSummary: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/stock-summary',
         method: 'GET',
         params: { period },
@@ -35,7 +35,7 @@ export const branchReportsQuery = createApi({
     }),
 
     lowStock: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/low-stock',
         method: 'GET',
         params: { period },
@@ -44,7 +44,7 @@ export const branchReportsQuery = createApi({
     }),
 
     outOfStock: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/out-of-stock',
         method: 'GET',
         params: { period },
@@ -53,7 +53,7 @@ export const branchReportsQuery = createApi({
     }),
 
     deadStock: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/dead-stock',
         method: 'GET',
         params: { period },
@@ -62,7 +62,7 @@ export const branchReportsQuery = createApi({
     }),
 
     inventoryValuation: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/inventory-valuation',
         method: 'GET',
         params: { period },
@@ -71,7 +71,7 @@ export const branchReportsQuery = createApi({
     }),
 
     salesByProduct: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/sales-by-product',
         method: 'GET',
         params: { period },
@@ -80,7 +80,7 @@ export const branchReportsQuery = createApi({
     }),
 
     stockMovement: builder.query<any, string>({
-      query: (period = 'last_7_days') => ({
+      query: (period) => ({
         url: '/stock-movement',
         method: 'GET',
         params: { period },

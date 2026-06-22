@@ -3,9 +3,20 @@ import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useSalesByProductQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'UGX',
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
 export const SalesByProductReport = () => {
   const [period, setPeriod] = useState<string>(periods[0].value);
   const { data, isLoading } = useSalesByProductQuery(period);
+
+  const reportData = data?.data;
+  const topProducts = reportData?.top_products || [];
 
   return (
     <ReportCard title='Sales By Product' loading={isLoading}>
@@ -20,14 +31,20 @@ export const SalesByProductReport = () => {
         </select>
       </div>
 
-      {!data || !data.products ? (
-        <div className='text-sm text-muted-foreground'>No sales data</div>
+      {topProducts.length === 0 ? (
+        <div className='text-sm text-muted-foreground'>No sales data for this period</div>
       ) : (
         <div className='space-y-2'>
-          {data.products.map((prod: any) => (
-            <div key={prod.id ?? prod.sku} className='flex justify-between rounded bg-muted p-2'>
-              <div className='text-sm'>{prod.name || prod.product}</div>
-              <div className='text-sm font-medium'>{prod.sales ?? prod.quantity ?? '-'}</div>
+          {topProducts.map((prod: any) => (
+            <div
+              key={prod.product_id}
+              className='flex justify-between items-center p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors'
+            >
+              <div className='text-sm font-medium'>{prod.product_name}</div>
+              <div className='text-right'>
+                <p className='font-semibold'>{prod.quantity_sold} sold</p>
+                <p className='text-xs text-muted-foreground'>{formatCurrency(prod.total_revenue)}</p>
+              </div>
             </div>
           ))}
         </div>

@@ -15,7 +15,11 @@ class SalesByProductReports extends Controller
 
     public function index(Request $request)
     {
-        $report = $this->service->salesByProduct($request->all(), Auth::user());
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->salesByProduct($params, Auth::user());
 
         return response()->json([
             'message' => 'Sales by product report fetched',

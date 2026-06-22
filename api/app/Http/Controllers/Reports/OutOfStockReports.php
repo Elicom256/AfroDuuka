@@ -15,7 +15,11 @@ class OutOfStockReports extends Controller
 
     public function index(Request $request)
     {
-        $report = $this->service->outOfStock($request->all(), Auth::user());
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->outOfStock($params, Auth::user());
 
         return response()->json([
             'message' => 'Out of stock report fetched',

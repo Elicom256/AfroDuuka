@@ -71,3 +71,7 @@ Route::prefix("report-exports")->group(function () {
 Route::prefix('reports')->group(function () {
     require __DIR__.'/reports.php';
 });
+
+Route::prefix("countries")->group(function () {
+    Route::get('/', [\App\Http\Controllers\CountryController::class, 'index']);
+});

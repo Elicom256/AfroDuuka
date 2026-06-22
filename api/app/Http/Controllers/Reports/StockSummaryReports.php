@@ -16,7 +16,11 @@ class StockSummaryReports extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->get('per_page', 15);
-        $report = $this->service->stockSummary($request->all(), Auth::user(), $perPage);
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->stockSummary($params, Auth::user(), $perPage);
 
         return response()->json([
             'message' => 'Stock summary report fetched',
