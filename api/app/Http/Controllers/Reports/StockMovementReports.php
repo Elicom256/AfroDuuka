@@ -15,7 +15,11 @@ class StockMovementReports extends Controller
 
     public function index(Request $request)
     {
-        $report = $this->service->stockMovements($request->all(), Auth::user());
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->stockMovements($params, Auth::user());
 
         return response()->json([
             'message' => 'Stock movement report fetched',

@@ -15,7 +15,11 @@ class DeadStockReports extends Controller
 
     public function index(Request $request)
     {
-        $report = $this->service->deadStock($request->all(), Auth::user());
+        $params = $request->all();
+        if ($request->has('period') && !$request->has('filter')) {
+            $params['filter'] = $request->input('period');
+        }
+        $report = $this->service->deadStock($params, Auth::user());
 
         return response()->json([
             'message' => 'Dead stock report fetched',

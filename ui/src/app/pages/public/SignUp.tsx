@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Phone, Lock } from 'lucide-react';
+import { UserPlus, Mail, Phone, Lock, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { AuthLayout } from './AuthLayout';
 import { toast } from 'sonner';
 import {
   useLoggedinUserQuery,
   useRegisterMutation,
   useUpdateUserMutation,
-  // useUpdateUserMutation (add this later)
 } from '@/app/store/features/auth/authQuery';
+import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
 import { LoadingState } from '@/utils/LoadingState';
 
 export const SignUp: React.FC = () => {
@@ -24,11 +31,14 @@ export const SignUp: React.FC = () => {
     password: '',
     role: '',
     username: '',
+    country_id: '',
   });
 
   const [register, { isLoading }] = useRegisterMutation();
   const [updateUser, { isLoading: loadUpdate }] = useUpdateUserMutation();
   const { data } = useLoggedinUserQuery();
+  const { data: countriesData } = useCountriesQuery();
+  const countries = countriesData?.data || [];
   // Prefill when editing
   useEffect(() => {
     if (data?.data) {
@@ -39,6 +49,7 @@ export const SignUp: React.FC = () => {
         password: '',
         role: data.data.role || '',
         username: data.data.username || '',
+        country_id: data.data.country_id || '',
       });
     }
   }, [data]);
@@ -131,6 +142,32 @@ export const SignUp: React.FC = () => {
             onChange={handleChange}
             placeholder='+256 700 000 000'
           />
+        </div>
+
+        {/* Country */}
+        <div className='space-y-2'>
+          <Label htmlFor='country'>
+            <Globe className='h-4 w-4 text-muted-foreground' />
+            Country
+          </Label>
+          <Select
+            value={formState.country_id}
+            onValueChange={(value) => setFormState((prev: any) => ({ ...prev, country_id: value }))}
+          >
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='Select your country' />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((country: any) => (
+                <SelectItem key={country.id} value={String(country.id)}>
+                  <span className='flex items-center gap-2'>
+                    <span className='text-lg'>{country.flag_emoji}</span>
+                    <span>{country.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Password */}

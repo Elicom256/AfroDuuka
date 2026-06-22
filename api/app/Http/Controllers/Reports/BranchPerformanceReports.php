@@ -15,7 +15,7 @@ class BranchPerformanceReports extends Controller
 
     public function index(Request $request)
     {
-        $filter = $request->input('filter', 'this_month');
+        $filter = $request->input('filter', $request->input('period', 'this_month'));
         $report = $this->service->branchPerformance($filter, Auth::user());
 
         return response()->json([

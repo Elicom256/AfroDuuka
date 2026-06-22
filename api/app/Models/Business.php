@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Business extends Model
 {
-    protected $fillable = ['name', 'email', 'phone', 'address', 'business_category_id'];
+    protected $fillable = ['name', 'email', 'phone', 'address', 'business_category_id', 'country_id'];
 
     public function users(): HasMany
     {
@@ -24,8 +25,8 @@ class Business extends Model
         return $this->hasMany(Category::class);
     }
 
-    // public function suppliers(): HasMany
-    // {
-    //     return $this->hasMany(Supplier::class);
-    // }
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
 }

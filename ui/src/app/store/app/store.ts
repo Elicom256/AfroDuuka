@@ -39,6 +39,7 @@ import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery'
 import { taxInvoicesQuery } from '../features/business/admin/taxInvoicesQuery';
 import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
 import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQuery';
+import { countriesQuery } from '../features/countries/countriesQuery';
 
 export const store = configureStore({
   reducer: {
@@ -82,6 +83,7 @@ export const store = configureStore({
     [reportsSettingsQuery.reducerPath]: reportsSettingsQuery.reducer,
     [supplierSettingsQuery.reducerPath]: supplierSettingsQuery.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
+    [countriesQuery.reducerPath]: countriesQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -126,6 +128,7 @@ export const store = configureStore({
       reportsSettingsQuery.middleware,
       supplierSettingsQuery.middleware,
       notificationsApi.middleware,
+      countriesQuery.middleware,
     ),
 });
 
