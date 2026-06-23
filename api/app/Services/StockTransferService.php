@@ -8,6 +8,7 @@ use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\CashFlowService;
 
 /**
  * Handles stock transfer business logic:
@@ -15,6 +16,13 @@ use Illuminate\Support\Facades\DB;
  */
 class StockTransferService
 {
+    protected CashFlowService $cashFlowService;
+
+    public function __construct(CashFlowService $cashFlowService)
+    {
+        $this->cashFlowService = $cashFlowService;
+    }
+
     /**
      * Create a stock transfer with its line items.
      */
@@ -87,6 +95,12 @@ class StockTransferService
                 'dispatched_at' => now(),
             ]);
 
+            // Record cash outflow on the sending branch
+            $totalCost = $transfer->items->sum(function ($item) {
+                return ($item->businessBranchProduct?->cost_price ?? 0) * $item->quantity_expected;
+            });
+            $this->cashFlowService->createCashFlowForStockTransferDispatch($transfer, $totalCost);
+
             return $transfer->fresh()->load('items');
         });
     }
@@ -145,6 +159,12 @@ class StockTransferService
                 'received_by' => $user->id,
                 'received_at' => now(),
             ]);
+
+            // Record cash inflow on the receiving branch
+            $totalCost = $transfer->items->sum(function ($item) {
+                return ($item->businessBranchProduct?->cost_price ?? 0) * ($receivedItems[$item->id] ?? $item->quantity_expected);
+            });
+            $this->cashFlowService->createCashFlowForStockTransferReceive($transfer, $totalCost);
 
             return $transfer->fresh()->load('items');
         });

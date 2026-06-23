@@ -1,11 +1,25 @@
 # Todays Work (Don't go beyond this)
 
-## Reports cleanup
+## Cashflow Additionals
 
-✅ Clean up the reports page in the front end, (../ui directory) so that it looks more modular, UI/UX friendly and with meaningful data rendered
-✅ You can move to the back to the back end to to see which data is being rendered exactly, and clean it up to if there's a need
-✅ Move the countries migration on top of businesses in order and add country relationship to the business
-✅ Complete the Countries Model and create a seeder for all countries
+- In the cashflow, there are things to include which inclide
+  ->Record cash outflow on a success payment of worker(s)
+  ->Record a cash outflow on a complete payment of tax(es)
+  ->Record cash outflow on a success stock transfer on the sending branch
+  ->Record cash inflow on stock transfer on the receiving branch
+
+After working to the cashflow, check if there is a need to update Finances page in the front end and update it
+
+## Currecy
+
+on the front end, render currecy from the back end, so no things like (UGX) in the front end
+
+## Others
+
+- Implement pagination. For the front end, use Pagination component from shadcn, it's already installed. Make that pagenation component re-usable enough like in real world systems.
+- Render navigation links on the side bar according to if they are set in settings, forexample on reports, show reports if the user have activated the reports setting
+- Check the tax payment status change(update). It needs to be cleaned to work well
+
 **Note:**
 
 - Complete all this work from ui to api

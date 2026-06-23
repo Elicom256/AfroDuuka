@@ -12,8 +12,10 @@ import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const ManagerPurchasesPage = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = usePurchasesQuery();
   const { data: productData } = useBranchProductsQuery();
   const { data: sup } = useSuppliersQuery();
@@ -56,7 +58,7 @@ export const ManagerPurchasesPage = () => {
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total Spent</p>
-              <p className='text-lg font-semibold'>UGX {totalPurchaseAmount.toLocaleString()}</p>
+              <p className='text-lg font-semibold'>{currency} {totalPurchaseAmount.toLocaleString()}</p>
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Products Ordered</p>

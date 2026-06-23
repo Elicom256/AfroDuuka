@@ -22,14 +22,16 @@ class StoreSaleRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
 
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
-            'business_id'        => $user->business_id,           // Good to have for CashFlow
+            'business_id'        => $user->business_id,
             'status'             => $this->input('status', 'completed'),
             'paymentStatus'      => $this->input('paymentStatus', 'paid'),
-            'payment_status_id'             => $this->input('payment_status_id', null),
-            'currency'           => $this->input('currency', 'UGX'),
+            'payment_status_id'  => $this->input('payment_status_id', null),
+            'currency'           => $this->input('currency', $defaultCurrency),
         ]);
     }
 

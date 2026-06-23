@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Upload, CheckCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const TaxInvoicesTable = ({ invoices, onSubmitToUra, onDelete }: any) => {
+  const { currency } = useCurrency();
   const handleSubmit = async (id: string) => {
     try { await onSubmitToUra(id).unwrap(); toast.success('Submitted to URA'); } catch { toast.error('Failed'); }
   };
@@ -29,8 +31,8 @@ export const TaxInvoicesTable = ({ invoices, onSubmitToUra, onDelete }: any) => 
           <TableRow key={inv.id}>
             <TableCell className='font-medium'>{inv.invoice_number}</TableCell>
             <TableCell>#{inv.sale_id}</TableCell>
-            <TableCell>UGX {Number(inv.total_amount).toLocaleString()}</TableCell>
-            <TableCell>UGX {Number(inv.vat_amount).toLocaleString()}</TableCell>
+            <TableCell>{currency} {Number(inv.total_amount).toLocaleString()}</TableCell>
+            <TableCell>{currency} {Number(inv.vat_amount).toLocaleString()}</TableCell>
             <TableCell>
               {inv.submitted_to_ura
                 ? <Badge variant='default'><CheckCircle className='h-3 w-3 mr-1' /> Submitted</Badge>

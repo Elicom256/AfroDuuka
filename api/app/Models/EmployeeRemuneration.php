@@ -19,6 +19,8 @@ class EmployeeRemuneration extends Model
         'reference',
         'description',
         'status',
+        'business_id',
+        'business_branch_id',
     ];
 
     protected $casts = [
@@ -31,8 +33,8 @@ class EmployeeRemuneration extends Model
         return $this->belongsTo(Worker::class);
     }
 
-    // public function businessBranch(): BelongsTo
-    // {
-    //     return $this->belongsTo(BusinessBranch::class, 'business_branch_id');
-    // }
+    public function businessBranch(): BelongsTo
+    {
+        return $this->belongsTo(BusinessBranch::class, 'business_branch_id');
+    }
 }

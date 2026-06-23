@@ -8,15 +8,18 @@ use App\Models\ActivityLog;
 use App\Models\EmployeeRemuneration;
 use App\Models\Worker;
 use App\Services\ActivityLogService;
+use App\Services\CashFlowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class EmployeeRemunerationController extends Controller
 {
     protected ActivityLogService $activity_log;
-    public function __construct(ActivityLogService $activityLog)
+    protected CashFlowService $cashFlowService;
+    public function __construct(ActivityLogService $activityLog, CashFlowService $cashFlowService)
     {
         $this->activity_log = $activityLog;
+        $this->cashFlowService = $cashFlowService;
     }
     public function index(): JsonResponse
 {
@@ -70,6 +73,10 @@ class EmployeeRemunerationController extends Controller
 
         $remuneration = EmployeeRemuneration::create($validated);
         $employee =$worker->load("user");
+
+        // Record cash outflow for worker payment
+        $this->cashFlowService->createCashFlowForWorkerPayment($remuneration, (float) $validated['amount']);
+
         $this->activity_log->activity("Recorded Employee Remuneration", $employee->user->name ." ". "has been paid");
 
         return response()->json([

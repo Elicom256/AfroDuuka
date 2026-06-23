@@ -24,9 +24,12 @@ protected function prepareForValidation(): void
         $this->merge([
             "business_id" => $user->business_id,
             'updated_by' => $user->id,
-            "business_branch_id" => $user->business_branch_id,
-            // 'paid_amount' => $this->status ?? 'paid',
         ]);
+
+        // Only set business_branch_id if not already provided in the request
+        if (!$this->has('business_branch_id')) {
+            $this->merge(['business_branch_id' => $user->business_branch_id]);
+        }
     }
 
     /**

@@ -34,7 +34,8 @@ return new class extends Migration
         
         // Description & categorization
         $table->string('description')->nullable();
-        $table->enum('category', ['product_sales', 'product_purchases', 'raw_materials', 'rent',])->nullable();         // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
+        $table->string('category', 100)->change();
+              // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
         
         // Payment details
         $table->foreignId('payment_status_id')->nullable()->constrained()->cascadeOnDelete();

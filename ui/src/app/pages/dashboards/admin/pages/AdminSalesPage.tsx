@@ -8,8 +8,10 @@ import { EditSale } from '../components/sales/EditSale';
 import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AdminSalesPage = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useBranchProductsQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
@@ -47,7 +49,7 @@ export const AdminSalesPage = () => {
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total revenue</p>
-              <p className='text-lg font-semibold'>UGX {totals.toLocaleString()}</p>
+              <p className='text-lg font-semibold'>{currency} {totals.toLocaleString()}</p>
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Products sold</p>

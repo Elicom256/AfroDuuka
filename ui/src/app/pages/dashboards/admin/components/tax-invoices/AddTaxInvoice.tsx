@@ -6,8 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AddTaxInvoice = ({ createInvoice, sales }: any) => {
+  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ sale_id: '', invoice_number: '', vat_amount: '', total_amount: '' });
 
@@ -39,7 +41,7 @@ export const AddTaxInvoice = ({ createInvoice, sales }: any) => {
             }}>
               <SelectTrigger><SelectValue placeholder='Select sale' /></SelectTrigger>
               <SelectContent>
-                {sales?.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>Sale #{s.id} — UGX {Number(s.total_amount).toLocaleString()}</SelectItem>)}
+                {sales?.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>Sale #{s.id} — {currency} {Number(s.total_amount).toLocaleString()}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -49,11 +51,11 @@ export const AddTaxInvoice = ({ createInvoice, sales }: any) => {
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
-              <Label>Total Amount (UGX)</Label>
+              <Label>Total Amount ({currency})</Label>
               <Input type='number' value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} />
             </div>
             <div className='space-y-2'>
-              <Label>VAT Amount (UGX)</Label>
+              <Label>VAT Amount ({currency})</Label>
               <Input type='number' value={form.vat_amount} onChange={(e) => setForm({ ...form, vat_amount: e.target.value })} />
             </div>
           </div>

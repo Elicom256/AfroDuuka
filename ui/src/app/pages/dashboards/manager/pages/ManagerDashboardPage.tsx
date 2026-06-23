@@ -2,8 +2,10 @@ import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { useBranchDynamicsQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, ShoppingCart, Package } from 'lucide-react';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const ManagerDashboardPage = () => {
+  const { currency } = useCurrency();
   const { data } = useLoggedinUserQuery();
   const { data: dynamics, error } = useBranchDynamicsQuery();
   console.log('branch dynamics==>', dynamics ?? error);
@@ -23,7 +25,7 @@ export const ManagerDashboardPage = () => {
             <DollarSign className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>UGX {dynamics?.totalSales}</div>
+            <div className='text-2xl font-bold'>{currency} {dynamics?.totalSales}</div>
             <p className='text-xs text-muted-foreground'>+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -34,7 +36,7 @@ export const ManagerDashboardPage = () => {
             <ShoppingCart className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>UGX {dynamics?.totalPurchases}</div>
+            <div className='text-2xl font-bold'>{currency} {dynamics?.totalPurchases}</div>
             <p className='text-xs text-muted-foreground'>+15% from last month</p>
           </CardContent>
         </Card>

@@ -6,8 +6,10 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const StaffSalesPage = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useProductsQuery();
   const [addSale] = useAddSaleMutation();
@@ -41,7 +43,7 @@ export const StaffSalesPage = () => {
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total revenue</p>
-              <p className='text-lg font-semibold'>UGX {totals.toLocaleString()}</p>
+              <p className='text-lg font-semibold'>{currency} {totals.toLocaleString()}</p>
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Products sold</p>

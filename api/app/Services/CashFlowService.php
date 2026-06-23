@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\CashFlow;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\EmployeeRemuneration;
+use App\Models\BusinessTaxPayment;
+use App\Models\StockTransfer;
+use App\Models\StockTransferItem;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,27 +67,116 @@ class CashFlowService
         ]);
     }
 
-public function analytics(string $business_branch_id, string $period = "last_7_days"){
-    $dates = $this->analyticsTrendHelper->getPeriodDates($period);
-    $date_range = [$dates["start"], $dates["end"]];
-    // ✅ Total Revenue
-    $totalRevenue = CashFlow::where("business_branch_id", $business_branch_id)
-                             ->where("type", "sale")
-                             ->whereBetween("created_at", $date_range)
-                             ->sum("amount");
+    // ================= cash flow worker payment (outflow) ====================
+    public function createCashFlowForWorkerPayment(EmployeeRemuneration $remuneration, float $amount): void
+    {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $currency = $business?->country?->currency_code ?? 'UGX';
+        CashFlow::create([
+            'transaction_code' => 'CF-WORKER-'.str_pad($remuneration->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'expense',
+            'amount' => $amount,
+            'currency' => $currency,
+            'business_id' => $user->business_id,
+            'business_branch_id' => $remuneration->business_branch_id ?? $user->business_branch_id,
+            'description' => $remuneration->description ?? 'Worker payment',
+            'category' => 'worker_payments',
+            'reference' => $remuneration->reference ?? null,
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
 
-    // ✅ Total Expenses
-    $totalExpenses = CashFlow::where("business_branch_id", $business_branch_id)
-                    ->where("type", "purchase")
-                    ->whereBetween("created_at", $date_range)
-                    ->sum("amount");  
-    //  ✅ Net Cash Flow
-     $netCashFlow = $totalRevenue - $totalExpenses; 
+    // ================= cash flow tax payment (outflow) ====================
+    public function createCashFlowForTaxPayment(BusinessTaxPayment $payment, float $amount): void
+    {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $currency = $business?->country?->currency_code ?? 'UGX';
+        CashFlow::create([
+            'transaction_code' => 'CF-TAX-'.str_pad($payment->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'expense',
+            'amount' => $amount,
+            'currency' => $currency,
+            'business_id' => $user->business_id,
+            'business_branch_id' => $payment->business_branch_id,
+            'tax_payment_id' => $payment->id,
+            'description' => 'Tax payment for period '.($payment->tax_period ?? 'N/A'),
+            'category' => 'tax_payments',
+            'reference' => $payment->reference_number ?? null,
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
 
-     return [
-        "total_revenue" => $totalRevenue,
-        "total_expenses" => $totalExpenses,
-        "net_cash_flow" => $netCashFlow
-    ];
-}
+    // ================= cash flow stock transfer dispatch (outflow on sending branch) ====================
+    public function createCashFlowForStockTransferDispatch(StockTransfer $transfer, float $totalCost): void
+    {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $currency = $business?->country?->currency_code ?? 'UGX';
+        CashFlow::create([
+            'transaction_code' => 'CF-STOCK-OUT-'.str_pad($transfer->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'expense',
+            'amount' => $totalCost,
+            'currency' => $currency,
+            'business_id' => $transfer->business_id,
+            'business_branch_id' => $transfer->from_branch_id,
+            'stock_transfer_id' => $transfer->id,
+            'description' => 'Stock transfer dispatch to branch #'.$transfer->to_branch_id,
+            'category' => 'stock_transfer',
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
+
+    // ================= cash flow stock transfer receive (inflow on receiving branch) ====================
+    public function createCashFlowForStockTransferReceive(StockTransfer $transfer, float $totalCost): void
+    {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $currency = $business?->country?->currency_code ?? 'UGX';
+        CashFlow::create([
+            'transaction_code' => 'CF-STOCK-IN-'.str_pad($transfer->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'payment_in',
+            'amount' => $totalCost,
+            'currency' => $currency,
+            'business_id' => $transfer->business_id,
+            'business_branch_id' => $transfer->to_branch_id,
+            'stock_transfer_id' => $transfer->id,
+            'description' => 'Stock transfer receive from branch #'.$transfer->from_branch_id,
+            'category' => 'stock_transfer',
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
+
+    public function analytics(string $business_branch_id, string $period = "last_7_days"){
+        $dates = $this->analyticsTrendHelper->getPeriodDates($period);
+        $date_range = [$dates["start"], $dates["end"]];
+        // ✅ Total Revenue (inflows: sale + payment_in + refund)
+        $totalRevenue = CashFlow::where("business_branch_id", $business_branch_id)
+                                 ->whereIn("type", ["sale", "payment_in", "refund"])
+                                 ->whereBetween("created_at", $date_range)
+                                 ->sum("amount");
+
+        // ✅ Total Expenses (outflows: purchase + expense + payment_out)
+        $totalExpenses = CashFlow::where("business_branch_id", $business_branch_id)
+                        ->whereIn("type", ["purchase", "expense", "payment_out"])
+                        ->whereBetween("created_at", $date_range)
+                        ->sum("amount");
+        //  ✅ Net Cash Flow
+        $netCashFlow = $totalRevenue - $totalExpenses;
+
+        return [
+            "total_revenue" => $totalRevenue,
+            "total_expenses" => $totalExpenses,
+            "net_cash_flow" => $netCashFlow
+        ];
+    }
 }

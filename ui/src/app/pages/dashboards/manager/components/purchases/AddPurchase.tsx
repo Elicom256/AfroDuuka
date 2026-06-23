@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddPurchaseProps {
   addPurchase: any;
@@ -29,6 +30,7 @@ interface PurchaseItem {
 }
 
 export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchaseProps) => {
+  const { currency } = useCurrency();
   console.log('products=>', products);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<{
@@ -224,7 +226,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                     <div className='grid grid-cols-4 items-center gap-4'>
                       <p className='text-right text-sm font-medium'>Subtotal:</p>
                       <p className='col-span-3 text-sm'>
-                        UGX {(Number(item.quantity) * Number(item.cost_price)).toLocaleString()}
+                        {currency} {(Number(item.quantity) * Number(item.cost_price)).toLocaleString()}
                       </p>
                     </div>
                   )}

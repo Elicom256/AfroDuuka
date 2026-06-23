@@ -8,12 +8,14 @@ import { PeriodFilterBar } from '../PeriodFilterBar';
 import { type ReportFilter } from '@/types';
 import { Error } from './Error';
 import { LoadingState } from '@/utils/LoadingState';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const CashFlowAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
   const { data, isLoading, isError, error } = useCashFlowAnalyticsQuery(selectedPeriod);
+  const { currency } = useCurrency();
 
   const analytics = data?.data;
 
@@ -34,7 +36,7 @@ export const CashFlowAnalytics = () => {
     labels: ['Revenue', 'Expenses'],
     datasets: [
       {
-        label: 'Amount (UGX)',
+        label: `Amount (${currency})`,
         data: [Number(total_revenue), Number(total_expenses)],
         backgroundColor: ['#10b981', '#ef4444'],
         borderRadius: 8,
@@ -50,7 +52,7 @@ export const CashFlowAnalytics = () => {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (context: any) => ` UGX ${context.parsed.y.toLocaleString()}`,
+          label: (context: any) => ` ${currency} ${context.parsed.y.toLocaleString()}`,
         },
       },
     },
@@ -60,7 +62,7 @@ export const CashFlowAnalytics = () => {
         ticks: {
           callback: (value: string | number) => {
             const num = typeof value === 'string' ? parseFloat(value) : value;
-            return `UGX ${(num / 1000000).toFixed(1)}M`;
+            return `${currency} ${(num / 1000000).toFixed(1)}M`;
           },
         },
       },
@@ -93,7 +95,7 @@ export const CashFlowAnalytics = () => {
             className={`text-lg font-semibold mt-2 flex items-center justify-center gap-2 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
           >
             {isPositive ? <ArrowUp className='h-8 w-8' /> : <ArrowDown className='h-8 w-8' />}
-            UGX {Number(net_cash_flow).toLocaleString()}
+            {currency} {Number(net_cash_flow).toLocaleString()}
           </p>
         </div>
 

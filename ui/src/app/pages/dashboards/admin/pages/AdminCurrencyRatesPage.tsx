@@ -4,8 +4,10 @@ import { Globe, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AdminCurrencyRatesPage = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = useCurrencyRatesQuery();
   const [deleteRate] = useDeleteCurrencyRateMutation();
   const rates = data?.data || [];
@@ -25,7 +27,7 @@ export const AdminCurrencyRatesPage = () => {
         <h1 className='text-3xl font-bold tracking-tight flex items-center gap-3'>
           <Globe className='h-8 w-8' /> Currency Rates
         </h1>
-        <p className='text-muted-foreground'>Exchange rates for multi-currency transactions (base: UGX)</p>
+        <p className='text-muted-foreground'>Exchange rates for multi-currency transactions (base: {currency})</p>
       </div>
       <Card>
         <CardHeader><CardTitle>All Rates</CardTitle></CardHeader>
@@ -36,7 +38,7 @@ export const AdminCurrencyRatesPage = () => {
             <div className='space-y-2'>
               {rates.map((r: any) => (
                 <div key={r.id} className='flex items-center justify-between p-3 bg-muted/50 rounded-lg'>
-                  <span className='font-medium'>UGX → {r.target_currency}: <span className='text-muted-foreground'>{Number(r.rate).toLocaleString()}</span></span>
+                  <span className='font-medium'>{currency} → {r.target_currency}: <span className='text-muted-foreground'>{Number(r.rate).toLocaleString()}</span></span>
                   <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
                 </div>
               ))}

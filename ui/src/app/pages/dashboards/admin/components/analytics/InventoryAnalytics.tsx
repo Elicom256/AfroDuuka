@@ -10,10 +10,12 @@ import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
 import { InventorySummary } from './InventorySummary';
 import { Footer } from 'react-day-picker';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const InventoryAnalytics = () => {
+  const { currency } = useCurrency();
   const { data, isLoading, isError, error } = useBranchProductAnalyticsQuery();
 
   const analytics = data?.data;
@@ -67,20 +69,20 @@ export const InventoryAnalytics = () => {
     {
       title: 'TIV',
       description: 'Total Inventory Value',
-      value: `UGX ${Number(totalInventoryValue).toLocaleString()}`,
+      value: `${currency} ${Number(totalInventoryValue).toLocaleString()}`,
       icon: Wallet,
     },
     {
       title: 'PR',
       description: 'Potential Revenue',
-      value: `UGX ${Number(totalPotentialRevenue).toLocaleString()}`,
+      value: `${currency} ${Number(totalPotentialRevenue).toLocaleString()}`,
       valueClassName: 'text-emerald-600',
       icon: TrendingUp,
     },
     {
       title: 'EP',
       description: 'Expected Profit',
-      value: `UGX ${Number(totalExpectedProfit).toLocaleString()}`,
+      value: `${currency} ${Number(totalExpectedProfit).toLocaleString()}`,
       valueClassName: 'text-emerald-600',
       icon: BadgeDollarSign,
     },

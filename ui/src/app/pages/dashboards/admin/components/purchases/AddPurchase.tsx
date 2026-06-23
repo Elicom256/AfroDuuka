@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddPurchaseProps {
   addPurchase: any;
@@ -30,6 +31,7 @@ interface PurchaseItem {
 }
 
 export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }: AddPurchaseProps) => {
+  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -220,7 +222,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                   </div>
 
                   <div className='col-span-4'>
-                    <Label>Cost Price (UGX)</Label>
+                    <Label>Cost Price ({currency})</Label>
                     <Input
                       type='number'
                       value={item.cost_price}
@@ -231,7 +233,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
 
                   {item.quantity && item.cost_price && (
                     <div className='col-span-12 text-sm text-right font-medium'>
-                      Subtotal: UGX {(Number(item.quantity) * Number(item.cost_price)).toLocaleString()}
+                      Subtotal: {currency} {(Number(item.quantity) * Number(item.cost_price)).toLocaleString()}
                     </div>
                   )}
                 </div>

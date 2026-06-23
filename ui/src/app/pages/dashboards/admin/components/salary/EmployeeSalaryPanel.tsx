@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { EmployeeSalaryForm } from './EmployeeSalaryForm';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 type EmployeeSalaryPanelProps = {
   salaries: any[];
@@ -20,6 +21,7 @@ export const EmployeeSalaryPanel = ({
   onEditRow,
   onDeleteRow,
 }: EmployeeSalaryPanelProps) => {
+  const { currency } = useCurrency();
   const formatted = (date: any) => format(new Date(date), 'dd MMM yyyy');
 
   return (
@@ -82,7 +84,7 @@ export const EmployeeSalaryPanel = ({
                         '—'}
                     </TableCell>
                     <TableCell>{Number(item.amount).toLocaleString()}</TableCell>
-                    <TableCell>{item.currency || 'UGX'}</TableCell>
+                    <TableCell>{item.currency || currency}</TableCell>
                     <TableCell>{formatted(item.effective_date)}</TableCell>
                     <TableCell>{item.end_date ? formatted(item.end_date) : '—'}</TableCell>
                     <TableCell>

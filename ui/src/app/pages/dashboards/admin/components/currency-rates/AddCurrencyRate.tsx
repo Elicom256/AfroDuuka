@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AddCurrencyRate = ({ createRate }: any) => {
+  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ target_currency: '', rate: '' });
 
@@ -27,7 +29,7 @@ export const AddCurrencyRate = ({ createRate }: any) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Exchange Rate</DialogTitle>
-          <DialogDescription>Base currency is UGX. Enter the target currency and its rate.</DialogDescription>
+          <DialogDescription>Base currency is {currency}. Enter the target currency and its rate.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
@@ -35,7 +37,7 @@ export const AddCurrencyRate = ({ createRate }: any) => {
             <Input value={form.target_currency} onChange={(e) => setForm({ ...form, target_currency: e.target.value })} placeholder='e.g. USD' maxLength={3} className='uppercase' />
           </div>
           <div className='space-y-2'>
-            <Label>Rate (1 {form.target_currency.toUpperCase() || 'CURRENCY'} = ? UGX)</Label>
+            <Label>Rate (1 {form.target_currency.toUpperCase() || 'CURRENCY'} = ? {currency})</Label>
             <Input type='number' step='0.000001' value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} placeholder='e.g. 3700' />
           </div>
           <DialogFooter>

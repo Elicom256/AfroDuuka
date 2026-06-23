@@ -16,12 +16,20 @@ class CashFlowController extends Controller
         $this->cashFlowService = $cashFlowService;
     }
     /**
-     * Display a listing of the resource.
+     * Display a paginated listing of cashflows.
      */
     public function index()
     {
-        $cashFlow = CashFlow::all();
-        return response()->json(["message" => "Fetched monthly cashflow", "data" => $cashFlow]);
+        $user = Auth::user();
+        $cashFlow = CashFlow::where('business_id', $user->business_id)
+            ->with(['branch', 'createdBy'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return response()->json([
+            "message" => "Fetched cashflow records",
+            "data" => $cashFlow
+        ]);
     }
 
     /**

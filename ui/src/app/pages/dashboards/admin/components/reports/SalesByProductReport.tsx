@@ -2,21 +2,23 @@ import { useState } from 'react';
 import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useSalesByProductQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'UGX',
-    minimumFractionDigits: 0,
-  }).format(value);
-};
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const SalesByProductReport = () => {
+  const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
   const { data, isLoading } = useSalesByProductQuery(period);
 
   const reportData = data?.data;
   const topProducts = reportData?.top_products || [];
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
 
   return (
     <ReportCard title='Sales By Product' loading={isLoading}>

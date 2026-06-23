@@ -3,16 +3,10 @@ import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useBranchPerformanceQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'UGX',
-    minimumFractionDigits: 0,
-  }).format(value);
-};
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const BranchPerformanceReport = () => {
+  const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
@@ -24,6 +18,14 @@ export const BranchPerformanceReport = () => {
     id: selectedBranchId || defaultBranchId,
     period,
   });
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
 
   const report = data?.data;
   const summary = report?.summary;

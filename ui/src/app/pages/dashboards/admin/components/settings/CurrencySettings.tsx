@@ -10,8 +10,10 @@ import {
   useCreateCurrencyRateMutation,
   useDeleteCurrencyRateMutation,
 } from '@/app/store/features/business/admin/currencyRatesQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const CurrencySettings = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = useCurrencyRatesQuery();
   const [createRate, { isLoading: isCreating }] = useCreateCurrencyRateMutation();
   const [deleteRate] = useDeleteCurrencyRateMutation();
@@ -59,7 +61,7 @@ export const CurrencySettings = () => {
       <Card className='border-border/70'>
         <CardContent className='p-6'>
           <div className='flex items-center justify-between mb-4'>
-            <p className='font-semibold'>Exchange Rates (Base: UGX)</p>
+            <p className='font-semibold'>Exchange Rates (Base: {currency})</p>
             <Button size='sm' onClick={() => setShowForm(!showForm)}>
               <Plus className='h-4 w-4 mr-1' /> Add Rate
             </Button>
@@ -96,8 +98,8 @@ export const CurrencySettings = () => {
               {rates.map((rate: any) => (
                 <div key={rate.id} className='flex items-center justify-between p-3 bg-muted/50 rounded-lg'>
                   <div>
-                    <span className='font-medium'>UGX → {rate.target_currency}</span>
-                    <span className='ml-4 text-muted-foreground'>1 {rate.target_currency} = {Number(rate.rate).toLocaleString()} UGX</span>
+                    <span className='font-medium'>{currency} → {rate.target_currency}</span>
+                    <span className='ml-4 text-muted-foreground'>1 {rate.target_currency} = {Number(rate.rate).toLocaleString()} {currency}</span>
                   </div>
                   <Button variant='ghost' size='icon' onClick={() => handleDelete(rate.id)}>
                     <Trash2 className='h-4 w-4 text-destructive' />
