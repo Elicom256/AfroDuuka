@@ -1,17 +1,20 @@
+import { useCurrency } from '@/app/hooks/useCurrency';
+
 interface MetricsType {
   metrics: any;
 }
 export const MetricsCards = ({ metrics }: MetricsType) => {
+  const { currency } = useCurrency();
   const metricCards = [
     {
       title: 'Total Sales',
       value: metrics.sales,
-      prefix: 'UGX ',
+      prefix: `${currency} `,
     },
     {
       title: 'Total Purchases',
       value: metrics.purchases,
-      prefix: 'UGX ',
+      prefix: `${currency} `,
     },
     {
       title: 'Gross Profit Margin',

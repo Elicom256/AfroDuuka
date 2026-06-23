@@ -2,8 +2,10 @@ import { DollarSign, TrendingUp } from 'lucide-react';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useBranchFinancesQuery } from '@/app/store/features/branch';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const ManagerFinancesPage = () => {
+  const { currency } = useCurrency();
   const { data, isLoading } = useBranchFinancesQuery();
   const finances = data?.data ?? data ?? {};
   const revenue = Number(finances.revenue ?? finances.totalRevenue ?? finances.sales ?? 0);
@@ -18,17 +20,17 @@ export const ManagerFinancesPage = () => {
         <div className='grid gap-4 md:grid-cols-3'>
           <SectionCard
             title='Revenue'
-            value={`UGX ${revenue.toLocaleString()}`}
+            value={`${currency} ${revenue.toLocaleString()}`}
             icon={<DollarSign className='h-5 w-5' />}
           />
           <SectionCard
             title='Expenses'
-            value={`UGX ${expenses.toLocaleString()}`}
+            value={`${currency} ${expenses.toLocaleString()}`}
             icon={<DollarSign className='h-5 w-5' />}
           />
           <SectionCard
             title='Profit'
-            value={`UGX ${profit.toLocaleString()}`}
+            value={`${currency} ${profit.toLocaleString()}`}
             icon={<TrendingUp className='h-5 w-5' />}
           />
         </div>

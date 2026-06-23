@@ -6,8 +6,10 @@ import { useSaleQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const Sale = () => {
+  const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   if (!id) return null;
   const { data: saleData, isLoading: saleLoading } = useSaleQuery(id, { skip: !id });
@@ -53,7 +55,7 @@ export const Sale = () => {
                   <span className='font-medium'>Note:</span> {sale.note || 'No note'}
                 </p>
                 <p>
-                  <span className='font-medium'>Total Amount:</span> UGX {parseInt(sale.total_amount).toLocaleString()}
+                  <span className='font-medium'>Total Amount:</span> {currency} {parseInt(sale.total_amount).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -67,8 +69,8 @@ export const Sale = () => {
                   <TableHead>No</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Quantity</TableHead>
-                  <TableHead>Unit Price (UGX)</TableHead>
-                  <TableHead>Total (UGX) </TableHead>
+                  <TableHead>Unit Price ({currency})</TableHead>
+                  <TableHead>Total ({currency}) </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

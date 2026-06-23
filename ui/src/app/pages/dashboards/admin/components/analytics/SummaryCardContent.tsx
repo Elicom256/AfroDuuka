@@ -1,9 +1,13 @@
+import { useCurrency } from '@/app/hooks/useCurrency';
+
 interface SummaryCardContentProps {
   analytics: any;
   currency?: string;
 }
 
-export const SummaryCardContent = ({ analytics, currency = 'UGX' }: SummaryCardContentProps) => {
+export const SummaryCardContent = ({ analytics, currency: propCurrency }: SummaryCardContentProps) => {
+  const { currency: hookCurrency } = useCurrency();
+  const currency = propCurrency ?? hookCurrency;
   console.log('analytics here==>', analytics);
   const stats = [
     {

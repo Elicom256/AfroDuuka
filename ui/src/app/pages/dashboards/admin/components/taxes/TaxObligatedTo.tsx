@@ -5,8 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const TaxObligatedTo = () => {
+  const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, error } = useGetAdminTaxQuery(id ?? '', { skip: !id });
 
@@ -15,7 +17,7 @@ export const TaxObligatedTo = () => {
   if (!data?.business_tax) return <div className='p-6 text-sm text-muted-foreground'>Tax not found.</div>;
 
   const tax = data.business_tax;
-  const rateDisplay = tax.type === 'percentage' ? `${tax.rate}%` : `UGX ${Number(tax.rate).toLocaleString()}`;
+  const rateDisplay = tax.type === 'percentage' ? `${tax.rate}%` : `${currency} ${Number(tax.rate).toLocaleString()}`;
   const createdAt = tax.created_at ? new Date(tax.created_at).toLocaleString() : 'N/A';
   const updatedAt = tax.updated_at ? new Date(tax.updated_at).toLocaleString() : 'N/A';
 

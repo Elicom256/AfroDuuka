@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddSaleProps {
   addSale: any; // RTK Query mutation
@@ -30,6 +31,7 @@ interface SaleItem {
 }
 
 export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSaleProps) => {
+  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -238,7 +240,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
 
                   {/* Unit Price */}
                   <div className='col-span-4'>
-                    <Label>Unit Price (UGX)</Label>
+                    <Label>Unit Price ({currency})</Label>
                     <Input
                       type='number'
                       value={item.unit_price}

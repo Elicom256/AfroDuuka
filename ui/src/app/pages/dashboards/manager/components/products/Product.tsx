@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
 import { ArrowLeftCircle } from 'lucide-react';
 import { useBranchProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const Product = () => {
+  const { currency } = useCurrency();
   const { id } = useParams();
   console.log('id==>', id);
   const { data, isLoading, error } = useBranchProductQuery(id as string, { skip: !id });
@@ -60,12 +62,12 @@ export const Product = () => {
             
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Price</label>
-              <p className=''>UGX {product.price}</p>
+              <p className=''>{currency} {product.price}</p>
             </div>
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Cost Price</label>
-              <p className=''>UGX {product.cost_price}</p>
+              <p className=''>{currency} {product.cost_price}</p>
             </div>
 
             <div className='flex items-center gap-2'>

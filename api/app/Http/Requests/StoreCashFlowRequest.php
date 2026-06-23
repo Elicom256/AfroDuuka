@@ -22,13 +22,15 @@ class StoreCashFlowRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
 
         $this->merge([
             'business_id' => $user->business_id,
             'business_branch_id' => $user->business_branch_id,
             'created_by' => $user->id,
             'status' => $this->input('status', 'completed'),
-            'currency' => $this->input('currency', 'UGX'),
+            'currency' => $this->input('currency', $defaultCurrency),
             'transaction_date' => $this->input('transaction_date', now()->toDateString()),
             
             // Auto-generate transaction code if not provided

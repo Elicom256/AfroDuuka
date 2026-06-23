@@ -12,10 +12,12 @@ import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
 import { periods } from '../periodHelper';
 import { MetricsCards } from './MetricsCards';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const PerformanceMetrics = () => {
+  const { currency } = useCurrency();
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
 
@@ -52,7 +54,7 @@ export const PerformanceMetrics = () => {
       labels: ['Sales', 'Purchases'],
       datasets: [
         {
-          label: 'Amount (UGX)',
+          label: `Amount (${currency})`,
           data: [Number(metrics.sales || 0), Number(metrics.purchases || 0)],
           backgroundColor: ['#10b981', '#f97316'],
           borderRadius: 8,
@@ -69,7 +71,7 @@ export const PerformanceMetrics = () => {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (context: any) => ` UGX ${context.parsed.y.toLocaleString()}`,
+          label: (context: any) => ` ${currency} ${context.parsed.y.toLocaleString()}`,
         },
       },
     },
@@ -79,7 +81,7 @@ export const PerformanceMetrics = () => {
         ticks: {
           callback: (value: string | number) => {
             const num = typeof value === 'string' ? parseFloat(value) : value;
-            return `UGX ${(num / 1000000).toFixed(1)}M`;
+            return `${currency} ${(num / 1000000).toFixed(1)}M`;
           },
         },
       },

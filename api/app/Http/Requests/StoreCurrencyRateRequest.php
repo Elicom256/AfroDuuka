@@ -14,9 +14,13 @@ class StoreCurrencyRateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
+
         $this->merge([
-            'business_id' => Auth::user()->business_id,
-            'base_currency' => $this->input('base_currency', 'UGX'),
+            'business_id' => $user->business_id,
+            'base_currency' => $this->input('base_currency', $defaultCurrency),
             'valid_from' => $this->input('valid_from', now()->toDateString()),
         ]);
     }

@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
 import { ArrowLeftCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const BusinessProduct = () => {
+  const { currency } = useCurrency();
   const { id } = useParams();
   const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
   const [editOpen, setEditOpen] = useState(false);
@@ -86,12 +88,12 @@ export const BusinessProduct = () => {
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Price</label>
-              <p className=''>UGX {product.price}</p>
+              <p className=''>{currency} {product.price}</p>
             </div>
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Cost Price</label>
-              <p className=''>UGX {product.cost_price}</p>
+              <p className=''>{currency} {product.cost_price}</p>
             </div>
 
             <div className='flex items-center gap-2'>

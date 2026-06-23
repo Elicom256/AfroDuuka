@@ -2,8 +2,10 @@ import { useState } from 'react';
 import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useDeadStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const DeadStockReport = () => {
+  const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
   const { data, isLoading } = useDeadStockQuery(period);
 
@@ -13,7 +15,7 @@ export const DeadStockReport = () => {
   const formatCurrency = (value: string | number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'UGX',
+      currency,
       minimumFractionDigits: 0,
     }).format(Number(value));
   };

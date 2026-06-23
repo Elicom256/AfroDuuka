@@ -8,8 +8,10 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { TaxPaymentsPanel } from '../components/taxes/TaxPaymentsPanel';
 import { SummaryCard } from '../components/taxes/SummaryCard';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AdminTaxesPage = () => {
+  const { currency } = useCurrency();
   const { data: paymentData, isLoading: paymentsLoading } = useGetAdminTaxePaymentsQuery();
   const { data: taxTypesData, isLoading: taxTypesLoading } = useGetAdminTaxesQuery();
   const [updateTaxPayment] = useUpdateAdminTaxPaymentMutation();
@@ -31,12 +33,12 @@ export const AdminTaxesPage = () => {
     {
       title: 'Total tax liability',
       description: 'All tax entries for the current business.',
-      value: `UGX ${Number(totalTax).toLocaleString()}`,
+      value: `${currency} ${Number(totalTax).toLocaleString()}`,
     },
     {
       title: 'Outstanding tax',
       description: 'Open tax balances awaiting payment.',
-      value: `UGX ${Number(outstanding).toLocaleString()}`,
+      value: `${currency} ${Number(outstanding).toLocaleString()}`,
     },
     {
       title: 'Active obligations',
@@ -111,7 +113,7 @@ export const AdminTaxesPage = () => {
               </div>
               <div className='rounded-3xl border border-border/70 bg-muted p-4'>
                 <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total obligations</p>
-                <p className='mt-2 text-3xl font-semibold'>UGX {Number(totalTaxObligations).toLocaleString()}</p>
+                <p className='mt-2 text-3xl font-semibold'>{currency} {Number(totalTaxObligations).toLocaleString()}</p>
               </div>
               <div className='rounded-3xl border border-border/70 bg-muted p-4'>
                 <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Latest obligation</p>

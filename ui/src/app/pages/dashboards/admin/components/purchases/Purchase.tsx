@@ -8,8 +8,10 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const Purchase = () => {
+  const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseQuery(Number(id), { skip: !id });
   const { data: productsData } = useProductsQuery();
@@ -67,7 +69,7 @@ export const Purchase = () => {
                   <span className='font-medium'>Note:</span> {purchase.note || 'No note'}
                 </p>
                 <p>
-                  <span className='font-medium'>Total Amount:</span> UGX{' '}
+                  <span className='font-medium'>Total Amount:</span> {currency}{' '}
                   {parseInt(purchase.total_amount).toLocaleString()}
                 </p>
               </div>
@@ -91,8 +93,8 @@ export const Purchase = () => {
                     <TableRow key={item.id}>
                       <TableCell className='font-medium'>{item?.business_branch_product.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>UGX {Number(item.cost_price).toLocaleString()}</TableCell>
-                      <TableCell>UGX {Number(item.subtotal).toLocaleString()}</TableCell>
+                      <TableCell>{currency} {Number(item.cost_price).toLocaleString()}</TableCell>
+                      <TableCell>{currency} {Number(item.subtotal).toLocaleString()}</TableCell>
                     </TableRow>
                   ))
                 ) : (

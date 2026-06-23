@@ -7,16 +7,19 @@ use App\Http\Requests\UpdateBusinessTaxPaymentRequest;
 use App\Models\BusinessTaxPayment;
 use App\Http\Resources\BusinessTaxPaymentResource;
 use App\Services\ActivityLogService;
+use App\Services\CashFlowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessTaxPaymentsController extends Controller
 {
     protected ActivityLogService $activity_log;
+    protected CashFlowService $cashFlowService;
 
-    public function __construct(ActivityLogService $activityLog)
+    public function __construct(ActivityLogService $activityLog, CashFlowService $cashFlowService)
     {
         $this->activity_log = $activityLog;
+        $this->cashFlowService = $cashFlowService;
     }
 
     public function index(Request $request)
@@ -56,6 +59,12 @@ class BusinessTaxPaymentsController extends Controller
 
         $payment = BusinessTaxPayment::create($data);
 
+        // Record cash outflow for tax payment
+        $paidAmount = (float) ($data['paid_amount'] ?? $data['amount'] ?? 0);
+        if ($paidAmount > 0) {
+            $this->cashFlowService->createCashFlowForTaxPayment($payment, $paidAmount);
+        }
+
         $this->activity_log->activity(
             "Paid Tax",
             "{$payment->paid_amount} has been paid as a tax for taxId {$payment->business_tax_id}"
@@ -82,13 +91,17 @@ class BusinessTaxPaymentsController extends Controller
         $validated = $request->validated();
 
         $businessTaxPayment->update($validated);
-        // $businessTaxPayment->refresh(); // or ->fresh()
+
+        // Record cash outflow if paid_amount was explicitly provided and greater than 0
+        if (isset($validated['paid_amount']) && (float) $validated['paid_amount'] > 0) {
+            $this->cashFlowService->createCashFlowForTaxPayment($businessTaxPayment, (float) $validated['paid_amount']);
+        }
 
         $this->activity_log->activity(
             "Updated Tax Payment",
             "Tax payment ID {$businessTaxPayment->id} was updated"
         );
-// new BusinessTaxPaymentResource($businessTaxPayment)
+
         return response()->json([
             'message' => 'Tax payment updated successfully!',
             'data' => $businessTaxPayment

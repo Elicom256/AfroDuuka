@@ -18,10 +18,12 @@ import { type ReportFilter, formatPeriodLabel } from '@/types';
 import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const SalesAnalytics = () => {
+  const { currency } = useCurrency();
   const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
   const { data, isLoading, isError, error } = useGetSalesAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
@@ -35,7 +37,7 @@ export const SalesAnalytics = () => {
       labels: analytics.sales_trend.map((item: any) => item.date),
       datasets: [
         {
-          label: 'Daily Sales (UGX)',
+          label: `Daily Sales (${currency})`,
           data: analytics.sales_trend.map((item: any) => item.amount),
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.08)',
@@ -58,7 +60,7 @@ export const SalesAnalytics = () => {
         ticks: {
           callback: (value: string | number) => {
             const num = typeof value === 'string' ? parseFloat(value) : value;
-            return `UGX ${(num / 1000000).toFixed(2)}M`;
+            return `${currency} ${(num / 1000000).toFixed(2)}M`;
           },
         },
       },

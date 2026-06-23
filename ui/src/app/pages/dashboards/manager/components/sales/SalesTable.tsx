@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface SalesTableProps {
   sales: any[];
@@ -8,6 +9,7 @@ interface SalesTableProps {
 }
 
 export const SalesTable = ({ sales }: SalesTableProps) => {
+  const { currency } = useCurrency();
   const navigate = useNavigate();
   console.log('sale==>', sales);
 
@@ -21,7 +23,7 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
             <TableHead>Status</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Note</TableHead>
-            <TableHead> Amount(UGX)</TableHead>
+            <TableHead> Amount({currency})</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

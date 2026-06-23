@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Users,
   PackageCheck,
-  ShoppingBag,
   TrendingUp,
   Users2,
   Truck,
@@ -28,8 +27,16 @@ import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
 import { useGetNotificationsQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
 
-const navSections = [
+type AdminSidebarProps = {
+  onNavigate?: () => void;
+};
+
+const navSections: Array<{
+  title: string;
+  items: Array<{ label: string; to: string; icon: any; settingKey?: string }>;
+}> = [
   {
     title: 'Overview',
     items: [{ label: 'Overview', to: '/admin', icon: LayoutDashboard }],
@@ -46,17 +53,17 @@ const navSections = [
     title: 'People',
     items: [
       { label: 'Workers', to: '/admin/workers', icon: Users },
-      { label: 'Suppliers', to: '/admin/suppliers', icon: Users2 },
-      { label: 'Customers', to: '/admin/customers', icon: Users2 },
+      { label: 'Suppliers', to: '/admin/suppliers', icon: Users2, settingKey: 'suppliers' },
+      { label: 'Customers', to: '/admin/customers', icon: Users2, settingKey: 'customers' },
     ],
   },
   {
     title: 'Business',
     items: [
       { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
-      { label: 'Reports', to: '/admin/reports', icon: TrendingUp },
+      { label: 'Reports', to: '/admin/reports', icon: TrendingUp, settingKey: 'reports' },
       { label: 'Finances', to: '/admin/finances', icon: DollarSign },
-      { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle },
+      { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle, settingKey: 'attendance' },
       { label: 'Taxes', to: '/admin/taxes', icon: DollarSign },
       { label: 'Payroll', to: '/admin/remuneration', icon: Users },
       { label: 'Salaries', to: '/admin/employee-salaries', icon: DollarSign },
@@ -67,7 +74,7 @@ const navSections = [
   {
     title: 'Marketing',
     items: [
-      { label: 'Promotions', to: '/admin/promotions', icon: Gift },
+      { label: 'Promotions', to: '/admin/promotions', icon: Gift, settingKey: 'promotions' },
       { label: 'Coupons', to: '/admin/coupons', icon: Tag },
       { label: 'Loyalty', to: '/admin/loyalty', icon: Award },
     ],
@@ -99,17 +106,25 @@ const navSections = [
   },
 ];
 
-type AdminSidebarProps = {
-  onNavigate?: () => void;
-};
-
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { data: userData } = useLoggedinUserQuery();
   const { data: notificationsData } = useGetNotificationsQuery(undefined, { pollingInterval: 720000 });
+  const features = useFeatureSettings();
 
   const role = userData?.data?.role?.name;
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+
+  // Filter nav sections based on feature settings
+  const filteredSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.settingKey && !features[item.settingKey as keyof typeof features]) return false;
+        return true;
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <nav className='flex flex-col h-full'>
@@ -120,7 +135,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
 
       <div className='flex-1 overflow-y-auto p-3 space-y-8'>
         {userData && userData?.data?.business ? (
-          navSections.map((section) => (
+          filteredSections.map((section) => (
             <div key={section.title} className='space-y-1'>
               <h4 className='px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2'>
                 {section.title}

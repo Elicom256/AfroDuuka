@@ -27,6 +27,8 @@ class CashFlow extends BaseModel
         'supplier_id',
         'sale_id',
         'purchase_id',
+        'tax_payment_id',
+        'stock_transfer_id',
         'description',
         'category',
         'payment_method_id',
@@ -93,6 +95,18 @@ class CashFlow extends BaseModel
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // Link to Tax Payment
+    public function taxPayment(): BelongsTo
+    {
+        return $this->belongsTo(BusinessTaxPayment::class, 'tax_payment_id');
+    }
+
+    // Link to Stock Transfer
+    public function stockTransfer(): BelongsTo
+    {
+        return $this->belongsTo(StockTransfer::class, 'stock_transfer_id');
+    }
+
     /**
      * Scopes
      */
@@ -128,5 +142,19 @@ class CashFlow extends BaseModel
     public function getIsOutflowAttribute(): bool
     {
         return in_array($this->type, ['purchase', 'expense', 'payment_out']);
+    }
+
+    public function getCategoryLabelAttribute(): string
+    {
+        return match($this->category) {
+            'product_sales'     => 'Product Sales',
+            'product_purchases' => 'Product Purchases',
+            'raw_materials'     => 'Raw Materials',
+            'rent'              => 'Rent',
+            'worker_payments'   => 'Worker Payments',
+            'tax_payments'      => 'Tax Payments',
+            'stock_transfer'    => 'Stock Transfer',
+            default             => ucfirst(str_replace('_', ' ', $this->category ?? 'N/A')),
+        };
     }
 }

@@ -24,6 +24,7 @@ import {
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
 import { toast } from 'sonner';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 type EmployeeSalaryFormProps = {
   editItem?: any;
@@ -47,12 +48,13 @@ export const EmployeeSalaryForm = ({
   const { data: workersData, isLoading: workersLoading } = useGetWorkersInfoQuery();
   const workers = workersData?.workers ?? [];
 
+  const { currency: businessCurrency } = useCurrency();
   const isEdit = Boolean(editItem);
 
   const [formData, setFormData] = useState({
     worker_id: '',
     amount: '',
-    currency: 'UGX',
+    currency: businessCurrency,
     effective_date: format(new Date(), 'yyyy-MM-dd'),
     end_date: '',
     status: 'active',
@@ -63,7 +65,7 @@ export const EmployeeSalaryForm = ({
       setFormData({
         worker_id: editItem.worker_id?.toString() ?? '',
         amount: editItem.amount?.toString() ?? '',
-        currency: editItem.currency ?? 'UGX',
+        currency: editItem.currency ?? businessCurrency,
         effective_date: editItem.effective_date ?? format(new Date(), 'yyyy-MM-dd'),
         end_date: editItem.end_date ?? '',
         status: editItem.status ?? 'active',
@@ -73,13 +75,13 @@ export const EmployeeSalaryForm = ({
       setFormData({
         worker_id: '',
         amount: '',
-        currency: 'UGX',
+        currency: businessCurrency,
         effective_date: format(new Date(), 'yyyy-MM-dd'),
         end_date: '',
         status: 'active',
       });
     }
-  }, [open, editItem]);
+  }, [open, editItem, businessCurrency]);
   const updateForm = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -88,7 +90,7 @@ export const EmployeeSalaryForm = ({
     setFormData({
       worker_id: '',
       amount: '',
-      currency: 'UGX',
+      currency: businessCurrency,
       effective_date: format(new Date(), 'yyyy-MM-dd'),
       end_date: '',
       status: 'active',
@@ -193,6 +195,9 @@ export const EmployeeSalaryForm = ({
                   <SelectValue placeholder='Select currency' />
                 </SelectTrigger>
                 <SelectContent>
+                  {![ 'UGX', 'USD', 'EUR', 'KES', 'TZS' ].includes(businessCurrency) && (
+                    <SelectItem value={businessCurrency}>{businessCurrency}</SelectItem>
+                  )}
                   <SelectItem value='UGX'>UGX</SelectItem>
                   <SelectItem value='USD'>USD</SelectItem>
                   <SelectItem value='EUR'>EUR</SelectItem>

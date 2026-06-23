@@ -8,8 +8,10 @@ import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
 import { usePurchaseAnalyticsQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const PurchasesAnalytics = () => {
+  const { currency } = useCurrency();
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
   const { data, isLoading, isError, error } = usePurchaseAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
@@ -23,7 +25,7 @@ export const PurchasesAnalytics = () => {
       labels: analytics.purchase_trend.map((item: any) => item.date),
       datasets: [
         {
-          label: 'Daily Purchases (UGX)',
+          label: `Daily Purchases (${currency})`,
           data: analytics.purchase_trend.map((item: any) => item.amount),
           borderColor: '#f97316',
           backgroundColor: 'rgba(249, 115, 22, 0.08)',
@@ -45,7 +47,7 @@ export const PurchasesAnalytics = () => {
         ticks: {
           callback: (value: string | number) => {
             const num = typeof value === 'string' ? parseFloat(value) : value;
-            return `UGX ${(num / 1000000).toFixed(2)}M`;
+            return `${currency} ${(num / 1000000).toFixed(2)}M`;
           },
         },
       },

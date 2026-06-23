@@ -106,14 +106,21 @@ class BusinessTaxPayment extends Model
             // Auto-calculate balance
             $payment->balance = $payment->amount - ($payment->paid_amount ?? 0);
 
-            // Auto-update status based on amounts
-            if ($payment->balance <= 0) {
-                $payment->status = 'paid';
-                $payment->payment_date = $payment->payment_date ?? now()->toDateString();
-            } elseif ($payment->paid_amount > 0) {
-                $payment->status = 'partial';
-            } else {
-                $payment->status = 'unpaid';
+            // Only auto-calculate status if status was not explicitly set to a manual state
+            // Manual statuses: overdue, waived, refunded
+            // Auto-calculated statuses: unpaid, partial, paid
+            $manualStatuses = ['overdue', 'waived', 'refunded'];
+            $isManualOverride = in_array($payment->status, $manualStatuses);
+
+            if (!$isManualOverride) {
+                if ($payment->balance <= 0) {
+                    $payment->status = 'paid';
+                    $payment->payment_date = $payment->payment_date ?? now()->toDateString();
+                } elseif ($payment->paid_amount > 0) {
+                    $payment->status = 'partial';
+                } else {
+                    $payment->status = 'unpaid';
+                }
             }
         });
     }

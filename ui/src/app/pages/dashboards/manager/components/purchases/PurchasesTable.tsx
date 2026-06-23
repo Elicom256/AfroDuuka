@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface PurchasesTableProps {
   purchases: any[];
@@ -8,6 +9,7 @@ interface PurchasesTableProps {
 }
 
 export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
+  const { currency } = useCurrency();
   const navigate = useNavigate();
   console.log('purchases==>', purchases);
 
@@ -20,7 +22,7 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
             <TableHead>Supplier ID</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Note</TableHead>
-            <TableHead>Amount (UGX)</TableHead>
+            <TableHead>Amount ({currency})</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
