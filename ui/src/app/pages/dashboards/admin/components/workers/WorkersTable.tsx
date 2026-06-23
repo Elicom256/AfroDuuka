@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { PaginationComponent } from '@/app/utils/Pagination';
 
 export type WorkerItem = {
   id: number;
@@ -56,6 +57,9 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
     return <PageLoadingState />;
   }
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   if (isLoading) {
     return (
       <Card>
@@ -97,6 +101,11 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
       </Card>
     );
   }
+
+  const workerList = Array.isArray(workers) ? workers : [];
+  const totalPages = Math.ceil(workerList.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedWorkers = workerList.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <Card className='overflow-hidden'>
@@ -151,55 +160,57 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {workers &&
-            workers.map((worker: any) => (
-              <TableRow key={worker.id} onClick={() => navigate(`/admin/workers/${worker.id}`)}>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type='checkbox'
-                    checked={!!selected[worker.id]}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelected((s) => ({ ...s, [worker.id]: checked }));
-                      if (!checked) setAllPresent(false);
+          {paginatedWorkers.map((worker: any) => (
+            <TableRow key={worker.id} onClick={() => navigate(`/admin/workers/${worker.id}`)}>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <input
+                  type='checkbox'
+                  checked={!!selected[worker.id]}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setSelected((s) => ({ ...s, [worker.id]: checked }));
+                    if (!checked) setAllPresent(false);
+                  }}
+                />
+              </TableCell>
+              <TableCell>{worker.employee_code || '—'}</TableCell>
+              <TableCell>{`${worker.user.firstname ?? '-'} ${worker.user.lastname}`}</TableCell>
+              <TableCell>{worker.user.email || '—'}</TableCell>
+              <TableCell>{worker.user.phone || '—'}</TableCell>
+              <TableCell>{worker.user.business_branch.name ?? '—'}</TableCell>
+              <TableCell>{(worker?.user.role as any)?.name || '—'}</TableCell>
+              <TableCell>
+                <div className='flex flex-wrap gap-2'>
+                  <Button
+                    size='icon-sm'
+                    variant='outline'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(worker);
                     }}
-                  />
-                </TableCell>
-                <TableCell>{worker.employee_code || '—'}</TableCell>
-                <TableCell>{`${worker.user.firstname ?? '-'} ${worker.user.lastname}`}</TableCell>
-                <TableCell>{worker.user.email || '—'}</TableCell>
-                <TableCell>{worker.user.phone || '—'}</TableCell>
-                <TableCell>{worker.user.business_branch.name ?? '—'}</TableCell>
-                <TableCell>{(worker?.user.role as any)?.name || '—'}</TableCell>
-                <TableCell>
-                  <div className='flex flex-wrap gap-2'>
-                    <Button
-                      size='icon-sm'
-                      variant='outline'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(worker);
-                      }}
-                    >
-                      <Edit3 className='h-4 w-4' />
-                    </Button>
-                    <Button
-                      size='icon-sm'
-                      variant='destructive'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(worker);
-                      }}
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className='h-4 w-4' />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  >
+                    <Edit3 className='h-4 w-4' />
+                  </Button>
+                  <Button
+                    size='icon-sm'
+                    variant='destructive'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(worker);
+                    }}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
+      <div className='p-4'>
+        <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      </div>
     </Card>
   );
 };

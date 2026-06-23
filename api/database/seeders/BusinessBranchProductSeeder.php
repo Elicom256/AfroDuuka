@@ -36,8 +36,9 @@ class BusinessBranchProductSeeder extends Seeder
                 $costPrice = rand(50000, 180000) / 100;
                 $markup_percentage = rand(15, 50) / 100;
                 $price = $costPrice * (1 + $markup_percentage);
+                foreach($names as $name){
                 BusinessBranchProduct::updateOrCreate(
-                    ['business_branch_id' => $branch->id, 'name' => $names[array_rand($names)]],
+                    ['business_branch_id' => $branch->id, 'name' => $name],
                     [
                         'product_id' => $product->id,
                         'quantity' => rand(2, 25),
@@ -49,6 +50,7 @@ class BusinessBranchProductSeeder extends Seeder
                         'status' => "active",
                     ]
                 );
+            }
             }
         }
 
