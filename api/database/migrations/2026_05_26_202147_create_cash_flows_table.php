@@ -34,7 +34,7 @@ return new class extends Migration
         
         // Description & categorization
         $table->string('description')->nullable();
-        $table->string('category', 100)->change();
+        $table->string('category', 100)->nullable();
               // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
         
         // Payment details
