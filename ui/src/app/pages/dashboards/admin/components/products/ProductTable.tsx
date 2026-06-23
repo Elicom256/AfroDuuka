@@ -38,14 +38,14 @@ export const ProductTable = () => {
   console.log('products==>', branchProducts);
   const bproducts = branchProducts?.products;
   const [currentPage, setCurrentPage] = useState(1);
-  // const itemsPerPage = 10; // Adjust as needed
+  const itemsPerPage = 10;
   console.log('bproducts==>', bproducts);
 
   if (loadBranchProducts) return <PageLoadingState />;
 
-  // const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
-  // const startIndex = (currentPage - 1) * itemsPerPage;
-  // const paginatedProducts = products?.products.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil((bproducts?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = bproducts?.slice(startIndex, startIndex + itemsPerPage);
 
   const tableHeaders = ['No', 'Name', 'SKU', 'CP', 'MP (%)', 'Price', 'Quantity', 'RL', 'Status'];
 
@@ -60,13 +60,13 @@ export const ProductTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bproducts?.map((product: Product, i: number) => (
+          {paginatedProducts?.map((product: Product, i: number) => (
             <TableRow
               key={product.id}
               onClick={() => navigate(`/admin/products/${product.id}`)}
               className='cursor-pointer'
             >
-              <TableCell>{i + 1}</TableCell>
+              <TableCell>{startIndex + i + 1}</TableCell>
               {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
               <TableCell>{product?.product?.sku ?? null}</TableCell>
@@ -89,7 +89,7 @@ export const ProductTable = () => {
           ))}
         </TableBody>
       </Table>
-      {/* <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} /> */}
+      <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };

@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { PaginationComponent } from '@/app/utils/Pagination';
 
 interface SalesTableProps {
   sales: any[];
@@ -11,14 +13,19 @@ interface SalesTableProps {
 export const SalesTable = ({ sales }: SalesTableProps) => { 
   const { currency } = useCurrency();
   const navigate = useNavigate();
-  console.log('sale==>', sales);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil((sales?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSales = sales?.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>No</TableHead>
-            {/* <TableHead>Qty</TableHead> */}
             <TableHead>Status</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Note</TableHead>
@@ -26,33 +33,21 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sales.map((sale, i) => {
+          {paginatedSales?.map((sale, i) => {
             const totalPrice = Number(sale.total_amount ?? sale.total_amount ?? 0);
             return (
               <TableRow key={sale.id} onClick={() => navigate(`/admin/sales/${sale.id}`)} className='cursor-pointer'>
-                <TableHead>{i + 1}</TableHead>
-                {/* <TableHead>
-                  {sale.sale_items.reduce((acc: number, val: any) => acc + Number(val.quantity), 0)}
-                </TableHead> */}
+                <TableHead>{startIndex + i + 1}</TableHead>
                 <TableCell>{sale.status ?? 'N/A'}</TableCell>
                 <TableCell>{sale.date ?? format(new Date(sale.created_at), 'PPP') ?? '-'}</TableCell>
                 <TableCell>{sale.note?.slice(0, 10)}</TableCell>
                 <TableCell> {totalPrice.toLocaleString()}</TableCell>
-
-                {/* <TableCell className='flex items-center gap-2'>
-                  <Button variant='outline' size='sm' onClick={() => onEdit(sale)}>
-                    <Edit className='mr-2 h-3.5 w-3.5' />
-                    Edit
-                  </Button>
-                  <Button variant='ghost' size='sm' onClick={() => handleDelete(sale.id)}>
-                    {deletingId === sale.id ? <Spinner className='h-4 w-4' /> : <Trash2 className='h-3.5 w-3.5' />}
-                  </Button>
-                </TableCell> */}
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+      <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };
