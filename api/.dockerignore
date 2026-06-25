@@ -8,3 +8,8 @@ node_modules
 tests
 docker-compose*
 compose.yaml
+
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views

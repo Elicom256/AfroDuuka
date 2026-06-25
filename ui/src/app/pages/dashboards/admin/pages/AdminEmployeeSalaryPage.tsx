@@ -6,13 +6,13 @@ import {
 } from '@/app/store/features/business/admin/employeeSalaryQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { EmployeeSalaryPanel } from '../components/salary/EmployeeSalaryPanel';
-import { EmployeeSalaryForm } from '../components/salary/EmployeeSalaryForm';
+
 
 export const AdminEmployeeSalaryPage = () => {
   const { data, isLoading } = useEmployeeSalariesQuery();
   const [deleteSalary] = useDeleteEmployeeSalaryMutation();
-  const [editItem, setEditItem] = useState<any>(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [, setEditItem] = useState<any>(null);
+  const [, setFormOpen] = useState(false);
 
   const totalMonthly = data?.totalMonthly ?? 0;
   const activeCount = data?.activeCount ?? 0;
@@ -35,11 +35,6 @@ export const AdminEmployeeSalaryPage = () => {
     } catch (error) {
       console.error('Salary delete failed', error);
     }
-  };
-
-  const handleFormClose = (open: boolean) => {
-    setFormOpen(open);
-    if (!open) setEditItem(null);
   };
 
   return (

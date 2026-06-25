@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { AlertTriangle, Bell, CheckCheck, MailCheck, Package, ShoppingCart, Trash2, Users } from 'lucide-react';
+import { AlertTriangle, Bell, CheckCheck, Package, ShoppingCart, Trash2, Users } from 'lucide-react';
 
 const iconMap: Record<string, React.ElementType> = {
   low_stock: Package,

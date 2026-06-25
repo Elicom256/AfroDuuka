@@ -13,7 +13,7 @@ type Props = {
   onSuccess?: () => void;
 };
 
-export const AddAttendanceForm: React.FC<Props> = ({ workerId, onSuccess }) => {
+export const AddAttendanceForm: React.FC<Props> = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     check_out: '',
     session: 'morning' as const,
@@ -28,19 +28,6 @@ export const AddAttendanceForm: React.FC<Props> = ({ workerId, onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        attendances: [
-          {
-            worker_id: workerId,
-            session: formData.session,
-            status: formData.status,
-            check_out: formData.check_out ? formData.check_out + ':00' : null,
-            remarks: formData.remarks.trim() || null,
-            // check_in is now handled by backend
-          },
-        ],
-      };
-
       // await createAttendance(payload).unwrap();
 
       toast.success('Attendance recorded successfully!');

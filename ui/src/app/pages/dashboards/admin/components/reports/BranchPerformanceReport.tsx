@@ -31,10 +31,6 @@ export const BranchPerformanceReport = () => {
   const summary = report?.summary;
   const branchRows = report?.branches || [];
 
-  const activeBranch = selectedBranchId
-    ? branches.find((b: any) => b.id === selectedBranchId)
-    : null;
-
   return (
     <ReportCard title='Branch Performance' loading={isLoading}>
       <div className='flex flex-wrap gap-4 mb-6'>

@@ -1,0 +1,105 @@
+# ------------------------------------------------------------------------
+#   Development container (All-In-One Setup)
+# ------------------------------------------------------------------------
+
+services:
+  # =========================== Front end service ======================
+  frontend:
+    image: node:22 # FIXED: Removed the build block so it boots raw Node instantly
+    working_dir: /app
+    env_file:
+      - ./ui/.env
+    volumes:
+      - ./ui:/app
+      - /app/node_modules # Keeps container modules isolated from local machine overrides
+    ports:
+      - '5173:5173'
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
+    # ======================== Backend service ============================
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      args:
+        - USER_ID=${UID:-1000}
+        - GROUP_ID=${GID:-1000}
+    image: inventory-backend-dev
+    working_dir: /app
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/app
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
+  #  ---------------------------------------------------------------
+  #  Postgres service
+  #  ---------------------------------------------------------------
+  pgsql:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-inventory}
+      POSTGRES_USER: ${DB_USERNAME:-elicom}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    env_file:
+      - ./api/.env
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-elicom} -d ${DB_DATABASE:-inventory}'] # Adjusted to default username
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Redis Service
+  # ------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - app
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ====================== Nginx dev proxy =========================
+  proxy:
+    image: nginx:alpine
+    ports:
+      - '80:80'
+    volumes:
+      - ./proxy/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app
+
+volumes:
+  pgsql-data:
+  redis-data:
+
+networks:
+  app:
+    driver: bridge

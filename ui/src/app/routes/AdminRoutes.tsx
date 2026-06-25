@@ -18,7 +18,6 @@ import { Sale } from '../pages/dashboards/admin/components/sales/Sale';
 import { Purchase } from '../pages/dashboards/admin/components/purchases/Purchase';
 import { BusinessBranches } from '../pages/dashboards/admin/pages/BusinessBranches';
 import { Route, Routes } from 'react-router-dom';
-import { NotFound } from './NotFound';
 import { AdminMessagesPage } from '../pages/dashboards/admin/pages/AdminMessagesPage';
 import { AdminNotificationsPage } from '../pages/dashboards/admin/pages/AdminNotificationsPage';
 import { BusinessProducts } from '../pages/dashboards/admin/components/products/BusinessProducts';

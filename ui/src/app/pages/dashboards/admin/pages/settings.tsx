@@ -13,7 +13,6 @@ import {
   Sun,
   Moon,
   Monitor,
-  LayoutDashboard,
   Search,
   ChevronRight,
   Globe,

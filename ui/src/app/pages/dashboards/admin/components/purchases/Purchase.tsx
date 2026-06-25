@@ -3,10 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePurchaseQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
@@ -14,12 +12,9 @@ export const Purchase = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseQuery(Number(id), { skip: !id });
-  const { data: productsData } = useProductsQuery();
   if (purchaseLoading) return <PageLoadingState />;
 
   const purchase = purchaseData?.purchase || purchaseData;
-  const products = productsData?.products || [];
-  console.log('Test data==>', purchase);
 
   if (!purchase) {
     return (
@@ -28,11 +23,6 @@ export const Purchase = () => {
       </div>
     );
   }
-
-  const getProductName = (productId: number) => {
-    const product = products.find((p: any) => p.id === productId);
-    return product?.name || `Product ${productId}`;
-  };
 
   // Support both old and new purchase structures
   const purchaseItems = purchase.purchase_items || purchase.items || [];

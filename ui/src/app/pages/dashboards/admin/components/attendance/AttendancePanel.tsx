@@ -1,7 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
 import { Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +14,6 @@ type AttendancePanelProps = {
 export const AttendancePanel = ({ attendances, absentCount, presentCount, employees }: AttendancePanelProps) => {
   const navigate = useNavigate();
   const total = attendances.length;
-  const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
   const headers = ['Name', 'Branch', 'Status', 'Attendance'];
   // const attendanceheaders = ['Name', 'Branch', 'Status',];
   return (

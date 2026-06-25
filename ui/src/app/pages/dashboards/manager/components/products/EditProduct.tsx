@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useProductCategoriesQuery, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { useUpdateBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { LoadingState } from '@/utils/LoadingState';

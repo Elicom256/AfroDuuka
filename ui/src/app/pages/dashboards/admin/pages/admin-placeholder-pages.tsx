@@ -123,12 +123,6 @@ export const AdminFinancesPage = () => {
 };
 
 export const AdminSuppliersPage = () => {
-  const suppliers = [
-    { name: 'FreshStock Ltd', product: 'Food items' },
-    { name: 'Reliable Distributors', product: 'Household supplies' },
-    { name: 'Green Farm Ltd', product: 'Fresh produce' },
-  ];
-
   // return (
   //   <PageShell title='Suppliers' description='Manage supplier relationships and inventory partners.'>
   //     <div className='space-y-4'>

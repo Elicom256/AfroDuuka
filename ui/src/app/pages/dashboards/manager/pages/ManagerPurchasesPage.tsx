@@ -5,7 +5,6 @@ import {
   useAddPurchaseMutation,
   useUpdatePurchaseMutation,
 } from '@/app/store/features/branch/purchases/purchasesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddPurchase } from '../components/purchases/AddPurchase';
 import { PurchasesTable } from '../components/purchases/PurchasesTable';

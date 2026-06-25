@@ -51,7 +51,7 @@ export const AdminTaxesPage = () => {
     console.log('id==>', status);
     if (!id) return;
     try {
-      const res = await updateTaxPayment({ id, body: { status } }).unwrap();
+      const res = await updateTaxPayment({ id: String(id), body: { status } }).unwrap();
       console.log('updated status==>', res);
       if (res) {
         toast.success(res.message || 'Updated!');

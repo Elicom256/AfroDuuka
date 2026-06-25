@@ -5,7 +5,6 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
-import { AddProductCategory } from './AddProductCategory';
 import { EditBusinessProduct } from './EditBusinessProduct';
 import { AddBusinessProduct } from './AddBusinessProduct';
 

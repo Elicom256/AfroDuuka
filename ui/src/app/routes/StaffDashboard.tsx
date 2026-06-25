@@ -5,7 +5,6 @@ import { StaffSalesPage } from '../pages/dashboards/staff/pages/StaffSalesPage';
 import { StaffProductsPage } from '../pages/dashboards/staff/pages/StaffProductsPage';
 import { StaffInventoryPage } from '../pages/dashboards/staff/pages/StaffInventoryPage';
 import { StaffSalesOverviewPage } from '../pages/dashboards/staff/pages/StaffSalesOverviewPage';
-import { NotFound } from './NotFound';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 

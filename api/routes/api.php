@@ -2,6 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Application health check
+
+Route::get('/up', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now(),
+    ]);
+});
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
