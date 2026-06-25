@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import {
-  useRegisterWorkerMutation,
-  useUpdateWorkerMutation,
   useDeleteWorkerMutation,
   useGetWorkersInfoQuery,
 } from '@/app/store/features/business/workers/workersQuery';

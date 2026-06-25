@@ -3,10 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSaleQuery } from '@/app/store/features/branch/sales/salesQuery';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
@@ -14,12 +12,9 @@ export const Sale = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const { data: saleData, isLoading: saleLoading } = useSaleQuery(String(id), { skip: !id });
-  const { data: productsData } = useProductsQuery();
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;
-  const products = productsData?.products || [];
-  console.log(sale);
 
   if (!sale) {
     return (
@@ -29,10 +24,6 @@ export const Sale = () => {
     );
   }
 
-  const getProductName = (productId: number) => {
-    const product = products.find((p: any) => p.id === productId);
-    return product?.name || `Product ${productId}`;
-  };
   console.log('sale==>', sale);
   return (
     <div className='space-y-6'>

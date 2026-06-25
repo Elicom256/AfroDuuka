@@ -19,7 +19,6 @@ import {
 } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AddProductCategoryProps {}
 

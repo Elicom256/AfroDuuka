@@ -13,7 +13,7 @@ type Props = {
   onAttendanceAdded?: () => void;
 };
 
-export const AttendanceHistory: React.FC<Props> = ({ attendances, attendanceHistory, workerId, onAttendanceAdded }) => {
+export const AttendanceHistory: React.FC<Props> = ({ attendances, workerId, onAttendanceAdded }) => {
   const [showForm, setShowForm] = useState(false);
 
   const sortedAttendances = [...attendances].sort(

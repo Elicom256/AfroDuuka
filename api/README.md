@@ -68,3 +68,6 @@ Export: PDF & Excel
 If internet dies:
 continue selling
 sync later
+
+## checking installed extemsions in FrankenPHP image
+docker run --rm dunglas/frankenphp:1.2.0-php8.3-alpine php -m

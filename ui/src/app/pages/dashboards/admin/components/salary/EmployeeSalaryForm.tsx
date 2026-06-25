@@ -43,7 +43,7 @@ export const EmployeeSalaryForm = ({
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
-  const [storeSalary, { isLoading: isStoring, error }] = useStoreEmployeeSalaryMutation();
+  const [storeSalary, { isLoading: isStoring }] = useStoreEmployeeSalaryMutation();
   const [updateSalary, { isLoading: isUpdating }] = useUpdateEmployeeSalaryMutation();
   const { data: workersData, isLoading: workersLoading } = useGetWorkersInfoQuery();
   const workers = workersData?.workers ?? [];

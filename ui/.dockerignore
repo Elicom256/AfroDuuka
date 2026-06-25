@@ -1,6 +1,11 @@
+*.md
+.eslintrc
 node_modules
 dist
 .git
-*.md
 .gitignore
-.eslintrc
+Dockerfile
+.dockerignore
+.env
+.env.*
+npm-debug.log*

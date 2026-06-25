@@ -1,16 +1,9 @@
 import { useState } from 'react';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Trash2 } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/spinner';
-import {
-  useBranchProductsQuery,
-  useDeleteBranchProductMutation,
-} from '@/app/store/features/branch/products/branchProductsQuery';
+import { useNavigate } from 'react-router-dom';
+import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 interface Product {
   id: string;

@@ -5,7 +5,6 @@ export const TestProd: React.FC = () => {
   const { data } = usePurchasesQuery();
   const sales = data?.purchases ?? data ?? [];
   let bsProducts = new Map();
-  let pdt: any = {};
   useEffect(() => {
     if (sales) {
       sales.forEach((sale: any) => {

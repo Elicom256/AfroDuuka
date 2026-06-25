@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductTable } from '../components/products/ProductTable';
 import { Link } from 'react-router-dom';
 import { AddProduct } from '../components/products/AddProduct';

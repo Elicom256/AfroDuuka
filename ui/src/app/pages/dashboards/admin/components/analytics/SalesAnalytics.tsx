@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { PeriodFilterBar } from '../PeriodFilterBar';
-import { type ReportFilter, formatPeriodLabel } from '@/types';
+import { type ReportFilter } from '@/types';
 import { SummaryCardContent } from './SummaryCardContent';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';

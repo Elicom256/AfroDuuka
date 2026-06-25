@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 export const Attendance = () => {
   const { id } = useParams<{ id: string }>();
-  const { data } = useEmployeeAttendanceQuery(id!, { skip: !id });
+  useEmployeeAttendanceQuery(id!, { skip: !id });
 //   console.log('employee att==>', data);
   return <div>Attendance</div>;
 };

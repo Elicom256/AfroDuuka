@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 export const AddBranch = () => {
   const [open, setOpen] = useState(false);
-  const [addBranch, { isLoading, error }] = useAddBranchMutation();
+  const [addBranch, { isLoading }] = useAddBranchMutation();
   const [formData, setFormData] = useState({
     name: '',
     address: '',

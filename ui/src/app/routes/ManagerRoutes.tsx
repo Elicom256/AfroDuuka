@@ -16,7 +16,6 @@ import { ManagerMessagesPage } from '../pages/dashboards/manager/pages/ManagerMe
 import { ManagerPromotionsPage } from '../pages/dashboards/manager/pages/ManagerPromotionsPage';
 import { ManagerAttendancePage } from '../pages/dashboards/manager/pages/ManagerAttendancePage';
 import { ManagerHistoryPage } from '../pages/dashboards/manager/pages/ManagerHistoryPage';
-import { NotFound } from './NotFound';
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 import { ManagerProductTypes } from '../pages/dashboards/manager/components/products/ManagerProductTypes';

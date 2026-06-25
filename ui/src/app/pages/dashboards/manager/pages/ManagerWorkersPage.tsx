@@ -2,7 +2,6 @@ import { TrendingUp, Users, FileText } from 'lucide-react';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useBranchWorkersQuery } from '@/app/store/features/branch';
-import { resolveList } from './components/manager-page-utils';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 

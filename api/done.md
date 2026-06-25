@@ -1,13 +1,31 @@
-# Check the application well and Apply the following (note: I have already created files needed)
+# Docker Build Error — Root Cause
 
-## Today, we're gonna work on User model(User Auth). Consider Scalability, security, nice code and modern architecture and try not to complicate things keep things 
+## Error
 
-- We'll add a method to return trhe loggedin User. We're using sanctum for Auth as before (in addition to other methods layed out already)
-- Use the UserService(already created) for business logic
-- Use the Requests as layed out
-- Separate users api endpoints it their own file (routes/users.php),
-- Don't tauch the front end for now
-- Keep adding simple dev comments in code
-- Remember, it's an api controller
-- dont hallucinate
-  NOTE: We're only working on Users today!
+The Docker build failed with two symptoms:
+1. **CANCELED** `[base 2/2] RUN install-php-extensions` (44.6s)
+2. **ERROR** `[vendor 4/4] RUN composer install`
+
+## Root Causes
+
+### 1. Base layer cancellation
+`install-php-extensions` compiles PHP extensions from source, which is slow (44.6s) and was likely cancelled due to a build timeout or manual interruption. This is inherent to the tool — it recompiles the static FrankenPHP binary for each extension.
+
+### 2. Composer install failure
+Two issues combined:
+
+- **`--classmap-authoritative`** forces Composer to generate a classmap-only autoloader and fail if any class cannot be resolved. This flag is unnecessary when `--optimize-autoloader` is already used.
+- **`post-autoload-dump` script** runs `php artisan package:discover` during `composer install`. At build time there is no `.env` file, so the artisan command fails, cascading into a build error.
+
+## Fixes Applied
+
+| Issue | Fix |
+|---|---|
+| `install-php-extensions` slow (no fix needed) | Kept as-is — it's the correct approach for FrankenPHP's static build |
+| Composer `--classmap-authoritative` | Removed — redundant with `--optimize-autoloader` |
+| `post-autoload-dump` fails at build time | Added `--no-scripts` to skip build-time scripts; caches are regenerated at runtime in the entrypoint |
+| Entrypoint typo `php atisan` → `php artisan` | Fixed |
+| No layer-cache for Composer | Added `--mount=type=cache,id=composer` |
+| No layer-cache for npm (UI) | Added `--mount=type=cache,id=npm` |
+| Cache invalidation on COPY | Switched to `COPY --link` (hard-link, parent-layer changes don't invalidate) |
+| Missing image metadata | Added `LABEL org.opencontainers.image.*` |
