@@ -15,7 +15,6 @@ use App\Http\Controllers\EmployeeRemunerationController;
 use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
-use App\Models\CoreSettings\SuppliersSettings;
 use Illuminate\Support\Facades\Route;
 
 
@@ -36,8 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
      // ============== Worker managed by admin===================
     Route::apiResource("workers", WorkerController::class);
      // ============== suppliers ===================
-    $allowed = SuppliersSettings::value("status");
-
      Route::apiResource("suppliers", SupplierController::class);
      // ============== customers ===================
      Route::apiResource("customers", CustomerController::class);
