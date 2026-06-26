@@ -1,19 +1,38 @@
 # Add Ons to DuukaFlow project
 
-You're a senior software auditor and technical lead
-Revise this project and suggest what to add or change. Follow this system for a well descriptive of what to add
+You're a senior DevOps engineer
 
-Model -> why (Real world problem solved) -> How(Programatically)
-ie Give a recommendation of a model, why it's important and how to implement it.
+Diagonize this docker issue
 
-## Constraints
+<!-- issue -->
+elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker compose up -d
+[+] up 0/1
+ ⠹ Network inventory-tracker_app Creating                                                                                                         0.3s
+[+] up 5/5 Found orphan containers ([inventory-tracker-proxy-1]) for this project. If you removed or renamed this service in your compose file, you ca ✔ Network inventory-tracker_app          Created                                                                                                 0.3s
+ ✔ Container inventory-tracker-redis-1    Healthy                                                                                                18.7s
+ ✔ Container inventory-tracker-pgsql-1    Healthy                                                                                                18.2s
+ ✘ Container inventory-tracker-backend-1  Error dependency backend failed to start                                                               20.9s
+ ✔ Container inventory-tracker-frontend-1 Created                                                                                                 1.5s
+dependency failed to start: container inventory-tracker-backend-1 is unhealthy
+elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker ps
+CONTAINER ID   IMAGE                       COMMAND                  CREATED              STATUS                         PORTS      NAMES
+66ce39ebd90f   inventory-tracker-backend   "/usr/local/bin/dock…"   About a minute ago   Restarting (1) 9 seconds ago              inventory-tracker-backend-1
+ca7f162b63a8   postgres:17-alpine          "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)    5432/tcp   inventory-tracker-pgsql-1
+784e43570111   redis:7-alpine              "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)    6379/tcp   inventory-tracker-redis-1
+elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker logs inventory-tracker-backend-1
+Starting Laravel container...
 
-- Revise the whole application, the ui and api
-- Don't write any code, just suggest
-- Recommend best practices (both in code, documentation and everything)
-- When suggesting what to add or change, relate African(Ugandan) problems in both informal and formal systems so that they can be addressed by DuukaFlow
-- Put the suggestions inside addons.md in this same directory
-- Keep in mind that API is Laravel (No Blade), it's just for APIs and Frontend is React (SPA)
-- Structure well your reccomendations under subheadings
+In Application.php line 961:
+                                                      
+  Class "Laravel\Pail\PailServiceProvider" not found  
 
-**NOTE:** For WhatsApp notifications and whatsApp bot, I'll add them later. Now I'm focusing on system design and problem addressing
+  **Note:** This is docker-compose.dev.yml
+
+  ## Constraints
+  - Document you work under this directory in a file called docker.md
+  - Add comments to your work
+  - Do not hallucinate
+  - Take advanced and scalable actions
+
+                                                      
+

@@ -5,7 +5,7 @@
 services:
   # =========================== Front end service ======================
   frontend:
-    image: node:22 # FIXED: Removed the build block so it boots raw Node instantly
+    image: node:22-alpine
     working_dir: /app
     env_file:
       - ./ui/.env
@@ -26,7 +26,7 @@ services:
   backend:
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         - USER_ID=${UID:-1000}
         - GROUP_ID=${GID:-1000}
@@ -50,6 +50,8 @@ services:
   #  ---------------------------------------------------------------
   pgsql:
     image: postgres:17-alpine
+    ports:
+      - '5432:5432'
     environment:
       POSTGRES_DB: ${DB_DATABASE:-inventory}
       POSTGRES_USER: ${DB_USERNAME:-elicom}

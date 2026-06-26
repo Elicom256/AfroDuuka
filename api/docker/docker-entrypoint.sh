@@ -6,21 +6,22 @@ echo "Starting Laravel container..."
 # Ensure directories exist (safe on every deploy)
 mkdir -p storage/logs bootstrap/cache
 
-# 1. FIXED FOR DEV: Install composer dependencies before doing anything else
 if [ "$APP_ENV" = "local" ] || [ "$APP_ENV" = "development" ] || [ ! -d "vendor" ]; then
     echo "Installing Composer dependencies..."
-    composer install --no-interaction
+    # --no-autoloader prevents post-autoload-dump scripts (e.g. package:discover)
+    # from firing before migrations have run. Autoloader is dumped manually later.
+    composer install --no-interaction --no-scripts --no-autoloader
 fi
 
-# Clear stale caches from previous deployments
+# Clear any bad local cache files left on your host machine
+rm -f bootstrap/cache/config.php bootstrap/cache/routes.php bootstrap/cache/services.php bootstrap/cache/packages.php
 php artisan optimize:clear || true
 
-# 2. FIXED FOR BOOTSTRAPPING: Run migrations BEFORE caching 
-# This prevents route/config cache tasks from crashing on missing tables
 echo "Running database migrations..."
-php artisan migrate --force
+# to remove the seeder in production
+php artisan migrate --force && php artisan db:seed
 
-# Rebuild Laravel caches
+# Rebuild Laravel caches safely now that tables exist
 echo "Caching config..."
 php artisan config:cache
 
@@ -35,5 +36,5 @@ php artisan view:cache
 
 echo "Laravel ready"
 
-# Hand off to container CMD (Octane)
+# Hand off cleanly to container CMD (Octane)
 exec "$@"

@@ -35,11 +35,13 @@ WORKDIR /app
 # Only dependency files first for optimal layer caching
 COPY composer.json composer.lock ./
 
+# Prefer source as fallback when dist downloads fail (e.g. GitHub HTTP 400)
 # --mount=type=cache persists Composer's cache across builds
 RUN --mount=type=cache,id=composer,target=/tmp/cache \
     composer install \
         --no-interaction \
         --no-progress \
+        --prefer-source \
         --optimize-autoloader \
         --no-scripts
 
@@ -55,6 +57,9 @@ ARG USER_ID=1000
 ARG GROUP_ID=1000
 
 WORKDIR /app
+
+# FIXED: Copy the global composer executable from the vendor stage into system binaries
+COPY --from=vendor /usr/bin/composer /usr/bin/composer
 
 # Copy dependencies from vendor stage
 COPY --link --from=vendor /app/vendor ./vendor
@@ -95,8 +100,6 @@ EXPOSE 8000
 
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-
-
 # ------------------------------------------------------------------------------
 # Runtime command (Octane + FrankenPHP)
 # ------------------------------------------------------------------------------
