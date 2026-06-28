@@ -44,7 +44,7 @@ class UserController extends Controller
     public function me(Request $request)
     {
         // Return currently authenticated user with relations
-        $user = $request->user()->load("business", "businessBranch", "role");
+        $user = $request->user()->load("business.country", "businessBranch", "role");
         return response()->json([
             'message' => 'User retrieved successfully!',
             'data' => $user,
