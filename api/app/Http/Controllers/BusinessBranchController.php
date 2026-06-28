@@ -17,7 +17,7 @@ class BusinessBranchController extends Controller
     public function index()
     {
         $businessId = Auth::user()->business_id;
-        $branches = BusinessBranch::where("business_id", $businessId)->orderBy("id")->get();
+        $branches = BusinessBranch::with("business.country")->where("business_id", $businessId)->orderBy("id")->get();
         return response()->json(["message" => "Fetched all business branches", "branches" => $branches]);
     }
 
