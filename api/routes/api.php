@@ -84,3 +84,8 @@ Route::prefix('reports')->group(function () {
 Route::prefix("countries")->group(function () {
     Route::get('/', [\App\Http\Controllers\CountryController::class, 'index']);
 });
+
+Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
+    Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);
+    Route::get('/tools', [\App\Http\Controllers\AiController::class, 'tools']);
+});

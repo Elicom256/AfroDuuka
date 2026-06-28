@@ -2,16 +2,16 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
+import { AiChat } from '@/components/ai/AiChat';
 import { Activity, Users } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const { data, isLoading, isError, refetch } = useGetWorkersInfoQuery();
   const workers = data?.workers;
-  // console.log('workers==>', workers);
   return (
-    <div className='space-y-6'>
-      <div className='grid gap-6 xl:grid-cols-[2fr_1fr]'>
+    <div className='grid gap-6 xl:grid-cols-[1fr_380px]'>
+      <div className='space-y-6'>
         <Card className='overflow-hidden'>
           <CardHeader>
             <CardTitle>Operations overview</CardTitle>
@@ -72,21 +72,25 @@ export const AdminDashboardPage = () => {
             )}
           </CardContent>
         </Card>
+
+        {isError ? (
+          <Card className='border-destructive/30 bg-destructive/5'>
+            <CardHeader>
+              <CardTitle>Error loading workers</CardTitle>
+              <CardDescription>There was an issue fetching worker data.</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button variant='outline' onClick={() => refetch()}>
+                Retry
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : null}
       </div>
 
-      {isError ? (
-        <Card className='border-destructive/30 bg-destructive/5'>
-          <CardHeader>
-            <CardTitle>Error loading workers</CardTitle>
-            <CardDescription>There was an issue fetching worker data.</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button variant='outline' onClick={() => refetch()}>
-              Retry
-            </Button>
-          </CardFooter>
-        </Card>
-      ) : null}
+      <div className='h-[calc(100vh-8rem)] sticky top-6'>
+        <AiChat />
+      </div>
     </div>
   );
 };

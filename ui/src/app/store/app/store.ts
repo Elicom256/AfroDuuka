@@ -41,6 +41,7 @@ import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
 import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQuery';
 import { countriesQuery } from '../features/countries/countriesQuery';
 import { cashFlowQuery } from '../features/business/admin/cashFlowQuery';
+import { aiQuery } from '../features/ai/aiQuery';
 
 export const store = configureStore({
   reducer: {
@@ -86,6 +87,7 @@ export const store = configureStore({
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [countriesQuery.reducerPath]: countriesQuery.reducer,
     [cashFlowQuery.reducerPath]: cashFlowQuery.reducer,
+    [aiQuery.reducerPath]: aiQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -132,6 +134,7 @@ export const store = configureStore({
       notificationsApi.middleware,
       countriesQuery.middleware,
       cashFlowQuery.middleware,
+      aiQuery.middleware,
     ),
 });
 
