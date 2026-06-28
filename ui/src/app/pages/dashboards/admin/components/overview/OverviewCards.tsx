@@ -3,16 +3,22 @@ import { useProductsQuery, useProductCategoriesQuery } from '@/app/store/feature
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
-import { Users, Package, Tags, Building2, UserCheck, Truck } from 'lucide-react';
+import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
+import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
+import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 
 export const OverviewCards = () => {
+  const { currencySymbol } = useCurrency();
   const { data: workersData, isLoading: workersLoading } = useGetWorkersInfoQuery();
   const { data: productsData, isLoading: productsLoading } = useProductsQuery();
   const { data: categoriesData, isLoading: categoriesLoading } = useProductCategoriesQuery();
   const { data: branchesData, isLoading: branchesLoading } = useBranchesQuery();
   const { data: customersData, isLoading: customersLoading } = useCustomersQuery();
   const { data: suppliersData, isLoading: suppliersLoading } = useSuppliersQuery();
+  const { data: salesData, isLoading: salesLoading } = useSalesQuery();
+  const { data: purchasesData, isLoading: purchasesLoading } = usePurchasesQuery();
 
   const workers = workersData?.workers;
   const products = productsData?.products;
@@ -20,9 +26,19 @@ export const OverviewCards = () => {
   const branches = branchesData?.branches;
   const customers = customersData?.customers;
   const suppliers = suppliersData?.suppliers;
+  const sales = salesData?.sales ?? salesData ?? [];
+  const purchases = purchasesData?.purchases ?? purchasesData ?? [];
 
+  const totalSalesAmount = sales.reduce((sum: number, sale: any) => sum + Number(sale.total_amount ?? 0), 0);
+  const totalPurchasesAmount = purchases.reduce(
+    (sum: number, purchase: any) => sum + Number(purchase.total_amount ?? 0),
+    0,
+  );
+
+  const formatAmount = (amount: number) => `${currencySymbol} ${Math.round(amount).toLocaleString()}`;
+  console.log('totalSalesAmount==>', totalSalesAmount);
   return (
-    <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
+    <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
       <StatsCard
         title='Workers'
         value={workers?.length ?? 0}
@@ -64,6 +80,22 @@ export const OverviewCards = () => {
         icon={Truck}
         isLoading={suppliersLoading}
         description='Partner suppliers'
+      />
+      <StatsCard
+        title='Total Sales'
+        value={formatAmount(totalSalesAmount)}
+        icon={DollarSign}
+        isLoading={salesLoading}
+        description='Revenue since inception'
+        iconClassName='bg-emerald-500/10 text-emerald-600'
+      />
+      <StatsCard
+        title='Total Purchases'
+        value={formatAmount(totalPurchasesAmount)}
+        icon={ShoppingCart}
+        isLoading={purchasesLoading}
+        description='Cost since inception'
+        iconClassName='bg-amber-500/10 text-amber-600'
       />
     </div>
   );

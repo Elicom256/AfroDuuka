@@ -24,6 +24,7 @@ export const StatsCard = ({
   isLoading,
   iconClassName,
 }: StatsCardProps) => {
+  
   return (
     <div className='rounded-3xl border border-border/70 bg-card p-6 transition-all hover:shadow-md'>
       <div className='flex items-start justify-between gap-4'>
