@@ -33,6 +33,7 @@ export const Login: React.FC = () => {
       }
     } catch (error) {
       console.error('Login failed:', error);
+      return toast.error((error as any)?.data?.error);
     }
   };
 

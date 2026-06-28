@@ -19,7 +19,7 @@ php artisan optimize:clear || true
 
 echo "Running database migrations..."
 # to remove the seeder in production
-php artisan migrate --force && php artisan db:seed
+php artisan migrate --force
 
 # Rebuild Laravel caches safely now that tables exist
 echo "Caching config..."
