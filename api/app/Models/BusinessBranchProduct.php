@@ -23,10 +23,14 @@ class BusinessBranchProduct extends Model
         'reorder_level',
         'description',
         'status',
-        'last_sold_at'
+        'last_sold_at',
+        'expiry_date',
     ];
 
-    protected $casts = ["last_sold_at"];
+    protected $casts = [
+        'last_sold_at' => 'datetime',
+        'expiry_date' => 'date',
+    ];
      public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class);

@@ -133,6 +133,7 @@ function formatResponse(data: any, tool?: string): string {
   const lines: string[] = [];
 
   if (data.message) return data.message;
+  if (data.response) return data.response;
 
   if (data.products && Array.isArray(data.products)) {
     const items = data.products as any[];

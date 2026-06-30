@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Country;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -45,9 +46,11 @@ class UserController extends Controller
     {
         // Return currently authenticated user with relations
         $user = $request->user()->load("business.country", "businessBranch", "role");
+        $country = Country::find($user->business->country_id);
         return response()->json([
-            'message' => 'User retrieved successfully!',
+            'message' => 'User retrieved successfully',
             'data' => $user,
+            "country" => $country ?? "N/A"
         ], 200);
     }
 
@@ -93,7 +96,7 @@ class UserController extends Controller
         ->with(['business', 'role', "businessBranch"])
         ->get();
         return response()->json([
-            'message' => 'Users retrieved successfully',
+            'message' => 'Workers retrieved successfully',
             'data' => $users,
         ], 200);
     }
@@ -162,7 +165,7 @@ class UserController extends Controller
     {
         $user = $this->userService->getUserById($user->id);
         return response()->json([
-            'message' => 'User retrieved successfully',
+            'message' => 'Single User retrieved successfully!',
             'data' => $user,
         ], 200);
     }

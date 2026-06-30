@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('status', ["active", "inactive", "damaged", "out_of_stock", "discontinued"])->default("active");
+            $table->date('expiry_date')->nullable()->after('status');
 
             $table->timestamp('last_sold_at')->nullable()->index();
             $table->timestamps();
