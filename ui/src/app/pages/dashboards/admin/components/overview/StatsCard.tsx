@@ -33,7 +33,7 @@ export const StatsCard = ({
           {isLoading ? (
             <Skeleton className='h-9 w-20 rounded-md' />
           ) : (
-            <p className='text-4xl font-semibold tracking-tight'>{value}</p>
+            <p className='text-xl font-semibold tracking-tight'>{value}</p>
           )}
           {description && (
             <p className='text-xs text-muted-foreground'>{description}</p>

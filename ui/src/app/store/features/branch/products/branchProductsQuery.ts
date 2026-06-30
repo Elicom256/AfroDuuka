@@ -41,6 +41,24 @@ export const bsbranchProductsQuery = createApi({
       providesTags: ['BranchProductsAPI'],
     }),
 
+    // expiring products analytics
+    branchProductExpiring: builder.query<any, void>({
+      query: () => ({
+        url: '/expiring',
+        method: 'GET',
+      }),
+      providesTags: ['BranchProductsAPI'],
+    }),
+
+    // smart restocking predictions
+    branchProductRestocking: builder.query<any, void>({
+      query: () => ({
+        url: '/restocking',
+        method: 'GET',
+      }),
+      providesTags: ['BranchProductsAPI'],
+    }),
+
     // metrics
     branchProductMetrics: builder.query<any, any>({
       query: ({id, period = 'last_7_days'}) => ({
@@ -86,6 +104,8 @@ export const {
   useAddBranchProductMutation,
   useBranchProductQuery,
   useBranchProductAnalyticsQuery,
+  useBranchProductExpiringQuery,
+  useBranchProductRestockingQuery,
   useBranchProductMetricsQuery,
   useUpdateBranchProductMutation,
   useDeleteBranchProductMutation,

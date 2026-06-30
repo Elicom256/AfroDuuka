@@ -37,20 +37,31 @@ class BusinessBranchProductSeeder extends Seeder
                 $markup_percentage = rand(15, 50) / 100;
                 $price = $costPrice * (1 + $markup_percentage);
                 foreach($names as $name){
-                BusinessBranchProduct::updateOrCreate(
-                    ['business_branch_id' => $branch->id, 'name' => $name],
-                    [
-                        'product_id' => $product->id,
-                        'quantity' => rand(2, 25),
-                        'cost_price' => $costPrice,
-                        'price' => $price,
-                        "markup_percentage" => $markup_percentage,
-                        'reorder_level' => rand(2, 6),
-                        'description' => $product->name . " available in branch stock",
-                        'status' => "active",
-                    ]
-                );
-            }
+                    // Assign random expiry dates: ~40% get a future date (within 1-90 days),
+                    // ~10% already expired, ~50% null (no expiry tracking).
+                    $roll = rand(1, 100);
+                    $expiryDate = $roll <= 10
+                        ? now()->subDays(rand(1, 30))      // already expired
+                        : ($roll <= 50
+                            ? now()->addDays(rand(1, 90))  // expiring in future
+                            : null                          // no expiry set
+                        );
+
+                    BusinessBranchProduct::updateOrCreate(
+                        ['business_branch_id' => $branch->id, 'name' => $name],
+                        [
+                            'product_id' => $product->id,
+                            'quantity' => rand(2, 25),
+                            'cost_price' => $costPrice,
+                            'price' => $price,
+                            "markup_percentage" => $markup_percentage,
+                            'reorder_level' => rand(2, 6),
+                            'description' => $product->name . " available in branch stock",
+                            'status' => "active",
+                            'expiry_date' => $expiryDate,
+                        ]
+                    );
+                }
             }
         }
 

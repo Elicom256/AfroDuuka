@@ -16,11 +16,11 @@ interface Message {
 export const AiChat = () => {
   const { data } = useLoggedinUserQuery();
   const user = data?.data?.username;
-  console.log('user==>', user);
+  const businessName = data?.data?.business?.name ?? 'your business';
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello ${user}! I\'m your AI inventory assistant. Ask me about your products, sales, stock levels, revenue, or any other business data.`,
+      content: `Hello! I\'m your AI inventory assistant. Ask me about your products, sales, stock levels, revenue, or any other business data.`,
       timestamp: new Date(),
     },
   ]);
@@ -31,6 +31,20 @@ export const AiChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (user) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[0] = {
+          role: 'assistant',
+          content: `Hello ${user}! Welcome to ${businessName}. I'm your AI inventory assistant. Ask me about products, sales, stock levels, revenue, or any other business data.`,
+          timestamp: new Date(),
+        };
+        return updated;
+      });
+    }
+  }, [user, businessName]);
 
   const handleSend = async () => {
     const text = input.trim();
@@ -59,31 +73,38 @@ export const AiChat = () => {
   };
 
   return (
-    <Card className='flex h-full flex-col overflow-hidden border-border/70'>
-      <CardHeader className='border-b border-border/70 px-5 py-4'>
+    <Card className='flex h-full flex-col overflow-hidden border-border/70 shadow-sm'>
+      <CardHeader className='border-b border-border/70 bg-gradient-to-r from-primary/5 to-primary/10 px-5 py-4'>
         <CardTitle className='flex items-center gap-2 text-base'>
-          <Sparkles className='h-4 w-4 text-amber-400' />
-          DuukaFlow AI Assistant
+          <div className='flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10'>
+            <Sparkles className='h-3.5 w-3.5 text-primary' />
+          </div>
+          <span>AI Assistant</span>
+          <span className='ml-auto flex h-2 w-2 rounded-full bg-emerald-500'>
+            <span className='absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75' />
+          </span>
         </CardTitle>
       </CardHeader>
-      <CardContent className='flex-1 space-y-4 overflow-y-auto p-5'>
+      <CardContent className='flex-1 space-y-4 overflow-y-auto p-5 scrollbar-thin'>
         {messages.map((msg, i) => (
           <div key={i} className={cn('flex gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             {msg.role === 'assistant' && (
-              <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary'>
+              <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary shadow-sm'>
                 <Bot className='h-4 w-4' />
               </div>
             )}
             <div
               className={cn(
-                'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
-                msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
+                'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm',
+                msg.role === 'user'
+                  ? 'bg-primary text-primary-foreground rounded-tr-md'
+                  : 'bg-muted/70 text-foreground rounded-tl-md border border-border/50',
               )}
             >
               <span className='whitespace-pre-wrap'>{msg.content}</span>
             </div>
             {msg.role === 'user' && (
-              <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary'>
+              <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-secondary/30 to-secondary/10 text-secondary shadow-sm'>
                 <User className='h-4 w-4' />
               </div>
             )}
@@ -91,10 +112,10 @@ export const AiChat = () => {
         ))}
         {isLoading && (
           <div className='flex gap-3'>
-            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary'>
+            <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary shadow-sm'>
               <Bot className='h-4 w-4' />
             </div>
-            <div className='flex items-center gap-2 rounded-2xl bg-muted px-4 py-2.5 text-sm text-muted-foreground'>
+            <div className='flex items-center gap-2 rounded-2xl rounded-tl-md bg-muted/70 px-4 py-2.5 text-sm text-muted-foreground border border-border/50 shadow-sm'>
               <Loader2 className='h-3.5 w-3.5 animate-spin' />
               Thinking...
             </div>
@@ -102,7 +123,7 @@ export const AiChat = () => {
         )}
         <div ref={messagesEndRef} />
       </CardContent>
-      <CardFooter className='border-t border-border/70 p-4'>
+      <CardFooter className='border-t border-border/70 bg-muted/20 p-4'>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -116,9 +137,9 @@ export const AiChat = () => {
             onKeyDown={handleKeyDown}
             placeholder='Ask about inventory, sales, stock...'
             disabled={isLoading}
-            className='flex-1'
+            className='flex-1 bg-background'
           />
-          <Button type='submit' size='icon' disabled={!input.trim() || isLoading}>
+          <Button type='submit' size='icon' disabled={!input.trim() || isLoading} className='shrink-0 shadow-sm'>
             {isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Send className='h-4 w-4' />}
           </Button>
         </form>
@@ -133,6 +154,7 @@ function formatResponse(data: any, tool?: string): string {
   const lines: string[] = [];
 
   if (data.message) return data.message;
+  if (data.response) return data.response;
 
   if (data.products && Array.isArray(data.products)) {
     const items = data.products as any[];

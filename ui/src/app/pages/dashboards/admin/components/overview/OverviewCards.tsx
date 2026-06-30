@@ -5,8 +5,9 @@ import { useCustomersQuery } from '@/app/store/features/business/customers/custo
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
+import { useBranchProductExpiringQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
-import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart } from 'lucide-react';
+import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 
 export const OverviewCards = () => {
@@ -19,6 +20,7 @@ export const OverviewCards = () => {
   const { data: suppliersData, isLoading: suppliersLoading } = useSuppliersQuery();
   const { data: salesData, isLoading: salesLoading } = useSalesQuery();
   const { data: purchasesData, isLoading: purchasesLoading } = usePurchasesQuery();
+  const { data: expiringData, isLoading: expiringLoading } = useBranchProductExpiringQuery();
 
   const workers = workersData?.workers;
   const products = productsData?.products;
@@ -35,8 +37,11 @@ export const OverviewCards = () => {
     0,
   );
 
+  const expiring = expiringData?.data;
+  const expiringCount = (expiring?.expiring_count ?? 0) + (expiring?.expired_count ?? 0);
+  const dangerCount = expiring?.danger_count ?? 0;
+
   const formatAmount = (amount: number) => `${currencySymbol} ${Math.round(amount).toLocaleString()}`;
-  console.log('totalSalesAmount==>', totalSalesAmount);
   return (
     <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
       <StatsCard
@@ -96,6 +101,14 @@ export const OverviewCards = () => {
         isLoading={purchasesLoading}
         description='Cost since inception'
         iconClassName='bg-amber-500/10 text-amber-600'
+      />
+      <StatsCard
+        title='Expiring Products'
+        value={expiringCount}
+        icon={AlertTriangle}
+        isLoading={expiringLoading}
+        description={dangerCount > 0 ? `${dangerCount} in danger zone` : 'Products nearing expiry'}
+        iconClassName={dangerCount > 0 ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}
       />
     </div>
   );

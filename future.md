@@ -1,17 +1,4 @@
-# Future Plans
+# To be added
+1. Anti-Fraud Audit Trails & Shift ReconciliationsEmployee theft and stock manipulation are the primary reasons retail shops fail.The Optimization: Build automated digital shift handovers. When an attendant logs out, the system calculates exactly how much cash, mobile money, and stock should be in the drawer. If there is a discrepancy, the system instantly flags it and sends a WhatsApp or SMS alert directly to the owner.The Value: It acts as an automated digital manager, giving the business owner absolute peace of mind when they are away from the shop.
 
-## Superadmin Dashboard
-
-After admin and branch dashboards are complete, build a **superadmin dashboard** with its own dedicated layout, sidebar, and routes.
-
-### Items to move under superadmin
-
-- **Payment Gateways** — The standalone `AdminPaymentGatewaysPage` should be removed from the admin sidebar and moved to a superadmin-only settings section. Regular admins should not manage payment gateway credentials.
-
-### Superadmin-only features (candidates)
-
-- Business management (view/edit all businesses)
-- Payment gateway configuration (MTN MoMo, Airtel Money, Flutterwave, PesaPal)
-- System-wide settings
-- User/role management across all businesses
-- Audit logs across all businesses
+2. Automated Customer Retention via WhatsApp Business APIMost shops have no idea who their best customers are because they do not track buyer habits.The Optimization: At checkout, the attendant enters the customer's phone number to send a digital receipt. Your system logs their buying history.The Value: The system automatically sends a personalized WhatsApp message when a customer’s usual product is back in stock, or offers automated loyalty discounts (e.g., "Thanks for your 5th visit this month, enjoy 5% off!"). This actively drives repeatable revenue for the shop.

@@ -3,6 +3,8 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
+use App\Models\BusinessBranchProduct;
+use Illuminate\Support\Facades\Auth;
 
 class ExpiringProducts extends Tool
 {
@@ -13,7 +15,7 @@ class ExpiringProducts extends Tool
 
     public function description(): string
     {
-        return 'Get products that are expiring soon';
+        return 'Get products that are expired, expiring soon, or in the danger zone. Use "expired" for past expiry, "expiring" for upcoming expiry within N days, "danger" for within 7 days.';
     }
 
     public function parameters(): array
@@ -21,17 +23,77 @@ class ExpiringProducts extends Tool
         return [
             'days' => [
                 'type' => 'integer',
-                'description' => 'Number of days to look ahead (default 30)',
+                'description' => 'Number of days to look ahead for expiry (default 30)',
+            ],
+            'status' => [
+                'type' => 'string',
+                'description' => 'Filter: expired, expiring, danger, or all (default all)',
+                'enum' => ['expired', 'expiring', 'danger', 'all'],
             ],
         ];
     }
 
     public function handle(array $parameters): array
     {
+        $days = isset($parameters['days']) ? (int) $parameters['days'] : 30;
+        $status = $parameters['status'] ?? 'all';
+        $branchId = Auth::user()->business_branch_id;
+
+        $now = now()->startOfDay();
+        $dangerDate = (clone $now)->addDays(7);
+        $expiryWindow = (clone $now)->addDays($days);
+
+        $baseQuery = BusinessBranchProduct::whereNotNull('expiry_date')
+            ->with('product.category')
+            ->where('business_branch_id', $branchId);
+
+        $expired = (clone $baseQuery)
+            ->where('expiry_date', '<', $now)
+            ->orderBy('expiry_date')
+            ->get();
+
+        $expiring = (clone $baseQuery)
+            ->whereBetween('expiry_date', [$now, $expiryWindow])
+            ->orderBy('expiry_date')
+            ->get();
+
+        $danger = (clone $baseQuery)
+            ->whereBetween('expiry_date', [$now, $dangerDate])
+            ->orderBy('expiry_date')
+            ->get();
+
+        $allProducts = collect();
+
+        if ($status === 'expired') {
+            $allProducts = $expired;
+        } elseif ($status === 'expiring') {
+            $allProducts = $expiring;
+        } elseif ($status === 'danger') {
+            $allProducts = $danger;
+        } else {
+            $allProducts = $expired->merge($expiring)->unique('id');
+        }
+
+        $mapped = $allProducts->map(fn ($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'sku' => $p->product?->sku,
+            'quantity' => $p->quantity,
+            'expiry_date' => $p->expiry_date->format('Y-m-d'),
+            'status' => $p->expiry_date->isPast() ? 'expired' : 'active',
+            'days_remaining' => $p->expiry_date->isPast()
+                ? -$p->expiry_date->diffInDays($now)
+                : $now->diffInDays($p->expiry_date),
+        ]);
+
         return [
-            'message' => 'The current database schema does not have an expiry_date field on products. ' .
-                'Expiring products tracking is not available until an expiry date column is added to the products or branch_products table.',
-            'supported' => false,
+            'products' => $mapped,
+            'summary' => [
+                'expired_count' => $expired->count(),
+                'expiring_count' => $expiring->count(),
+                'danger_count' => $danger->count(),
+                'total_with_expiry' => (clone $baseQuery)->count(),
+            ],
         ];
     }
 }

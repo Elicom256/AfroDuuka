@@ -2,6 +2,9 @@
 
 namespace App\AI;
 
+use Gemini\Data\GenerationConfig;
+use Gemini\Enums\ResponseMimeType;
+
 class Agent
 {
     public function __construct(
@@ -16,7 +19,26 @@ class Agent
             return $this->error('Please provide a question or request.');
         }
 
-        $intent = $this->classifyIntent($prompt);
+        // Try Gemini first, fall back to keyword matching
+        $intent = $this->classifyWithGemini($prompt);
+
+        if ($intent === null) {
+            $intent = $this->classifyWithKeywords($prompt);
+        }
+
+        // If Gemini decided no tool is needed (general conversation / greeting)
+        if ($intent === false) {
+            $greetingTool = $this->registry->find('greeting');
+            if ($greetingTool) {
+                try {
+                    $result = $greetingTool->handle(['message' => $prompt]);
+                    return $this->success($result, 'greeting');
+                } catch (\Exception $e) {
+                    // fall through to default
+                }
+            }
+            return $this->success(['response' => 'How can I help you with your inventory today? Ask me about products, sales, stock, or any business data.'], 'general');
+        }
 
         $tool = $this->registry->find($intent['tool']);
 
@@ -35,9 +57,88 @@ class Agent
         }
     }
 
-    public function classifyIntent(string $prompt): array
+    protected function classifyWithGemini(string $prompt): array|null|false
+    {
+        $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
+
+        if (empty($apiKey)) {
+            return null;
+        }
+
+        $toolDefinitions = [];
+        foreach ($this->registry->all() as $name => $tool) {
+            $toolDefinitions[] = [
+                'name' => $tool->name(),
+                'description' => $tool->description(),
+                'parameters' => $tool->parameters(),
+            ];
+        }
+
+        $systemPrompt = 'You are an inventory management AI assistant for DuukaFlow. Your job is to classify user requests into the correct tool.
+
+Available tools:
+' . json_encode($toolDefinitions, JSON_PRETTY_PRINT) . '
+
+Rules:
+1. Match the user\'s request to the most relevant tool.
+2. Extract the necessary parameters for that tool from the request.
+3. If the user is just greeting or having general conversation (not asking about inventory data), respond with {"tool": null, "message": "a friendly response"}.
+4. If the user says hi, hello, hey, good morning, good afternoon, good evening, or any greeting, use the "greeting" tool.
+5. If the user asks about "expired", "expiring", or "danger zone" products, use the "expiring_products" tool.
+6. If the user asks about restocking or "running out", use the "product_search" tool (Stock section) or the restocking logic.
+7. Always respond with valid JSON only, no other text.
+
+Response format:
+- For tool calls: {"tool": "tool_name", "parameters": {"param1": "value1"}}
+- For general chat: {"tool": null, "message": "your friendly response"}
+- For unknown: {"tool": null, "message": "I can help you check products, sales, stock levels, revenue, and more. What would you like to know?"}';
+
+        try {
+            $client = \Gemini::client($apiKey);
+
+            $response = $client->generativeModel('models/gemini-2.0-flash')
+                ->withGenerationConfig(new GenerationConfig(
+                    responseMimeType: ResponseMimeType::APPLICATION_JSON,
+                    temperature: 0.1,
+                ))
+                ->generateContent($systemPrompt . "\n\nUser: " . $prompt);
+
+            $text = $response->text();
+            $decoded = json_decode($text, true);
+
+            if (!is_array($decoded)) {
+                return null;
+            }
+
+            // Gemini chose not to use a tool (general conversation)
+            if (!isset($decoded['tool']) || $decoded['tool'] === null) {
+                return false;
+            }
+
+            return [
+                'tool' => $decoded['tool'],
+                'parameters' => $decoded['parameters'] ?? [],
+            ];
+        } catch (\Exception $e) {
+            // Fall back to keyword matching
+            return null;
+        }
+    }
+
+    public function classifyWithKeywords(string $prompt): array
     {
         $lower = strtolower($prompt);
+
+        // Check for greetings first
+        $greetingPatterns = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings', 'howdy', "what's up", 'sup', 'yo'];
+        foreach ($greetingPatterns as $pattern) {
+            if (str_contains($lower, $pattern)) {
+                return [
+                    'tool' => 'greeting',
+                    'parameters' => ['message' => $prompt],
+                ];
+            }
+        }
 
         foreach ($this->registry->all() as $name => $tool) {
             $description = strtolower($tool->description());
