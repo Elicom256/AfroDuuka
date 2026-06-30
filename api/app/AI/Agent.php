@@ -26,8 +26,17 @@ class Agent
             $intent = $this->classifyWithKeywords($prompt);
         }
 
-        // If Gemini decided no tool is needed (general conversation)
+        // If Gemini decided no tool is needed (general conversation / greeting)
         if ($intent === false) {
+            $greetingTool = $this->registry->find('greeting');
+            if ($greetingTool) {
+                try {
+                    $result = $greetingTool->handle(['message' => $prompt]);
+                    return $this->success($result, 'greeting');
+                } catch (\Exception $e) {
+                    // fall through to default
+                }
+            }
             return $this->success(['response' => 'How can I help you with your inventory today? Ask me about products, sales, stock, or any business data.'], 'general');
         }
 
@@ -74,9 +83,10 @@ Rules:
 1. Match the user\'s request to the most relevant tool.
 2. Extract the necessary parameters for that tool from the request.
 3. If the user is just greeting or having general conversation (not asking about inventory data), respond with {"tool": null, "message": "a friendly response"}.
-4. If the user asks about "expired", "expiring", or "danger zone" products, use the "expiring_products" tool.
-5. If the user asks about restocking or "running out", use the "product_search" tool (Stock section) or the restocking logic.
-6. Always respond with valid JSON only, no other text.
+4. If the user says hi, hello, hey, good morning, good afternoon, good evening, or any greeting, use the "greeting" tool.
+5. If the user asks about "expired", "expiring", or "danger zone" products, use the "expiring_products" tool.
+6. If the user asks about restocking or "running out", use the "product_search" tool (Stock section) or the restocking logic.
+7. Always respond with valid JSON only, no other text.
 
 Response format:
 - For tool calls: {"tool": "tool_name", "parameters": {"param1": "value1"}}
@@ -118,6 +128,17 @@ Response format:
     public function classifyWithKeywords(string $prompt): array
     {
         $lower = strtolower($prompt);
+
+        // Check for greetings first
+        $greetingPatterns = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings', 'howdy', "what's up", 'sup', 'yo'];
+        foreach ($greetingPatterns as $pattern) {
+            if (str_contains($lower, $pattern)) {
+                return [
+                    'tool' => 'greeting',
+                    'parameters' => ['message' => $prompt],
+                ];
+            }
+        }
 
         foreach ($this->registry->all() as $name => $tool) {
             $description = strtolower($tool->description());
