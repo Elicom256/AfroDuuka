@@ -91,7 +91,11 @@ Rules:
 Response format:
 - For tool calls: {"tool": "tool_name", "parameters": {"param1": "value1"}}
 - For general chat: {"tool": null, "message": "your friendly response"}
-- For unknown: {"tool": null, "message": "I can help you check products, sales, stock levels, revenue, and more. What would you like to know?"}';
+- For unknown: {"tool": null, "message": "I can help you check products, sales, stock levels, revenue, and more. What would you like to know?"}
+
+
+Note: Before responding to any question, try to match any of the key words and read it like a human to understand what the user wants
+';
 
         try {
             $client = \Gemini::client($apiKey);
