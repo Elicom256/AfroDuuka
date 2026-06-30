@@ -22,7 +22,7 @@ export const AdminDashboardPage = () => {
 
   return (
     <div className='space-y-6'>
-      <div className='relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-6 border border-primary/10'>
+      <div className='relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/5 via-primary/10 to-primary/5 p-6 border border-primary/10'>
         <div className='absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl' />
         <div className='relative flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
           <div>
@@ -49,7 +49,7 @@ export const AdminDashboardPage = () => {
         <div className='space-y-6'>
           <OverviewCards />
 
-          <div className='grid gap-4 sm:grid-cols-2'>
+          <div className='grid gap-4 ssm:grid-cols-2'>
             <SmartRestocking />
             <TodoList />
           </div>

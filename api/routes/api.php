@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CountryController;
 use Illuminate\Support\Facades\Route;
 
 // Application health check
@@ -82,8 +83,12 @@ Route::prefix('reports')->group(function () {
 });
 
 Route::prefix("countries")->group(function () {
-    Route::get('/', [\App\Http\Controllers\CountryController::class, 'index']);
+    Route::get('/', [CountryController::class, 'index']);
 });
+
+// Route::prefix("todos")->group(function () {
+//     require __DIR__.'/todos.php';
+// });
 
 Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);

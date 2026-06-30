@@ -42,6 +42,7 @@ import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQu
 import { countriesQuery } from '../features/countries/countriesQuery';
 import { cashFlowQuery } from '../features/business/admin/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
+import { todoQuery } from '../features/todos/todoQuery';
 
 export const store = configureStore({
   reducer: {
@@ -88,6 +89,7 @@ export const store = configureStore({
     [countriesQuery.reducerPath]: countriesQuery.reducer,
     [cashFlowQuery.reducerPath]: cashFlowQuery.reducer,
     [aiQuery.reducerPath]: aiQuery.reducer,
+    [todoQuery.reducerPath]: todoQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -135,6 +137,7 @@ export const store = configureStore({
       countriesQuery.middleware,
       cashFlowQuery.middleware,
       aiQuery.middleware,
+      todoQuery.middleware,
     ),
 });
 
