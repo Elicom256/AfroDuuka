@@ -27,10 +27,11 @@ type WorkersTableProps = {
 };
 
 export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting }: WorkersTableProps) => {
-  const [recordAttendance, { isLoading: recording }] = useRecordEmployeeattendanceMutation();
+  const [recordAttendance, { isLoading: recording, error }] = useRecordEmployeeattendanceMutation();
   const [session, setSession] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [allPresent, setAllPresent] = useState<boolean>(false);
   const [selected, setSelected] = useState<Record<number, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
 
   const navigate = useNavigate();
 
@@ -52,12 +53,11 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
       console.error('record attendance error', err);
     }
   };
-
+  console.log('error==>', error);
   if (recording) {
     return <PageLoadingState />;
   }
 
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   if (isLoading) {
