@@ -22,6 +22,7 @@ import {
   FileText,
   Award,
   FileDown,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -47,6 +48,12 @@ const navSections: Array<{
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
       { label: 'Sales', to: '/admin/sales', icon: DollarSign },
       { label: 'Purchases', to: '/admin/purchases', icon: Truck },
+    ],
+  },
+  {
+    title: 'Tasks',
+    items: [
+      { label: 'Todos', to: '/admin/todos', icon: CheckSquare },
     ],
   },
   {

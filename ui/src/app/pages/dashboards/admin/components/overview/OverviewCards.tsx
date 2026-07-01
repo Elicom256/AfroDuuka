@@ -6,8 +6,9 @@ import { useSuppliersQuery } from '@/app/store/features/business/suppliers/suppl
 import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { useBranchProductExpiringQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useGetTodosQuery } from '@/app/store/features/todos/todoQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
-import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart, AlertTriangle } from 'lucide-react';
+import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart, AlertTriangle, CheckSquare } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 
 export const OverviewCards = () => {
@@ -40,6 +41,10 @@ export const OverviewCards = () => {
   const expiring = expiringData?.data;
   const expiringCount = (expiring?.expiring_count ?? 0) + (expiring?.expired_count ?? 0);
   const dangerCount = expiring?.danger_count ?? 0;
+
+  const { data: todosData, isLoading: todosLoading } = useGetTodosQuery();
+  const todos = todosData?.data ?? [];
+  const pendingTodos = todos.filter((t: any) => t.status === 'undone').length;
 
   const formatAmount = (amount: number) => `${currencySymbol} ${Math.round(amount).toLocaleString()}`;
   return (
@@ -109,6 +114,14 @@ export const OverviewCards = () => {
         isLoading={expiringLoading}
         description={dangerCount > 0 ? `${dangerCount} in danger zone` : 'Products nearing expiry'}
         iconClassName={dangerCount > 0 ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}
+      />
+      <StatsCard
+        title='Pending Tasks'
+        value={pendingTodos}
+        icon={CheckSquare}
+        isLoading={todosLoading}
+        description='Tasks awaiting completion'
+        iconClassName='bg-blue-500/10 text-blue-600'
       />
     </div>
   );

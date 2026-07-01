@@ -3,7 +3,6 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { OverviewCards } from '@/app/pages/dashboards/admin/components/overview/OverviewCards';
 import { SmartRestocking } from '@/app/pages/dashboards/admin/components/restocking/SmartRestocking';
-import { TodoList } from '@/app/pages/dashboards/admin/components/todos/TodoList';
 import { LayoutDashboard, CalendarDays } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
@@ -51,7 +50,6 @@ export const AdminDashboardPage = () => {
 
           <div className='grid gap-4 ssm:grid-cols-2'>
             <SmartRestocking />
-            <TodoList />
           </div>
         </div>
 
