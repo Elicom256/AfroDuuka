@@ -45,6 +45,8 @@ import { Worker } from '../pages/dashboards/admin/components/workers/Worker';
 import { TaxObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxObligatedTo';
 import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplier';
 import { Customer } from '../pages/dashboards/admin/components/customers/Customer';
+import { TodoList } from '../pages/dashboards/admin/components/todos/TodoList';
+import { TodoForm } from '../pages/dashboards/admin/components/todos/TodoForm';
 import SupplierSettings from '../pages/dashboards/admin/components/settings/SupplierSettings';
 import { CurrencySettings } from '../pages/dashboards/admin/components/settings/CurrencySettings';
 import { BusinessInfoSettings } from '../pages/dashboards/admin/components/settings/BusinessInfoSettings';
@@ -89,6 +91,8 @@ export const AdminRoutes = () => {
           <Route path='customers/:id' element={<Customer />} />
 
           <Route path='analytics' element={<AdminAnalyticsPage />} />
+          <Route path='todos' element={<TodoList />} />
+          <Route path='create-todo' element={<TodoForm />} />
           <Route path='reports' element={<AdminReportsPage />} />
           <Route path='finances' element={<AdminFinancesPage />} />
           <Route path='attendance' element={<AdminAttendancePage />} />

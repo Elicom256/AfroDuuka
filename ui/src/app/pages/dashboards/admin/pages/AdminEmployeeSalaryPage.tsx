@@ -14,6 +14,7 @@ export const AdminEmployeeSalaryPage = () => {
   const [, setEditItem] = useState<any>(null);
   const [, setFormOpen] = useState(false);
 
+  
   const totalMonthly = data?.totalMonthly ?? 0;
   const activeCount = data?.activeCount ?? 0;
   const salaries = data?.employee_salaries?.data ?? [];

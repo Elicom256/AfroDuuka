@@ -1,13 +1,21 @@
 // components/todos/TodoForm.tsx
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCreateTodoMutation } from '@/app/store/features/todos/todoQuery';
@@ -21,6 +29,7 @@ interface TodoFormData {
 
 export const TodoForm = () => {
   const [createTodo, { isLoading }] = useCreateTodoMutation();
+  const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState<TodoFormData>({
     title: '',
@@ -53,6 +62,7 @@ export const TodoForm = () => {
         description: response?.data?.title || title,
       });
 
+      setOpen(false);
       setFormData({ title: '', description: '', date: undefined });
     } catch (err: any) {
       toast.error('Failed to create task', {
@@ -62,13 +72,23 @@ export const TodoForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-5'>
-      <Card className='shadow-sm border'>
-        <CardHeader>
-          <CardTitle>Add a new task</CardTitle>
-          <CardDescription>Capture a task quickly and schedule it for later.</CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-5'>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className='h-4 w-4 mr-2' />
+          Add New Task
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className='sm:max-w-275 max-h-[85vh] overflow-y-auto'>
+        <DialogHeader>
+          <DialogTitle>Add New Task</DialogTitle>
+          <DialogDescription>
+            Enter the details for your new task. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className='space-y-6'>
           <div className='space-y-2'>
             <Label htmlFor='title'>
               Task Title <span className='text-red-500'>*</span>
@@ -115,11 +135,21 @@ export const TodoForm = () => {
             </Popover>
           </div>
 
-          <Button type='submit' className='w-full' disabled={!formData.title.trim() || isLoading}>
-            {isLoading ? 'Creating Task...' : 'Create Task'}
-          </Button>
-        </CardContent>
-      </Card>
-    </form>
+          <DialogFooter>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' disabled={!formData.title.trim() || isLoading}>
+              {isLoading ? 'Creating Task...' : 'Create Task'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
