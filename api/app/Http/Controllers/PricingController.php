@@ -8,43 +8,36 @@ use App\Models\Pricing;
 
 class PricingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $pricings = Pricing::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+        return response()->json(["pricings" => $pricings, "message" => "Pricing plans retrieved"]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StorePricingRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $pricing = Pricing::create($validated);
+        return response()->json(["pricing" => $pricing, "message" => "Pricing plan created"], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Pricing $pricing)
     {
-        //
+        return response()->json(["pricing" => $pricing, "message" => "Pricing plan retrieved"]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdatePricingRequest $request, Pricing $pricing)
     {
-        //
+        $validated = $request->validated();
+        $pricing->update($validated);
+        return response()->json(["pricing" => $pricing->fresh(), "message" => "Pricing plan updated"]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Pricing $pricing)
     {
-        //
+        $pricing->delete();
+        return response()->json(["message" => "Pricing plan deleted"]);
     }
 }

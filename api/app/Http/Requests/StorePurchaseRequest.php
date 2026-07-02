@@ -50,7 +50,7 @@ class StorePurchaseRequest extends FormRequest
             'note'         => 'nullable|string|max:500',
 
             // Payment Information
-            'payment_status_id'  => 'required|exists:payment_statuses,id',
+            'payment_status_id'  => 'required|exists:payment_methods,id',
             'reference'      => 'nullable|string|max:100',           // Invoice number, receipt, etc.
             'currency'       => 'required|string|size:3',
 

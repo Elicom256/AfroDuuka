@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\BusinessBranchProduct;
 use App\Models\CashFlow;
-use App\Models\CoreSettings\PaymentStatus;
+use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
@@ -70,7 +70,7 @@ class SaleItemService
         // BusinessBranchProduct::where('id', $item['business_branch_product_id'])
         //     ->decrement('quantity', $item['quantity']);
     }
-    $method = PaymentStatus::find($validated["payment_status_id"])->value("method");
+    $method = PaymentMethod::find($validated["payment_status_id"])->value("method");
    //  to be removed
     SalePayment::create([
       "sale_id" => $sale->id,

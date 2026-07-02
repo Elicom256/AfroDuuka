@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\BusinessTaxes;
-use App\Models\CoreSettings\PaymentStatus;
+use App\Models\CoreSettings\PaymentMethod;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +43,7 @@ class StoreBusinessTaxPaymentRequest extends FormRequest
             'status'             => ['nullable', Rule::in(['unpaid', 'partial', 'paid', 'overdue', 'waived', 'refunded'])],
 
             'reference_number'   => ['nullable', 'string', 'max:50', 'unique:business_tax_payments,reference_number'],
-            'payment_status_id'     => ['nullable', 'exists:payment_statuses,id'],
+            'payment_status_id'     => ['nullable', 'exists:payment_methods,id'],
 
             'notes'              => ['nullable', 'string', 'max:1000'],
             'payment_metadata'   => ['nullable', 'array'],

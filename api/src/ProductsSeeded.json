@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "name": "Test Business",
+  "email": "testbusinessone@gmail.com",
+  "phone": "1234567890",
+  "address": "123 Test St",
+  "city": "Test City",
+  "country": "UG",
+  "currency": "UGX",
+  "status": "active"
+}

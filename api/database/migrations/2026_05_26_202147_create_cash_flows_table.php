@@ -38,7 +38,7 @@ return new class extends Migration
               // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
         
         // Payment details
-        $table->foreignId('payment_status_id')->nullable()->constrained()->cascadeOnDelete();
+        $table->foreignId('payment_status_id')->nullable()->constrained('payment_methods')->cascadeOnDelete();
         $table->string('reference')->nullable();        // receipt number, cheque number, transaction ID
         
         // Status & Dates

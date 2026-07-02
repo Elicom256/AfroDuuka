@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const paymentSettingsQuery = createApi({
   reducerPath: 'paymentSettingsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/payment-status`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/payment-methods`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
