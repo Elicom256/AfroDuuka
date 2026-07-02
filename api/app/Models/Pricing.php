@@ -13,6 +13,7 @@ class Pricing extends Model
     protected $fillable = [
         'name',
         'slug',
+        "mark",
         'description',
         'monthly_price',
         'yearly_price',

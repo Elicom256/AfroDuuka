@@ -13,6 +13,7 @@ class PricingSeeder extends Seeder
             [
                 'name' => 'Starter',
                 'slug' => 'starter',
+                'mark' => 'low',
                 'description' => 'Perfect for small shops and individual retailers just getting started with inventory management.',
                 'monthly_price' => 50000,
                 'yearly_price' => 500000,
@@ -36,6 +37,7 @@ class PricingSeeder extends Seeder
             [
                 'name' => 'Growth',
                 'slug' => 'growth',
+                'mark' => 'most popular',
                 'description' => 'Ideal for growing businesses with multiple branches and a larger product catalog.',
                 'monthly_price' => 150000,
                 'yearly_price' => 1500000,
@@ -61,6 +63,7 @@ class PricingSeeder extends Seeder
             [
                 'name' => 'Enterprise',
                 'slug' => 'enterprise',
+                'mark' => 'enterprise level',
                 'description' => 'Full-featured plan for large retailers and businesses with complex inventory needs.',
                 'monthly_price' => 500000,
                 'yearly_price' => 5000000,
