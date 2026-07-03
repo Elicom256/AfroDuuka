@@ -1,10 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-interface Feature {
-  name: string;
-  description: string;
-}
-
 interface Limits {
   maxProducts?: number;
   maxBranches?: number;
@@ -19,6 +14,7 @@ interface Plan {
   description?: string;
   monthly_price: number;
   yearly_price: number;
+  discount_percentage?: number;
   billing_cycle?: string;
   features?: string[];
   limits?: Limits;

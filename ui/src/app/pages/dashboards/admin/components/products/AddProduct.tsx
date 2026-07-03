@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 
 interface AddProductProps {
@@ -23,12 +23,12 @@ interface AddProductProps {
 
 export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
-  const { data } = useProductsQuery();
+  const { data: categoriesData } = useProductCategoriesQuery();
+  const categories = categoriesData?.categories ?? [];
 
-  // console.log('Category==>', data);
   const [formData, setFormData] = useState({
     name: '',
-    markup_percentage: 0,
+    markup_percentage: '',
     cost_price: '',
     price: '',
     quantity: '',
@@ -40,7 +40,6 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   useEffect(() => {
     const cost = Number(formData.cost_price) || 0;
     const markup = Number(formData.markup_percentage) || 0;
-
     const calculatedPrice = cost + (cost * markup) / 100;
 
     setFormData((prev) => ({
@@ -51,20 +50,32 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Call addProduct mutation
-    const res = await addProduct({
-      ...formData,
-      quantity: Number(formData.quantity),
-      reorder_level: Number(formData.reorder_level),
-    }).unwrap();
-    console.log('Add product res==>', res);
-    if (res) {
-      toast.success(res.message);
+
+    try {
+      const res = await addProduct({
+        ...formData,
+        quantity: Number(formData.quantity),
+        reorder_level: Number(formData.reorder_level),
+      }).unwrap();
+
+      toast.success(res?.message || 'Product added successfully');
+      setOpen(false);
+      setFormData({
+        name: '',
+        markup_percentage: '',
+        cost_price: '',
+        price: '',
+        quantity: '',
+        reorder_level: '',
+        description: '',
+        product_id: '',
+      });
+    } catch (error) {
+      console.error('Add product error:', error);
+      toast.error('Failed to add product');
     }
-    console.log('Adding product:', res);
-    setOpen(false);
   };
-  console.log('test markup==>', typeof formData.markup_percentage);
+
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -73,14 +84,14 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className='h-4 w-4 mr-2' />
+          <Plus className='mr-2 h-4 w-4' />
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-106.25'>
+      <DialogContent className='sm:max-w-2xl'>
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription>Enter the details for the new product.</DialogDescription>
+          <DialogDescription>Enter the details for the new branch product and link it to a category.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
@@ -93,6 +104,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 className='col-span-3'
+                required
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
@@ -109,11 +121,11 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='sku' className='text-right'>
+              <Label htmlFor='markup_percentage' className='text-right'>
                 Markup Percentage
               </Label>
               <Input
-                id='sku'
+                id='markup_percentage'
                 type='number'
                 value={formData.markup_percentage}
                 onChange={(e) => handleChange('markup_percentage', e.target.value)}
@@ -130,7 +142,6 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 id='price'
                 type='number'
                 value={formData.price}
-                // readOnly
                 onChange={(e) => handleChange('price', e.target.value)}
                 className='col-span-3'
                 required
@@ -172,9 +183,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
-
                 <SelectContent>
-                  {data?.products.map((cat: any) => (
+                  {categories.map((cat: any) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>

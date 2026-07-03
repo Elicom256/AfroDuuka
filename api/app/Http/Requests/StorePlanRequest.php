@@ -20,6 +20,7 @@ class StorePlanRequest extends FormRequest
             'monthly_price' => 'required|numeric|min:0',
             'yearly_price' => 'required|numeric|min:0',
             'billing_cycle' => 'required|string|max:50',
+            'discount_percentage' => 'sometimes|integer|min:0|max:100',
             'features' => 'nullable|array',
             'features.*' => 'string',
             'limits' => 'nullable|array',

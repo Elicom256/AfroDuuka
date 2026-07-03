@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Trash2, CheckSquare, Plus } from 'lucide-react';
+import { Trash2, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 
@@ -104,7 +104,7 @@ export const TodoList = () => {
                     {todo.date && (
                       <div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
                         <span className='rounded-full bg-muted/70 px-2 py-1'>
-                          Due {format(parseISO(todo.date), "MMM d, yyyy")}
+                          Due {format(parseISO(todo.date), 'MMM d, yyyy')}
                         </span>
                       </div>
                     )}

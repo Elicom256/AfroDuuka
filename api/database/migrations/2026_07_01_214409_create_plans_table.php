@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->decimal('yearly_price', 12, 2)->default(0);
+            $table->unsignedInteger('discount_percentage')->default(0);
             $table->string('billing_cycle')->default('monthly');
             $table->json('features')->nullable();
             $table->json('limits')->nullable();

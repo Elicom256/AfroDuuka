@@ -1,65 +1,55 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddProduct } from '../components/products/AddProduct';
-import { ProductTable } from '../components/products/ProductTable';
-import { PageLoadingState } from '@/utils/PageLoadingState';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Package2, Tags } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AddProduct } from '../components/products/AddProduct';
+import { AddProductCategory } from '../components/products/AddProductCategory';
+import { ProductTable } from '../components/products/ProductTable';
 import { useAddBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 
 export const AdminProductsPage = () => {
-  const [addProduct, { isLoading }] = useAddBranchProductMutation();
+  const [addProduct] = useAddBranchProductMutation();
 
-  if (isLoading) return <PageLoadingState />;
   return (
-    <Card className='rounded-3xl border border-border/70 bg-card p-6'>
-      <CardHeader>
-        <CardTitle>Products</CardTitle>
-        <CardDescription>Manage your products here.</CardDescription>
-        <div className='flex gap-2'>
-          <AddProduct addProduct={addProduct} />
-          {/* <AddProductCategory /> */}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ProductTable />
-      </CardContent>
-      <CardFooter className='flex justify-between'>
-        <div className='flex items-center gap-4'>
-          <Link to='/admin/business-products/' className='hover:underline text-blue-400'>
-            Manage Products Types
+    <div className='space-y-6'>
+      <Card className='rounded-3xl border border-border/70 bg-card/80 shadow-sm'>
+        <CardHeader className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2'>
+              <div className='rounded-full bg-primary/10 p-2 text-primary'>
+                <Package2 className='h-4 w-4' />
+              </div>
+              <Badge variant='secondary'>Products</Badge>
+            </div>
+            <CardTitle className='text-2xl'>Manage inventory products and categories</CardTitle>
+            <CardDescription className='max-w-2xl'>
+              Create branch products, link them to categories, and keep pricing and stock levels organised in one place.
+            </CardDescription>
+          </div>
+          <div className='flex flex-wrap gap-2'>
+            <AddProduct addProduct={addProduct} />
+            <AddProductCategory />
+          </div>
+        </CardHeader>
+        <CardContent className='flex flex-wrap items-center gap-3 border-t border-border/60 pt-4'>
+          <Link
+            to='/admin/business-products'
+            className='inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline'
+          >
+            <Tags className='h-4 w-4' />
+            Manage product types
           </Link>
-          <Link to='/admin/product-categories' className='hover:underline text-blue-400'>
-            Manage product Categories
+          <Link
+            to='/admin/product-categories'
+            className='inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline'
+          >
+            <Tags className='h-4 w-4' />
+            Manage categories
           </Link>
-        </div>
-        <div className='grid grid-cols-2 text-xs'>
-          {/* <span className='text'>Note</span> */}
-          <div className='flex items-center gap-2'>
-            <span className=''>CID: </span>
-            <span className='text-gray-300'>Category Id</span>
-          </div>
-          {/* SKU */}
-          <div className='flex items-center gap-2'>
-            <span className=''>SKU: </span>
-            <span className='text-gray-300'>Stock Keeping Unit</span>
-          </div>
-          {/* cost price */}
-          <div className='flex items-center gap-2'>
-            <span className=''>CP: </span>
-            <span className='text-gray-300'>Cost Price</span>
-          </div>
-          {/* RL */}
-          <div className='flex items-center gap-2'>
-            <span className=''>RL: </span>
-            <span className='text-gray-300'>Re-order/Restock Level</span>
-          </div>
+        </CardContent>
+      </Card>
 
-          {/* MP */}
-          <div className='flex items-center gap-2'>
-            <span className=''>MP</span>
-            <span className='text-gray-300'>Markup Percentage</span>
-          </div>
-        </div>
-      </CardFooter>
-    </Card>
+      <ProductTable />
+    </div>
   );
 };

@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSendAiMessageMutation } from '@/app/store/features/ai/aiQuery';
-import { Send, Bot, User, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 
@@ -55,7 +55,7 @@ export const AiChat = () => {
 
     try {
       const result = await sendMessage({ message: text }).unwrap();
-      const response = result.success ? formatResponse(result.data, result.tool) : result.error;
+      const response = result.success ? formatResponse(result.data) : result.error;
       setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }]);
     } catch {
       setMessages((prev) => [
@@ -148,7 +148,7 @@ export const AiChat = () => {
   );
 };
 
-function formatResponse(data: any, tool?: string): string {
+function formatResponse(data: any): string {
   if (!data) return 'No data available.';
 
   const lines: string[] = [];
