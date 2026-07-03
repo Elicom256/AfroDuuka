@@ -10,7 +10,7 @@ class PlanController extends Controller
 {
     public function index()
     {
-        $plans = Plan::with(["pricing", "business"])->get();
+        $plans = Plan::orderBy('sort_order')->get();
         return response()->json(["plans" => $plans, "message" => "Plans retrieved"]);
     }
 
@@ -18,19 +18,19 @@ class PlanController extends Controller
     {
         $validated = $request->validated();
         $plan = Plan::create($validated);
-        return response()->json(["plan" => $plan->load(["pricing", "business"]), "message" => "Plan created"], 201);
+        return response()->json(["plan" => $plan, "message" => "Plan created"], 201);
     }
 
     public function show(Plan $plan)
     {
-        return response()->json(["plan" => $plan->load(["pricing", "business"]), "message" => "Plan retrieved"]);
+        return response()->json(["plan" => $plan, "message" => "Plan retrieved"]);
     }
 
     public function update(UpdatePlanRequest $request, Plan $plan)
     {
         $validated = $request->validated();
         $plan->update($validated);
-        return response()->json(["plan" => $plan->fresh()->load(["pricing", "business"]), "message" => "Plan updated"]);
+        return response()->json(["plan" => $plan->fresh(), "message" => "Plan updated"]);
     }
 
     public function destroy(Plan $plan)

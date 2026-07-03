@@ -1,125 +1,287 @@
-# Today's Tasks
+# Project Refactor Request
 
-## Task 1: Refactor Payment Statuses → Payment Methods
+We are still in active development. **Do not create new migration files or table-rename migrations.** Instead, **edit the existing migration files directly** so a fresh `php artisan migrate:fresh --seed` creates the new database structure.
 
-Rename the existing `payment_statuses` implementation to `payment_methods`.
+## Goal
 
-This includes renaming:
+Refactor the subscription domain to follow a proper SaaS architecture with clear separation between Plans, Subscriptions, and Subscription Payments.
 
-- Database table (`payment_statuses` → `payment_methods`)
-- Model
-- Controller
-- Requests/Resources
-- Routes
+---
+
+## 1. Rename the domain models
+
+### Current → New
+
+- `Pricing` → `Plan`
+- `Plan` → `Subscription`
+- `Subscription` → `SubscriptionPayment`
+
+Update **everything** to use the new names consistently:
+
+- Models
+- Migrations
+- Controllers
+- Form Requests
+- Policies
+- Resources
+- Services
+- Repositories (if any)
+- Factories
+- Seeders
 - Relationships
+- Routes
+- Validation rules
+- Imports (`use` statements)
+- Variable names
+- Method names
+- API responses
+- Frontend components
+- Frontend pages
+- Frontend types/interfaces
+- Frontend API calls
+- Frontend labels
+- Frontend forms
+- Frontend navigation
+- Frontend tables
+- Frontend breadcrumbs
+- Any remaining references to the old naming
+
+The frontend and backend should use the exact same terminology.
+
+---
+
+## 2. Final database structure
+
+### plans
+
+This becomes the product catalog.
+
+Example:
+
+- Starter
+- Business
+- Enterprise
+
+Move the existing pricing information here.
+
+The table should contain things like:
+
+- name
+- description
+- monthly_price (or existing price field)
+- billing_cycle
+- features
+- status
+- timestamps
+
+### IMPORTANT
+
+Update every plan description (including seeders) to mention:
+
+> WhatsApp automated notifications
+
+This feature should appear naturally as one of the included features in every plan description.
+
+---
+
+### subscriptions
+
+Represents a business subscribing to a plan.
+
+Fields should include:
+
+- id
+- business_id
+- plan_id
+- status
+- starts_at
+- ends_at
+- trial_ends_at
+- timestamps
+
+Rename:
+
+- start_date → starts_at
+- end_date → ends_at
+
+Relationships:
+
+- belongsTo Business
+- belongsTo Plan
+- hasMany SubscriptionPayments
+
+---
+
+### subscription_payments
+
+Represents every payment made for a subscription.
+
+Fields:
+
+- id
+- subscription_id
+- payment_method_id
+- amount_paid
+- transaction_id
+- number_paid
+- payment_status
+- payment_proof
+- verified_by
+- verified_at
+- rejection_reason
+- notes
+- timestamps
+
+Use appropriate column lengths and decimal precision.
+
+Relationships:
+
+- belongsTo Subscription
+- belongsTo PaymentMethod
+- belongsTo User (verified_by)
+
+---
+
+## 3. Relationships
+
+Plan
+
+- hasMany Subscriptions
+
+Subscription
+
+- belongsTo Business
+- belongsTo Plan
+- hasMany SubscriptionPayments
+
+SubscriptionPayment
+
+- belongsTo Subscription
+- belongsTo PaymentMethod
+- belongsTo User (verified_by)
+
+Business
+
+- hasMany Subscriptions
+
+---
+
+## 4. Edit existing migrations only
+
+Since this project is **still under development**:
+
+- Do NOT generate migration files for renaming tables.
+- Do NOT create data migration scripts.
+- Do NOT create compatibility layers.
+- Modify the existing migration files directly.
+- Ensure a fresh migration produces the new schema correctly.
+
+---
+
+## 5. Update seeders
+
+Update all seeders to match the new structure.
+
+Rename seeded models accordingly.
+
+Ensure plans include modern descriptions mentioning:
+
+- WhatsApp automated notifications
+- Dashboard access
+- Reports
+- Subscription management
+- Any existing features
+
+Seed data should feel realistic and production-ready.
+
+---
+
+## 6. Update backend
+
+Refactor every backend reference to use the new architecture.
+
+This includes:
+
+- Models
+- Controllers
+- Requests
+- Resources
+- Relationships
+- Validation
+- Policies
+- Factories
+- Seeders
+- Route model binding
+- Queries
+- Tests (if present)
+
+Remove any obsolete naming.
+
+---
+
+## 7. Update frontend
+
+Refactor the frontend to match the backend naming exactly.
+
+Update:
+
+- API endpoints
+- Types
+- Interfaces
+- Components
+- Forms
+- Tables
+- Pages
+- Breadcrumbs
+- Navigation
+- Labels
 - Imports
-- References throughout the codebase
+- Hooks/composables
+- State management
+- Validation
+- Any displayed text
 
-Ensure all existing functionality continues to work after the refactor.
+Users should only see:
 
----
+- Plans
+- Subscriptions
+- Subscription Payments
 
-## Task 2: Complete Pricing, Plans & Subscription Module
-
-The base files (Model, Migration, Controller, and Resources) for **Pricing** already exist. Complete the implementation following the requirements below.
-
-### Pricing
-.opencode/prompt.md
-- Complete the CRUD implementation.
-- Create a seeder with sensible default pricing suitable for the Ugandan market.
-- Use realistic pricing tiers and modern SaaS conventions.
-- Render pricing for customers to see in the ui, at the home page, in fact that home page needs to be re-designed to meet modern specifications
-
-### Plans
-
-A plan belongs to:
-
-- `business`
-- `pricing`
-
-Required fields:
-
-- `business_id`
-- `pricing_id`
-
-Add a status enum:
-
-- `active`
-- `inactive`
-- `terminated`
-
-Implement the necessary relationships, validation, and resources.
-
-### Subscriptions
-
-A subscription belongs to:
-
-- `business`
-- `plan`
-
-Required fields:
-
-- `business_id`
-- `plan_id`
-
-Subscriptions should also reference the payment method.
-
-Use the newly renamed `payment_methods` table/model (formerly `payment_statuses`) and only allow enabled payment methods to be associated with subscriptions.
-
-Implement all necessary relationships and validation.
+The old terminology should no longer appear anywhere.
 
 ---
 
-# Frontend
+## 8. Laravel conventions
 
-## Public Website
+Follow Laravel best practices.
 
-- Display the available pricing plans on the Home page.
-- Do **not** place pricing inside any dashboard.
+Use:
 
-## Admin Dashboard
+- `starts_at`
+- `ends_at`
+- proper relationship names
+- proper model naming
+- proper foreign keys
+- proper eager loading where appropriate
 
-### Subscriptions Page
-
-Create a dedicated Subscriptions route/page that includes:
-
-- A table listing subscriptions.
-- A Shadcn Badge at the top indicating the currently active plan.
-- Appropriate Lucide icons where applicable.
-
-### Dashboard Overview
-
-Inside the existing `OverviewCards` component, add cards displaying:
-
-- Current subscription
-- Current plan
-
-Reuse the existing design system and component patterns.
+Avoid unnecessary complexity.
 
 ---
 
-# Seeder Requirements
+## 9. Final verification
 
-Seed realistic SaaS pricing tailored to the Ugandan economy.
+Before finishing, verify that:
 
-Include multiple pricing tiers (for example: Starter, Growth, and Enterprise) with sensible monthly pricing and features.
+- No old model names remain.
+- No old table names remain.
+- All foreign keys are valid.
+- All relationships work.
+- Seeders execute successfully.
+- A fresh `php artisan migrate:fresh --seed` completes successfully.
+- The frontend compiles successfully.
+- The application behaves exactly the same functionally, but with the improved domain model and naming.
 
-Avoid hardcoding assumptions that would make future expansion difficult.
-
----
-
-# Engineering Constraints
-
-- Do not hallucinate features or requirements.
-- Work as a senior software engineer.
-- Make modern, scalable architectural decisions.
-- Keep the implementation maintainable and extensible.
-- Add meaningful comments where they improve readability.
-- Reuse existing frontend patterns.
-- Use the existing Shadcn UI components.
-- Use Lucide icons already used throughout the project.
-- Do not reinvent existing abstractions.
-- Keep naming consistent across backend and frontend.
-- Preserve backward compatibility where possible during the refactor.
-- Follow existing project conventions and coding style.
-- Prioritize scalability, readability, and maintainability over shortcuts.
+## Constraonts
+- Do not hallucinate features
+- Work as a senior systems engineer
+- Consider scalability

@@ -1,16 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/app/pages/public/components/SectionHeader';
-import { useGetPricingsQuery } from '@/app/store/features/pricing/pricingQuery';
+import { useGetPlansQuery } from '@/app/store/features/plans/plansQuery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check } from 'lucide-react';
 
@@ -20,7 +13,7 @@ interface Limits {
   maxUsers?: number;
 }
 
-interface Pricing {
+interface Plan {
   id: number;
   name: string;
   slug: string;
@@ -28,6 +21,7 @@ interface Pricing {
   description?: string;
   monthly_price: string;
   yearly_price: string;
+  billing_cycle?: string;
   features?: string[];
   limits?: Limits;
   is_active?: boolean;
@@ -41,8 +35,9 @@ const getBadgeVariant = (mark: string): 'default' | 'secondary' | 'destructive' 
   return 'outline';
 };
 
-const PricingCard = ({ pricing }: { pricing: Pricing }) => {
-  const isMostPopular = pricing.mark.toLowerCase().includes('popular');
+const PlanCard = ({ plan }: { plan: Plan }) => {
+  const isMostPopular = plan.mark.toLowerCase().includes('popular');
+  console.log('plan==>', plan);
 
   return (
     <Card
@@ -61,14 +56,12 @@ const PricingCard = ({ pricing }: { pricing: Pricing }) => {
       <CardHeader className='pb-4'>
         <div className='flex items-start justify-between gap-4'>
           <div className='flex-1'>
-            <CardTitle className='text-xl font-bold'>{pricing.name}</CardTitle>
+            <CardTitle className='text-xl font-bold'>{plan.name}</CardTitle>
 
-            <CardDescription className='mt-1 text-sm line-clamp-2'>{pricing.description}</CardDescription>
+            <CardDescription className='mt-1 text-sm line-clamp-2'>{plan.description}</CardDescription>
           </div>
           {isMostPopular && (
-            <Badge className='bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300'>
-              {pricing.mark}
-            </Badge>
+            <Badge className='bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300'>{plan.mark}</Badge>
           )}
         </div>
       </CardHeader>
@@ -77,20 +70,20 @@ const PricingCard = ({ pricing }: { pricing: Pricing }) => {
         <div className='space-y-2'>
           <div className='flex items-baseline gap-2'>
             <p className='text-2xl sm:text-3xl font-bold tracking-tight'>
-              {formatPrice(pricing.monthly_price, pricing.currency)}
+              {formatPrice(plan.monthly_price, plan.currency)}
             </p>
             <span className='text-sm font-medium text-muted-foreground'>/mo</span>
           </div>
-          {Number(pricing.yearly_price) > 0 && (
+          {Number(plan.yearly_price) > 0 && (
             <p className='text-xs text-muted-foreground'>
-              {formatPrice(pricing.yearly_price, pricing.currency)} billed yearly
+              {formatPrice(plan.yearly_price, plan.currency)} billed yearly
             </p>
           )}
         </div>
 
-        {pricing.features && pricing.features.length > 0 && (
+        {plan.features && plan.features.length > 0 && (
           <ul className='space-y-3'>
-            {pricing.features.map((feature: string, i: number) => (
+            {plan.features.map((feature: string, i: number) => (
               <li key={i} className='flex items-start gap-3 text-sm'>
                 <Check className='h-4 w-4 mt-0.5 shrink-0 text-primary' />
                 <span className='text-foreground/80'>{feature}</span>
@@ -140,8 +133,8 @@ const PricingCardSkeleton = () => (
 );
 
 export const PricingSection = () => {
-  const { data: pricingData, isLoading: pricingLoading } = useGetPricingsQuery();
-  const pricings = pricingData?.pricings ?? [];
+  const { data: planData, isLoading: planLoading } = useGetPlansQuery();
+  const plans = planData?.plans ?? [];
 
   return (
     <section className='mt-20'>
@@ -151,9 +144,9 @@ export const PricingSection = () => {
         description='Choose the plan that fits your business. All plans include a 14-day free trial.'
       />
       <div className='mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
-        {pricingLoading
+        {planLoading
           ? [1, 2, 3, 4].map((i) => <PricingCardSkeleton key={i} />)
-          : pricings.map((pricing: any) => <PricingCard key={pricing.id} pricing={pricing} />)}
+          : plans.map((plan: any) => <PlanCard key={plan.id} plan={plan} />)}
       </div>
     </section>
   );

@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscriptions', function (Blueprint $table) {
+        Schema::create('subscription_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("plan_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("payment_method_id")->constrained("payment_methods")->cascadeOnDelete();
-            $table->enum("status", ["active", "paused", "cancelled", "expired"])->default("active");
-            $table->timestamp("start_date")->nullable();
-            $table->timestamp("end_date")->nullable();
-            $table->timestamp("trial_ends_at")->nullable();
+            $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('payment_method_id')->constrained('payment_methods')->cascadeOnDelete();
+            $table->decimal('amount_paid', 12, 2)->default(0);
+            $table->string('transaction_id', 50)->nullable()->unique();
+            $table->string('number_paid', 14)->nullable();
+            $table->enum('payment_status', ['pending', 'completed', 'failed', 'rejected'])->default('pending');
+            $table->string('payment_proof')->nullable();
+            $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('verified_at')->nullable();
+            $table->text('rejection_reason')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subscriptions');
+        Schema::dropIfExists('subscription_payments');
     }
 };

@@ -90,10 +90,6 @@ Route::prefix("countries")->group(function () {
 //     require __DIR__.'/todos.php';
 // });
 
-Route::prefix("pricing")->group(function () {
-    require __DIR__."/pricing.php";
-});
-
 Route::prefix("plans")->group(function () {
     require __DIR__."/plans.php";
 });

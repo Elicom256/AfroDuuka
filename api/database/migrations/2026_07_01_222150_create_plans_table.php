@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("pricing_id")->constrained()->cascadeOnDelete();
-            $table->enum("status", ["active", "inactive", "terminated"])->default("active");
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('plan_id')->constrained()->cascadeOnDelete();
+            $table->enum('status', ['active', 'paused', 'cancelled', 'expired'])->default('active');
+            $table->timestamp('starts_at')->nullable();
+            $table->timestamp('ends_at')->nullable();
+            $table->timestamp('trial_ends_at')->nullable();
             $table->timestamps();
-
-            $table->unique(["business_id", "pricing_id"]);
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('subscriptions');
     }
 };

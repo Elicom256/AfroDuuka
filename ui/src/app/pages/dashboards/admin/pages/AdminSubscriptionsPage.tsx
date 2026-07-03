@@ -39,7 +39,7 @@ export const AdminSubscriptionsPage = () => {
             </div>
             <div className='flex-1'>
               <p className='text-sm text-muted-foreground'>Currently Active Plan</p>
-              <p className='text-lg font-semibold'>{activePlan?.pricing?.name ?? 'N/A'}</p>
+              <p className='text-lg font-semibold'>{activePlan?.name ?? 'N/A'}</p>
             </div>
             <Badge className='bg-green-500/10 text-green-600 border-green-500/20 text-xs px-3 py-1'>
               {activeSubscription.status}
@@ -76,13 +76,11 @@ export const AdminSubscriptionsPage = () => {
                     <TableCell className='font-medium'>
                       <div className='flex items-center gap-2'>
                         <Tag className='h-4 w-4 text-muted-foreground' />
-                        {sub.plan?.pricing?.name ?? 'N/A'}
+                        {sub.plan?.name ?? 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {sub.plan?.pricing
-                        ? `${sub.plan.pricing.currency} ${Number(sub.plan.pricing.monthly_price).toLocaleString()}/mo`
-                        : 'N/A'}
+                      {sub.plan ? `${sub.plan.currency} ${Number(sub.plan.monthly_price).toLocaleString()}/mo` : 'N/A'}
                     </TableCell>
                     <TableCell>{sub.payment_method?.method?.replace('_', ' ') ?? 'N/A'}</TableCell>
                     <TableCell>
@@ -93,13 +91,13 @@ export const AdminSubscriptionsPage = () => {
                     <TableCell>
                       <div className='flex items-center gap-1.5 text-sm'>
                         <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
-                        {sub.start_date ? new Date(sub.start_date).toLocaleDateString() : '-'}
+                        {sub.starts_at ? new Date(sub.starts_at).toLocaleDateString() : '-'}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className='flex items-center gap-1.5 text-sm'>
                         <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
-                        {sub.end_date ? new Date(sub.end_date).toLocaleDateString() : '-'}
+                        {sub.ends_at ? new Date(sub.ends_at).toLocaleDateString() : '-'}
                       </div>
                     </TableCell>
                   </TableRow>

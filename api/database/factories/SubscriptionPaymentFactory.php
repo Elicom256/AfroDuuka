@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Pricing;
+use App\Models\SubscriptionPayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Pricing>
+ * @extends Factory<SubscriptionPayment>
  */
-class PricingFactory extends Factory
+class SubscriptionPaymentFactory extends Factory
 {
     /**
      * Define the model's default state.

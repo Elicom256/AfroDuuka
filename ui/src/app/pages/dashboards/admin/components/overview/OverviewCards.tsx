@@ -9,7 +9,20 @@ import { useBranchProductExpiringQuery } from '@/app/store/features/branch/produ
 import { useGetTodosQuery } from '@/app/store/features/todos/todoQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { useGetSubscriptionsQuery } from '@/app/store/features/subscriptions/subscriptionsQuery';
-import { Users, Package, Tags, Building2, UserCheck, Truck, DollarSign, ShoppingCart, AlertTriangle, CheckSquare, Crown, CreditCard } from 'lucide-react';
+import {
+  Users,
+  Package,
+  Tags,
+  Building2,
+  UserCheck,
+  Truck,
+  DollarSign,
+  ShoppingCart,
+  AlertTriangle,
+  CheckSquare,
+  Crown,
+  CreditCard,
+} from 'lucide-react';
 import { StatsCard } from './StatsCard';
 
 export const OverviewCards = () => {
@@ -50,104 +63,106 @@ export const OverviewCards = () => {
   const { data: subscriptionsData, isLoading: subscriptionsLoading } = useGetSubscriptionsQuery();
   const subscriptions = subscriptionsData?.subscriptions ?? [];
   const activeSub = subscriptions.find((s: any) => s.status === 'active');
-  const activePlanName = activeSub?.plan?.pricing?.name ?? 'No active plan';
+  const activePlanName = activeSub?.plan?.name ?? 'No active plan';
   const activePlanStatus = activeSub?.status ?? 'none';
 
   const formatAmount = (amount: number) => `${currencySymbol} ${Math.round(amount).toLocaleString()}`;
   return (
     <div className='space-y-4'>
-    <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-      <StatsCard
-        title='Workers'
-        value={workers?.length ?? 0}
-        icon={Users}
-        isLoading={workersLoading}
-        description='Total workforce'
-      />
-      <StatsCard
-        title='Business Products'
-        value={products?.length ?? 0}
-        icon={Package}
-        isLoading={productsLoading}
-        description='Product types offered'
-      />
-      <StatsCard
-        title='Categories'
-        value={categories?.length ?? 0}
-        icon={Tags}
-        isLoading={categoriesLoading}
-        description='Product categories'
-      />
-      <StatsCard
-        title='Branches'
-        value={branches?.length ?? 0}
-        icon={Building2}
-        isLoading={branchesLoading}
-        description='Active locations'
-      />
-      <StatsCard
-        title='Customers'
-        value={customers?.length ?? 0}
-        icon={UserCheck}
-        isLoading={customersLoading}
-        description='Registered customers'
-      />
-      <StatsCard
-        title='Suppliers'
-        value={suppliers?.length ?? 0}
-        icon={Truck}
-        isLoading={suppliersLoading}
-        description='Partner suppliers'
-      />
-      <StatsCard
-        title='Total Sales'
-        value={formatAmount(totalSalesAmount)}
-        icon={DollarSign}
-        isLoading={salesLoading}
-        description='Revenue since inception'
-        iconClassName='bg-emerald-500/10 text-emerald-600'
-      />
-      <StatsCard
-        title='Total Purchases'
-        value={formatAmount(totalPurchasesAmount)}
-        icon={ShoppingCart}
-        isLoading={purchasesLoading}
-        description='Cost since inception'
-        iconClassName='bg-amber-500/10 text-amber-600'
-      />
-      <StatsCard
-        title='Expiring Products'
-        value={expiringCount}
-        icon={AlertTriangle}
-        isLoading={expiringLoading}
-        description={dangerCount > 0 ? `${dangerCount} in danger zone` : 'Products nearing expiry'}
-        iconClassName={dangerCount > 0 ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}
-      />
-      <StatsCard
-        title='Pending Tasks'
-        value={pendingTodos}
-        icon={CheckSquare}
-        isLoading={todosLoading}
-        description='Tasks awaiting completion'
-        iconClassName='bg-blue-500/10 text-blue-600'
-      />
-      <StatsCard
-        title='Current Plan'
-        value={activePlanName}
-        icon={Crown}
-        isLoading={subscriptionsLoading}
-        description={activePlanStatus === 'active' ? 'Active subscription' : 'No active subscription'}
-        iconClassName={activePlanStatus === 'active' ? 'bg-purple-500/10 text-purple-600' : 'bg-gray-500/10 text-gray-600'}
-      />
-      <StatsCard
-        title='Payment Method'
-        value={activeSub?.payment_method?.method?.replace('_', ' ') ?? 'None'}
-        icon={CreditCard}
-        isLoading={subscriptionsLoading}
-        description={activeSub?.payment_method ? 'Linked payment method' : 'No payment method linked'}
-        iconClassName='bg-indigo-500/10 text-indigo-600'
-      />
-    </div>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+        <StatsCard
+          title='Workers'
+          value={workers?.length ?? 0}
+          icon={Users}
+          isLoading={workersLoading}
+          description='Total workforce'
+        />
+        <StatsCard
+          title='Business Products'
+          value={products?.length ?? 0}
+          icon={Package}
+          isLoading={productsLoading}
+          description='Product types offered'
+        />
+        <StatsCard
+          title='Categories'
+          value={categories?.length ?? 0}
+          icon={Tags}
+          isLoading={categoriesLoading}
+          description='Product categories'
+        />
+        <StatsCard
+          title='Branches'
+          value={branches?.length ?? 0}
+          icon={Building2}
+          isLoading={branchesLoading}
+          description='Active locations'
+        />
+        <StatsCard
+          title='Customers'
+          value={customers?.length ?? 0}
+          icon={UserCheck}
+          isLoading={customersLoading}
+          description='Registered customers'
+        />
+        <StatsCard
+          title='Suppliers'
+          value={suppliers?.length ?? 0}
+          icon={Truck}
+          isLoading={suppliersLoading}
+          description='Partner suppliers'
+        />
+        <StatsCard
+          title='Total Sales'
+          value={formatAmount(totalSalesAmount)}
+          icon={DollarSign}
+          isLoading={salesLoading}
+          description='Revenue since inception'
+          iconClassName='bg-emerald-500/10 text-emerald-600'
+        />
+        <StatsCard
+          title='Total Purchases'
+          value={formatAmount(totalPurchasesAmount)}
+          icon={ShoppingCart}
+          isLoading={purchasesLoading}
+          description='Cost since inception'
+          iconClassName='bg-amber-500/10 text-amber-600'
+        />
+        <StatsCard
+          title='Expiring Products'
+          value={expiringCount}
+          icon={AlertTriangle}
+          isLoading={expiringLoading}
+          description={dangerCount > 0 ? `${dangerCount} in danger zone` : 'Products nearing expiry'}
+          iconClassName={dangerCount > 0 ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}
+        />
+        <StatsCard
+          title='Pending Tasks'
+          value={pendingTodos}
+          icon={CheckSquare}
+          isLoading={todosLoading}
+          description='Tasks awaiting completion'
+          iconClassName='bg-blue-500/10 text-blue-600'
+        />
+        <StatsCard
+          title='Current Plan'
+          value={activePlanName}
+          icon={Crown}
+          isLoading={subscriptionsLoading}
+          description={activePlanStatus === 'active' ? 'Active subscription' : 'No active subscription'}
+          iconClassName={
+            activePlanStatus === 'active' ? 'bg-purple-500/10 text-purple-600' : 'bg-gray-500/10 text-gray-600'
+          }
+        />
+        <StatsCard
+          title='Payment Method'
+          value={activeSub?.payment_method?.method?.replace('_', ' ') ?? 'None'}
+          icon={CreditCard}
+          isLoading={subscriptionsLoading}
+          description={activeSub?.payment_method ? 'Linked payment method' : 'No payment method linked'}
+          iconClassName='bg-indigo-500/10 text-indigo-600'
+        />
+      </div>
     </div>
   );
 };

@@ -14,12 +14,12 @@ class UpdateSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "plan_id" => "sometimes|exists:plans,id",
-            "payment_method_id" => "sometimes|exists:payment_methods,id",
-            "status" => "sometimes|in:active,paused,cancelled,expired",
-            "start_date" => "nullable|date",
-            "end_date" => "nullable|date|after:start_date",
-            "trial_ends_at" => "nullable|date",
+            'plan_id' => 'sometimes|exists:plans,id',
+            'business_id' => 'sometimes|exists:businesses,id',
+            'status' => 'sometimes|in:active,paused,cancelled,expired',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after:starts_at',
+            'trial_ends_at' => 'nullable|date',
         ];
     }
 }
