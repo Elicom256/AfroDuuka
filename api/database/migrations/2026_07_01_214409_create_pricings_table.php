@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pricings', function (Blueprint $table) {
+        Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->enum("mark", ["Affordable", "Most Popular", "Best Value", "Enterprise"]);
+            $table->enum('mark', ['Affordable', 'Most Popular', 'Best Value', 'Enterprise']);
             $table->text('description')->nullable();
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->decimal('yearly_price', 12, 2)->default(0);
+            $table->string('billing_cycle')->default('monthly');
             $table->json('features')->nullable();
             $table->json('limits')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
             $table->string('currency')->default('UGX');
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pricings');
+        Schema::dropIfExists('plans');
     }
 };

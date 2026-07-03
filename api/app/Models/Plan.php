@@ -2,29 +2,38 @@
 
 namespace App\Models;
 
-use App\Models\CoreSettings\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Plan extends Model
 {
-    /** @use HasFactory<\Database\Factories\PlanFactory> */
     use HasFactory;
 
     protected $fillable = [
-        "business_id",
-        "pricing_id",
-        "status",
+        'name',
+        'slug',
+        'mark',
+        'description',
+        'monthly_price',
+        'yearly_price',
+        'billing_cycle',
+        'features',
+        'limits',
+        'status',
+        'is_active',
+        'sort_order',
+        'currency',
     ];
 
-    public function business()
+    protected function casts(): array
     {
-        return $this->belongsTo(Business::class);
-    }
-
-    public function pricing()
-    {
-        return $this->belongsTo(Pricing::class);
+        return [
+            'features' => 'array',
+            'limits' => 'array',
+            'monthly_price' => 'decimal:2',
+            'yearly_price' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
     }
 
     public function subscriptions()
