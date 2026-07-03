@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\PaymentStatus;
+use App\Models\CoreSettings\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<PaymentStatus>
+ * @extends Factory<PaymentMethod>
  */
-class PaymentStatusFactory extends Factory
+class PaymentMethodFactory extends Factory
 {
     /**
      * Define the model's default state.

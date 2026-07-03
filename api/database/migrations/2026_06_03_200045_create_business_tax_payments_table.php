@@ -32,7 +32,7 @@ return new class extends Migration
 
             // Audit & Tracking
             $table->string('reference_number')->unique()->nullable();       // Receipt / Transaction ref
-            $table->foreignId('payment_status_id')->constrained()->cascadeOnDelete();                   // bank_transfer, mpesa, cheque, etc.
+            $table->foreignId('payment_method_id')->constrained('payment_methods')->cascadeOnDelete();
             $table->json('payment_metadata')->nullable();                   // gateway response, etc.
             $table->text('notes')->nullable();
 

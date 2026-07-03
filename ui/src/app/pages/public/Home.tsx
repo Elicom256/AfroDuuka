@@ -3,8 +3,9 @@ import { ArrowRight, BarChart3, PackageSearch, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { FeatureCard } from './components/FeatureCard';
 import { SectionHeader } from './components/SectionHeader';
+import { PricingSection } from '@/app/components/PricingSection';
 
-const features = [
+const FEATURES = [
   {
     icon: <PackageSearch className='h-5 w-5' />,
     title: 'Smart stock control',
@@ -69,7 +70,7 @@ export const Home: React.FC = () => {
           <div className='rounded-[2rem] bg-primary/10 p-8 shadow-sm ring-1 ring-primary/10'>
             <p className='text-sm uppercase tracking-[0.3em] text-primary'>Focus areas</p>
             <div className='mt-6 space-y-4'>
-              {features.map((feature) => (
+              {FEATURES.map((feature) => (
                 <div key={feature.title} className='rounded-3xl border border-border/70 bg-background/90 p-5'>
                   <div className='flex items-center gap-3'>
                     <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
@@ -101,6 +102,8 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <PricingSection />
 
       <section className='mt-12 grid gap-8 rounded-[2rem] border border-border/70 bg-card/80 p-8 shadow-sm md:grid-cols-2'>
         <div>

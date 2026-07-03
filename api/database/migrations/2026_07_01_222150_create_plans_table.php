@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("pricing_id")->constrained()->cascadeOnDelete();
+            $table->enum("status", ["active", "inactive", "terminated"])->default("active");
             $table->timestamps();
+
+            $table->unique(["business_id", "pricing_id"]);
         });
     }
 

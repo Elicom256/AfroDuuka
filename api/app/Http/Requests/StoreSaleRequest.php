@@ -54,7 +54,7 @@ class StoreSaleRequest extends FormRequest
 
             // Payment Information
             'paymentStatus' => 'required|in:paid,pending,partial',
-            'payment_status_id' => 'required|exists:payment_statuses,id',
+            'payment_status_id' => 'required|exists:payment_methods,id',
             'reference'     => 'nullable|string|max:100',           // Receipt number, transaction ID, etc.
             'currency'      => 'required|string|size:3',
 

@@ -63,7 +63,7 @@ protected function prepareForValidation(): void
                 Rule::unique('business_tax_payments', 'reference_number')->ignore($paymentId)
             ],
 
-            'payment_status_id'     => ['nullable',  'exists:payment_statuses,id'],
+            'payment_status_id'     => ['nullable',  'exists:payment_methods,id'],
 
             'notes'              => ['nullable', 'string', 'max:1000'],
             'payment_metadata'   => ['nullable', 'array'],

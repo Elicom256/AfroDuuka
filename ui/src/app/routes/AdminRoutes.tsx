@@ -57,6 +57,7 @@ import { AdminStockTransfersPage } from '../pages/dashboards/admin/pages/AdminSt
 import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReorderRulesPage';
 import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxInvoicesPage';
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
+import { AdminSubscriptionsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionsPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
 import { SuperAdminLayout } from '../pages/dashboards/superadmin/SuperAdminLayout';
 
@@ -128,6 +129,7 @@ export const AdminRoutes = () => {
           <Route path='report-exports' element={<AdminReportExportsPage />} />
           <Route path='products/:id' element={<Product />} />
           <Route path='branches' element={<BusinessBranches />} />
+          <Route path='subscriptions' element={<AdminSubscriptionsPage />} />
         </Route>
       </Route>
         {/* Super Admin */}

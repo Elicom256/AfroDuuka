@@ -43,6 +43,8 @@ import { countriesQuery } from '../features/countries/countriesQuery';
 import { cashFlowQuery } from '../features/business/admin/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
 import { todoQuery } from '../features/todos/todoQuery';
+import { pricingQuery } from '../features/pricing/pricingQuery';
+import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
 
 export const store = configureStore({
   reducer: {
@@ -90,6 +92,8 @@ export const store = configureStore({
     [cashFlowQuery.reducerPath]: cashFlowQuery.reducer,
     [aiQuery.reducerPath]: aiQuery.reducer,
     [todoQuery.reducerPath]: todoQuery.reducer,
+    [pricingQuery.reducerPath]: pricingQuery.reducer,
+    [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -138,6 +142,8 @@ export const store = configureStore({
       cashFlowQuery.middleware,
       aiQuery.middleware,
       todoQuery.middleware,
+      pricingQuery.middleware,
+      subscriptionsQuery.middleware,
     ),
 });
 

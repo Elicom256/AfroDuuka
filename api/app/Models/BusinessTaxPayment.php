@@ -25,7 +25,7 @@ class BusinessTaxPayment extends Model
         'paid_at',
         'status',
         'reference_number',
-        'payment_method',
+        'payment_method_id',
         'payment_metadata',
         'notes',
         'created_by',

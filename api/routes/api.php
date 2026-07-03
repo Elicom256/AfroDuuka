@@ -90,6 +90,18 @@ Route::prefix("countries")->group(function () {
 //     require __DIR__.'/todos.php';
 // });
 
+Route::prefix("pricing")->group(function () {
+    require __DIR__."/pricing.php";
+});
+
+Route::prefix("plans")->group(function () {
+    require __DIR__."/plans.php";
+});
+
+Route::prefix("subscriptions")->group(function () {
+    require __DIR__."/subscriptions.php";
+});
+
 Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);
     Route::get('/tools', [\App\Http\Controllers\AiController::class, 'tools']);

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_statuses', function (Blueprint $table) {
+        Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->foreignId("business_id")->constrained()->cascadeOnDelete();
             $table->enum("method", ["mobile_money", "card", "cash", "credit", "cryptocurrency"]);
             $table->enum("status", ["enabled", "disabled"])->default("disabled");
             // $table->enum("currecy", [])
 
-            $table->unique(["business_id", "method", "status"]);
+            $table->unique(["business_id", "method"]);
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payment_statuses');
+        Schema::dropIfExists('payment_methods');
     }
 };

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\BusinessBranchProduct;
-use App\Models\CoreSettings\PaymentStatus;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
@@ -32,7 +31,6 @@ class PurchaseService
             "total_amount" => $total_amount,
             "note" => $validated["note"] ?? null
         ]);
-        // $method = PaymentStatus::find($validated["payment_status_id"])->value("method");
         foreach ($validated["items"] as $item) {
              PurchaseItem::create([
                 "purchase_id" => $purchase->id,

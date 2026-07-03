@@ -23,6 +23,8 @@ import {
   Award,
   FileDown,
   CheckSquare,
+  Crown,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -62,6 +64,12 @@ const navSections: Array<{
       { label: 'Workers', to: '/admin/workers', icon: Users },
       { label: 'Suppliers', to: '/admin/suppliers', icon: Users2, settingKey: 'suppliers' },
       { label: 'Customers', to: '/admin/customers', icon: Users2, settingKey: 'customers' },
+    ],
+  },
+  {
+    title: 'Subscription',
+    items: [
+      { label: 'Subscriptions', to: '/admin/subscriptions', icon: Crown },
     ],
   },
   {
