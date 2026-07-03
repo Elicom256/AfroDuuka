@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->enum("mark", ["low", "most popular", "enterprise level"]);
+            $table->enum("mark", ["Affordable", "Most Popular", "Best Value", "Enterprise"]);
             $table->text('description')->nullable();
             $table->decimal('monthly_price', 12, 2)->default(0);
             $table->decimal('yearly_price', 12, 2)->default(0);

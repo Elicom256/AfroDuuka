@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, PackageSearch, ShieldCheck, Check } from 'lucide-react';
+import { ArrowRight, BarChart3, PackageSearch, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { FeatureCard } from './components/FeatureCard';
 import { SectionHeader } from './components/SectionHeader';
-import { useGetPricingsQuery } from '@/app/store/features/pricing/pricingQuery';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PricingSection } from '@/app/components/PricingSection';
 
-const features = [
+const FEATURES = [
   {
     icon: <PackageSearch className='h-5 w-5' />,
     title: 'Smart stock control',
@@ -25,60 +23,7 @@ const features = [
   },
 ];
 
-const formatPrice = (price: number, currency: string) => {
-  if (currency === 'UGX') {
-    return `UGX ${price.toLocaleString()}`;
-  }
-  return `${currency} ${price.toLocaleString()}`;
-};
-
-const PricingCard = ({ pricing }: { pricing: any }) => {
-  const isPopular = pricing.slug === 'growth';
-  return (
-    <Card className={`relative flex flex-col border-border/70 transition-all hover:shadow-md ${isPopular ? 'ring-2 ring-primary shadow-lg' : ''}`}>
-      {isPopular && (
-        <span className='absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground'>
-          Most Popular
-        </span>
-      )}
-      <CardHeader>
-        <CardTitle className='text-xl'>{pricing.name}</CardTitle>
-        <CardDescription className='text-sm'>{pricing.description}</CardDescription>
-      </CardHeader>
-      <CardContent className='flex-1 space-y-6'>
-        <div>
-          <p className='text-3xl font-bold tracking-tight'>{formatPrice(pricing.monthly_price, pricing.currency)}</p>
-          <p className='text-xs text-muted-foreground'>per month</p>
-          {pricing.yearly_price > 0 && (
-            <p className='text-xs text-muted-foreground mt-1'>
-              {formatPrice(pricing.yearly_price, pricing.currency)} / year
-            </p>
-          )}
-        </div>
-        {pricing.features && pricing.features.length > 0 && (
-          <ul className='space-y-2.5'>
-            {pricing.features.map((feature: string, i: number) => (
-              <li key={i} className='flex items-start gap-2 text-sm'>
-                <Check className='h-4 w-4 mt-0.5 shrink-0 text-primary' />
-                <span className='text-muted-foreground'>{feature}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button className='w-full' variant={isPopular ? 'default' : 'outline'} asChild>
-          <Link to='/signup'>Get Started</Link>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
 export const Home: React.FC = () => {
-  const { data: pricingData, isLoading: pricingLoading } = useGetPricingsQuery();
-  const pricings = pricingData?.pricings ?? [];
-
   return (
     <div className='container mx-auto px-4 py-10 sm:py-14'>
       <section className='grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center'>
@@ -125,7 +70,7 @@ export const Home: React.FC = () => {
           <div className='rounded-[2rem] bg-primary/10 p-8 shadow-sm ring-1 ring-primary/10'>
             <p className='text-sm uppercase tracking-[0.3em] text-primary'>Focus areas</p>
             <div className='mt-6 space-y-4'>
-              {features.map((feature) => (
+              {FEATURES.map((feature) => (
                 <div key={feature.title} className='rounded-3xl border border-border/70 bg-background/90 p-5'>
                   <div className='flex items-center gap-3'>
                     <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
@@ -158,37 +103,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className='mt-20'>
-        <SectionHeader
-          badge='Pricing'
-          title='Simple, transparent pricing'
-          description='Choose the plan that fits your business. All plans include a 14-day free trial.'
-        />
-        <div className='mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-          {pricingLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className='border-border/70'>
-                  <CardHeader>
-                    <Skeleton className='h-6 w-24' />
-                    <Skeleton className='h-4 w-48 mt-2' />
-                  </CardHeader>
-                  <CardContent className='space-y-4'>
-                    <Skeleton className='h-10 w-32' />
-                    <div className='space-y-2'>
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <Skeleton key={j} className='h-4 w-full' />
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Skeleton className='h-10 w-full' />
-                  </CardFooter>
-                </Card>
-              ))
-            : pricings.map((pricing: any) => <PricingCard key={pricing.id} pricing={pricing} />)}
-        </div>
-      </section>
+      <PricingSection />
 
       <section className='mt-12 grid gap-8 rounded-[2rem] border border-border/70 bg-card/80 p-8 shadow-sm md:grid-cols-2'>
         <div>
