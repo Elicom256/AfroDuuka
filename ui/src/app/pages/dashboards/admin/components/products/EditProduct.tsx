@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { useUpdateBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { LoadingState } from '@/utils/LoadingState';
@@ -21,11 +21,11 @@ interface EditProductProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: any;
-  // updateProduct: any;
 }
 
 export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, product }) => {
-  const { data: categories } = useProductsQuery();
+  const { data: categoriesData } = useProductCategoriesQuery();
+  const categories = categoriesData?.categories ?? [];
   const [updateProduct, { isLoading }] = useUpdateBranchProductMutation();
 
   const [formData, setFormData] = useState({
@@ -34,7 +34,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     cost_price: '',
     quantity: '',
     minimum_stock: '',
-    status: '',
+    status: 'active',
     description: '',
     product_id: '',
   });
@@ -43,14 +43,13 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     if (product) {
       setFormData({
         name: product.name || '',
-
         price: product.price?.toString() || '',
         cost_price: product.cost_price?.toString() || '',
-        quantity: product.quantity || '',
-        minimum_stock: product.minimum_stock || '',
-        status: product.status || 'active',
+        quantity: product.quantity?.toString() || '',
+        minimum_stock: product.minimum_stock?.toString() || product.reorder_level?.toString() || '',
+        status: product.status === true || product.status === 'active' ? 'active' : 'inactive',
         description: product.description || '',
-        product_id: product.product_id || '',
+        product_id: product.product_id || product.category_id || '',
       });
     }
   }, [product]);
@@ -59,10 +58,8 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     e.preventDefault();
     try {
       const res = await updateProduct({ body: formData, id: product.id }).unwrap();
-      if (res) {
-        toast.success(res.message || 'Product updated successfully');
-        onOpenChange(false);
-      }
+      toast.success(res?.message || 'Product updated successfully');
+      onOpenChange(false);
     } catch (error) {
       toast.error('Failed to update product');
       console.error('Update error:', error);
@@ -75,10 +72,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-106.25'>
+      <DialogContent className='sm:max-w-2xl'>
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
-          <DialogDescription>Update the details for the product.</DialogDescription>
+          <DialogDescription>Update the details for the product and keep its category in sync.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
@@ -94,29 +91,6 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 required
               />
             </div>
-            {/* <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='sku' className='text-right'>
-                SKU
-              </Label>
-              <Input
-                id='sku'
-                value={formData.sku}
-                onChange={(e) => handleChange('sku', e.target.value)}
-                className='col-span-3'
-                required
-              />
-            </div> */}
-            {/* <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='barcode' className='text-right'>
-                Barcode
-              </Label>
-              <Input
-                id='barcode'
-                value={formData.barcode}
-                onChange={(e) => handleChange('barcode', e.target.value)}
-                className='col-span-3'
-              />
-            </div> */}
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='price' className='text-right'>
                 Price
@@ -192,7 +166,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories?.products?.map((cat: any) => (
+                  {categories.map((cat: any) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>

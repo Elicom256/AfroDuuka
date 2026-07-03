@@ -20,6 +20,7 @@ class UpdatePlanRequest extends FormRequest
             'monthly_price' => 'sometimes|numeric|min:0',
             'yearly_price' => 'sometimes|numeric|min:0',
             'billing_cycle' => 'sometimes|string|max:50',
+            'discount_percentage' => 'sometimes|integer|min:0|max:100',
             'features' => 'nullable|array',
             'features.*' => 'string',
             'limits' => 'nullable|array',

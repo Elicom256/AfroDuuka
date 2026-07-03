@@ -16,6 +16,7 @@ class Plan extends Model
         'description',
         'monthly_price',
         'yearly_price',
+        'discount_percentage',
         'billing_cycle',
         'features',
         'limits',
@@ -32,6 +33,7 @@ class Plan extends Model
             'limits' => 'array',
             'monthly_price' => 'decimal:2',
             'yearly_price' => 'decimal:2',
+            'discount_percentage' => 'integer',
             'is_active' => 'boolean',
         ];
     }

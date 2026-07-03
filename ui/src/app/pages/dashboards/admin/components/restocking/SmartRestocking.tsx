@@ -9,7 +9,6 @@ export const SmartRestocking = () => {
 
   const atRisk = data?.data?.predictions?.filter((p: any) => p.is_at_risk) ?? [];
   const lowStock = data?.data?.predictions?.filter((p: any) => p.is_low_stock) ?? [];
-  const notSelling = data?.data?.predictions?.filter((p: any) => p.total_sold_30_days === 0 && p.quantity > 0) ?? [];
   const atRiskCount = data?.data?.at_risk_count ?? 0;
   const lowStockCount = data?.data?.low_stock_count ?? 0;
   const notSellingCount = data?.data?.not_selling_count ?? 0;
@@ -60,17 +59,21 @@ export const SmartRestocking = () => {
       </CardHeader>
       <CardContent className='space-y-2'>
         {topRisks.map((product: any) => (
-          <div key={product.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2'>
+          <div
+            key={product.id}
+            className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2'
+          >
             <div className='min-w-0 flex-1'>
               <p className='truncate text-sm font-medium'>{product.name}</p>
               <p className='text-xs text-muted-foreground'>
                 Stock: {product.quantity} &middot; ~{product.daily_sales_velocity}/day
               </p>
             </div>
-            <Badge variant={product.days_until_out !== null && product.days_until_out <= 3 ? 'destructive' : 'outline'} className='ml-2 shrink-0 text-xs'>
-              {product.days_until_out !== null
-                ? `${product.days_until_out}d left`
-                : 'N/A'}
+            <Badge
+              variant={product.days_until_out !== null && product.days_until_out <= 3 ? 'destructive' : 'outline'}
+              className='ml-2 shrink-0 text-xs'
+            >
+              {product.days_until_out !== null ? `${product.days_until_out}d left` : 'N/A'}
             </Badge>
           </div>
         ))}
@@ -83,9 +86,7 @@ export const SmartRestocking = () => {
         )}
 
         {lowStockCount > atRiskCount && (
-          <p className='text-xs text-muted-foreground'>
-            +{lowStockCount - atRiskCount} more below reorder level
-          </p>
+          <p className='text-xs text-muted-foreground'>+{lowStockCount - atRiskCount} more below reorder level</p>
         )}
       </CardContent>
     </Card>

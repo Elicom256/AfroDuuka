@@ -24,7 +24,6 @@ import {
   FileDown,
   CheckSquare,
   Crown,
-  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -54,9 +53,7 @@ const navSections: Array<{
   },
   {
     title: 'Tasks',
-    items: [
-      { label: 'Todos', to: '/admin/todos', icon: CheckSquare },
-    ],
+    items: [{ label: 'Todos', to: '/admin/todos', icon: CheckSquare }],
   },
   {
     title: 'People',
@@ -68,9 +65,7 @@ const navSections: Array<{
   },
   {
     title: 'Subscription',
-    items: [
-      { label: 'Subscriptions', to: '/admin/subscriptions', icon: Crown },
-    ],
+    items: [{ label: 'Subscriptions', to: '/admin/subscriptions', icon: Crown }],
   },
   {
     title: 'Business',

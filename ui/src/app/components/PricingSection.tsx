@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/app/pages/public/components/SectionHeader';
 import { useGetPlansQuery } from '@/app/store/features/plans/plansQuery';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check } from 'lucide-react';
+import { Check, Percent } from 'lucide-react';
 
 interface Limits {
   maxProducts?: number;
@@ -21,6 +21,7 @@ interface Plan {
   description?: string;
   monthly_price: string;
   yearly_price: string;
+  discount_percentage?: number;
   billing_cycle?: string;
   features?: string[];
   limits?: Limits;
@@ -29,15 +30,20 @@ interface Plan {
   currency: string;
 }
 
-const getBadgeVariant = (mark: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  if (mark.toLowerCase().includes('popular')) return 'default';
-  if (mark.toLowerCase().includes('value')) return 'secondary';
-  return 'outline';
+const computeDiscounted = (price: number, discountPercent: number) => {
+  if (!discountPercent) return price;
+  return price - (price * discountPercent) / 100;
 };
 
 const PlanCard = ({ plan }: { plan: Plan }) => {
   const isMostPopular = plan.mark.toLowerCase().includes('popular');
-  console.log('plan==>', plan);
+  const monthlyPrice = Number(plan.monthly_price);
+  const yearlyPrice = Number(plan.yearly_price);
+  const discountPct = plan.discount_percentage ?? 0;
+  const hasDiscount = discountPct > 0;
+
+  const discountedMonthly = computeDiscounted(monthlyPrice, discountPct);
+  const discountedYearly = computeDiscounted(yearlyPrice, discountPct);
 
   return (
     <Card
@@ -47,11 +53,14 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
           : 'border-border/70 hover:border-border hover:shadow-md'
       }`}
     >
-      {/* {isMostPopular && (
-        <div className='absolute -top-3 left-1/2 -translate-x-1/2'>
-          <Badge className='bg-primary text-primary-foreground shadow-md'>t</Badge>
+      {hasDiscount && (
+        <div className='absolute -top-3 right-4 z-10'>
+          <Badge className='flex items-center gap-1 bg-amber-500 text-white shadow-md hover:bg-amber-500'>
+            <Percent className='h-3 w-3' />
+            {discountPct}% OFF
+          </Badge>
         </div>
-      )} */}
+      )}
 
       <CardHeader className='pb-4'>
         <div className='flex items-start justify-between gap-4'>
@@ -68,16 +77,50 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
 
       <CardContent className='flex-1 space-y-6'>
         <div className='space-y-2'>
-          <div className='flex items-baseline gap-2'>
-            <p className='text-2xl sm:text-3xl font-bold tracking-tight'>
-              {formatPrice(plan.monthly_price, plan.currency)}
-            </p>
-            <span className='text-sm font-medium text-muted-foreground'>/mo</span>
-          </div>
-          {Number(plan.yearly_price) > 0 && (
-            <p className='text-xs text-muted-foreground'>
-              {formatPrice(plan.yearly_price, plan.currency)} billed yearly
-            </p>
+          {hasDiscount ? (
+            <div className='space-y-1'>
+              <div className='flex items-baseline gap-2'>
+                <p className='text-2xl sm:text-3xl font-bold tracking-tight text-primary'>
+                  {formatPrice(discountedMonthly, plan.currency)}
+                </p>
+                <span className='text-sm font-medium text-muted-foreground'>/mo</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-muted-foreground line-through'>
+                  {formatPrice(monthlyPrice, plan.currency)}
+                </span>
+                <span className='text-xs font-medium text-green-600 dark:text-green-400'>
+                  Save {formatPrice(monthlyPrice - discountedMonthly, plan.currency)}/mo
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className='flex items-baseline gap-2'>
+              <p className='text-2xl sm:text-3xl font-bold tracking-tight'>
+                {formatPrice(monthlyPrice, plan.currency)}
+              </p>
+              <span className='text-sm font-medium text-muted-foreground'>/mo</span>
+            </div>
+          )}
+
+          {yearlyPrice > 0 && (
+            <div>
+              {hasDiscount ? (
+                <div className='flex items-center gap-2'>
+                  <span className='text-xs font-medium text-green-600 dark:text-green-400'>
+                    {formatPrice(discountedYearly, plan.currency)}
+                  </span>
+                  <span className='text-xs text-muted-foreground line-through'>
+                    {formatPrice(yearlyPrice, plan.currency)}
+                  </span>
+                  <span className='text-xs text-muted-foreground'>billed yearly</span>
+                </div>
+              ) : (
+                <p className='text-xs text-muted-foreground'>
+                  {formatPrice(yearlyPrice, plan.currency)} billed yearly
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -102,12 +145,12 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
   );
 };
 
-const formatPrice = (price: string, currency: string) => {
-  console.log(typeof price);
+const formatPrice = (price: number, currency: string) => {
+  const rounded = Math.round(price);
   if (currency === 'UGX') {
-    return `UGX ${parseInt(price).toLocaleString()}`;
+    return `UGX ${rounded.toLocaleString()}`;
   }
-  return `${currency} ${price.toLocaleString()}`;
+  return `${currency} ${rounded.toLocaleString()}`;
 };
 
 const PricingCardSkeleton = () => (
