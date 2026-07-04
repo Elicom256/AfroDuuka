@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import logo from '../../../public/logo-1.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
+
 const navLinks = [
   { label: 'Home', to: '/' },
+  { label: 'Pricing', to: '/pricing' },
   { label: 'About', to: '/about' },
   { label: 'Documentation', to: '/documentation' },
-  // { label: 'Admin', to: '/admin' },
 ];
 
 export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const location = useLocation();
   const { data } = useLoggedinUserQuery();
   const role = data?.data.role.name;
   return (
@@ -30,21 +30,23 @@ export const NavBar: React.FC = () => {
         </Link>
 
         <nav className='hidden items-center gap-2 md:flex'>
-          {navLinks.map((item) => {
-            const active = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
+          {navLinks.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) =>
+                cn(
                   'rounded-full px-3 py-2 text-sm font-medium transition-colors',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className='hidden items-center gap-2 md:flex'>
@@ -75,19 +77,22 @@ export const NavBar: React.FC = () => {
         <div className='border-t border-border/50 bg-slate-950/95 px-4 pb-4 md:hidden'>
           <div className='space-y-2'>
             {navLinks.map((item) => (
-              <Link
+              <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.to === '/'}
                 onClick={() => setOpen(false)}
-                className={cn(
-                  'block rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
-                  location.pathname === item.to
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                )}
+                className={({ isActive }) =>
+                  cn(
+                    'block rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                  )
+                }
               >
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
             <Button asChild size='sm' className='w-full'>
               <Link to='/documentation'>Get started</Link>
