@@ -6,6 +6,10 @@
 button {
   cursor: pointer;
 }
+.active{
+  color: #2ae619;
+  text-decoration: underline;
+}
 
 @custom-variant dark (&:is(.dark *));
 
