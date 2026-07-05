@@ -44,8 +44,10 @@ import { cashFlowQuery } from '../features/business/admin/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
 import { todoQuery } from '../features/todos/todoQuery';
 import { plansQuery } from '../features/plans/plansQuery';
+import { adminPlansQuery } from '../features/plans/adminPlansQuery';
 import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
 import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
+import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
 
 export const store = configureStore({
   reducer: {
@@ -94,8 +96,10 @@ export const store = configureStore({
     [aiQuery.reducerPath]: aiQuery.reducer,
     [todoQuery.reducerPath]: todoQuery.reducer,
     [plansQuery.reducerPath]: plansQuery.reducer,
+    [adminPlansQuery.reducerPath]: adminPlansQuery.reducer,
     [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
     [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
+    [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -145,8 +149,10 @@ export const store = configureStore({
       aiQuery.middleware,
       todoQuery.middleware,
       plansQuery.middleware,
+      adminPlansQuery.middleware,
       subscriptionsQuery.middleware,
       subscriptionPaymentsQuery.middleware,
+      superAdminBusinessesQuery.middleware,
     ),
 });
 

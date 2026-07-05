@@ -46,7 +46,7 @@ class UserController extends Controller
     {
         // Return currently authenticated user with relations
         $user = $request->user()->load("business.country", "businessBranch", "role");
-        $country = Country::find($user->business->country_id);
+        $country = $user->business ? Country::find($user->business->country_id) : null;
         return response()->json([
             'message' => 'User retrieved successfully',
             'data' => $user,

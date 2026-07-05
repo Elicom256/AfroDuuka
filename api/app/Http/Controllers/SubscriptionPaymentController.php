@@ -50,6 +50,11 @@ class SubscriptionPaymentController extends Controller
         if (isset($validated['payment_status']) && $validated['payment_status'] === 'completed') {
             $validated['verified_by'] = Auth::id();
             $validated['verified_at'] = now();
+
+            $subscription = $subscriptionPayment->subscription;
+            if ($subscription && $subscription->business) {
+                $subscription->business->increment('subscription_balance', $subscriptionPayment->amount_paid);
+            }
         }
 
         if (isset($validated['payment_status']) && $validated['payment_status'] === 'rejected' && empty($validated['rejection_reason'])) {

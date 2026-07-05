@@ -29,7 +29,7 @@ class UserTableSeeder extends Seeder
         // =============================================
         // SUPER ADMIN (1)
         // =============================================
-         User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'superadmin@gmail.com'],
             [
                 'firstname'          => 'Super',
@@ -37,12 +37,11 @@ class UserTableSeeder extends Seeder
                 'username'           => '@superadmin',
                 'password'           => Hash::make('password'),
                 'phone'              => '0781000001',
-                'role_id'            => Role::where('business_id', $business_id)->where('name', 'superadmin')->value('id'),
+                'role_id'            => Role::where('name', "superadmin")->value('id'),
                 'status'             => 'active',
                 'nin'                => 'CM' . rand(10000000, 99999999),
             ]
         );
-
         $this->command->info("✅ Super Admin created: superadmin@gmail.com");
 
         // =============================================
@@ -65,7 +64,7 @@ class UserTableSeeder extends Seeder
                     'username'           => '@' . strtolower($parts[0]),
                     'password'           => Hash::make('password'),
                     'phone'              => $admin['phone'],
-                    'role_id'            => Role::where('business_id', $business_id)->where('name', 'siteadmin')->value('id'),
+                    'role_id'            => Role::where('name', 'siteadmin')->value('id'),
                     'status'             => 'active',
                     'nin'                => 'CM' . rand(10000000, 99999999),
                 ]

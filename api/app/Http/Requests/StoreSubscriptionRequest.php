@@ -16,9 +16,13 @@ class StoreSubscriptionRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $now = Carbon::now();
+        $user = Auth::user();
+
+        $businessId = $this->input('business_id') ?? $user->business_id;
+        $role = $user->role->name ?? null;
 
         $this->merge([
-            'business_id'    => Auth::user()->business_id,
+            'business_id'    => $businessId,
             'status'         => 'active',
             'starts_at'      => $now,
             'ends_at'        => $now->copy()->addMonth(),

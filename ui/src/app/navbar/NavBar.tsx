@@ -56,6 +56,8 @@ export const NavBar: React.FC = () => {
             <Link to='/manager'>Dashboard</Link>
           ) : role === 'staff' ? (
             <Link to='/staff'>Dashboard</Link>
+          ) : role === 'superadmin' ? (
+            <Link to='/staff'>Dashboard</Link>
           ) : (
             <Button asChild size='sm'>
               <Link to='/login'>Try It</Link>

@@ -26,11 +26,16 @@ export const subscriptionPaymentsQuery = createApi({
       query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['SubscriptionPaymentsAPI'],
     }),
+    getSubscriptionPayment: builder.query<any, number>({
+      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      providesTags: ['SubscriptionPaymentsAPI'],
+    }),
   }),
 });
 
 export const {
   useGetSubscriptionPaymentsQuery,
+  useGetSubscriptionPaymentQuery,
   useCreateSubscriptionPaymentMutation,
   useUpdateSubscriptionPaymentMutation,
 } = subscriptionPaymentsQuery;

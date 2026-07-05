@@ -23,7 +23,12 @@ class RoleTableSeeder extends Seeder
         }
 
         $roles = [ "admin", "manager", "editor", "staff", "worker", "supplier", "customer"];
-
+        $systemroles = [ "superadmin", "siteadmin"];
+        // ============ seed system roles =============
+        foreach($systemroles as $role){
+            Role::updateOrCreate(["name" => $role],[]);
+        }
+        // ================ seed business roles ===============
         foreach ($roles as $roleName) {
             Role::updateOrCreate(
                 [

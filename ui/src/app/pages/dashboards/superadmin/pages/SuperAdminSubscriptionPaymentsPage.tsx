@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useGetSubscriptionPaymentsQuery,
   useUpdateSubscriptionPaymentMutation,
@@ -31,6 +32,7 @@ const paymentStatusColors: Record<string, string> = {
 type FilterTab = 'all' | 'pending' | 'completed' | 'rejected';
 
 export const SuperAdminSubscriptionPaymentsPage = () => {
+  const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionPaymentsQuery();
   const [updatePayment, { isLoading: isUpdating }] = useUpdateSubscriptionPaymentMutation();
   const [filter, setFilter] = useState<FilterTab>('pending');
@@ -41,7 +43,8 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
   const allPayments = data?.subscription_payments ?? [];
   const filteredPayments = filter === 'all' ? allPayments : allPayments.filter((p: any) => p.payment_status === filter);
 
-  const handleVerify = async (payment: any) => {
+  const handleVerify = async (payment: any, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await updatePayment({
         id: payment.id,
@@ -134,7 +137,11 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
               </TableHeader>
               <TableBody>
                 {filteredPayments.map((payment: any) => (
-                  <TableRow key={payment.id}>
+                  <TableRow
+                    key={payment.id}
+                    className='cursor-pointer hover:bg-muted/50'
+                    onClick={() => navigate(`/superadmin/subscription-payments/${payment.id}`)}
+                  >
                     <TableCell>
                       <div className='flex flex-col'>
                         <span className='font-medium text-sm flex items-center gap-1.5'>
@@ -179,7 +186,7 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                             size='sm'
                             variant='outline'
                             className='text-green-600 border-green-500/30 hover:bg-green-500/10'
-                            onClick={() => handleVerify(payment)}
+                            onClick={(e) => handleVerify(payment, e)}
                             disabled={isUpdating}
                           >
                             <CheckCircle className='h-3.5 w-3.5 mr-1' />
@@ -191,7 +198,7 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                                 size='sm'
                                 variant='outline'
                                 className='text-red-600 border-red-500/30 hover:bg-red-500/10'
-                                onClick={() => { setRejectingPayment(payment); setRejectDialogOpen(true); }}
+                                onClick={(e) => { e.stopPropagation(); setRejectingPayment(payment); setRejectDialogOpen(true); }}
                               >
                                 <XCircle className='h-3.5 w-3.5 mr-1' />
                                 Reject
