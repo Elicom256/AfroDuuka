@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
         return Auth::check();
     }
 
-    public function prepareForValidation()
+    protected function prepareForValidation()
     {
         $this->merge([
             'business_id' => Auth::user()->business_id,

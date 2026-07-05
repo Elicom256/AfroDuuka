@@ -76,7 +76,6 @@ export const AdminSubscriptionPaymentsPage = () => {
     amount_paid: String(planPrice),
     transaction_id: '',
     number_paid: '',
-    notes: '',
   });
 
   if (subsLoading || paymentsLoading) return <PageLoadingState />;
@@ -102,8 +101,6 @@ export const AdminSubscriptionPaymentsPage = () => {
         amount_paid: Number(payForm.amount_paid),
         transaction_id: payForm.transaction_id || undefined,
         number_paid: payForm.number_paid,
-        payment_status: 'pending',
-        notes: payForm.notes || undefined,
       }).unwrap();
       toast.success('Payment submitted. Awaiting verification.');
       setPayOpen(false);
@@ -112,7 +109,6 @@ export const AdminSubscriptionPaymentsPage = () => {
         amount_paid: String(planPrice),
         transaction_id: '',
         number_paid: '',
-        notes: '',
       });
     } catch (err: any) {
       toast.error(err?.data?.message || 'Payment failed');
@@ -176,10 +172,6 @@ export const AdminSubscriptionPaymentsPage = () => {
                 <div className='space-y-2'>
                   <Label>Transaction ID (optional)</Label>
                   <Input value={payForm.transaction_id} onChange={(e) => setPayForm({ ...payForm, transaction_id: e.target.value })} placeholder='Transaction reference' />
-                </div>
-                <div className='space-y-2'>
-                  <Label>Notes (optional)</Label>
-                  <Input value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder='Additional info' />
                 </div>
                 <DialogFooter>
                   <Button type='button' variant='outline' onClick={() => setPayOpen(false)}>Cancel</Button>

@@ -20,6 +20,11 @@ class SubscriptionPaymentController extends Controller
     {
         $validated = $request->validated();
 
+        // Default payment_status to pending when not provided
+        if (!isset($validated['payment_status'])) {
+            $validated['payment_status'] = 'pending';
+        }
+
         $paymentMethod = PaymentMethod::findOrFail($validated['payment_method_id']);
         abort_if($paymentMethod->status !== 'enabled', 422, 'Payment method is not enabled');
 

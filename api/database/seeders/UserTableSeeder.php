@@ -26,6 +26,54 @@ class UserTableSeeder extends Seeder
             throw new \Exception("Business not found");
         }
 
+        // =============================================
+        // SUPER ADMIN (1)
+        // =============================================
+         User::updateOrCreate(
+            ['email' => 'superadmin@gmail.com'],
+            [
+                'firstname'          => 'Super',
+                'lastname'           => 'Admin',
+                'username'           => '@superadmin',
+                'password'           => Hash::make('password'),
+                'phone'              => '0781000001',
+                'role_id'            => Role::where('business_id', $business_id)->where('name', 'superadmin')->value('id'),
+                'status'             => 'active',
+                'nin'                => 'CM' . rand(10000000, 99999999),
+            ]
+        );
+
+        $this->command->info("✅ Super Admin created: superadmin@gmail.com");
+
+        // =============================================
+        // SITE ADMINS (3)
+        // =============================================
+        $siteAdmins = [
+            ['name' => 'Alex Ferguson', 'email' => 'alex@gmail.com',   'phone' => '0781000002'],
+            ['name' => 'Pep Guardiola',  'email' => 'pep@gmail.com',    'phone' => '0781000003'],
+            ['name' => 'Jurgen Klopp',   'email' => 'klopp@gmail.com',  'phone' => '0781000004'],
+        ];
+
+        foreach ($siteAdmins as $admin) {
+            $parts = explode(' ', $admin['name']);
+
+            User::updateOrCreate(
+                ['email' => $admin['email']],
+                [
+                    'firstname'          => $parts[0],
+                    'lastname'           => $parts[1] ?? '',
+                    'username'           => '@' . strtolower($parts[0]),
+                    'password'           => Hash::make('password'),
+                    'phone'              => $admin['phone'],
+                    'role_id'            => Role::where('business_id', $business_id)->where('name', 'siteadmin')->value('id'),
+                    'status'             => 'active',
+                    'nin'                => 'CM' . rand(10000000, 99999999),
+                ]
+            );
+
+            $this->command->info("✅ Site Admin created: {$admin['email']}");
+        }
+
         // Define users with role names (clean mapping)
         $users = [
             "Mikel Arteta" => [
