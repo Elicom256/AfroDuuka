@@ -129,6 +129,68 @@ export const AdminSubscriptionPaymentsPage = () => {
           </h1>
           <p className='text-muted-foreground mt-1'>View payment history and make subscription payments</p>
         </div>
+        <Dialog open={payOpen} onOpenChange={setPayOpen}>
+            <DialogTrigger asChild>
+              <Button size='sm'>
+                <Plus className='h-4 w-4 mr-2' />
+                Add Payment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Make a Payment</DialogTitle>
+                <DialogDescription>
+                  {activePlan
+                    ? `Pay for ${activePlan.name} (${currency} ${planPrice.toLocaleString()}/mo)`
+                    : 'You need an active subscription to make a payment.'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handlePay} className='space-y-4'>
+                <div className='space-y-2'>
+                  <Label>Amount ({currency})</Label>
+                  <Input type='number' value={payForm.amount_paid} onChange={(e) => setPayForm({ ...payForm, amount_paid: e.target.value })} />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Payment Method</Label>
+                  <Select value={payForm.payment_method_id} onValueChange={(v) => setPayForm({ ...payForm, payment_method_id: v })}>
+                    <SelectTrigger><SelectValue placeholder='Select method' /></SelectTrigger>
+                    <SelectContent>
+                      {paymentMethods.map((pm: any) => (
+                        <SelectItem key={pm.id} value={String(pm.id)}>
+                          {pm.method?.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {paymentMethods.length === 0 && (
+                    <p className='text-xs text-muted-foreground mt-1'>
+                      No payment methods enabled. Configure them in{' '}
+                      <Link to='/admin/settings/payment-settings' className='underline'>Payment Settings</Link>.
+                    </p>
+                  )}
+                </div>
+                <div className='space-y-2'>
+                  <Label>Phone Number</Label>
+                  <Input value={payForm.number_paid} onChange={(e) => setPayForm({ ...payForm, number_paid: e.target.value })} placeholder='+256 XXX XXX XXX' />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Transaction ID (optional)</Label>
+                  <Input value={payForm.transaction_id} onChange={(e) => setPayForm({ ...payForm, transaction_id: e.target.value })} placeholder='Transaction reference' />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Notes (optional)</Label>
+                  <Input value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder='Additional info' />
+                </div>
+                <DialogFooter>
+                  <Button type='button' variant='outline' onClick={() => setPayOpen(false)}>Cancel</Button>
+                  <Button type='submit' disabled={isPaying}>
+                    {isPaying && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
+                    Submit Payment
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
       </div>
 
       {activePlan && (
@@ -150,73 +212,11 @@ export const AdminSubscriptionPaymentsPage = () => {
       )}
 
       <Card className='border-border/70'>
-        <CardHeader className='flex flex-row items-center justify-between'>
+        <CardHeader>
           <CardTitle className='text-lg flex items-center gap-2'>
             <CreditCard className='h-5 w-5' />
             Payment History
           </CardTitle>
-          {activePlan && (
-            <Dialog open={payOpen} onOpenChange={setPayOpen}>
-              <DialogTrigger asChild>
-                <Button size='sm'>
-                  <Plus className='h-4 w-4 mr-2' />
-                  Make Payment
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Make a Payment</DialogTitle>
-                  <DialogDescription>
-                    Pay for <strong>{activePlan.name}</strong> ({currency} {planPrice.toLocaleString()}/mo)
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handlePay} className='space-y-4'>
-                  <div className='space-y-2'>
-                    <Label>Amount ({currency})</Label>
-                    <Input type='number' value={payForm.amount_paid} onChange={(e) => setPayForm({ ...payForm, amount_paid: e.target.value })} />
-                  </div>
-                  <div className='space-y-2'>
-                    <Label>Payment Method</Label>
-                    <Select value={payForm.payment_method_id} onValueChange={(v) => setPayForm({ ...payForm, payment_method_id: v })}>
-                      <SelectTrigger><SelectValue placeholder='Select method' /></SelectTrigger>
-                      <SelectContent>
-                        {paymentMethods.map((pm: any) => (
-                          <SelectItem key={pm.id} value={String(pm.id)}>
-                            {pm.method?.replace(/_/g, ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {paymentMethods.length === 0 && (
-                      <p className='text-xs text-muted-foreground mt-1'>
-                        No payment methods enabled. Configure them in{' '}
-                        <Link to='/admin/settings/payment-settings' className='underline'>Payment Settings</Link>.
-                      </p>
-                    )}
-                  </div>
-                  <div className='space-y-2'>
-                    <Label>Phone Number</Label>
-                    <Input value={payForm.number_paid} onChange={(e) => setPayForm({ ...payForm, number_paid: e.target.value })} placeholder='+256 XXX XXX XXX' />
-                  </div>
-                  <div className='space-y-2'>
-                    <Label>Transaction ID (optional)</Label>
-                    <Input value={payForm.transaction_id} onChange={(e) => setPayForm({ ...payForm, transaction_id: e.target.value })} placeholder='Transaction reference' />
-                  </div>
-                  <div className='space-y-2'>
-                    <Label>Notes (optional)</Label>
-                    <Input value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder='Additional info' />
-                  </div>
-                  <DialogFooter>
-                    <Button type='button' variant='outline' onClick={() => setPayOpen(false)}>Cancel</Button>
-                    <Button type='submit' disabled={isPaying}>
-                      {isPaying && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
-                      Submit Payment
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          )}
         </CardHeader>
         <CardContent>
           {payments.length === 0 ? (
