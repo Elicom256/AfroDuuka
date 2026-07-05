@@ -54,7 +54,7 @@ class BusinessService
             "business_id" => $business->id, 
         ]);
 
-        // ======================= core business settings =================
+        // ======================= set starter plan ================= to create a plan based on what the user picked
         
 
         return $business;

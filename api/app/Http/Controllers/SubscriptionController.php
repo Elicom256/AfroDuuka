@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSubscriptionRequest;
 use App\Http\Requests\UpdateSubscriptionRequest;
+use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,17 +20,16 @@ class SubscriptionController extends Controller
     {
         $validated = $request->validated();
         $businessId = Auth::user()->business_id;
-        $validated['business_id'] = $businessId;
-
         // Enforce one active subscription per business
         Subscription::where('business_id', $businessId)
             ->where('status', 'active')
-            ->update(['status' => 'expired']);
+            ->update(['status' => 'cancelled']);
 
         $subscription = Subscription::create($validated);
+        $plan = Plan::find($subscription->plan_id);
         return response()->json([
             "subscription" => $subscription->load(['plan', 'business', 'payments']),
-            "message" => "Subscription created"
+            "message" => "Subscribed to $plan->name!"
         ], 201);
     }
 

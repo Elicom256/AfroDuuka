@@ -3,12 +3,13 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreSubscriptionPaymentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     public function rules(): array
@@ -19,7 +20,7 @@ class StoreSubscriptionPaymentRequest extends FormRequest
             'amount_paid' => 'required|numeric|min:0',
             'transaction_id' => 'nullable|string|max:50|unique:subscription_payments,transaction_id',
             'number_paid' => 'nullable|string|max:14',
-            'payment_status' => 'required|in:pending,completed,failed,rejected',
+            'payment_status' => 'sometimes|in:pending,completed,failed,rejected',
             'payment_proof' => 'nullable|string|max:255',
             'verified_by' => 'nullable|exists:users,id',
             'verified_at' => 'nullable|date',

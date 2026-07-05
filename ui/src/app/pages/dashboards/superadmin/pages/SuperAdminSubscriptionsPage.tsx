@@ -81,17 +81,13 @@ export const SuperAdminSubscriptionsPage = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.plan_id || !form.business_id) {
-      toast.error('Plan and Business are required');
+    if (!form.plan_id) {
+      toast.error('Plan is required');
       return;
     }
     try {
       await createSubscription({
         plan_id: Number(form.plan_id),
-        business_id: Number(form.business_id),
-        status: form.status,
-        starts_at: form.starts_at || undefined,
-        ends_at: form.ends_at || undefined,
       }).unwrap();
       toast.success('Subscription created');
       setAddOpen(false);
@@ -105,7 +101,7 @@ export const SuperAdminSubscriptionsPage = () => {
     setEditingSub(sub);
     setForm({
       plan_id: String(sub.plan_id),
-      business_id: String(sub.business_id),
+      business_id: '',
       status: sub.status,
       starts_at: sub.starts_at ? sub.starts_at.slice(0, 16) : '',
       ends_at: sub.ends_at ? sub.ends_at.slice(0, 16) : '',
@@ -181,36 +177,6 @@ export const SuperAdminSubscriptionsPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className='space-y-2'>
-                <Label>Business ID</Label>
-                <Input
-                  type='number'
-                  value={form.business_id}
-                  onChange={(e) => setForm({ ...form, business_id: e.target.value })}
-                  placeholder='Enter business ID'
-                />
-              </div>
-              <div className='space-y-2'>
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['active', 'paused', 'cancelled', 'expired'].map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label>Start Date</Label>
-                  <Input type='datetime-local' value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} />
-                </div>
-                <div className='space-y-2'>
-                  <Label>End Date</Label>
-                  <Input type='datetime-local' value={form.ends_at} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} />
-                </div>
               </div>
               <DialogFooter>
                 <Button type='button' variant='outline' onClick={() => { setAddOpen(false); resetForm(); }}>Cancel</Button>
