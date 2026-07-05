@@ -18,7 +18,24 @@ export const subscriptionsQuery = createApi({
       query: () => ({ url: '/', method: 'GET' }),
       providesTags: ['SubscriptionsAPI'],
     }),
+    createSubscription: builder.mutation<any, any>({
+      query: (body) => ({ url: '/', method: 'POST', body }),
+      invalidatesTags: ['SubscriptionsAPI'],
+    }),
+    updateSubscription: builder.mutation<any, { id: number; body: any }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['SubscriptionsAPI'],
+    }),
+    deleteSubscription: builder.mutation<any, number>({
+      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['SubscriptionsAPI'],
+    }),
   }),
 });
 
-export const { useGetSubscriptionsQuery } = subscriptionsQuery;
+export const {
+  useGetSubscriptionsQuery,
+  useCreateSubscriptionMutation,
+  useUpdateSubscriptionMutation,
+  useDeleteSubscriptionMutation,
+} = subscriptionsQuery;

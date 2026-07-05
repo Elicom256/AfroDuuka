@@ -50,6 +50,7 @@ import { TodoForm } from '../pages/dashboards/admin/components/todos/TodoForm';
 import SupplierSettings from '../pages/dashboards/admin/components/settings/SupplierSettings';
 import { CurrencySettings } from '../pages/dashboards/admin/components/settings/CurrencySettings';
 import { BusinessInfoSettings } from '../pages/dashboards/admin/components/settings/BusinessInfoSettings';
+import { PlanBillingSettings } from '../pages/dashboards/admin/components/settings/PlanBillingSettings';
 import { AdminCurrencyRatesPage } from '../pages/dashboards/admin/pages/AdminCurrencyRatesPage';
 import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
 import { AdminPrintersPage } from '../pages/dashboards/admin/pages/AdminPrintersPage';
@@ -57,9 +58,11 @@ import { AdminStockTransfersPage } from '../pages/dashboards/admin/pages/AdminSt
 import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReorderRulesPage';
 import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxInvoicesPage';
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
-import { AdminSubscriptionsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionsPage';
+import { AdminSubscriptionPaymentsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionPaymentsPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
 import { SuperAdminLayout } from '../pages/dashboards/superadmin/SuperAdminLayout';
+import { SuperAdminSubscriptionsPage } from '../pages/dashboards/superadmin/pages/SuperAdminSubscriptionsPage';
+import { SuperAdminSubscriptionPaymentsPage } from '../pages/dashboards/superadmin/pages/SuperAdminSubscriptionPaymentsPage';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -111,6 +114,8 @@ export const AdminRoutes = () => {
           <Route path='notifications' element={<AdminNotificationsPage />} />
 
           <Route path='settings' element={<AdminSettingsPage />}>
+            <Route index element={<BusinessInfoSettings />} />
+            <Route path='plan-billing' element={<PlanBillingSettings />} />
             <Route path='business-info' element={<BusinessInfoSettings />} />
             <Route path='payment-settings' element={<PaymentSettings />} />
             <Route path='customer-settings' element={<CustomerSettings />} />
@@ -129,12 +134,14 @@ export const AdminRoutes = () => {
           <Route path='report-exports' element={<AdminReportExportsPage />} />
           <Route path='products/:id' element={<Product />} />
           <Route path='branches' element={<BusinessBranches />} />
-          <Route path='subscriptions' element={<AdminSubscriptionsPage />} />
+          <Route path='subscriptions' element={<AdminSubscriptionPaymentsPage />} />
         </Route>
       </Route>
         {/* Super Admin */}
         <Route path='superadmin' element={<SuperAdminLayout />}>
-          <Route index element={<AdminPaymentGatewaysPage />} />
+          <Route index element={<SuperAdminSubscriptionsPage />} />
+          <Route path='subscriptions' element={<SuperAdminSubscriptionsPage />} />
+          <Route path='subscription-payments' element={<SuperAdminSubscriptionPaymentsPage />} />
           <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
         </Route>
       {/* unmatched */}

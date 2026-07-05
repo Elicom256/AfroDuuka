@@ -45,6 +45,7 @@ import { aiQuery } from '../features/ai/aiQuery';
 import { todoQuery } from '../features/todos/todoQuery';
 import { plansQuery } from '../features/plans/plansQuery';
 import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
+import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
 
 export const store = configureStore({
   reducer: {
@@ -94,6 +95,7 @@ export const store = configureStore({
     [todoQuery.reducerPath]: todoQuery.reducer,
     [plansQuery.reducerPath]: plansQuery.reducer,
     [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
+    [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -144,6 +146,7 @@ export const store = configureStore({
       todoQuery.middleware,
       plansQuery.middleware,
       subscriptionsQuery.middleware,
+      subscriptionPaymentsQuery.middleware,
     ),
 });
 

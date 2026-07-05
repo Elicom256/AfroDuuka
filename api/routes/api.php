@@ -98,6 +98,10 @@ Route::prefix("subscriptions")->group(function () {
     require __DIR__."/subscriptions.php";
 });
 
+Route::prefix("subscription-payments")->group(function () {
+    require __DIR__."/subscription-payments.php";
+});
+
 Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);
     Route::get('/tools', [\App\Http\Controllers\AiController::class, 'tools']);

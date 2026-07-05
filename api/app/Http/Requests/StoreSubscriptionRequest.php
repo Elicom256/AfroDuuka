@@ -15,7 +15,7 @@ class StoreSubscriptionRequest extends FormRequest
     {
         return [
             'plan_id' => 'required|exists:plans,id',
-            'business_id' => 'required|exists:businesses,id',
+            'business_id' => 'sometimes|exists:businesses,id',
             'status' => 'sometimes|in:active,paused,cancelled,expired',
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',

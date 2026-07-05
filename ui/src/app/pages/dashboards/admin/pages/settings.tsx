@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Globe,
   Building2,
+  Crown,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ export const AdminSettingsPage = () => {
   const isOnSubPage = location.pathname !== '/admin/settings';
 
   const navItems = [
+    { to: 'plan-billing', label: 'Plan & Billing', Icon: Crown },
     { to: 'payment-settings', label: 'Payment Methods', Icon: CreditCard },
     { to: 'customer-settings', label: 'Customers', Icon: UserPlus },
     { to: 'supplier-settings', label: 'Suppliers', Icon: Truck },
