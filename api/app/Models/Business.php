@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Business extends Model
 {
-    protected $fillable = ['name', 'email', 'phone', 'address', 'business_category_id', 'country_id'];
+    protected $fillable = [
+        'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', "status", "subscription_balance"
+        ];
 
     public function users(): HasMany
     {

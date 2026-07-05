@@ -11,10 +11,16 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { ManagerRoutes } from './ManagerRoutes';
 import { StaffDashboard } from './StaffDashboard';
 import { NotFound } from './NotFound';
+import { SuperAdminRoutes } from './SuperAdmin';
+import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const AppRoutes = () => {
-  const { data } = useLoggedinUserQuery();
-  const role = data?.data.role.name;
+  const { data, isLoading } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
 
   return (
     <Routes>
@@ -30,6 +36,7 @@ export const AppRoutes = () => {
 
       {/* Role-based protected routes */}
       {role === 'admin' && <Route path='/*' element={<AdminRoutes />} />}
+      {role === 'superadmin' && <Route path='/*' element={<SuperAdminRoutes />} />}
       {role === 'manager' && <Route path='/*' element={<ManagerRoutes />} />}
       {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}
 

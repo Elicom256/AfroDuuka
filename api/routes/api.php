@@ -106,3 +106,9 @@ Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);
     Route::get('/tools', [\App\Http\Controllers\AiController::class, 'tools']);
 });
+
+Route::prefix("super-admin")->middleware('auth:sanctum')->group(function () {
+    Route::get('/businesses', [\App\Http\Controllers\SuperAdminBusinessController::class, 'index']);
+    Route::get('/businesses/{business}', [\App\Http\Controllers\SuperAdminBusinessController::class, 'show']);
+    Route::patch('/businesses/{business}/status', [\App\Http\Controllers\SuperAdminBusinessController::class, 'updateStatus']);
+});

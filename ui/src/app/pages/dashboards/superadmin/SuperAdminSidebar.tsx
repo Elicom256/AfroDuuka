@@ -1,10 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { Wallet, Settings, Crown, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Crown, CreditCard, Wallet, Settings, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
+  { label: 'Overview', to: '/superadmin', icon: LayoutDashboard },
+  { label: 'Plans', to: '/superadmin/plans', icon: CreditCard },
+  { label: 'Businesses', to: '/superadmin/businesses', icon: Building2 },
   { label: 'Subscriptions', to: '/superadmin/subscriptions', icon: Crown },
-  { label: 'Subscription Payments', to: '/superadmin/subscription-payments', icon: CreditCard },
+  { label: 'Subscription Payments', to: '/superadmin/subscription-payments', icon: Wallet },
   { label: 'Payment Gateways', to: '/superadmin/payment-gateways', icon: Wallet },
   { label: 'Settings', to: '/superadmin/settings', icon: Settings },
 ];
@@ -26,6 +29,7 @@ export const SuperAdminSidebar = ({ onNavigate }: SuperAdminSidebarProps) => (
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.to === '/superadmin'}
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(

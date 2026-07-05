@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name')->default("worker");
-            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("business_id")->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

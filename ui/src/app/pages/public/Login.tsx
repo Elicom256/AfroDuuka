@@ -25,7 +25,7 @@ export const Login: React.FC = () => {
       console.log('res from login==>', res);
       if (res) {
         const token = await res.data.token;
-        const role = res?.data.user.role.name;
+        const role = res?.data?.user.role.name;
         console.log('token==>', res.data.user.role.name);
         toast.success(res.message);
         localStorage.setItem('token', token);

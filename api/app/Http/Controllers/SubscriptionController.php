@@ -19,7 +19,8 @@ class SubscriptionController extends Controller
     public function store(StoreSubscriptionRequest $request)
     {
         $validated = $request->validated();
-        $businessId = Auth::user()->business_id;
+        $businessId = $validated['business_id'];
+
         // Enforce one active subscription per business
         Subscription::where('business_id', $businessId)
             ->where('status', 'active')

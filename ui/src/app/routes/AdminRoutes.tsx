@@ -60,9 +60,6 @@ import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxIn
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
 import { AdminSubscriptionPaymentsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionPaymentsPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
-import { SuperAdminLayout } from '../pages/dashboards/superadmin/SuperAdminLayout';
-import { SuperAdminSubscriptionsPage } from '../pages/dashboards/superadmin/pages/SuperAdminSubscriptionsPage';
-import { SuperAdminSubscriptionPaymentsPage } from '../pages/dashboards/superadmin/pages/SuperAdminSubscriptionPaymentsPage';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -137,14 +134,7 @@ export const AdminRoutes = () => {
           <Route path='subscriptions' element={<AdminSubscriptionPaymentsPage />} />
         </Route>
       </Route>
-        {/* Super Admin */}
-        <Route path='superadmin' element={<SuperAdminLayout />}>
-          <Route index element={<SuperAdminSubscriptionsPage />} />
-          <Route path='subscriptions' element={<SuperAdminSubscriptionsPage />} />
-          <Route path='subscription-payments' element={<SuperAdminSubscriptionPaymentsPage />} />
-          <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
-        </Route>
-      {/* unmatched */}
+       
       {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
