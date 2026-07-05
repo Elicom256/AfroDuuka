@@ -30,11 +30,16 @@ export const subscriptionsQuery = createApi({
       query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
       invalidatesTags: ['SubscriptionsAPI'],
     }),
+    getSubscription: builder.query<any, number>({
+      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      providesTags: ['SubscriptionsAPI'],
+    }),
   }),
 });
 
 export const {
   useGetSubscriptionsQuery,
+  useGetSubscriptionQuery,
   useCreateSubscriptionMutation,
   useUpdateSubscriptionMutation,
   useDeleteSubscriptionMutation,

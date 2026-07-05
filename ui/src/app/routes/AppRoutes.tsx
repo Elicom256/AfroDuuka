@@ -15,9 +15,9 @@ import { SuperAdminRoutes } from './SuperAdmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const AppRoutes = () => {
-  const { data, isLoading } = useLoggedinUserQuery();
+  const { data, isLoading, error } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-
+console.log("user error==>", error)
   if (isLoading) {
     return <PageLoadingState />;
   }

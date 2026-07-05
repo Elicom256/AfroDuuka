@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useGetSubscriptionsQuery,
   useCreateSubscriptionMutation,
   useUpdateSubscriptionMutation,
   useDeleteSubscriptionMutation,
 } from '@/app/store/features/subscriptions/subscriptionsQuery';
+import { useGetSubscriptionPaymentsQuery, useUpdateSubscriptionPaymentMutation } from '@/app/store/features/subscriptions/subscriptionPaymentsQuery';
 import { useGetPlansQuery } from '@/app/store/features/plans/plansQuery';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,8 +44,10 @@ import {
   Loader2,
   CalendarDays,
   Building2,
+  CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-600 border-green-500/20',
@@ -53,13 +57,17 @@ const statusColors: Record<string, string> = {
 };
 
 export const SuperAdminSubscriptionsPage = () => {
+  const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionsQuery();
+  const { data: paymentsData } = useGetSubscriptionPaymentsQuery();
   const { data: plansData } = useGetPlansQuery();
   const [createSubscription, { isLoading: isCreating }] = useCreateSubscriptionMutation();
   const [updateSubscription, { isLoading: isUpdating }] = useUpdateSubscriptionMutation();
   const [deleteSubscription, { isLoading: isDeleting }] = useDeleteSubscriptionMutation();
+  const [updatePayment, { isLoading: isVerifying }] = useUpdateSubscriptionPaymentMutation();
 
   const subscriptions = data?.subscriptions ?? [];
+  const allPayments = paymentsData?.subscription_payments ?? [];
   const plans = plansData?.plans ?? [];
 
   const [addOpen, setAddOpen] = useState(false);
@@ -88,6 +96,7 @@ export const SuperAdminSubscriptionsPage = () => {
     try {
       await createSubscription({
         plan_id: Number(form.plan_id),
+        business_id: form.business_id ? Number(form.business_id) : undefined,
       }).unwrap();
       toast.success('Subscription created');
       setAddOpen(false);
@@ -142,6 +151,26 @@ export const SuperAdminSubscriptionsPage = () => {
     }
   };
 
+  const handleVerifyPayment = async (subId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const pendingPayment = allPayments.find(
+      (p: any) => p.subscription_id === subId && p.payment_status === 'pending'
+    );
+    if (!pendingPayment) {
+      toast.error('No pending payment found for this subscription');
+      return;
+    }
+    try {
+      await updatePayment({
+        id: pendingPayment.id,
+        body: { payment_status: 'completed' },
+      }).unwrap();
+      toast.success('Payment verified as completed');
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to verify payment');
+    }
+  };
+
   if (isLoading) return <PageLoadingState />;
 
   return (
@@ -178,6 +207,15 @@ export const SuperAdminSubscriptionsPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className='space-y-2'>
+                <Label>Business ID (optional for super admin)</Label>
+                <Input
+                  type='number'
+                  value={form.business_id}
+                  onChange={(e) => setForm({ ...form, business_id: e.target.value })}
+                  placeholder='Leave empty for own business'
+                />
+              </div>
               <DialogFooter>
                 <Button type='button' variant='outline' onClick={() => { setAddOpen(false); resetForm(); }}>Cancel</Button>
                 <Button type='submit' disabled={isCreating}>
@@ -208,61 +246,82 @@ export const SuperAdminSubscriptionsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {subscriptions.map((sub: any) => (
-                  <TableRow key={sub.id}>
-                    <TableCell>
-                      <div className='flex items-center gap-2'>
-                        <Building2 className='h-4 w-4 text-muted-foreground' />
-                        <span className='font-medium'>{sub.business?.name ?? `Business #${sub.business_id}`}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{sub.plan?.name ?? 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[sub.status] ?? ''} variant='outline'>{sub.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className='flex items-center gap-1.5 text-sm'>
-                        <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
-                        {sub.starts_at ? new Date(sub.starts_at).toLocaleDateString() : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className='flex items-center gap-1.5 text-sm'>
-                        <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
-                        {sub.ends_at ? new Date(sub.ends_at).toLocaleDateString() : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <div className='flex items-center justify-end gap-1'>
-                        <Button variant='ghost' size='icon' onClick={() => handleEdit(sub)}>
-                          <Pencil className='h-4 w-4' />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant='ghost' size='icon' onClick={() => setDeleteId(sub.id)}>
-                              <Trash2 className='h-4 w-4 text-destructive' />
+                {subscriptions.map((sub: any) => {
+                  const hasPendingPayment = allPayments.some(
+                    (p: any) => p.subscription_id === sub.id && p.payment_status === 'pending'
+                  );
+                  return (
+                    <TableRow
+                      key={sub.id}
+                      className='cursor-pointer hover:bg-muted/50'
+                      onClick={() => navigate(`/superadmin/subscriptions/${sub.id}`)}
+                    >
+                      <TableCell>
+                        <div className='flex items-center gap-2'>
+                          <Building2 className='h-4 w-4 text-muted-foreground' />
+                          <span className='font-medium'>{sub.business?.name ?? `Business #${sub.business_id}`}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{sub.plan?.name ?? 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[sub.status] ?? ''} variant='outline'>{sub.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className='flex items-center gap-1.5 text-sm'>
+                          <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
+                          {sub.starts_at ? new Date(sub.starts_at).toLocaleDateString() : '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className='flex items-center gap-1.5 text-sm'>
+                          <CalendarDays className='h-3.5 w-3.5 text-muted-foreground' />
+                          {sub.ends_at ? new Date(sub.ends_at).toLocaleDateString() : '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        <div className='flex items-center justify-end gap-1'>
+                          {hasPendingPayment && (
+                            <Button
+                              size='sm'
+                              variant='outline'
+                              className='text-green-600 border-green-500/30 hover:bg-green-500/10'
+                              onClick={(e) => handleVerifyPayment(sub.id, e)}
+                              disabled={isVerifying}
+                            >
+                              <CheckCircle className='h-3.5 w-3.5 mr-1' />
+                              Verify
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Subscription</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                                {isDeleting && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          )}
+                          <Button variant='ghost' size='icon' onClick={(e) => { e.stopPropagation(); handleEdit(sub); }}>
+                            <Pencil className='h-4 w-4' />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant='ghost' size='icon' onClick={(e) => { e.stopPropagation(); setDeleteId(sub.id); }}>
+                                <Trash2 className='h-4 w-4 text-destructive' />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Subscription</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                                  {isDeleting && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
