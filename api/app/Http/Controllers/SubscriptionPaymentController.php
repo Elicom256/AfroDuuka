@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSubscriptionPaymentRequest;
 use App\Http\Requests\UpdateSubscriptionPaymentRequest;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\SubscriptionPayment;
+use Illuminate\Support\Facades\Auth;
 
 class SubscriptionPaymentController extends Controller
 {
@@ -40,6 +41,16 @@ class SubscriptionPaymentController extends Controller
     public function update(UpdateSubscriptionPaymentRequest $request, SubscriptionPayment $subscriptionPayment)
     {
         $validated = $request->validated();
+
+        if (isset($validated['payment_status']) && $validated['payment_status'] === 'completed') {
+            $validated['verified_by'] = Auth::id();
+            $validated['verified_at'] = now();
+        }
+
+        if (isset($validated['payment_status']) && $validated['payment_status'] === 'rejected' && empty($validated['rejection_reason'])) {
+            abort(422, 'Rejection reason is required when rejecting a payment');
+        }
+
         $subscriptionPayment->update($validated);
         return response()->json([
             'subscription_payment' => $subscriptionPayment->fresh()->load(['subscription.plan', 'paymentMethod', 'verifiedBy']),

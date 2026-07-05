@@ -23,7 +23,7 @@ import {
   Award,
   FileDown,
   CheckSquare,
-  Crown,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -64,10 +64,6 @@ const navSections: Array<{
     ],
   },
   {
-    title: 'Subscription',
-    items: [{ label: 'Subscriptions', to: '/admin/subscriptions', icon: Crown }],
-  },
-  {
     title: 'Business',
     items: [
       { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
@@ -80,6 +76,10 @@ const navSections: Array<{
       { label: 'Activity Logs', to: '/admin/activity-logs', icon: History },
       { label: 'Branches', to: '/admin/branches', icon: Truck },
     ],
+  },
+  {
+    title: 'Billing',
+    items: [{ label: 'Payments', to: '/admin/subscriptions', icon: CreditCard }],
   },
   {
     title: 'Marketing',

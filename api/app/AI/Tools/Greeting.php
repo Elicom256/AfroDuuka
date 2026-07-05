@@ -44,11 +44,11 @@ class Greeting extends Tool
         }
 
         $greetings = [
-            "{$timeGreeting}, @{$username}! Welcome to your inventory command center. How can I help you run {$businessName} today?",
-            "Hey @{$username}! Ready to track your inventory? I can help with sales, stock levels, purchases, and more.",
-            "{$timeGreeting}, @{$username}! What would you like to know about {$businessName} today?",
-            "Hello @{$username}! I'm your DuukaFlow AI assistant. Ask me anything about your inventory, sales, or business performance.",
-            "{$timeGreeting}, @{$username}! I've got all your business data at my fingertips. What would you like to explore in {$businessName}?",
+            "{$timeGreeting}, {$username}! Welcome to your inventory command center. How can I help you run {$businessName} today?",
+            "Hey {$username}! Ready to track your inventory? I can help with sales, stock levels, purchases, and more.",
+            "{$timeGreeting}, {$username}! What would you like to know about {$businessName} today?",
+            "Hello {$username}! I'm your DuukaFlow AI assistant. Ask me anything about your inventory, sales, or business performance.",
+            "{$timeGreeting}, {$username}! I've got all your business data at my fingertips. What would you like to explore in {$businessName}?",
         ];
 
         return [

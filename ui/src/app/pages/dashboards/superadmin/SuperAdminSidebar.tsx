@@ -1,8 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { Wallet, Settings } from 'lucide-react';
+import { Wallet, Settings, Crown, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
+  { label: 'Subscriptions', to: '/superadmin/subscriptions', icon: Crown },
+  { label: 'Subscription Payments', to: '/superadmin/subscription-payments', icon: CreditCard },
   { label: 'Payment Gateways', to: '/superadmin/payment-gateways', icon: Wallet },
   { label: 'Settings', to: '/superadmin/settings', icon: Settings },
 ];
