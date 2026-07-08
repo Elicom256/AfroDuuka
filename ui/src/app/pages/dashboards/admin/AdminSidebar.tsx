@@ -174,7 +174,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
 
                     {/* Unread Badge - Only for Notifications */}
                     {isNotifications && unreadCount > 0 && (
-                      <div className='ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium bg-red-500 text-white rounded-full'>
+                      <div className='ml-auto flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-medium bg-red-500 text-white rounded-full'>
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </div>
                     )}
