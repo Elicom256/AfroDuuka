@@ -1,23 +1,22 @@
-## Today's work
+# Today's work
 
-Check super admin dashboard and clean it. Currently it's incomplete. It lacks some vital pages like the Overview/landing page etc
+## Registration
 
-### The Super Admin Roles
+If a user registers via a specific plan, foreample, he can click on _Get Started_ button, on that situation, make sure you send that plan id, so that after registratio succeeds, create the corresponding subscription automatically
 
-- CRUD of plans
-- Verify the business subscription payments. He updates it with "completed" status
-- He deactivates the business
-  **Note:** Here, follow the Business Admin dashboard architecture for nice designs
+### Why??
 
-### Business model refactor
+This helps the user to track the plan he chose while signing up, even though this' changeable
+It's also convinient during payment for a plan
 
-- Update the business subscription_balance when it pays for a specific plan
+## Front end re-structure (Landing page)
+
+Put Pricing and About in the Home page
+Here, make sure these links do a smooth scroll when clicked and also they should be independent links but childern of Home
+Under pricing, reduce the unneccessary content, instead, make it straight forward and precise
+Ensure the users are assured that this is not a Ugandan based innovation, but **African based**
 
 ### Constraints
 
-- Make sure all the routes are matched properly(Backend and frontend)
-- Do NOTE hallucinate
-- Take more advanced decisions before you implement anything
-- UI/UX should be modern
-- Use shadcn and lucide icons, so do not re-invent the wheel
-- Always follow the already implemented architecture
+- Do not hallucinate
+- Take advanced decisions

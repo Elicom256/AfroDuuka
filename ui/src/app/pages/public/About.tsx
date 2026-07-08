@@ -23,11 +23,13 @@ const values = [
 export const About: React.FC = () => {
   return (
     <div className='container mx-auto px-4 py-10 sm:py-14'>
-      <SectionHeader
-        badge='About DuukaFlow'
-        title='A modern inventory experience for every store owner'
-        description='We build tools that keep inventory accurate, sales smooth, and daily stock management faster.'
-      />
+      <section id='about-section'>
+        <SectionHeader
+          badge='About DuukaFlow'
+          title='A modern inventory experience for every store owner'
+          description='We build tools that keep inventory accurate, sales smooth, and daily stock management faster.'
+        />
+      </section>
 
       <div className='mt-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]'>
         <div className='space-y-6 rounded-[2rem] border border-border/70 bg-card/80 p-8 shadow-sm'>

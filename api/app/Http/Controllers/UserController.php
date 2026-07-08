@@ -141,11 +141,20 @@ class UserController extends Controller
         }
     }
 
-    // create account for admin
+    // create account for admin with plan subscription
     public function signup(StoreUserRequest $request)
     {
         try {
-            $user = $this->userService->createAccount($request->validated());
+            $validated = $request->validated();
+            
+            // Create the user account first
+            $user = $this->userService->createAccount($validated);
+            
+            // If plan_id is provided, create subscription
+            if (isset($validated['plan_id'])) {
+                $this->createUserSubscription($user, $validated['plan_id']);
+            }
+            
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user->load('business', 'role'),
@@ -156,6 +165,23 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
             ], 400);
         }
+    }
+
+    /**
+     * Create subscription for a user
+     */
+    public function createUserSubscription(User $user, $planId)
+    {
+        $subscription = Subscription::create([
+            'business_id' => $user->business_id,
+            'plan_id' => $planId,
+            'status' => 'trial', // or 'active' based on plan type
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(14), // 14-day trial
+            'trial_ends_at' => now()->addDays(14),
+        ]);
+        
+        return $subscription->load(['plan', 'business', 'payments']);
     }
 
     /**

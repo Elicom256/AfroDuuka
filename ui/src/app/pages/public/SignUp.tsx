@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Mail, Phone, Lock, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,20 +18,24 @@ import {
   useRegisterMutation,
   useUpdateUserMutation,
 } from '@/app/store/features/auth/authQuery';
+import { useGetPlansQuery } from '@/app/store/features/plans/plansQuery';
 import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
 import { LoadingState } from '@/utils/LoadingState';
 
 export const SignUp: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planIdFromUrl = searchParams.get('plan_id');
 
   const [formState, setFormState] = useState<any>({
     name: '',
     email: '',
     phone: '',
     password: '',
-    role: '',
+    role: 'customer',
     username: '',
     country_id: '',
+    plan_id: planIdFromUrl || '',
   });
 
   const [register, { isLoading }] = useRegisterMutation();
@@ -39,6 +43,11 @@ export const SignUp: React.FC = () => {
   const { data } = useLoggedinUserQuery();
   const { data: countriesData } = useCountriesQuery();
   const countries = countriesData?.data || [];
+
+  // Get plan details for display
+  const { data: planData } = useGetPlansQuery();
+  const selectedPlan = planData?.plans?.find((p: any) => p.id === Number(planIdFromUrl));
+
   // Prefill when editing
   useEffect(() => {
     if (data?.data) {
@@ -47,9 +56,10 @@ export const SignUp: React.FC = () => {
         email: data.data.email || '',
         phone: data.data.phone || '',
         password: '',
-        role: data.data.role || '',
+        role: data.data.role || 'customer',
         username: data.data.username || '',
         country_id: data.data.country_id || '',
+        plan_id: planIdFromUrl || data.data.plan_id || '',
       });
     }
   }, [data]);
@@ -240,6 +250,29 @@ export const SignUp: React.FC = () => {
             Login
           </Link>
         </p>
+      )}
+
+      {!data && selectedPlan && (
+        <div className='mt-4 rounded-md bg-green-50 p-3 text-sm text-green-800 border border-green-200'>
+          <div className='flex items-center gap-2'>
+            <svg className='h-4 w-4' fill='currentColor' viewBox='0 0 20 20'><path d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z'/></svg>
+            <span>You've selected the <strong>{selectedPlan.name}</strong> plan. Your subscription will be activated after registration.</span>
+          </div>
+        </div>
+      )}
+
+      {!data && planIdFromUrl && (
+        <div className='mt-6 rounded-md bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200'>
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2 font-medium'>
+              <svg className='h-5 w-5' fill='currentColor' viewBox='0 0 20 20'><path fillRule='evenodd' d='M10 2a8 8 0 100 16 8 0 000-16zM10 18a8 8 0 110-16 8 0 010 16zm-1-11a1 1 0 00-1 1V8a1 1 0 102 0v2a1 1 0 11-2 0V9a1 1 0 00-1-1zm0 4a1 1 0 100 2 1 1 0 000-2z' clipRule='evenodd'/></svg>
+              <span>Have a referral code or special plan link? Simply sign up with the provided plan ID to get your 14-day free trial!</span>
+            </div>
+            <div className='text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-100'>
+              <strong>Plan ID passed in URL:</strong> {planIdFromUrl}
+            </div>
+          </div>
+        </div>
       )}
     </AuthLayout>
   );
