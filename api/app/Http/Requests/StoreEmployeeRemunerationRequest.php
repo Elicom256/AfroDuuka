@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Worker;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,17 @@ class StoreEmployeeRemunerationRequest extends FormRequest
     public function authorize(): bool
     {
         return Auth::check();
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $user = Auth::user();
+        $worker = Worker::with('user')->find($this->input('worker_id'));
+
+        $this->merge([
+            'business_id' => $user->business_id,
+            'business_branch_id' => $worker?->business_branch_id ?? $user->business_branch_id,
+        ]);
     }
 
     /**
@@ -31,6 +43,8 @@ class StoreEmployeeRemunerationRequest extends FormRequest
             'reference' => ['nullable', 'string', 'max:150'],
             'status' => ['nullable', 'in:pending,paid,failed'],
             'description' => ['nullable', 'string'],
+            'business_id' => ['required', 'exists:businesses,id'],
+            'business_branch_id' => ['required', 'exists:business_branches,id'],
         ];
     }
 }

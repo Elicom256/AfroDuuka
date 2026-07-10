@@ -73,7 +73,7 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
     const amount = Number(formData.amount);
 
     if (!workerId || Number.isNaN(amount) || !formData.type || !formData.payment_date) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -99,7 +99,7 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
       }
     } catch (error) {
       console.error('Failed to record payment:', error);
-      alert('Failed to record payment. Please try again.');
+      toast.error('Failed to record payment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -16,7 +16,6 @@ class EmployeeRemunerationSeeder extends Seeder
     public function run(): void
     {
         $businessId = Business::where('email', 'testbusinessone@gmail.com')->value('id');
-
         $branchId = BusinessBranch::where('business_id', $businessId)
             ->where('name', 'Main Branch')
             ->value('id');
@@ -29,48 +28,26 @@ class EmployeeRemunerationSeeder extends Seeder
             ->take(4)
             ->get();
 
+        $remunerations = [
+            ['type' => 'salary',  'amount' => 2500000, 'payment_date' => now()->subMonths(2)->startOfMonth(), 'reference' => 'SAL-01', 'status' => 'paid',  'description' => 'Monthly salary payment'],
+            ['type' => 'salary',  'amount' => 2500000, 'payment_date' => now()->subMonth()->startOfMonth(),   'reference' => 'SAL-02', 'status' => 'paid',  'description' => 'Monthly salary payment'],
+            ['type' => 'bonus',   'amount' => 200000,  'payment_date' => now(),                               'reference' => 'BON',    'status' => 'pending', 'description' => 'Performance bonus'],
+        ];
+
         foreach ($workers as $index => $worker) {
-            EmployeeRemuneration::updateOrCreate(
-                [
+            foreach ($remunerations as $rem) {
+                EmployeeRemuneration::create([
                     'worker_id' => $worker->id,
-                    'type' => 'salary',
-                    'payment_date' => now()->subMonths(2)->startOfMonth(),
-                ],
-                [
-                    'amount' => 2500000 + ($index * 250000),
-                    'reference' => 'SAL-' . $worker->id . '-01',
-                    'status' => 'paid',
-                    'description' => 'Monthly salary payment',
-                ]
-            );
-
-            EmployeeRemuneration::updateOrCreate(
-                [
-                    'worker_id' => $worker->id,
-                    'type' => 'salary',
-                    'payment_date' => now()->subMonth()->startOfMonth(),
-                ],
-                [
-                    'amount' => 2500000 + ($index * 250000),
-                    'reference' => 'SAL-' . $worker->id . '-02',
-                    'status' => 'paid',
-                    'description' => 'Monthly salary payment',
-                ]
-            );
-
-            EmployeeRemuneration::updateOrCreate(
-                [
-                    'worker_id' => $worker->id,
-                    'type' => 'bonus',
-                    'payment_date' => now(),
-                ],
-                [
-                    'amount' => 200000,
-                    'reference' => 'BON-' . $worker->id,
-                    'status' => 'pending',
-                    'description' => 'Performance bonus',
-                ]
-            );
+                    'business_id' => $businessId,
+                    'business_branch_id' => $branchId,
+                    'type' => $rem['type'],
+                    'amount' => $rem['amount'] + ($rem['type'] === 'salary' ? $index * 250000 : 0),
+                    'payment_date' => $rem['payment_date'],
+                    'reference' => $rem['reference'] . '-' . $worker->id,
+                    'status' => $rem['status'],
+                    'description' => $rem['description'],
+                ]);
+            }
         }
     }
 }
