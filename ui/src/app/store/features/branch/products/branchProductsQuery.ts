@@ -15,12 +15,11 @@ export const productsQuery = createApi({
   }),
   tagTypes: ['ProductsAPI'],
   endpoints: (builder) => ({
-    // get products
-    products: builder.query<any, string | void>({
-      query: (branchId) => ({
+    // get products (no params - uses user's business_branch_id from auth)
+    products: builder.query<any, void>({
+      query: () => ({
         url: '/',
         method: 'GET',
-        params: branchId ? { branch_id: branchId } : undefined,
       }),
       providesTags: ['ProductsAPI'],
     }),
@@ -62,7 +61,7 @@ export const productsQuery = createApi({
 
     // metrics
     productMetrics: builder.query<any, any>({
-      query: ({id, period = 'last_7_days'}) => ({
+      query: ({ id, period = 'last_7_days' }) => ({
         url: `/${id}/metrics`,
         method: 'GET',
         params: { period },

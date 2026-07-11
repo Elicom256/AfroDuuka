@@ -21,7 +21,7 @@ interface Product {
 }
 
 export const ProductTable = () => {
-  const { data: products, isLoading: loadProducts } = useProductsQuery();
+  const { data: products, isLoading: loadProducts } = useProductsQuery(void 0);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
