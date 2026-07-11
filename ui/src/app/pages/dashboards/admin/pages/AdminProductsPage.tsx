@@ -67,7 +67,7 @@ export const AdminProductsPage = () => {
         </CardContent>
       </Card>
 
-      <ProductTable branchId={selectedBranchId} />
+      <ProductTable />
     </div>
   );
 };

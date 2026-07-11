@@ -25,7 +25,7 @@ interface Product {
 }
 
 export const ProductTable = () => {
-  const { data: branchProds, isLoading: loadProducts } = useProductsQuery();
+  const { data: branchProds, isLoading: loadProducts } = useProductsQuery(void 0);
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
   console.log('branchProds available==>', branchProds);

@@ -7,10 +7,7 @@ import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Package2, PencilLine, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  useProductsQuery,
-  useDeleteProductMutation,
-} from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { EditProduct } from './EditProduct';
 
 interface Product {
@@ -35,12 +32,8 @@ const getCategoryName = (product: Product) => {
   return product.category_name || product.category?.name || 'Uncategorized';
 };
 
-interface ProductTableProps {
-  branchId?: string;
-}
-
-export const ProductTable = ({ branchId }: ProductTableProps) => {
-  const { data: branchProducts, isLoading: loadBranchProducts } = useProductsQuery(branchId);
+export const ProductTable = () => {
+  const { data: branchProducts, isLoading: loadBranchProducts, error } = useProductsQuery();
   const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -50,6 +43,7 @@ export const ProductTable = ({ branchId }: ProductTableProps) => {
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
+  console.log('branchProducts ==>', branchProducts ?? error);
 
   useEffect(() => {
     if (currentPage > totalPages) {
