@@ -34,7 +34,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     quantity: '',
     reorder_level: '',
     description: '',
-    product_id: '',
+    product_category_id: '',
   });
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
         quantity: '',
         reorder_level: '',
         description: '',
-        product_id: '',
+        product_category_id: '',
       });
     } catch (error) {
       console.error('Add product error:', error);
@@ -176,10 +176,10 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
             </div>
 
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='product_id' className='text-right'>
+              <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_id} onValueChange={(value) => handleChange('product_id', value)}>
+              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>

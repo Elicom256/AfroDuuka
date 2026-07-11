@@ -15,7 +15,7 @@ class SuperAdminBusinessController extends Controller
 
     public function show(Business $business)
     {
-        $business->load(['country', 'users', 'categories']);
+        $business->load(['country', 'users', 'productCategories']);
         return response()->json(["business" => $business, "message" => "Business retrieved"]);
     }
 

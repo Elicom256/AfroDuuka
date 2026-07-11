@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 
 class OutOfStockProducts extends Tool
 {
@@ -29,20 +29,20 @@ class OutOfStockProducts extends Tool
 
     public function handle(array $parameters): array
     {
-        $query = BusinessBranchProduct::where('quantity', '<=', 0);
+        $query = Product::where('quantity', '<=', 0);
 
         if (!empty($parameters['branch_id'])) {
             $query->where('business_branch_id', $parameters['branch_id']);
         }
 
-        $products = $query->with('product.category')
+        $products = $query->with('productCategory')
             ->orderBy('name')
             ->limit(50)
             ->get()
             ->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
-                'sku' => $p->product?->sku,
+                'sku' => $p->sku,
                 'quantity' => $p->quantity,
                 'branch_id' => $p->business_branch_id,
             ]);

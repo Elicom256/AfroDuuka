@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
@@ -27,10 +27,10 @@ class BusinessInsights extends Tool
 
     public function handle(array $parameters): array
     {
-        $totalProducts = BusinessBranchProduct::count();
-        $activeProducts = BusinessBranchProduct::where('status', 'active')->count();
-        $lowStock = BusinessBranchProduct::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->count();
-        $outOfStock = BusinessBranchProduct::where('quantity', '<=', 0)->count();
+        $totalProducts = Product::count();
+        $activeProducts = Product::where('status', 'active')->count();
+        $lowStock = Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->count();
+        $outOfStock = Product::where('quantity', '<=', 0)->count();
 
         $todaySales = (float) Sale::whereDate('created_at', today())->where('status', 'completed')->sum('total_amount');
         $todaySalesCount = Sale::whereDate('created_at', today())->where('status', 'completed')->count();
@@ -38,7 +38,7 @@ class BusinessInsights extends Tool
         $monthSales = (float) Sale::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->where('status', 'completed')->sum('total_amount');
         $monthPurchases = (float) Purchase::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->where('status', 'completed')->sum('total_amount');
 
-        $stockValue = (float) BusinessBranchProduct::select(DB::raw('COALESCE(SUM(quantity * cost_price), 0) as total'))->first()->total;
+        $stockValue = (float) Product::select(DB::raw('COALESCE(SUM(quantity * cost_price), 0) as total'))->first()->total;
 
         return [
             'inventory' => [

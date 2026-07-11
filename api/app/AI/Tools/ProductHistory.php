@@ -44,8 +44,8 @@ class ProductHistory extends Tool
             }
         }
 
-        $movements = StockMovement::where('business_branch_product_id', $productId)
-            ->with('businessBranchProduct')
+        $movements = StockMovement::where('product_id', $productId)
+            ->with('product')
             ->latest()
             ->limit($limit)
             ->get()
@@ -58,7 +58,7 @@ class ProductHistory extends Tool
                 'date' => $m->created_at->toDateTimeString(),
             ]);
 
-        $product = \App\Models\BusinessBranchProduct::find($productId);
+        $product = \App\Models\Product::find($productId);
 
         return [
             'product_name' => $product?->name ?? 'Unknown',

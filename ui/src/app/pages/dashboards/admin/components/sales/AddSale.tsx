@@ -19,13 +19,13 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddSaleProps {
   addSale: any; // RTK Query mutation
-  products: any[]; // BusinessBranchProduct list
+  products: any[]; // Product list
   customers: any[]; // ← New: Pass customers
   paymentMethods: any[]; // ← Already have this
 }
 
 interface SaleItem {
-  business_branch_product_id: string;
+  product_id: string;
   quantity: string;
   unit_price: string;
 }
@@ -35,7 +35,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }] as SaleItem[],
+    items: [{ product_id: '', quantity: '', unit_price: '' }] as SaleItem[],
     customer_id: '', // nullable
     payment_status_id: '', // payment method
     paymentStatus: 'paid', // default
@@ -47,7 +47,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { business_branch_product_id: '', quantity: '', unit_price: '' }],
+      items: [...prev.items, { product_id: '', quantity: '', unit_price: '' }],
     }));
   };
 
@@ -75,7 +75,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
     e.preventDefault();
 
     const validItems = formData.items.filter(
-      (item) => item.business_branch_product_id && item.quantity && item.unit_price,
+      (item) => item.product_id && item.quantity && item.unit_price,
     );
 
     if (validItems.length === 0) {
@@ -91,7 +91,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
     try {
       const body = {
         items: validItems.map((item) => ({
-          business_branch_product_id: Number(item.business_branch_product_id),
+          product_id: Number(item.product_id),
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
         })),
@@ -109,7 +109,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
       // Reset form
       setOpen(false);
       setFormData({
-        items: [{ business_branch_product_id: '', quantity: '', unit_price: '' }],
+        items: [{ product_id: '', quantity: '', unit_price: '' }],
         customer_id: '',
         payment_status_id: '',
         paymentStatus: 'paid',
@@ -122,7 +122,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
     }
   };
 
-  const selectedIds = formData.items.map((i) => i.business_branch_product_id);
+  const selectedIds = formData.items.map((i) => i.product_id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -192,7 +192,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                   <div className='col-span-5'>
                     <Label>Product</Label>
                     <Select
-                      value={item.business_branch_product_id}
+                      value={item.product_id}
                       onValueChange={(value) => {
                         const selected = products.find((p) => String(p.id) === value);
                         setFormData((prev) => ({
@@ -201,7 +201,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                             idx === index
                               ? {
                                   ...i,
-                                  business_branch_product_id: value,
+                                  product_id: value,
                                   unit_price: selected?.price?.toString() || '',
                                 }
                               : i,
@@ -216,7 +216,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                         {products
                           .filter(
                             (p) =>
-                              !selectedIds.includes(String(p.id)) || String(p.id) === item.business_branch_product_id,
+                              !selectedIds.includes(String(p.id)) || String(p.id) === item.product_id,
                           )
                           .map((product) => (
                             <SelectItem key={product.id} value={String(product.id)}>

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Business;
 use App\Models\BusinessCategory;
-use App\Models\Category;
+use App\Models\ProductCategory;
 use App\Models\Country;
 use App\Services\CoreBusinessSettings;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;

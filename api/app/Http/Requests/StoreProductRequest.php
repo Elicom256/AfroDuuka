@@ -2,92 +2,44 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return  Auth::check();
+        return Auth::check();
     }
 
-     // * Prepare data before validation.
-    protected function prepareForValidation(): void
-{
-    $user = Auth::user();
-
-    // Generate a simple SKU: prefix + product count + random string
-    $count = Product::count() + 1;
-    $random = strtoupper(substr(md5(uniqid()), 0, 6)); // 6‑char random
-
-    $sku = "SKU-" . $user->business_id . "-" . $count . "-" . $random;
-
-    $this->merge([
-        'business_id' => $user->business_id,
-        'status'      => "active",
-        'sku'         => $sku,
-    ]);
-}
-
-
-     // * Get validation rules.
+    public function prepareForValidation(): void
+    {
+        $user = Auth::user();
+        $markup_percentage = $this->markup_percentage / 100;
+        $this->merge([
+            'business_branch_id' => $user?->business_branch_id,
+            'status' => 'active',
+            'markup_percentage' => $markup_percentage
+        ]);
+    }
 
     public function rules(): array
     {
         return [
-            'business_id' => [
-                'required',
-                'exists:businesses,id',
-            ],
-
-            'category_id' => [
-                'required',
-                'exists:categories,id',
-            ],
-
-            'name' => [
-                'required',
-                'string',
-                'min:1',
-                'max:255',
-            ],
-
-            'sku' => [
-                'required',
-                'string',
-                'max:255',
-
-                // unique sku per business
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where(
-                        'business_id',
-                        Auth::user()->business_id
-                    );
-                }),
-            ],
-
-            'barcode' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-
-            'status' => [
-                'required',
-                'in:active,innactive',
-            ],
-
-            'description' => [
-                'nullable',
-                'string',
-            ],
+            'business_branch_id' => ['required', 'exists:business_branches,id'],
+            'product_category_id' => ['nullable', 'exists:product_categories,id'],
+            'name' => ['required', 'string', 'min:1', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:100'],
+            'barcode' => ['nullable', 'string', 'max:100'],
+            'track_serial' => ['nullable', 'boolean'],
+            'quantity' => ['required', 'integer', 'min:0'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'markup_percentage' => ['nullable', 'numeric', 'min:0'],
+            'reorder_level' => ['nullable', 'integer', 'min:0'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'status' => ['in:active,inactive,damaged,out_of_stock'],
+            'expiry_date' => ['nullable', 'date'],
         ];
     }
 }

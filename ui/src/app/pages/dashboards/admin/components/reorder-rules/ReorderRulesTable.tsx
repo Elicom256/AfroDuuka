@@ -33,7 +33,7 @@ export const ReorderRulesTable = ({ rules, onDelete }: any) => {
         <TableBody>
           {paginatedRules?.map((r: any) => (
             <TableRow key={r.id}>
-              <TableCell className='font-medium'>{r.business_branch_product?.name || '—'}</TableCell>
+              <TableCell className='font-medium'>{r.product?.name || '—'}</TableCell>
               <TableCell>{r.reorder_quantity}</TableCell>
               <TableCell>{r.preferred_supplier?.user?.firstname || 'Any'}</TableCell>
               <TableCell>

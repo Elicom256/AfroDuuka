@@ -26,16 +26,16 @@ class SalesByProductReports
 
         $products = SaleItem::query()
             ->select([
-                'business_branch_products.id as product_id',
-                'business_branch_products.name as product_name',
+                'products.id as product_id',
+                'products.name as product_name',
                 DB::raw('SUM(sale_items.quantity) as quantity_sold'),
                 DB::raw('SUM(sale_items.quantity * sale_items.unit_price) as total_revenue'),
             ])
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->join('business_branch_products', 'business_branch_products.id', '=', 'sale_items.business_branch_product_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
             ->where('sales.business_branch_id', $user->business_branch_id)
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('business_branch_products.id', 'business_branch_products.name')
+            ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_revenue')
             ->limit(10)
             ->get();

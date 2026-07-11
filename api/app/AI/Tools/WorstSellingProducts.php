@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 
 class WorstSellingProducts extends Tool
 {
@@ -31,14 +31,14 @@ class WorstSellingProducts extends Tool
     {
         $limit = min((int) ($parameters['limit'] ?? 10), 50);
 
-        $products = BusinessBranchProduct::whereNull('last_sold_at')
-            ->with('product.category')
+        $products = Product::whereNull('last_sold_at')
+            ->with('productCategory')
             ->orderBy('quantity', 'desc')
             ->limit($limit)
             ->get()
             ->map(fn ($p) => [
                 'name' => $p->name,
-                'sku' => $p->product?->sku,
+                'sku' => $p->sku,
                 'quantity' => $p->quantity,
                 'price' => $p->price,
                 'cost_price' => $p->cost_price,

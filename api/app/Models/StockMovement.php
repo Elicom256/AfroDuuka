@@ -8,37 +8,22 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class StockMovement extends BaseModel
 {
-
     protected $fillable = [
         'business_id',
         'business_branch_id',
-        'business_branch_product_id',
-        'type', // in, out, adjustment
+        'product_id',
+        'type',
         'quantity',
         'reference_type',
         'reference_id',
         'notes',
     ];
 
-    /**
-     * The branch-level product (inventory item) this movement tracks.
-     */
-    public function businessBranchProduct(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(BusinessBranchProduct::class);
+        return $this->belongsTo(Product::class);
     }
 
-    /**
-     * Shortcut to the base product via the branch product pivot.
-     */
-    public function product()
-    {
-        return $this->businessBranchProduct->product();
-    }
-
-    /**
-     * Get the parent reference model (Purchase, Sale, etc.).
-     */
     public function reference(): MorphTo
     {
         return $this->morphTo();

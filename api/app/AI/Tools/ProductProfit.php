@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 
 class ProductProfit extends Tool
 {
@@ -37,15 +37,15 @@ class ProductProfit extends Tool
         $sortBy = $parameters['sort_by'] ?? 'profit_margin';
         $limit = min((int) ($parameters['limit'] ?? 20), 100);
 
-        $products = BusinessBranchProduct::where('quantity', '>', 0)
+        $products = Product::where('quantity', '>', 0)
             ->where('price', '>', 0)
             ->where('cost_price', '>', 0)
-            ->with('product.category')
+            ->with('productCategory')
             ->limit($limit)
             ->get()
             ->map(fn ($p) => [
                 'name' => $p->name,
-                'sku' => $p->product?->sku,
+                'sku' => $p->sku,
                 'selling_price' => $p->price,
                 'cost_price' => $p->cost_price,
                 'profit_per_unit' => round($p->price - $p->cost_price, 2),

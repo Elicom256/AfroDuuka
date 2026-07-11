@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
-import { productsQuery } from '../features/business/products/productsQuery';
+import { productCategoriesQuery } from '../features/business/products/productsQuery';
 import { salesQuery } from '../features/branch/sales/salesQuery';
 import { purchasesQuery } from '../features/branch/purchases/purchasesQuery';
 import { customersQuery } from '../features/business/customers/customersQuery';
@@ -10,7 +10,7 @@ import { businessQuery } from '../features/business/setup/businessQuery';
 import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
 import { branchesQuery } from '../features/business/branches/branchesQuery';
-import { bsbranchProductsQuery } from '../features/branch/products/branchProductsQuery';
+import { productsQuery as branchProductsQuery } from '../features/branch/products/branchProductsQuery';
 import { branchWorkersQuery } from '../features/branch/workers/branchWorkersQuery';
 import { branchCustomersQuery } from '../features/branch/customers/branchCustomersQuery';
 import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
@@ -53,7 +53,7 @@ export const store = configureStore({
   reducer: {
     [authQuery.reducerPath]: authQuery.reducer,
     [workersQuery.reducerPath]: workersQuery.reducer,
-    [productsQuery.reducerPath]: productsQuery.reducer,
+    [productCategoriesQuery.reducerPath]: productCategoriesQuery.reducer,
     [salesQuery.reducerPath]: salesQuery.reducer,
     [purchasesQuery.reducerPath]: purchasesQuery.reducer,
     [customersQuery.reducerPath]: customersQuery.reducer,
@@ -62,7 +62,7 @@ export const store = configureStore({
     [rolesQuery.reducerPath]: rolesQuery.reducer,
     [supplierQuery.reducerPath]: supplierQuery.reducer,
     [branchesQuery.reducerPath]: branchesQuery.reducer,
-    [bsbranchProductsQuery.reducerPath]: bsbranchProductsQuery.reducer,
+    [branchProductsQuery.reducerPath]: branchProductsQuery.reducer,
     [branchWorkersQuery.reducerPath]: branchWorkersQuery.reducer,
     [branchCustomersQuery.reducerPath]: branchCustomersQuery.reducer,
     [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
@@ -106,7 +106,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(
       authQuery.middleware,
       workersQuery.middleware,
-      productsQuery.middleware,
+      productCategoriesQuery.middleware,
       salesQuery.middleware,
       purchasesQuery.middleware,
       customersQuery.middleware,
@@ -115,7 +115,7 @@ export const store = configureStore({
       rolesQuery.middleware,
       supplierQuery.middleware,
       branchesQuery.middleware,
-      bsbranchProductsQuery.middleware,
+      branchProductsQuery.middleware,
       branchWorkersQuery.middleware,
       branchCustomersQuery.middleware,
       branchSuppliersQuery.middleware,

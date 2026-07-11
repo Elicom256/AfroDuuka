@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
-use App\Models\Category;
+use App\Models\ProductCategory;
 use Illuminate\Database\Seeder;
 
 class CategoryTableSeeder extends Seeder
@@ -43,7 +43,7 @@ class CategoryTableSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::updateOrCreate(
+            ProductCategory::updateOrCreate(
                 [
                     "name" => strtolower($category["name"]),
                     "business_id" => $business->id,

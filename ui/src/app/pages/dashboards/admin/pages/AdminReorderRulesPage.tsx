@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useReorderRulesQuery, useCreateReorderRuleMutation, useDeleteReorderRuleMutation } from '@/app/store/features/business/admin/reorderRulesQuery';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { PackageSearch } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -11,7 +11,7 @@ export const AdminReorderRulesPage = () => {
   const { data, isLoading } = useReorderRulesQuery();
   const [createRule] = useCreateReorderRuleMutation();
   const [deleteRule] = useDeleteReorderRuleMutation();
-  const { data: productsData } = useBranchProductsQuery();
+  const { data: productsData } = useProductsQuery();
   const { data: suppliersData } = useSuppliersQuery();
   const rules = data?.data || [];
   const products = productsData?.data || [];

@@ -1,11 +1,11 @@
-import { useBranchProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, Package, TrendingDown } from 'lucide-react';
 
 export const SmartRestocking = () => {
-  const { data, isLoading } = useBranchProductRestockingQuery();
+  const { data, isLoading } = useProductRestockingQuery();
 
   const atRisk = data?.data?.predictions?.filter((p: any) => p.is_at_risk) ?? [];
   const lowStock = data?.data?.predictions?.filter((p: any) => p.is_low_stock) ?? [];

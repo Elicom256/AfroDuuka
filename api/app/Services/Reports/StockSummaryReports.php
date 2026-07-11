@@ -2,7 +2,7 @@
 
 namespace App\Services\Reports;
 
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +10,7 @@ class StockSummaryReports
 {
     public function stockSummary(array $filters, User $user, int $perPage = 15): array
     {
-        $baseQuery = BusinessBranchProduct::query()
+        $baseQuery = Product::query()
             ->where('business_branch_id', $user->business_branch_id);
 
         $totalProducts = (int) $baseQuery->count();
@@ -19,7 +19,7 @@ class StockSummaryReports
         $activeProducts = (int) $baseQuery->where('status', 'active')->count();
         $inactiveProducts = (int) $baseQuery->where('status', 'inactive')->count();
 
-        $products = BusinessBranchProduct::query()
+        $products = Product::query()
             ->where('business_branch_id', $user->business_branch_id)
             ->select(['id', 'name', 'quantity', 'cost_price', 'price', 'reorder_level', 'status'])
             ->paginate($perPage)

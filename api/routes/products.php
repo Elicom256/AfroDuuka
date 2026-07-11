@@ -1,40 +1,21 @@
 <?php
 
 use App\Http\Controllers\BusinessBranchController;
-use App\Http\Controllers\BusinessBranchProductController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     // ======== CRUD ============
-    Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('business-products', ProductController::class);
-    Route::get("/business-branch-products/analytics", [BusinessBranchProductController::class, "inventoryAnalytics"]);
-    Route::get("/business-branch-products/expiring", [BusinessBranchProductController::class, "expiringAnalytics"]);
-    Route::get("/business-branch-products/restocking", [BusinessBranchProductController::class, "restocking"]);
-    Route::get("/business-branch-products/{businessBranchProduct}/metrics", 
-    [BusinessBranchProductController::class, "productMetrics"]);
-    Route::apiResource('business-branch-products', BusinessBranchProductController::class)->only([
-        "index", "show", "store", "update", "delete"
+    Route::apiResource('categories', ProductCategoryController::class);
+    Route::get("/products/analytics", [ProductController::class, "inventoryAnalytics"]);
+    Route::get("/products/expiring", [ProductController::class, "expiringAnalytics"]);
+    Route::get("/products/restocking", [ProductController::class, "restocking"]);
+    Route::get("/products/{product}/metrics", [ProductController::class, "productMetrics"]);
+    Route::apiResource('products', ProductController::class)->only([
+        "index", "show", "store", "update", "destroy"
     ]);
 
-   
     //  ============ others ============
-    Route::get("/business-branch-products/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
+    Route::get("/products/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
 });
-
-// Protected user routes
-// Route::middleware('auth:sanctum')->group(function () {
-//     // product categories sold by the business
-//     Route::post('/', [CategoryController::class, 'store']);
-//     Route::get('/', [CategoryController::class, 'show']);
-//     Route::put('/{user}', [CategoryController::class, 'update']);
-//     Route::delete('/{user}', [CategoryController::class, 'destroy']);
-
-//     // business products
-//     Route::post('/', [ProductController::class, 'store']);
-//     Route::get('/{user}', [ProductController::class, 'show']);
-//     Route::put('/{user}', [ProductController::class, 'update']);
-//     Route::delete('/{user}', [ProductController::class, 'destroy']);
-// });

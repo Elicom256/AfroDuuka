@@ -77,7 +77,7 @@ export const Sale = () => {
                 {sale.sale_items?.map((item: any, i: number) => (
                   <TableRow key={item.id}>
                     <TableCell className='font-medium'>{i + 1}</TableCell>
-                    <TableCell className='font-medium'>{item.business_branch_product.name}</TableCell>
+                    <TableCell className='font-medium'>{item.product.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell> {Number(item.unit_price).toLocaleString()}</TableCell>
                     <TableCell> {Number(item.subtotal).toLocaleString()}</TableCell>

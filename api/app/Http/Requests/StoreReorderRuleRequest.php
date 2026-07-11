@@ -25,7 +25,7 @@ class StoreReorderRuleRequest extends FormRequest
         return [
             'business_id' => 'required|exists:businesses,id',
             'business_branch_id' => 'required|exists:business_branches,id',
-            'business_branch_product_id' => 'required|exists:business_branch_products,id',
+            'product_id' => 'required|exists:products,id',
             'reorder_quantity' => 'required|integer|min:1',
             'preferred_supplier_id' => 'nullable|exists:suppliers,id',
             'auto_approve' => 'boolean',

@@ -1,4 +1,4 @@
-import { useAddProductMutation } from '@/app/store/features/business/products/productsQuery';
+import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddProduct } from '../components/products/AddProduct';
 import { ProductTable } from '../components/products/ProductTable';

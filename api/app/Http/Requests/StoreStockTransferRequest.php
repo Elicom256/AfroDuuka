@@ -32,7 +32,7 @@ class StoreStockTransferRequest extends FormRequest
             'notes' => 'nullable|string|max:1000',
             'transport_cost' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
-            'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity_expected' => 'required|integer|min:1',
         ];
     }

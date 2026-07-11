@@ -2,35 +2,52 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Product extends BaseModel
+class Product extends Model
 {
-    use SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
-        'business_id',
-        'category_id',
+        'business_branch_id',
+        'product_category_id',
         'name',
         'sku',
         'barcode',
+        'track_serial',
+        'quantity',
+        'cost_price',
+        'price',
+        'markup_percentage',
+        'reorder_level',
+        'description',
         'status',
-        'description'
+        'last_sold_at',
+        'expiry_date',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
-        'status' => 'boolean',
-        'quantity' => 'integer',
-        'reorder_level' => 'integer',
+        'last_sold_at' => 'datetime',
+        'expiry_date' => 'date',
+        'track_serial' => 'boolean',
+        'markup_percentage' => 'decimal:2',
     ];
 
-    public function category(): BelongsTo
+    public function saleItems(): HasMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->hasMany(SaleItem::class);
+    }
+
+    public function productCategory(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class);
+    }
+
+    public function businessBranch(): BelongsTo
+    {
+        return $this->belongsTo(BusinessBranch::class);
     }
 }

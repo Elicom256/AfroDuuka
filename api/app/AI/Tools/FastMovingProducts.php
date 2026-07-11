@@ -40,22 +40,22 @@ class FastMovingProducts extends Tool
         $threshold = now()->subDays($days);
 
         $products = SaleItem::select(
-            'business_branch_product_id',
+            'product_id',
             DB::raw('SUM(quantity) as total_sold'),
             DB::raw('COUNT(*) as sale_count')
         )
             ->whereHas('sale', fn ($q) => $q->where('status', 'completed'))
             ->where('created_at', '>=', $threshold)
-            ->groupBy('business_branch_product_id')
+            ->groupBy('product_id')
             ->orderByDesc('total_sold')
             ->limit($limit)
-            ->with('businessBranchProduct')
+            ->with('product')
             ->get()
             ->map(fn ($item) => [
-                'name' => $item->businessBranchProduct?->name ?? 'Unknown',
+                'name' => $item->product?->name ?? 'Unknown',
                 'total_sold' => (int) $item->total_sold,
                 'sale_count' => (int) $item->sale_count,
-                'current_stock' => $item->businessBranchProduct?->quantity ?? 0,
+                'current_stock' => $item->product?->quantity ?? 0,
             ]);
 
         return [

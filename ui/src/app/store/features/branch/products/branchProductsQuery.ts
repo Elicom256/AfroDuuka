@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-export const bsbranchProductsQuery = createApi({
-  reducerPath: 'branchProductsPath',
+export const productsQuery = createApi({
+  reducerPath: 'productsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/products/business-branch-products`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/products`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -13,100 +13,101 @@ export const bsbranchProductsQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['BranchProductsAPI'],
+  tagTypes: ['ProductsAPI'],
   endpoints: (builder) => ({
     // get products
-    branchProducts: builder.query<any, void>({
-      query: () => ({
+    products: builder.query<any, string | void>({
+      query: (branchId) => ({
         url: '/',
         method: 'GET',
+        params: branchId ? { branch_id: branchId } : undefined,
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
     // get one product by id
-    branchProduct: builder.query<any, string>({
+    product: builder.query<any, string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'GET',
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
 
     // analytics
-    branchProductAnalytics: builder.query<any, void>({
+    productAnalytics: builder.query<any, void>({
       query: () => ({
         url: '/analytics',
         method: 'GET',
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
 
     // expiring products analytics
-    branchProductExpiring: builder.query<any, void>({
+    productExpiring: builder.query<any, void>({
       query: () => ({
         url: '/expiring',
         method: 'GET',
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
 
     // smart restocking predictions
-    branchProductRestocking: builder.query<any, void>({
+    productRestocking: builder.query<any, void>({
       query: () => ({
         url: '/restocking',
         method: 'GET',
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
 
     // metrics
-    branchProductMetrics: builder.query<any, any>({
+    productMetrics: builder.query<any, any>({
       query: ({id, period = 'last_7_days'}) => ({
         url: `/${id}/metrics`,
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['BranchProductsAPI'],
+      providesTags: ['ProductsAPI'],
     }),
-    // get one product by id
-    addBranchProduct: builder.mutation<any, any>({
+    // add product
+    addProduct: builder.mutation<any, any>({
       query: (body) => ({
         url: `/`,
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['BranchProductsAPI'],
+      invalidatesTags: ['ProductsAPI'],
     }),
 
-    // get one product by id
-    updateBranchProduct: builder.mutation<any, { body: any; id: string }>({
+    // update product
+    updateProduct: builder.mutation<any, { body: any; id: string }>({
       query: ({ body, id }) => ({
         url: `/${id}`,
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['BranchProductsAPI'],
+      invalidatesTags: ['ProductsAPI'],
     }),
 
-    // get one product by id
-    deleteBranchProduct: builder.mutation<any, any>({
+    // delete product
+    deleteProduct: builder.mutation<any, any>({
       query: (id) => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['BranchProductsAPI'],
+      invalidatesTags: ['ProductsAPI'],
     }),
   }),
 });
 
 export const {
-  useBranchProductsQuery,
-  useAddBranchProductMutation,
-  useBranchProductQuery,
-  useBranchProductAnalyticsQuery,
-  useBranchProductExpiringQuery,
-  useBranchProductRestockingQuery,
-  useBranchProductMetricsQuery,
-  useUpdateBranchProductMutation,
-  useDeleteBranchProductMutation,
-} = bsbranchProductsQuery;
+  useProductsQuery,
+  useAddProductMutation,
+  useProductQuery,
+  useProductAnalyticsQuery,
+  useProductExpiringQuery,
+  useProductRestockingQuery,
+  useProductMetricsQuery,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+} = productsQuery;

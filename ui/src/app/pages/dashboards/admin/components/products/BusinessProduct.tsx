@@ -1,4 +1,4 @@
-import { useDeleteProductMutation, useProductQuery } from '@/app/store/features/business/products/productsQuery';
+import { useDeleteProductMutation, useProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -108,7 +108,7 @@ export const BusinessProduct = () => {
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Category ID</label>
-              <p className=''>{product.category_id ?? '-'}</p>
+              <p className=''>{product.product_category_id ?? '-'}</p>
             </div>
           </div>
           <div className='flex items-center gap-2'>

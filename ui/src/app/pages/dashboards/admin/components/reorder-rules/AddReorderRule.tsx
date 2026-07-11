@@ -10,16 +10,16 @@ import { toast } from 'sonner';
 
 export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ business_branch_product_id: '', reorder_quantity: '', preferred_supplier_id: '', auto_approve: false });
+  const [form, setForm] = useState({ product_id: '', reorder_quantity: '', preferred_supplier_id: '', auto_approve: false });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.business_branch_product_id || !form.reorder_quantity) { toast.error('Product and quantity required'); return; }
+    if (!form.product_id || !form.reorder_quantity) { toast.error('Product and quantity required'); return; }
     try {
       await createRule({ ...form, reorder_quantity: Number(form.reorder_quantity), preferred_supplier_id: form.preferred_supplier_id || null }).unwrap();
       toast.success('Reorder rule created');
       setOpen(false);
-      setForm({ business_branch_product_id: '', reorder_quantity: '', preferred_supplier_id: '', auto_approve: false });
+      setForm({ product_id: '', reorder_quantity: '', preferred_supplier_id: '', auto_approve: false });
     } catch (err: any) { toast.error(err?.data?.message || 'Failed'); }
   };
 
@@ -34,7 +34,7 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
             <Label>Product</Label>
-            <Select value={form.business_branch_product_id} onValueChange={(v) => setForm({ ...form, business_branch_product_id: v })}>
+            <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v })}>
               <SelectTrigger><SelectValue placeholder='Select product' /></SelectTrigger>
               <SelectContent>
                 {products?.map((p: any) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}

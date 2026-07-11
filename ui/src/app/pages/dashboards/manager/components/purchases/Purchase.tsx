@@ -83,7 +83,7 @@ export const Purchase = () => {
                   purchaseItems.map((item: any, i: number) => (
                     <TableRow key={item.id}>
                       <TableCell className='font-medium'>{i + 1}</TableCell>
-                      <TableCell className='font-medium'>{item.business_branch_product.name}</TableCell>
+                      <TableCell className='font-medium'>{item.product.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
                       <TableCell>{currency} {Number(item.cost_price).toLocaleString()}</TableCell>
                       <TableCell>{currency} {Number(item.subtotal).toLocaleString()}</TableCell>

@@ -2,11 +2,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { ProductTable } from '../components/products/ProductTable';
 import { Link } from 'react-router-dom';
 import { AddProduct } from '../components/products/AddProduct';
-import { useAddBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const ManagerProductsPage = () => {
-  const [addProduct, { isLoading }] = useAddBranchProductMutation();
+  const [addProduct, { isLoading }] = useAddProductMutation();
 
   if (isLoading) return <PageLoadingState />;
   return (

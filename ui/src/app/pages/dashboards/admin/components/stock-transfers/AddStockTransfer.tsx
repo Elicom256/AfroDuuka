@@ -22,20 +22,20 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
     from_branch_id: '',
     to_branch_id: '',
     notes: '',
-    items: [{ business_branch_product_id: '', quantity_expected: '' }],
+    items: [{ product_id: '', quantity_expected: '' }],
   });
   // console.log('branches==>', branches);
   // console.log('products==>', products);
 
   const addItem = () =>
-    setForm((p) => ({ ...p, items: [...p.items, { business_branch_product_id: '', quantity_expected: '' }] }));
+    setForm((p) => ({ ...p, items: [...p.items, { product_id: '', quantity_expected: '' }] }));
   const removeItem = (i: number) => setForm((p) => ({ ...p, items: p.items.filter((_, idx) => idx !== i) }));
   const updateItem = (i: number, field: string, value: string) =>
     setForm((p) => ({ ...p, items: p.items.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)) }));
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const validItems = form.items.filter((i) => i.business_branch_product_id && i.quantity_expected);
+    const validItems = form.items.filter((i) => i.product_id && i.quantity_expected);
     if (!form.from_branch_id || !form.to_branch_id) {
       toast.error('Select source and destination branches');
       return;
@@ -60,7 +60,7 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
         from_branch_id: '',
         to_branch_id: '',
         notes: '',
-        items: [{ business_branch_product_id: '', quantity_expected: '' }],
+        items: [{ product_id: '', quantity_expected: '' }],
       });
     } catch (err: any) {
       console.log('error==>', err);
@@ -128,8 +128,8 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
                 <div className='flex-1 space-y-1'>
                   <Label className='text-xs'>Product</Label>
                   <Select
-                    value={item.business_branch_product_id}
-                    onValueChange={(v) => updateItem(idx, 'business_branch_product_id', v)}
+                    value={item.product_id}
+                    onValueChange={(v) => updateItem(idx, 'product_id', v)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder='Product' />

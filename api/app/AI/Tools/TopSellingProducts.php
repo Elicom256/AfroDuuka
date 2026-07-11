@@ -39,7 +39,7 @@ class TopSellingProducts extends Tool
         $period = $parameters['period'] ?? 'last_30_days';
 
         $query = SaleItem::select(
-            'business_branch_product_id',
+            'product_id',
             DB::raw('SUM(quantity) as total_quantity'),
             DB::raw('SUM(subtotal) as total_revenue'),
             DB::raw('COUNT(DISTINCT sale_id) as order_count')
@@ -50,17 +50,17 @@ class TopSellingProducts extends Tool
             $query->where('created_at', '>=', $this->dateFromPeriod($period));
         }
 
-        $products = $query->groupBy('business_branch_product_id')
+        $products = $query->groupBy('product_id')
             ->orderByDesc('total_quantity')
             ->limit($limit)
-            ->with('businessBranchProduct')
+            ->with('product')
             ->get()
             ->map(fn ($item) => [
-                'name' => $item->businessBranchProduct?->name ?? 'Unknown',
+                'name' => $item->product?->name ?? 'Unknown',
                 'total_quantity_sold' => (int) $item->total_quantity,
                 'total_revenue' => (float) $item->total_revenue,
                 'order_count' => (int) $item->order_count,
-                'current_stock' => $item->businessBranchProduct?->quantity ?? 0,
+                'current_stock' => $item->product?->quantity ?? 0,
             ]);
 
         return [

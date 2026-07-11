@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\BusinessBranchProduct;
 use App\Models\CashFlow;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Customer;
@@ -13,9 +12,6 @@ use App\Models\SalePayment;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Exceptions;
-
-use function PHPUnit\Framework\throwException;
 
 class SaleItemService
 {
@@ -27,79 +23,71 @@ class SaleItemService
         $this->cashFlowService = $cashFlowService;
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
-  
-   public function handleSaveSaleItem(array $validated, string $business_branch_id){
-    if (empty($validated["items"]) || count($validated["items"]) < 1) {
-        throw new Exception("A sale must have at least one item.", 422);
-    }
 
-    $notificationService = app(NotificationService::class);
-    $user = Auth::user();
-    
-      $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
-      // create sale header
-      $sale = Sale::create([
-         'business_branch_id' => $business_branch_id,
-          "total_amount" => $totalAmount,
-          "customer_id" => $validated["customer_id"],
-          'note' => $validated["note"] ?? null,
-           "status" => "completed" 
-           ]);
+   public function handleSaveSaleItem(array $validated, string $business_branch_id)
+   {
+        if (empty($validated["items"]) || count($validated["items"]) < 1) {
+            throw new Exception("A sale must have at least one item.", 422);
+        }
 
-      // create sale items
+        $notificationService = app(NotificationService::class);
+        $user = Auth::user();
 
-    foreach ($validated['items'] as $item) {
-      $product = BusinessBranchProduct::find($item['business_branch_product_id']);
-      if($product->quantity < $item["quantity"]){
-         throw new Exception("Products available are few to what you want to sale", 301);
-      }
-    //   Low stock check
-    if ($product->quantity <= $product->reorder_level) {
-    $notificationService->lowStockAlert(
-        $user,
-        $product->name ?? $product->id,
-        $product->quantity,
-        $product->reorder_level
-    );
-}
-        SaleItem::create([
-            'sale_id' => $sale->id,
-            'business_branch_product_id' => $item['business_branch_product_id'],
-            'quantity' => $item['quantity'],
-            'unit_price' => $item['unit_price'],
-            'subtotal' => $item['quantity'] * $item['unit_price'],
+        $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
+        $sale = Sale::create([
+            'business_branch_id' => $business_branch_id,
+            "total_amount" => $totalAmount,
+            "customer_id" => $validated["customer_id"],
+            'note' => $validated["note"] ?? null,
+            "status" => "completed"
         ]);
-        // decrement product stock
-        $product->decrement("quantity", $item['quantity']);
-        $product->update(['last_sold_at' => now()]);
-        // BusinessBranchProduct::where('id', $item['business_branch_product_id'])
-        //     ->decrement('quantity', $item['quantity']);
-    }
-    $method = PaymentMethod::find($validated["payment_status_id"])->value("method");
-   //  to be removed
-    SalePayment::create([
-      "sale_id" => $sale->id,
-      "method" => $method ?? "cash",
-      "amount" => $totalAmount,
-      "paymentStatus" => $validated["paymentStatus"],
-    ]);
-    $customer = isset($validated["customer_id"])? 
-                Customer::with("user")->where("id", $validated["customer_id"])->first()?->user : null;
-    $customerName = $customer ? $customer->firstname . " " . $customer->lastname : "unknown";
-    // ==================== CREATE CASH FLOW ====================
-    $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
-     // ==================== CREATE NOTIFICATION  ====================
-    $notificationService->newSaleRecorded($user, number_format($totalAmount) , $customerName);
 
-    return $sale->load(["saleItems", "salePayment"]);
+        foreach ($validated['items'] as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product) {
+                throw new Exception("Product not found", 404);
+            }
+            if ($product->quantity < $item["quantity"]) {
+                throw new Exception("Products available are few to what you want to sale", 301);
+            }
+            if ($product->quantity <= $product->reorder_level) {
+                $notificationService->lowStockAlert(
+                    $user,
+                    $product->name ?? $product->id,
+                    $product->quantity,
+                    $product->reorder_level
+                );
+            }
+            SaleItem::create([
+                'sale_id' => $sale->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'subtotal' => $item['quantity'] * $item['unit_price'],
+            ]);
+            $product->decrement("quantity", $item['quantity']);
+            $product->update(['last_sold_at' => now()]);
+        }
+
+        $method = PaymentMethod::find($validated["payment_status_id"])->value("method");
+        SalePayment::create([
+            "sale_id" => $sale->id,
+            "method" => $method ?? "cash",
+            "amount" => $totalAmount,
+            "paymentStatus" => $validated["paymentStatus"],
+        ]);
+
+        $customer = isset($validated["customer_id"]) ?
+                    Customer::with("user")->where("id", $validated["customer_id"])->first()?->user : null;
+        $customerName = $customer ? $customer->firstname . " " . $customer->lastname : "unknown";
+        $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
+        $notificationService->newSaleRecorded($user, number_format($totalAmount), $customerName);
+
+        return $sale->load(["saleItems", "salePayment"]);
    }
 
-
-
-     // * Get sales analytics (Last 7 days by default)
-  public function analytics(string $period = 'last_7_days')
+    public function analytics(string $period = 'last_7_days')
     {
-
         $user = Auth::user();
         $branchId = $user->business_branch_id;
 
@@ -107,7 +95,6 @@ class SaleItemService
                      ->where('status', 'completed');
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
-
         $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));
 
         $sales = $query->get();
@@ -116,7 +103,6 @@ class SaleItemService
         $totalTransactions = $sales->count();
         $avgSale = $totalTransactions > 0 ? $totalSales / $totalTransactions : 0;
 
-        // Group by date
         $salesTrend = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('M d');
         })->map(function ($group) {
@@ -127,8 +113,6 @@ class SaleItemService
             ];
         })->values();
 
-        // Fill missing dates with 0
-        // $salesTrend = $this->fillMissingDates($salesTrend, $days);
         $salesTrend = $this->analyticsTrendHelper->fillMissingDates($salesTrend, $days);
 
         return [
@@ -140,6 +124,4 @@ class SaleItemService
             "lable"              => "sales"
         ];
     }
-
-   
 }
