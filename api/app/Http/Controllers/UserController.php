@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Country;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -151,9 +152,9 @@ class UserController extends Controller
             $user = $this->userService->createAccount($validated);
             
             // If plan_id is provided, create subscription
-            if (isset($validated['plan_id'])) {
-                $this->createUserSubscription($user, $validated['plan_id']);
-            }
+            // if (isset($validated['plan_id'])) {
+            //     $this->createUserSubscription($user, $validated['plan_id']);
+            // }
             
             return response()->json([
                 'message' => 'User created successfully',
@@ -165,23 +166,6 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
             ], 400);
         }
-    }
-
-    /**
-     * Create subscription for a user
-     */
-    public function createUserSubscription(User $user, $planId)
-    {
-        $subscription = Subscription::create([
-            'business_id' => $user->business_id,
-            'plan_id' => $planId,
-            'status' => 'trial', // or 'active' based on plan type
-            'starts_at' => now(),
-            'ends_at' => now()->addDays(14), // 14-day trial
-            'trial_ends_at' => now()->addDays(14),
-        ]);
-        
-        return $subscription->load(['plan', 'business', 'payments']);
     }
 
     /**

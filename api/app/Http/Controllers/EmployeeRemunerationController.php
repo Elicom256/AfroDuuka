@@ -64,12 +64,6 @@ class EmployeeRemunerationController extends Controller
         $validated = $request->validated();
 
         $worker = Worker::with('user')->findOrFail($validated['worker_id']);
-        if ($worker->user->business_id !== $user->business_id) {
-            abort(403, 'Worker does not belong to your business');
-        }
-
-        $validated['business_id'] = $user->business_id;
-        $validated['business_branch_id'] = $worker->business_branch_id;
 
         $remuneration = EmployeeRemuneration::create($validated);
         $employee =$worker->load("user");

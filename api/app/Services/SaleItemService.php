@@ -29,8 +29,13 @@ class SaleItemService
     }
   
    public function handleSaveSaleItem(array $validated, string $business_branch_id){
+    if (empty($validated["items"]) || count($validated["items"]) < 1) {
+        throw new Exception("A sale must have at least one item.", 422);
+    }
+
     $notificationService = app(NotificationService::class);
     $user = Auth::user();
+    
       $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
       // create sale header
       $sale = Sale::create([
