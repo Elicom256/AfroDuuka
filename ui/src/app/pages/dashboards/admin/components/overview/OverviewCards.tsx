@@ -1,11 +1,12 @@
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
-import { useProductsQuery, useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
-import { useBranchProductExpiringQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductExpiringQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetTodosQuery } from '@/app/store/features/todos/todoQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { useGetSubscriptionsQuery } from '@/app/store/features/subscriptions/subscriptionsQuery';
@@ -35,7 +36,7 @@ export const OverviewCards = () => {
   const { data: suppliersData, isLoading: suppliersLoading } = useSuppliersQuery();
   const { data: salesData, isLoading: salesLoading } = useSalesQuery();
   const { data: purchasesData, isLoading: purchasesLoading } = usePurchasesQuery();
-  const { data: expiringData, isLoading: expiringLoading } = useBranchProductExpiringQuery();
+  const { data: expiringData, isLoading: expiringLoading } = useProductExpiringQuery();
 
   const workers = workersData?.workers;
   const products = productsData?.products;

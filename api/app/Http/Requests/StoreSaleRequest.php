@@ -60,7 +60,7 @@ class StoreSaleRequest extends FormRequest
 
             // Sale Items (Required)
             'items' => 'required|array|min:1',
-            'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity'                   => 'required|integer|min:1',
             'items.*.unit_price'                 => 'required|numeric|min:0',
         ];

@@ -6,8 +6,7 @@ import { TrendingUp, TrendingDown, Minus, Package } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-import { useBranchProductMetricsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductMetricsQuery, useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
 import { periods } from '../periodHelper';
@@ -22,11 +21,11 @@ export const PerformanceMetrics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
 
   // Fetch products list
-  const { data: productsData } = useBranchProductsQuery();
+  const { data: productsData } = useProductsQuery();
   const products = productsData?.products || [];
 
   // Fetch metrics for selected product
-  const { data, isLoading, isError, error } = useBranchProductMetricsQuery(
+  const { data, isLoading, isError, error } = useProductMetricsQuery(
     {
       id: selectedProductId,
       period: selectedPeriod,

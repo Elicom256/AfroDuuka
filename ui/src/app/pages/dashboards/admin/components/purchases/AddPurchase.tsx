@@ -25,7 +25,7 @@ interface AddPurchaseProps {
 }
 
 interface PurchaseItem {
-  business_branch_product_id: string;
+  product_id: string;
   quantity: string;
   cost_price: string;
 }
@@ -35,7 +35,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }] as PurchaseItem[],
+    items: [{ product_id: '', quantity: '', cost_price: '' }] as PurchaseItem[],
     supplier_id: '',
     payment_status_id: '',
     reference: '',
@@ -45,7 +45,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { business_branch_product_id: '', quantity: '', cost_price: '' }],
+      items: [...prev.items, { product_id: '', quantity: '', cost_price: '' }],
     }));
   };
 
@@ -71,7 +71,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
     e.preventDefault();
 
     const validItems = formData.items.filter(
-      (item) => item.business_branch_product_id && item.quantity && item.cost_price,
+      (item) => item.product_id && item.quantity && item.cost_price,
     );
 
     if (validItems.length === 0) {
@@ -93,7 +93,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
       const body = {
         supplier_id: Number(formData.supplier_id),
         items: validItems.map((item) => ({
-          business_branch_product_id: Number(item.business_branch_product_id),
+          product_id: Number(item.product_id),
           quantity: Number(item.quantity),
           cost_price: Number(item.cost_price),
         })),
@@ -108,7 +108,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
         // Reset form
         setOpen(false);
         setFormData({
-          items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }],
+          items: [{ product_id: '', quantity: '', cost_price: '' }],
           supplier_id: '',
           payment_status_id: '',
           reference: '',
@@ -122,7 +122,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
     }
   };
 
-  const selectedIds = formData.items.map((i) => i.business_branch_product_id);
+  const selectedIds = formData.items.map((i) => i.product_id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -190,8 +190,8 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                   <div className='col-span-5'>
                     <Label>Product</Label>
                     <Select
-                      value={item.business_branch_product_id}
-                      onValueChange={(value) => updateItem(index, 'business_branch_product_id', value)}
+                      value={item.product_id}
+                      onValueChange={(value) => updateItem(index, 'product_id', value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder='Select product' />
@@ -200,7 +200,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                         {products
                           .filter(
                             (p) =>
-                              !selectedIds.includes(String(p.id)) || String(p.id) === item.business_branch_product_id,
+                              !selectedIds.includes(String(p.id)) || String(p.id) === item.product_id,
                           )
                           .map((product) => (
                             <SelectItem key={product.id} value={String(product.id)}>

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('business_branch_product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->enum('type', ['in', 'out', 'adjustment']);
             $table->integer('quantity');
             $table->string('reference_type')->nullable();

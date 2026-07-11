@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Notification;
 use App\Models\User;
@@ -35,7 +35,7 @@ class CheckNotificationsJob implements ShouldQueue
     private function checkLowStock(NotificationService $service): void
     {
         $user = Auth::user();
-        $lowStockProducts = BusinessBranchProduct::with('product')
+        $lowStockProducts = Product::with('productCategory')
             ->where('quantity', '>', 0)
             ->whereColumn('quantity', '<='. 'reorder_level')          // threshold
             ->get();
@@ -43,7 +43,7 @@ class CheckNotificationsJob implements ShouldQueue
         foreach ($lowStockProducts as $item) {
             // Avoid spamming the same user with same alert
             $alreadyNotified = Notification::where('type', 'low_stock')
-                ->where('notifiable_type', BusinessBranchProduct::class)
+                ->where('notifiable_type', Product::class)
                 ->where('notifiable_id', $item->id)
                 ->where('created_at', '>=', now()->subHours(24))
                 ->exists();

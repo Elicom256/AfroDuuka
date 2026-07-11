@@ -28,7 +28,7 @@ class UpdatePurchaseRequest extends FormRequest
     {
         return [
              // Purchase fields
-            'supplier_id' => ['required','exists:products,id' ],
+            'supplier_id' => ['required','exists:suppliers,id' ],
             "business_branch_id" => ['required','exists:business_branches,id'],
             // 'total_amount' => ['nullable', 'numeric', 'min:0'],
             'status'       =>  ['required', Rule::in(['pending', 'completed', 'cancelled'])],
@@ -36,7 +36,7 @@ class UpdatePurchaseRequest extends FormRequest
 
              // Purchase items
             'items' => ['required', 'array', 'min:1'],
-            'items.*.business_branch_product_id' => ['required', 'exists:business_branch_products,id'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => [ 'required', 'integer', 'min:1' ],
             'items.*.cost_price' => [ 'required', 'numeric', 'min:0'],
             // 'items.*.subtotal' => [ 'nullable', 'numeric', 'min:0' ],

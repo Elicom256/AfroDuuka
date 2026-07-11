@@ -2,7 +2,7 @@
 
 namespace App\Services\Reports;
 
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +13,7 @@ class DeadStockReports
     {
         $cutoffDate = Carbon::now()->subDays(90)->toDateString();
 
-        $query = BusinessBranchProduct::query()
+        $query = Product::query()
             ->where('business_branch_id', $user->business_branch_id)
             ->where(function ($query) use ($cutoffDate) {
                 $query->whereNull('last_sold_at')

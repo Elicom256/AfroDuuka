@@ -5,13 +5,13 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const ManagerSalesPage = () => {
   const { currency } = useCurrency();
   const { data, isLoading } = useSalesQuery();
-  const { data: productData } = useBranchProductsQuery();
+  const { data: productData } = useProductsQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);

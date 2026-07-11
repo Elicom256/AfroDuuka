@@ -4,7 +4,7 @@ import { Doughnut } from 'react-chartjs-2';
 import { Package, AlertTriangle, TrendingUp, BadgeDollarSign, Wallet } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-import { useBranchProductAnalyticsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductAnalyticsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 
 import { LoadingState } from '@/utils/LoadingState';
 import { Error } from './Error';
@@ -16,7 +16,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const InventoryAnalytics = () => {
   const { currency } = useCurrency();
-  const { data, isLoading, isError, error } = useBranchProductAnalyticsQuery();
+  const { data, isLoading, isError, error } = useProductAnalyticsQuery();
 
   const analytics = data?.data;
   // console.log('analytics==>', analytics);

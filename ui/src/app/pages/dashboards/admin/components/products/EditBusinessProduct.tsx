@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit } from 'lucide-react';
-import { useUpdateProductMutation } from '@/app/store/features/business/products/productsQuery';
+import { useUpdateProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 

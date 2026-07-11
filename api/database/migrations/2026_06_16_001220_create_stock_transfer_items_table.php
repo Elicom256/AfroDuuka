@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('stock_transfer_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('stock_transfer_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('business_branch_product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->integer('quantity_expected');
             $table->integer('quantity_received')->nullable();
-            $table->string('status')->default('pending'); // pending, received, damaged
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }

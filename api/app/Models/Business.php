@@ -17,14 +17,9 @@ class Business extends Model
         return $this->hasMany(User::class);
     }
 
-    public function products(): HasMany
+    public function productCategories(): HasMany
     {
-        return $this->hasMany(Product::class);
-    }
-
-    public function categories(): HasMany
-    {
-        return $this->hasMany(Category::class);
+        return $this->hasMany(ProductCategory::class);
     }
 
     public function country(): BelongsTo

@@ -9,7 +9,7 @@ class SaleItem extends Model
 {
     protected $fillable = [
         'sale_id',
-        'business_branch_product_id',
+        'product_id',
         'quantity',
         'unit_price',
         'subtotal',
@@ -25,8 +25,8 @@ class SaleItem extends Model
         return $this->belongsTo(Sale::class);
     }
 
-    public function businessBranchProduct(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(BusinessBranchProduct::class);
+        return $this->belongsTo(Product::class);
     }
 }

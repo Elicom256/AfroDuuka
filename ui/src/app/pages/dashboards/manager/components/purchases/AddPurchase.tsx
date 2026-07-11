@@ -24,7 +24,7 @@ interface AddPurchaseProps {
 }
 
 interface PurchaseItem {
-  business_branch_product_id: string;
+  product_id: string;
   quantity: string;
   cost_price: string;
 }
@@ -38,7 +38,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
     supplier_id: string;
     note: string;
   }>({
-    items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }],
+    items: [{ product_id: '', quantity: '', cost_price: '' }],
     supplier_id: '',
     note: '',
   });
@@ -47,7 +47,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { business_branch_product_id: '', quantity: '', cost_price: '' }],
+      items: [...prev.items, { product_id: '', quantity: '', cost_price: '' }],
     }));
   };
 
@@ -70,7 +70,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validItems = formData.items.filter(
-      (item) => item.business_branch_product_id && item.quantity && item.cost_price,
+      (item) => item.product_id && item.quantity && item.cost_price,
     );
 
     if (validItems.length === 0) {
@@ -85,7 +85,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
 
     try {
       const itemsPayload = validItems.map((item) => ({
-        business_branch_product_id: item.business_branch_product_id,
+        product_id: item.product_id,
         quantity: Number(item.quantity),
         cost_price: Number(item.cost_price),
       }));
@@ -103,7 +103,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
         toast.success(res.message);
         setOpen(false);
         setFormData({
-          items: [{ business_branch_product_id: '', quantity: '', cost_price: '' }],
+          items: [{ product_id: '', quantity: '', cost_price: '' }],
           supplier_id: '',
           note: '',
         });
@@ -119,7 +119,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const selectedIds = formData.items.map((i) => i.business_branch_product_id);
+  const selectedIds = formData.items.map((i) => i.product_id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -170,14 +170,14 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                 </div>
                 <div className='grid gap-4 pt-4'>
                   <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor={`business_branch_product_id-${index}`} className='text-right'>
+                    <Label htmlFor={`product_id-${index}`} className='text-right'>
                       Product
                     </Label>
                     <Select
-                      value={item.business_branch_product_id}
-                      onValueChange={(value) => updateItem(index, 'business_branch_product_id', value)}
+                      value={item.product_id}
+                      onValueChange={(value) => updateItem(index, 'product_id', value)}
                     >
-                      <SelectTrigger id={`business_branch_product_id-${index}`} className='col-span-3'>
+                      <SelectTrigger id={`product_id-${index}`} className='col-span-3'>
                         <SelectValue placeholder='Select product' />
                       </SelectTrigger>
                       <SelectContent>
@@ -185,7 +185,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                           .filter(
                             (product) =>
                               !selectedIds.includes(String(product.id)) ||
-                              String(product.id) === item.business_branch_product_id,
+                              String(product.id) === item.product_id,
                           )
                           .map((product) => (
                             <SelectItem key={product.id} value={String(product.id)}>

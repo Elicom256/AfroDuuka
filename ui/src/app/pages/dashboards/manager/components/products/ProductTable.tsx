@@ -6,12 +6,12 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
-import { useBranchProductsQuery, useDeleteBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 
 
 interface Product {
   id: string;
-  category_id: string;
+  product_category_id: string;
   name: string;
   sku: string;
   barcode: string;
@@ -22,15 +22,11 @@ interface Product {
   status: string;
   description: string;
   category: string;
-  product: {
-    name: string;
-    sku: string;
-  };
 }
 
 export const ProductTable = () => {
-  const { data: branchProds, isLoading: loadProducts } = useBranchProductsQuery();
-  const [remove, { isLoading }] = useDeleteBranchProductMutation();
+  const { data: branchProds, isLoading: loadProducts } = useProductsQuery();
+  const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
   console.log('branchProds available==>', branchProds);
 
@@ -75,7 +71,7 @@ export const ProductTable = () => {
               <TableCell>{i + 1}</TableCell>
               {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
-              <TableCell>{product.product.sku}</TableCell>
+              <TableCell>{product.sku}</TableCell>
               <TableCell>{Number(product.price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
               <TableCell>{product.quantity}</TableCell>

@@ -8,14 +8,14 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Package2, PencilLine, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-  useBranchProductsQuery,
-  useDeleteBranchProductMutation,
+  useProductsQuery,
+  useDeleteProductMutation,
 } from '@/app/store/features/branch/products/branchProductsQuery';
 import { EditProduct } from './EditProduct';
 
 interface Product {
   id: string;
-  category_id: string;
+  product_category_id: string;
   name: string;
   sku: string;
   barcode: string;
@@ -26,23 +26,22 @@ interface Product {
   minimum_stock: number;
   status: string | boolean;
   description: string;
-  category: string;
   markup_percentage: number;
-  product?: {
-    name: string;
-    sku: string;
-    category?: { name: string };
-  };
+  category?: { name: string };
   category_name?: string;
 }
 
 const getCategoryName = (product: Product) => {
-  return product.category_name || product.product?.category?.name || product.category || 'Uncategorized';
+  return product.category_name || product.category?.name || 'Uncategorized';
 };
 
-export const ProductTable = () => {
-  const { data: branchProducts, isLoading: loadBranchProducts } = useBranchProductsQuery();
-  const [remove, { isLoading: isDeleting }] = useDeleteBranchProductMutation();
+interface ProductTableProps {
+  branchId?: string;
+}
+
+export const ProductTable = ({ branchId }: ProductTableProps) => {
+  const { data: branchProducts, isLoading: loadBranchProducts } = useProductsQuery(branchId);
+  const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -127,9 +126,9 @@ export const ProductTable = () => {
                 <TableBody>
                   {paginatedProducts.map((product: Product) => (
                     <TableRow key={product.id}>
-                      <TableCell>{product.category_id || '-'}</TableCell>
+                      <TableCell>{product.product_category_id || '-'}</TableCell>
                       <TableCell className='font-medium'>{product.name}</TableCell>
-                      <TableCell>{product.product?.sku || product.sku || '-'}</TableCell>
+                      <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>
                       <TableCell>{Number(product.price).toFixed(2)}</TableCell>
                       <TableCell>{Number(product.cost_price).toFixed(2)}</TableCell>

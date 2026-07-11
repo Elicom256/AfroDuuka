@@ -2,92 +2,43 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return Auth::check();
     }
-     // * Prepare data before validation
-    protected function prepareForValidation(): void
+
+    public function prepareForValidation(): void
     {
-        $status = $this->status;
-            $this->merge([
-            'business_id' => Auth::user()->business_id,
-            'status' => $status ?? "active"
+        $user = Auth::user();
+        $markup_percentage = $this->markup_percentage / 100;
+        $this->merge([
+            'business_branch_id' => $user?->business_branch_id,
+            'markup_percentage' => $markup_percentage
         ]);
     }
 
-     // * Get the validation rules that apply to the request.
-public function rules(): array
+    public function rules(): array
     {
         return [
-            'business_id' => [
-                'required',
-                'exists:businesses,id',
-            ],
-
-            'category_id' => [
-                'nullable',
-                'exists:categories,id',
-            ],
-
-            'name' => [
-                'nullable',
-                'string',
-                'min:1',
-                'max:255',
-            ],
-
-            'barcode' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'price' => [
-                'nullable',
-                'numeric',
-                'min:0',
-            ],
-
-            'cost_price' => [
-                'nullable',
-                'numeric',
-                'min:0',
-            ],
-
-            'quantity' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-
-            'reorder_level' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-
-            'status' => [
-                'nullable',
-                'in:active,innactive',
-            ],
-
-            'description' => [
-                'nullable',
-                'string',
-                "min:1",
-                "max:255"
-            ],
+            'business_branch_id' => ['required', 'exists:business_branches,id'],
+            'product_category_id' => ['nullable', 'exists:product_categories,id'],
+            'name' => ['nullable', 'string', 'min:1', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:100'],
+            'barcode' => ['nullable', 'string', 'max:100'],
+            'track_serial' => ['nullable', 'boolean'],
+            'quantity' => ['nullable', 'integer', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'markup_percentage' => ['nullable', 'numeric', 'min:0'],
+            'reorder_level' => ['nullable', 'integer', 'min:0'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'status' => ['nullable', 'in:active,inactive,damaged,out_of_stock'],
+            'expiry_date' => ['nullable', 'date'],
         ];
     }
 }

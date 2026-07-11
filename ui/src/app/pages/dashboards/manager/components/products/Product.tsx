@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
 import { ArrowLeftCircle } from 'lucide-react';
-import { useBranchProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
   console.log('id==>', id);
-  const { data, isLoading, error } = useBranchProductQuery(id as string, { skip: !id });
+  const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
   const [editOpen, setEditOpen] = useState(false);
   console.log('product==>', data);
   if (isLoading) return <PageLoadingState />;
@@ -52,7 +52,7 @@ export const Product = () => {
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>SKU</label>
-              <p className=''>{product.product.sku}</p>
+              <p className=''>{product.sku}</p>
             </div>
 
             <div className='flex items-center gap-2'>
@@ -82,7 +82,7 @@ export const Product = () => {
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Product Type ID</label>
-              <p className=''>{product.product_id ?? "-"}</p>
+              <p className=''>{product.product_category_id ?? "-"}</p>
             </div>
           </div>
           <div className='flex items-center gap-2'>

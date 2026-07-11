@@ -6,7 +6,7 @@ import {
   useCancelStockTransferMutation,
 } from '@/app/store/features/business/admin/stockTransfersQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { ArrowLeftRight } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddStockTransfer } from '../components/stock-transfers/AddStockTransfer';
@@ -18,7 +18,7 @@ export const AdminStockTransfersPage = () => {
   const [dispatch] = useDispatchStockTransferMutation();
   const [cancel] = useCancelStockTransferMutation();
   const { data: branchesData } = useBranchesQuery();
-  const { data: productsData } = useBranchProductsQuery();
+  const { data: productsData } = useProductsQuery();
   const transfers = data?.data || [];
   const branches = branchesData?.branches || [];
   const products = productsData?.products || [];

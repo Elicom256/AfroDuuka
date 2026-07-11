@@ -35,7 +35,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     minimum_stock: '',
     status: '',
     description: '',
-    category_id: '',
+    product_category_id: '',
   });
 
   React.useEffect(() => {
@@ -50,7 +50,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
         minimum_stock: product.minimum_stock?.toString() || '',
         status: product.status || 'active',
         description: product.description || '',
-        category_id: product.category_id?.toString() || '',
+        product_category_id: product.product_category_id?.toString() || '',
       });
     }
   }, [product]);
@@ -157,10 +157,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='category_id' className='text-right'>
+              <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.category_id} onValueChange={(value) => handleChange('category_id', value)}>
+              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>

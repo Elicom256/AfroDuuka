@@ -5,7 +5,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
@@ -13,7 +13,7 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const AdminSalesPage = () => {
   const { currency } = useCurrency();
   const { data, isLoading } = useSalesQuery();
-  const { data: productData } = useBranchProductsQuery();
+  const { data: productData } = useProductsQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
   const { data: buyers } = useCustomersQuery();
   const [addSale] = useAddSaleMutation();

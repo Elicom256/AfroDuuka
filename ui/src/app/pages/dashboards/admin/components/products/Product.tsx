@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
 import { ArrowLeftCircle, Trash2 } from 'lucide-react';
 import {
-  useBranchProductQuery,
-  useDeleteBranchProductMutation,
+  useProductQuery,
+  useDeleteProductMutation,
 } from '@/app/store/features/branch/products/branchProductsQuery';
 import { toast } from 'sonner';
 import { useCurrency } from '@/app/hooks/useCurrency';
@@ -16,8 +16,8 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
-  const { data, isLoading, error } = useBranchProductQuery(id as string, { skip: !id });
-  const [deleteProd, { isLoading: isDeleting }] = useDeleteBranchProductMutation();
+  const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
+  const [deleteProd, { isLoading: isDeleting }] = useDeleteProductMutation();
   const navigate = useNavigate();
   // console.log('product==>', data);
 
@@ -110,7 +110,7 @@ export const Product = () => {
 
                 <div className='flex items-center gap-2'>
                   <label className='text-sm font-medium text-gray-500'>Category ID</label>
-                  <p className=''>{product.product_id ?? '-'}</p>
+                  <p className=''>{product.product_category_id ?? '-'}</p>
                 </div>
               </div>
               <div className='flex items-center gap-2'>

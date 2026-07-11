@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
 class ExpiringProducts extends Tool
@@ -43,8 +43,8 @@ class ExpiringProducts extends Tool
         $dangerDate = (clone $now)->addDays(7);
         $expiryWindow = (clone $now)->addDays($days);
 
-        $baseQuery = BusinessBranchProduct::whereNotNull('expiry_date')
-            ->with('product.category')
+        $baseQuery = Product::whereNotNull('expiry_date')
+            ->with('productCategory')
             ->where('business_branch_id', $branchId);
 
         $expired = (clone $baseQuery)
@@ -77,7 +77,7 @@ class ExpiringProducts extends Tool
         $mapped = $allProducts->map(fn ($p) => [
             'id' => $p->id,
             'name' => $p->name,
-            'sku' => $p->product?->sku,
+            'sku' => $p->sku,
             'quantity' => $p->quantity,
             'expiry_date' => $p->expiry_date->format('Y-m-d'),
             'status' => $p->expiry_date->isPast() ? 'expired' : 'active',

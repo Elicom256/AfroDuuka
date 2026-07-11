@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
-import { useUpdateBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useUpdateProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { LoadingState } from '@/utils/LoadingState';
 
 interface EditProductProps {
@@ -26,7 +26,7 @@ interface EditProductProps {
 export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, product }) => {
   const { data: categoriesData } = useProductCategoriesQuery();
   const categories = categoriesData?.categories ?? [];
-  const [updateProduct, { isLoading }] = useUpdateBranchProductMutation();
+  const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,7 +36,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     minimum_stock: '',
     status: 'active',
     description: '',
-    product_id: '',
+    product_category_id: '',
   });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
         minimum_stock: product.minimum_stock?.toString() || product.reorder_level?.toString() || '',
         status: product.status === true || product.status === 'active' ? 'active' : 'inactive',
         description: product.description || '',
-        product_id: product.product_id || product.category_id || '',
+        product_category_id: product.product_category_id || '',
       });
     }
   }, [product]);
@@ -158,10 +158,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='product_id' className='text-right'>
+              <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_id} onValueChange={(value) => handleChange('product_id', value)}>
+              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>

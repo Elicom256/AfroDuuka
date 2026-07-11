@@ -2,7 +2,7 @@
 
 namespace App\Services\Reports;
 
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +10,7 @@ class InventoryValuationReports
 {
     public function inventoryValuation(array $filters, User $user): array
     {
-        $baseQuery = BusinessBranchProduct::query()
+        $baseQuery = Product::query()
             ->where('business_branch_id', $user->business_branch_id);
 
         $totalInventoryValue = (float) (clone $baseQuery)
@@ -45,12 +45,11 @@ class InventoryValuationReports
             ->toArray();
 
         $categoryGroups = (clone $baseQuery)
-            ->leftJoin('products', 'business_branch_products.product_id', '=', 'products.id')
-            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
             ->select([
-                DB::raw("COALESCE(categories.name, 'Uncategorized') as category_name"),
-                DB::raw('SUM(business_branch_products.quantity * business_branch_products.cost_price) as total_inventory_value'),
-                DB::raw('SUM(business_branch_products.quantity) as total_quantity'),
+                DB::raw("COALESCE(product_categories.name, 'Uncategorized') as category_name"),
+                DB::raw('SUM(products.quantity * products.cost_price) as total_inventory_value'),
+                DB::raw('SUM(products.quantity) as total_quantity'),
             ])
             ->groupBy('category_name')
             ->get()

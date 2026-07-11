@@ -5,7 +5,7 @@ namespace App\AI\Tools;
 use App\AI\Tool;
 use App\Models\Sale;
 use App\Models\Purchase;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 
 class DailyBusinessSummary extends Tool
 {
@@ -35,10 +35,10 @@ class DailyBusinessSummary extends Tool
 
         $sales = Sale::whereDate('created_at', $date)->get();
         $purchases = Purchase::whereDate('created_at', $date)->get();
-        $lowStockAlerts = BusinessBranchProduct::whereColumn('quantity', '<=', 'reorder_level')
+        $lowStockAlerts = Product::whereColumn('quantity', '<=', 'reorder_level')
             ->where('quantity', '>', 0)
             ->count();
-        $outOfStock = BusinessBranchProduct::where('quantity', '<=', 0)->count();
+        $outOfStock = Product::where('quantity', '<=', 0)->count();
 
         return [
             'date' => $date,

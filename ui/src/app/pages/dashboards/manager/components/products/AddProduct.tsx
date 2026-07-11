@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 
 interface AddProductProps {
@@ -23,8 +23,7 @@ interface AddProductProps {
 
 export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
-  const { data } = useProductsQuery();
-  console.log('data==>', data);
+  const { data } = useProductCategoriesQuery();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,7 +32,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     quantity: '',
     reorder_level: '',
     description: '',
-    product_id: '',
+    product_category_id: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -50,7 +49,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
           quantity: '',
           reorder_level: '',
           description: '',
-          product_id: '',
+          product_category_id: '',
         });
       }
     } catch (error) {
@@ -157,16 +156,16 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
             </div>
 
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='product_id' className='text-right'>
+              <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_id} onValueChange={(value) => handleChange('product_id', value)}>
+              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {data?.products.map((cat: any) => (
+                  {data?.categories.map((cat: any) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>

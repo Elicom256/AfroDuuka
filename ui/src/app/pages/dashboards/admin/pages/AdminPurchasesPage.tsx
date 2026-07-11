@@ -10,14 +10,14 @@ import { AddPurchase } from '../components/purchases/AddPurchase';
 import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
-import { useBranchProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const AdminPurchasesPage = () => {
   const { currency } = useCurrency();
   const { data, isLoading } = usePurchasesQuery();
-  const { data: productData } = useBranchProductsQuery();
+  const { data: productData } = useProductsQuery();
   const { data: sup } = useSuppliersQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
 

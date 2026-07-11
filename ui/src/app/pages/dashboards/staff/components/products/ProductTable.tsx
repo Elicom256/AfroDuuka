@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye } from 'lucide-react';
 import { PaginationComponent } from '@/app/utils/Pagination';
@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 interface Product {
   id: string;
-  category_id: string;
+  product_category_id: string;
   name: string;
   sku: string;
   barcode: string;
@@ -18,7 +18,6 @@ interface Product {
   reorder_level: number;
   status: string;
   description: string;
-  category: string;
 }
 
 export const ProductTable = () => {
@@ -49,7 +48,7 @@ export const ProductTable = () => {
           {paginatedProducts?.map((product: Product, i: number) => (
             <TableRow key={product.id}>
               <TableCell>{i + 1}</TableCell>
-              <TableCell>{product.category_id}</TableCell>
+              <TableCell>{product.product_category_id}</TableCell>
               <TableCell>{product.name}</TableCell>
               <TableCell>{product.sku}</TableCell>
               <TableCell>{Number(product.price)}</TableCell>

@@ -3,7 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\BusinessBranchProduct;
+use App\Models\Product;
 
 class SlowMovingProducts extends Tool
 {
@@ -38,19 +38,19 @@ class SlowMovingProducts extends Tool
 
         $threshold = now()->subDays($days);
 
-        $products = BusinessBranchProduct::where(function ($q) use ($threshold) {
+        $products = Product::where(function ($q) use ($threshold) {
             $q->whereNull('last_sold_at')
               ->orWhere('last_sold_at', '<', $threshold);
         })
             ->where('quantity', '>', 0)
-            ->with('product.category')
+            ->with('productCategory')
             ->orderBy('last_sold_at', 'asc')
             ->limit($limit)
             ->get()
             ->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
-                'sku' => $p->product?->sku,
+                'sku' => $p->sku,
                 'quantity' => $p->quantity,
                 'price' => $p->price,
                 'last_sold_at' => $p->last_sold_at?->toDateString() ?? 'Never sold',

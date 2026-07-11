@@ -50,7 +50,7 @@ class BusinessController extends Controller
         if (!$business) {
             return response()->json(['message' => 'No business found'], 404);
         }
-        $business->load('categories', 'users', 'country');
+        $business->load('productCategories', 'users', 'country');
         return response()->json(['data' => $business]);
     }
 

@@ -1,14 +1,20 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Package2, Tags } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { AddProduct } from '../components/products/AddProduct';
 import { AddProductCategory } from '../components/products/AddProductCategory';
 import { ProductTable } from '../components/products/ProductTable';
-import { useAddBranchProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 
 export const AdminProductsPage = () => {
-  const [addProduct] = useAddBranchProductMutation();
+  const [addProduct] = useAddProductMutation();
+  const { data: branchesData } = useBranchesQuery();
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const branches = branchesData?.branches ?? branchesData ?? [];
 
   return (
     <div className='space-y-6'>
@@ -26,7 +32,19 @@ export const AdminProductsPage = () => {
               Create branch products, link them to categories, and keep pricing and stock levels organised in one place.
             </CardDescription>
           </div>
-          <div className='flex flex-wrap gap-2'>
+          <div className='flex flex-wrap items-center gap-2'>
+            <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+              <SelectTrigger className='w-48'>
+                <SelectValue placeholder='All branches' />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((branch: any) => (
+                  <SelectItem key={branch.id} value={String(branch.id)}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <AddProduct addProduct={addProduct} />
             <AddProductCategory />
           </div>
@@ -49,7 +67,7 @@ export const AdminProductsPage = () => {
         </CardContent>
       </Card>
 
-      <ProductTable />
+      <ProductTable branchId={selectedBranchId} />
     </div>
   );
 };

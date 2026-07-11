@@ -1,4 +1,4 @@
-import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/business/products/productsQuery';
+import { useDeleteProductMutation, useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { ArrowLeftCircle, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,15 +48,11 @@ export const BusinessProducts = () => {
         {products.map((product: any) => (
           <Card key={product.id} className='hover:shadow-md transition-shadow'>
             <CardHeader onClick={() => navigate(`/admin/business-products/${product.id}`)}>
-              <CardAction className='rounded-full bg-white/20 px-2'>CatID: {product.category_id}</CardAction>
+              <CardAction className='rounded-full bg-white/20 px-2'>CatID: {product.product_category_id}</CardAction>
               <CardTitle className='text-lg'>{product.name}</CardTitle>
               <CardDescription>{product.description || 'No description'}</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* <div className="">
-                <span>Cat ID</span>
-                <span>{product.category_id}</span>
-              </div> */}
               <div className='flex gap-2'>
                 <EditBusinessProduct product={product} />
                 <Button

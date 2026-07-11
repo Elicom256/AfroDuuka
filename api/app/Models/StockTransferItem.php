@@ -1,18 +1,15 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Individual line item in a stock transfer.
- * Tracks expected vs received quantities per product.
- */
 class StockTransferItem extends Model
 {
     protected $fillable = [
         'stock_transfer_id',
-        'business_branch_product_id',
+        'product_id',
         'quantity_expected',
         'quantity_received',
         'status',
@@ -31,8 +28,8 @@ class StockTransferItem extends Model
         return $this->belongsTo(StockTransfer::class);
     }
 
-    public function businessBranchProduct(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(BusinessBranchProduct::class);
+        return $this->belongsTo(Product::class);
     }
 }

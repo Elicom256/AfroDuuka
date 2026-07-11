@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
-import { useAddProductMutation, useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
+import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +29,7 @@ export const AddBusinessProduct: React.FC<AddProductTypeProps> = () => {
   const [formData, setFormData] = useState<any>({
     name: '',
     description: '',
-    category_id: '',
+    product_category_id: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -86,10 +87,10 @@ export const AddBusinessProduct: React.FC<AddProductTypeProps> = () => {
             </div> */}
 
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='category_id' className='text-right'>
+              <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.category_id} onValueChange={(value) => handleChange('category_id', value)}>
+              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>

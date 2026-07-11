@@ -28,8 +28,8 @@ class UpdateSaleRequest extends FormRequest
         return [
             'business_branch_id' => 'required|exists:business_branches,id',
              'items' => 'required|array|min:1',
-             'items.*.business_branch_product_id' => 'required|exists:business_branch_products,id',
-             'items.*.sale_id' => 'required|exists:products,id',
+             'items.*.product_id' => 'required|exists:products,id',
+             'items.*.sale_id' => 'required|exists:sales,id',
              'items.*.quantity' => 'required|integer|min:1',
              'items.*.price' => 'required|numeric|min:0',
              'items.*.subtotal' => 'required|numeric|min:0',
