@@ -21,24 +21,44 @@ class CategoryTableSeeder extends Seeder
 
         $categories = [
             [
-                "name" => "Electronics",
-                "description" => "Phones, laptops, gadgets and accessories",
+                "name" => "Phones",
+                "description" => "Mobile phones and smartphones",
             ],
             [
-                "name" => "Fashion",
-                "description" => "Clothing, shoes and fashion items",
+                "name" => "Computers",
+                "description" => "Laptops, desktops and computer accessories",
             ],
             [
-                "name" => "Groceries",
-                "description" => "Food and household essentials",
+                "name" => "Tablets & iPads",
+                "description" => "Tablets, iPads and e-readers",
             ],
             [
-                "name" => "Home & Living",
-                "description" => "Furniture, decor and home appliances",
+                "name" => "Audio & Headphones",
+                "description" => "Headphones, speakers and audio equipment",
             ],
             [
-                "name" => "Health & Beauty",
-                "description" => "Cosmetics and personal care products",
+                "name" => "Cameras & Drones",
+                "description" => "Cameras, drones and photography gear",
+            ],
+            [
+                "name" => "TVs & Home Theater",
+                "description" => "Televisions and home entertainment systems",
+            ],
+            [
+                "name" => "Gaming",
+                "description" => "Gaming consoles and accessories",
+            ],
+            [
+                "name" => "Wearables",
+                "description" => "Smartwatches and fitness trackers",
+            ],
+            [
+                "name" => "Home Appliances",
+                "description" => "Refrigerators, washing machines and kitchen appliances",
+            ],
+            [
+                "name" => "Networking",
+                "description" => "Routers, modems and networking equipment",
             ],
         ];
 
