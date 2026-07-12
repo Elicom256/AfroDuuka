@@ -19,9 +19,9 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $branchId = $request->query('branch_id', Auth::user()->business_branch_id);
+        $branchId =  Auth::user()->business_branch_id;
         $products = Product::where("business_branch_id", $branchId)->with("productCategory")->get();
         return response()->json(["message" => "Products fetched", "products" => $products], 200);
     }

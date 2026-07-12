@@ -5,5 +5,7 @@ so, the flow is
 -> Remove Product Categories
 -> Rename Product Types with Product Categories
 **Note:**
-- Clean up this task from components to rt queries
+
+- Use the old product categories form in the new product categories
+- Clean up this task from components to rtk queries
 - Do not hallucinate

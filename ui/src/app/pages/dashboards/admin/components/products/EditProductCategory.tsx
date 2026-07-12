@@ -24,7 +24,7 @@ interface EditProductCategoryProps {
 export const EditProductCategory: React.FC<EditProductCategoryProps> = ({ category }) => {
   const [open, setOpen] = useState(false);
   const [updateCategory, { isLoading }] = useUpdateProductCategoryMutation();
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
   });
@@ -42,13 +42,9 @@ export const EditProductCategory: React.FC<EditProductCategoryProps> = ({ catego
     e.preventDefault();
     try {
       const res = await updateCategory({ body: formData, id: category.id }).unwrap();
-      console.log('Update category res==>', res);
-      if (res) {
-        toast.success(res.message || 'Category updated successfully');
-      }
+      toast.success(res.message || 'Category updated successfully');
       setOpen(false);
     } catch (error) {
-      console.log('Error in update==>', error);
       toast.error('Failed to update category');
     }
   };
@@ -93,7 +89,9 @@ export const EditProductCategory: React.FC<EditProductCategoryProps> = ({ catego
             </div>
           </div>
           <DialogFooter>
-            <Button type='submit'>{isLoading ? <LoadingState /> : 'Update Category'}</Button>
+            <Button type='submit' disabled={isLoading}>
+              {isLoading ? <LoadingState /> : 'Update Category'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

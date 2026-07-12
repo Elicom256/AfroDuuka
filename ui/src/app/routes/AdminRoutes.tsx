@@ -2,7 +2,6 @@ import { AdminLayout } from '../pages/dashboards/admin/AdminLayout';
 import { AdminDashboardPage } from '../pages/dashboards/admin/pages/AdminDashboardPage';
 import { AdminWorkersPage } from '../pages/dashboards/admin/pages/AdminWorkersPage';
 import { AdminProductsPage } from '../pages/dashboards/admin/pages/AdminProductsPage';
-import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
 import { AdminOrdersPage } from '../pages/dashboards/admin/pages/AdminOrdersPage';
 import { AdminSalesPage } from '../pages/dashboards/admin/pages/AdminSalesPage';
 import { AdminPurchasesPage } from '../pages/dashboards/admin/pages/AdminPurchasesPage';
@@ -20,8 +19,8 @@ import { BusinessBranches } from '../pages/dashboards/admin/pages/BusinessBranch
 import { Route, Routes } from 'react-router-dom';
 import { AdminMessagesPage } from '../pages/dashboards/admin/pages/AdminMessagesPage';
 import { AdminNotificationsPage } from '../pages/dashboards/admin/pages/AdminNotificationsPage';
-import { BusinessProducts } from '../pages/dashboards/admin/components/products/BusinessProducts';
-import { BusinessProduct } from '../pages/dashboards/admin/components/products/BusinessProduct';
+import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
+import { ProductCategory } from '../pages/dashboards/admin/components/products/ProductCategory';
 import { ProtectedRoutes } from './ProtectedRoutes';
 import { AdminSuppliersPage } from '../pages/dashboards/admin/pages/AdminSuppliersPage';
 import { AdminInventoryPage } from '../pages/dashboards/admin/pages/AdminInventoryPage';
@@ -80,8 +79,7 @@ export const AdminRoutes = () => {
           <Route path='create-business' element={<AddBusinessForm />} />
           <Route path='products' element={<AdminProductsPage />} />
           <Route path='product-categories' element={<ProductCategories />} />
-          <Route path='business-products' element={<BusinessProducts />} />
-          <Route path='business-products/:id' element={<BusinessProduct />} />
+          <Route path='product-categories/:id' element={<ProductCategory />} />
           <Route path='sales' element={<AdminSalesPage />} />
           <Route path='sales/:id' element={<Sale />} />
           <Route path='purchases' element={<AdminPurchasesPage />} />

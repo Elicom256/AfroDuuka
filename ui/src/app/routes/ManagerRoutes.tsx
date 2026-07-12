@@ -18,7 +18,6 @@ import { ManagerAttendancePage } from '../pages/dashboards/manager/pages/Manager
 import { ManagerHistoryPage } from '../pages/dashboards/manager/pages/ManagerHistoryPage';
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
-import { ManagerProductTypes } from '../pages/dashboards/manager/components/products/ManagerProductTypes';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
 import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
@@ -52,7 +51,6 @@ export const ManagerRoutes = () => {
         <Route path='promotions' element={<ManagerPromotionsPage />} />
         <Route path='attendance' element={<ManagerAttendancePage />} />
         <Route path='history' element={<ManagerHistoryPage />} />
-        <Route path='product-categories' element={<ManagerProductTypes />} />
       </Route>
       {/* unmatched */}
       {/* <Route path='*' element={<NotFound />} /> */}
