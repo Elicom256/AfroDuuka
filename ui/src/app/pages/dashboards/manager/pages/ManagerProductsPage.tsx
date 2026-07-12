@@ -1,6 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductTable } from '../components/products/ProductTable';
-import { Link } from 'react-router-dom';
 import { AddProduct } from '../components/products/AddProduct';
 import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -21,10 +20,7 @@ export const ManagerProductsPage = () => {
       <CardContent>
         <ProductTable />
       </CardContent>
-      <CardFooter className='flex justify-between'>
-        <Link to='/manager/product-categories' className='hover:underline text-blue-400'>
-          Manage product categories
-        </Link>
+      <CardFooter className='flex justify-end'>
         <div className='grid grid-cols-2 text-xs'>
           <div className='flex items-center gap-2'>
             <span className=''>CID: </span>

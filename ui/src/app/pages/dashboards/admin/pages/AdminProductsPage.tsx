@@ -51,18 +51,11 @@ export const AdminProductsPage = () => {
         </CardHeader>
         <CardContent className='flex flex-wrap items-center gap-3 border-t border-border/60 pt-4'>
           <Link
-            to='/admin/business-products'
-            className='inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline'
-          >
-            <Tags className='h-4 w-4' />
-            Manage product types
-          </Link>
-          <Link
             to='/admin/product-categories'
             className='inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline'
           >
             <Tags className='h-4 w-4' />
-            Manage categories
+            Manage product categories
           </Link>
         </CardContent>
       </Card>

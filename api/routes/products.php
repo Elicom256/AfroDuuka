@@ -6,16 +6,23 @@ use App\Http\Controllers\ProductCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
-    // ======== CRUD ============
+    // ========== Specific routes BEFORE wildcard ==========
     Route::apiResource('categories', ProductCategoryController::class);
-    Route::get("/products/analytics", [ProductController::class, "inventoryAnalytics"]);
-    Route::get("/products/expiring", [ProductController::class, "expiringAnalytics"]);
-    Route::get("/products/restocking", [ProductController::class, "restocking"]);
-    Route::get("/products/{product}/metrics", [ProductController::class, "productMetrics"]);
-    Route::apiResource('products', ProductController::class)->only([
-        "index", "show", "store", "update", "destroy"
-    ]);
-
+    Route::get("/analytics", [ProductController::class, "inventoryAnalytics"]);
+    Route::get("/expiring", [ProductController::class, "expiringAnalytics"]);
+    Route::get("/restocking", [ProductController::class, "restocking"]);
+    
     //  ============ others ============
-    Route::get("/products/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
+    Route::get("/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
+
+    // ======== CRUD (wildcard routes last) ============
+    Route::get('/', [ProductController::class, 'index']);
+    Route::post('/', [ProductController::class, 'store']);
+     // ========== Metrics after wildcard (needs {product}) ==========
+    Route::get("/{product}/metrics", [ProductController::class, "productMetrics"]);
+    Route::get('/{product}', [ProductController::class, 'show']);
+    Route::match(['put', 'patch'], '/{product}', [ProductController::class, 'update']);
+    Route::delete('/{product}', [ProductController::class, 'destroy']);
+
+   
 });

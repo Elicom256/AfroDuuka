@@ -1,5 +1,4 @@
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
-import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
@@ -13,7 +12,6 @@ import { useGetSubscriptionsQuery } from '@/app/store/features/subscriptions/sub
 import {
   Users,
   Package,
-  Tags,
   Building2,
   UserCheck,
   Truck,
@@ -30,7 +28,6 @@ export const OverviewCards = () => {
   const { currencySymbol } = useCurrency();
   const { data: workersData, isLoading: workersLoading } = useGetWorkersInfoQuery();
   const { data: productsData, isLoading: productsLoading } = useProductsQuery();
-  const { data: categoriesData, isLoading: categoriesLoading } = useProductCategoriesQuery();
   const { data: branchesData, isLoading: branchesLoading } = useBranchesQuery();
   const { data: customersData, isLoading: customersLoading } = useCustomersQuery();
   const { data: suppliersData, isLoading: suppliersLoading } = useSuppliersQuery();
@@ -40,7 +37,6 @@ export const OverviewCards = () => {
 
   const workers = workersData?.workers;
   const products = productsData?.products;
-  const categories = categoriesData?.categories;
   const branches = branchesData?.branches;
   const customers = customersData?.customers;
   const suppliers = suppliersData?.suppliers;
@@ -84,13 +80,6 @@ export const OverviewCards = () => {
           icon={Package}
           isLoading={productsLoading}
           description='Product types offered'
-        />
-        <StatsCard
-          title='Categories'
-          value={categories?.length ?? 0}
-          icon={Tags}
-          isLoading={categoriesLoading}
-          description='Product categories'
         />
         <StatsCard
           title='Branches'

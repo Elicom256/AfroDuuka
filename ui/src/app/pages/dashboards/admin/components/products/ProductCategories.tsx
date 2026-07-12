@@ -12,16 +12,13 @@ import { AddProductCategory } from './AddProductCategory';
 import { EditProductCategory } from './EditProductCategory';
 
 export const ProductCategories = () => {
-  const { data, isLoading } = useProductCategoriesQuery();
+  const { data, isLoading, error } = useProductCategoriesQuery();
   const [remove, { isLoading: deleting }] = useDeleteProductCategoryMutation();
 
-  console.log('Categories==>', data);
   const handleDelete = async (id: number) => {
     try {
       const res = await remove(id).unwrap();
-      console.log('Deleted==>', res);
-      toast.success('Category deleted successfully');
-      // return navigate('../products');
+      toast.success(res.message ?? 'Category deleted successfully');
     } catch (error) {
       toast.error('Failed to delete category');
     }
@@ -30,6 +27,7 @@ export const ProductCategories = () => {
   if (isLoading) return <PageLoadingState />;
 
   const categories = data?.categories || [];
+  console.log('Categories==>', data ?? error);
 
   return (
     <div className='p-6'>

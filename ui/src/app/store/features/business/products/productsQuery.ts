@@ -23,9 +23,9 @@ export const productCategoriesQuery = createApi({
       }),
       providesTags: ['ProductCategoriesAPI'],
     }),
-    productCategory: builder.query<any, void>({
-      query: () => ({
-        url: '/categories',
+    productCategory: builder.query<any, string>({
+      query: (id) => ({
+        url: `/categories/${id}`,
         method: 'GET',
       }),
       providesTags: ['ProductCategoriesAPI'],

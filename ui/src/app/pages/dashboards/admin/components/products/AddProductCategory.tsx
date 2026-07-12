@@ -13,39 +13,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
-import {
-  useAddProductCategoryMutation,
-  useProductCategoriesQuery,
-} from '@/app/store/features/business/products/productsQuery';
+import { useAddProductCategoryMutation } from '@/app/store/features/business/products/productsQuery';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
-interface AddProductCategoryProps {}
-
-export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
+export const AddProductCategory: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [addCategory, { isLoading }] = useAddProductCategoryMutation();
-  const { data: cats } = useProductCategoriesQuery();
-  const categories = cats?.categories ?? [];
-  console.log('categoryProducts==>', categories);
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Call addCategory mutation
-    const res = await addCategory(formData).unwrap();
-    console.log('Category res==>', res);
-    if (res) {
-      toast.success(res.message);
+    try {
+      const res = await addCategory(formData).unwrap();
+      toast.success(res.message || 'Category added successfully');
+      setOpen(false);
+      setFormData({ name: '', description: '' });
+    } catch (error) {
+      toast.error('Failed to add category');
     }
-    console.log('Adding category:', formData);
-    setOpen(false);
-  };
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -70,23 +59,11 @@ export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
               <Input
                 id='name'
                 value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className='col-span-3'
                 required
               />
             </div>
-
-            {/* <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='barcode' className='text-right'>
-                Barcode
-              </Label>
-              <Input
-                id='barcode'
-                value={formData.barcode}
-                onChange={(e) => handleChange('barcode', e.target.value)}
-                className='col-span-3'
-              />
-            </div> */}
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='description' className='text-right'>
                 Description
@@ -94,13 +71,15 @@ export const AddProductCategory: React.FC<AddProductCategoryProps> = () => {
               <Textarea
                 id='description'
                 value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className='col-span-3'
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type='submit'>{isLoading ? <LoadingState /> : 'Update Product'}</Button>
+            <Button type='submit' disabled={isLoading}>
+              {isLoading ? <LoadingState /> : 'Save Category'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
