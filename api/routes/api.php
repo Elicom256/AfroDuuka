@@ -62,6 +62,10 @@ Route::prefix("printers")->group(function () {
     require __DIR__."/printers.php";
 });
 
+Route::prefix("expenses")->group(function () {
+    require __DIR__."/expenses.php";
+});
+
 Route::prefix("stock-transfers")->group(function () {
     require __DIR__."/stock-transfers.php";
 });

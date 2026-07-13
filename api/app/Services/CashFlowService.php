@@ -8,6 +8,7 @@ use App\Models\PurchaseReturn;
 use App\Models\Sale;
 use App\Models\SaleReturn;
 use App\Models\EmployeeRemuneration;
+use App\Models\Expense;
 use App\Models\BusinessTaxPayment;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
@@ -195,6 +196,29 @@ class CashFlowService
             'category' => 'product_sales',
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
+
+    // ================= cash flow expense ====================
+    public function createCashFlowForExpense(Expense $expense, float $amount): void
+    {
+        $user = Auth::user();
+        $business = $user->business()->with('country')->first();
+        $currency = $business?->country?->currency_code ?? 'UGX';
+        CashFlow::create([
+            'transaction_code' => 'CF-EXP-'.str_pad($expense->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'expense',
+            'amount' => $amount,
+            'currency' => $currency,
+            'business_id' => $user->business_id,
+            'business_branch_id' => $expense->business_branch_id ?? $user->business_branch_id,
+            'expense_id' => $expense->id,
+            'description' => $expense->description ?? $expense->category?->name ?? 'General expense',
+            'category' => 'expenses',
+            'reference' => null,
+            'status' => 'completed',
+            'transaction_date' => $expense->payment_date->toDateString(),
             'created_by' => $user->id,
         ]);
     }

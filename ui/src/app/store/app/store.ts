@@ -50,6 +50,8 @@ import { adminPlansQuery } from '../features/plans/adminPlansQuery';
 import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
 import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
 import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
+import { expenseCategoriesQuery } from '../features/business/admin/expenseCategoriesQuery';
+import { expenseQuery } from '../features/business/admin/expenseQuery';
 
 export const store = configureStore({
   reducer: {
@@ -104,6 +106,8 @@ export const store = configureStore({
     [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
     [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
     [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
+    [expenseCategoriesQuery.reducerPath]: expenseCategoriesQuery.reducer,
+    [expenseQuery.reducerPath]: expenseQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -159,6 +163,8 @@ export const store = configureStore({
       subscriptionsQuery.middleware,
       subscriptionPaymentsQuery.middleware,
       superAdminBusinessesQuery.middleware,
+      expenseCategoriesQuery.middleware,
+      expenseQuery.middleware,
     ),
 });
 

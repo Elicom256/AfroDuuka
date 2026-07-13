@@ -1,67 +1,40 @@
-# MODULE 2 — Returns / Refunds
+# MODULE 3 — Expense Management
 
-Implement complete sales return and purchase return workflows.
+Implement dedicated expense management instead of relying only on generic CashFlow.
 
 ## Backend
 
-Create:
+**Create:**
 
-SaleReturn
-SaleReturnItem
+- ExpenseCategory
+- Expense
+- Fields include:
+  -> Category, Amount, Branch, Business, Vendor, Description, Receipt attachment reference, Recurring, flag, Payment date, Status, Created by
 
-PurchaseReturn
-PurchaseReturnItem
-
-Fields include:
-
-* original transaction
-* reason
-* notes
-* quantity
-* refund amount
-* restock flag
-* condition
-* processed_by
-* timestamps
-
-When processing returns:
-
-Sales Return
-
-* validate original sale
-* prevent returning more than sold
-* restore stock if restock=true
-* create stock movements
-* create cashflow adjustment
-* preserve audit trail
-
-Purchase Return
-
-* reduce inventory
-* update supplier balances where appropriate
-* create stock movements
-* create cashflow adjustment
-
-Never delete inventory history.
+- Approval status (optional if permissions already exist)
+- Automatically generate related CashFlow records.
+- Provide reporting endpoints.
+- Filtering:
+  ->Date, Branch, Category, Status, Search
 
 ## Frontend
 
-Create pages for:
+**Pages:**
 
-Sales Returns
+- Expense Categories
+- Expenses
 
-Purchase Returns
+**Features:**
+-> CRUD
+-> Approve (if permitted)
+-> Filters
+-> Totals
+-> Monthly summaries
+-> Export integration
+-> Charts using existing chart components
 
-Features:
+## Constraints
 
-* Search original invoice
-* Select returned items
-* Partial returns
-* Full returns
-* Return reason
-* Condition
-* Refund amount
-* Notes
-* Confirmation dialog
-* Return history
-* Printable return receipt
+- Do not hallucinate
+- Scalability is key
+- Work everything from api to ui with proper route naming

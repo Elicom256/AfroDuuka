@@ -70,7 +70,7 @@ The interface must not reuse the admin CRUD table.
 
 ---
 
-# MODULE 2 — Returns / Refunds
+# ✅ MODULE 2 — Returns / Refunds
 
 Implement complete sales return and purchase return workflows.
 
@@ -137,7 +137,7 @@ Features:
 * Confirmation dialog
 * Return history
 * Printable return receipt
-
+  
 ---
 
 # MODULE 3 — Expense Management
