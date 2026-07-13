@@ -14,7 +14,7 @@ class ReorderRuleController extends Controller
     public function index()
     {
         $rules = ReorderRule::where('business_id', auth()->user()->business_id)
-            ->with(['businessBranchProduct', 'preferredSupplier'])
+            ->with(['product', 'preferredSupplier'])
             ->get();
 
         return response()->json(['message' => 'Fetched reorder rules', 'data' => $rules]);
@@ -28,7 +28,7 @@ class ReorderRuleController extends Controller
 
     public function show(ReorderRule $reorderRule)
     {
-        $reorderRule->load(['businessBranchProduct', 'preferredSupplier']);
+        $reorderRule->load(['product', 'preferredSupplier']);
         return response()->json(['message' => 'Fetched reorder rule', 'data' => $reorderRule]);
     }
 

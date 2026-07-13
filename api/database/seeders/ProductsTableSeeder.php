@@ -13,25 +13,44 @@ class ProductsTableSeeder extends Seeder
     public function run(): void
     {
         $business = Business::where("email", "testbusinessone@gmail.com")->first();
-        $branches = BusinessBranch::where("business_id", $business->id)->get();
-        $categories = ProductCategory::where("business_id", $business->id)->get();
+
+        if (!$business) {
+            throw new \Exception("Business not found");
+        }
+
+        $branches = BusinessBranch::where('business_id', $business->id)->get();
 
         $categoryMap = [
-            'Phones' => ['name' => 'iPhone 15 Pro Max', 'sku' => 'PH-1001', 'barcode' => '890100000001'],
-            'Computers' => ['name' => 'MacBook Air M3', 'sku' => 'PC-1002', 'barcode' => '890100000002'],
-            'Tablets & iPads' => ['name' => 'Samsung Galaxy Tab S9', 'sku' => 'TB-1003', 'barcode' => '890100000003'],
-            'Audio & Headphones' => ['name' => 'Sony WH-1000XM5', 'sku' => 'AU-1004', 'barcode' => '890100000004'],
-            'Cameras & Drones' => ['name' => 'Canon EOS R50', 'sku' => 'CM-1005', 'barcode' => '890100000005'],
-            'TVs & Home Theater' => ['name' => 'Samsung 55" Smart TV', 'sku' => 'TV-1006', 'barcode' => '890100000006'],
-            'Gaming' => ['name' => 'PlayStation 5', 'sku' => 'GM-1007', 'barcode' => '890100000007'],
-            'Wearables' => ['name' => 'Apple Watch Series 10', 'sku' => 'WR-1008', 'barcode' => '890100000008'],
-            'Home Appliances' => ['name' => 'Smart Refrigerator', 'sku' => 'HA-1009', 'barcode' => '890100000009'],
-            'Networking' => ['name' => 'WiFi Router', 'sku' => 'NW-1010', 'barcode' => '890100000010'],
+            'Phones' => ['name' => 'iPhone 15 Pro Max', 'sku' => 'PH-1001', 'barcode' => '890100000001', 'description' => 'Mobile phones and smartphones'],
+            'Computers' => ['name' => 'MacBook Air M3', 'sku' => 'PC-1002', 'barcode' => '890100000002', 'description' => 'Laptops, desktops and computer accessories'],
+            'Tablets & iPads' => ['name' => 'Samsung Galaxy Tab S9', 'sku' => 'TB-1003', 'barcode' => '890100000003', 'description' => 'Tablets, iPads and e-readers'],
+            'Audio & Headphones' => ['name' => 'Sony WH-1000XM5', 'sku' => 'AU-1004', 'barcode' => '890100000004', 'description' => 'Headphones, speakers and audio equipment'],
+            'Cameras & Drones' => ['name' => 'Canon EOS R50', 'sku' => 'CM-1005', 'barcode' => '890100000005', 'description' => 'Cameras, drones and photography gear'],
+            'TVs & Home Theater' => ['name' => 'Samsung 55" Smart TV', 'sku' => 'TV-1006', 'barcode' => '890100000006', 'description' => 'Televisions and home entertainment systems'],
+            'Gaming' => ['name' => 'PlayStation 5', 'sku' => 'GM-1007', 'barcode' => '890100000007', 'description' => 'Gaming consoles and accessories'],
+            'Wearables' => ['name' => 'Apple Watch Series 10', 'sku' => 'WR-1008', 'barcode' => '890100000008', 'description' => 'Smartwatches and fitness trackers'],
+            'Home Appliances' => ['name' => 'Smart Refrigerator', 'sku' => 'HA-1009', 'barcode' => '890100000009', 'description' => 'Refrigerators, washing machines and kitchen appliances'],
+            'Networking' => ['name' => 'WiFi Router', 'sku' => 'NW-1010', 'barcode' => '890100000010', 'description' => 'Routers, modems and networking equipment'],
         ];
+
+        foreach ($categoryMap as $name => $data) {
+            ProductCategory::updateOrCreate(
+                [
+                    'name' => strtolower($name),
+                    'business_id' => $business->id,
+                ],
+                [
+                    'description' => strtolower($data['description']),
+                    'status' => 'active',
+                ]
+            );
+        }
+
+        $productCategories = ProductCategory::where('business_id', $business->id)->get();
 
         foreach ($branches as $branch) {
             foreach ($categoryMap as $categoryName => $productData) {
-                $category = $categories->firstWhere('name', strtolower($categoryName));
+                $category = $productCategories->firstWhere('name', strtolower($categoryName));
                 Product::updateOrCreate(
                     ['business_branch_id' => $branch->id, 'name' => $productData['name']],
                     [
@@ -47,6 +66,6 @@ class ProductsTableSeeder extends Seeder
             }
         }
 
-        $this->command->info("✅ Products seeded successfully!");
+        $this->command->info("✅ Product categories and products seeded successfully!");
     }
 }

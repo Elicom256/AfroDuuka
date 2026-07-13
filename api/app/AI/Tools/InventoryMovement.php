@@ -50,12 +50,12 @@ class InventoryMovement extends Tool
            ->keyBy('type');
 
         $recent = (clone $query)
-            ->with('businessBranchProduct')
+            ->with('product')
             ->latest()
             ->limit(20)
             ->get()
             ->map(fn ($m) => [
-                'product' => $m->businessBranchProduct?->name ?? 'Unknown',
+                'product' => $m->product?->name ?? 'Unknown',
                 'type' => $m->type,
                 'quantity' => $m->quantity,
                 'notes' => $m->notes,

@@ -31,13 +31,13 @@ class LatestSoldProduct extends Tool
     {
         $limit = min((int) ($parameters['limit'] ?? 10), 50);
 
-        $items = SaleItem::with('sale.businessBranch', 'businessBranchProduct.product')
+        $items = SaleItem::with('sale.businessBranch', 'product.product')
             ->whereHas('sale', fn ($q) => $q->where('status', 'completed'))
             ->latest()
             ->limit($limit)
             ->get()
             ->map(fn ($item) => [
-                'product' => $item->businessBranchProduct?->name ?? $item->businessBranchProduct?->product?->name,
+                'product' => $item->product?->name ?? $item->product?->product?->name,
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
                 'subtotal' => $item->subtotal,

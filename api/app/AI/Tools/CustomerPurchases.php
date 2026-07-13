@@ -48,7 +48,7 @@ class CustomerPurchases extends Tool
         }
 
         $sales = Sale::where('customer_id', $customerId)
-            ->with('saleItems.businessBranchProduct', 'businessBranch')
+            ->with('saleItems.product', 'businessBranch')
             ->latest()
             ->limit($limit)
             ->get()

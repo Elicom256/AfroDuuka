@@ -14,6 +14,8 @@ import {
   History,
   Bell,
   MessageSquare,
+  Undo2,
+  ArrowLeftToLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -34,6 +36,8 @@ const navSections: Array<{
       { label: 'Products', to: '/manager/products', icon: PackageCheck },
       { label: 'Sales', to: '/manager/sales', icon: DollarSign },
       { label: 'Purchases', to: '/manager/purchases', icon: Truck },
+      { label: 'Sale Returns', to: '/manager/sale-returns', icon: Undo2 },
+      { label: 'Purchase Returns', to: '/manager/purchase-returns', icon: ArrowLeftToLine },
       { label: 'Inventory', to: '/manager/inventory', icon: AlertTriangle },
       { label: 'Workers', to: '/manager/workers', icon: Users },
       { label: 'Customers', to: '/manager/customers', icon: Users2, settingKey: 'customers' },

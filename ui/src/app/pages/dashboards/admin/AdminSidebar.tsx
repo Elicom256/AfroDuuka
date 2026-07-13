@@ -24,6 +24,8 @@ import {
   FileDown,
   CheckSquare,
   CreditCard,
+  Undo2,
+  ArrowLeftToLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -49,6 +51,8 @@ const navSections: Array<{
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
       { label: 'Sales', to: '/admin/sales', icon: DollarSign },
       { label: 'Purchases', to: '/admin/purchases', icon: Truck },
+      { label: 'Sale Returns', to: '/admin/sale-returns', icon: Undo2 },
+      { label: 'Purchase Returns', to: '/admin/purchase-returns', icon: ArrowLeftToLine },
     ],
   },
   {

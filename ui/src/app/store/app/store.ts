@@ -4,6 +4,8 @@ import { workersQuery } from '../features/business/workers/workersQuery';
 import { productCategoriesQuery } from '../features/business/products/productsQuery';
 import { salesQuery } from '../features/branch/sales/salesQuery';
 import { purchasesQuery } from '../features/branch/purchases/purchasesQuery';
+import { saleReturnsQuery } from '../features/branch/sale-returns/saleReturnsQuery';
+import { purchaseReturnsQuery } from '../features/branch/purchase-returns/purchaseReturnsQuery';
 import { customersQuery } from '../features/business/customers/customersQuery';
 import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
@@ -56,6 +58,8 @@ export const store = configureStore({
     [productCategoriesQuery.reducerPath]: productCategoriesQuery.reducer,
     [salesQuery.reducerPath]: salesQuery.reducer,
     [purchasesQuery.reducerPath]: purchasesQuery.reducer,
+    [saleReturnsQuery.reducerPath]: saleReturnsQuery.reducer,
+    [purchaseReturnsQuery.reducerPath]: purchaseReturnsQuery.reducer,
     [customersQuery.reducerPath]: customersQuery.reducer,
     [inventoryQuery.reducerPath]: inventoryQuery.reducer,
     [businessQuery.reducerPath]: businessQuery.reducer,
@@ -109,6 +113,8 @@ export const store = configureStore({
       productCategoriesQuery.middleware,
       salesQuery.middleware,
       purchasesQuery.middleware,
+      saleReturnsQuery.middleware,
+      purchaseReturnsQuery.middleware,
       customersQuery.middleware,
       inventoryQuery.middleware,
       businessQuery.middleware,

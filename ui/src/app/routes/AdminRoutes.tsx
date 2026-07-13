@@ -15,6 +15,10 @@ import { AddBusinessForm } from '../pages/dashboards/admin/components/AddBusines
 import { Product } from '../pages/dashboards/admin/components/products/Product';
 import { Sale } from '../pages/dashboards/admin/components/sales/Sale';
 import { Purchase } from '../pages/dashboards/admin/components/purchases/Purchase';
+import { SaleReturn } from '../pages/dashboards/manager/components/sale-returns/SaleReturn';
+import { PurchaseReturn } from '../pages/dashboards/manager/components/purchase-returns/PurchaseReturn';
+import { ManagerSaleReturnsPage } from '../pages/dashboards/manager/pages/ManagerSaleReturnsPage';
+import { ManagerPurchaseReturnsPage } from '../pages/dashboards/manager/pages/ManagerPurchaseReturnsPage';
 import { BusinessBranches } from '../pages/dashboards/admin/pages/BusinessBranches';
 import { Route, Routes } from 'react-router-dom';
 import { AdminMessagesPage } from '../pages/dashboards/admin/pages/AdminMessagesPage';
@@ -82,8 +86,12 @@ export const AdminRoutes = () => {
           <Route path='product-categories/:id' element={<ProductCategory />} />
           <Route path='sales' element={<AdminSalesPage />} />
           <Route path='sales/:id' element={<Sale />} />
+          <Route path='sale-returns' element={<ManagerSaleReturnsPage />} />
+          <Route path='sale-returns/:id' element={<SaleReturn />} />
           <Route path='purchases' element={<AdminPurchasesPage />} />
           <Route path='purchases/:id' element={<Purchase />} />
+          <Route path='purchase-returns' element={<ManagerPurchaseReturnsPage />} />
+          <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
           <Route path='orders' element={<AdminOrdersPage />} />
           <Route path='inventory' element={<AdminInventoryPage />} />
           <Route path='customers' element={<AdminCustomersPage />} />
