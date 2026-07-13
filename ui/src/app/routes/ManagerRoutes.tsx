@@ -3,8 +3,7 @@ import { ManagerLayout } from '../pages/dashboards/manager/ManagerLayout';
 import { ManagerDashboardPage } from '../pages/dashboards/manager/pages/ManagerDashboardPage';
 import { ManagerSalesPage } from '../pages/dashboards/manager/pages/ManagerSalesPage';
 import { ManagerPurchasesPage } from '../pages/dashboards/manager/pages/ManagerPurchasesPage';
-import { ManagerSaleReturnsPage } from '../pages/dashboards/manager/pages/ManagerSaleReturnsPage';
-import { ManagerPurchaseReturnsPage } from '../pages/dashboards/manager/pages/ManagerPurchaseReturnsPage';
+
 import { ManagerProductsPage } from '../pages/dashboards/manager/pages/ManagerProductsPage';
 import { ManagerInventoryPage } from '../pages/dashboards/manager/pages/ManagerInventoryPage';
 import { ManagerAnalyticsPage } from '../pages/dashboards/manager/pages/ManagerAnalyticsPage';
@@ -21,8 +20,10 @@ import { ManagerHistoryPage } from '../pages/dashboards/manager/pages/ManagerHis
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
-import { SaleReturn } from '../pages/dashboards/manager/components/sale-returns/SaleReturn';
-import { PurchaseReturn } from '../pages/dashboards/manager/components/purchase-returns/PurchaseReturn';
+import { SaleReturn } from '../pages/dashboards/manageradmin/components/sale-returns/SaleReturn';
+import { PurchaseReturn } from '../pages/dashboards/manageradmin/components/purchase-returns/PurchaseReturn';
+import { SaleReturnsPage } from '../pages/dashboards/manageradmin/pages/SaleReturnsPage';
+import { PurchaseReturnsPage } from '../pages/dashboards/manageradmin/pages/PurchaseReturnsPage';
 import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -40,9 +41,9 @@ export const ManagerRoutes = () => {
         <Route path='sales/:id' element={<Sale />} />
         <Route path='purchases' element={<ManagerPurchasesPage />} />
         <Route path='purchases/:id' element={<Purchase />} />
-        <Route path='sale-returns' element={<ManagerSaleReturnsPage />} />
+        <Route path='sale-returns' element={<SaleReturnsPage />} />
         <Route path='sale-returns/:id' element={<SaleReturn />} />
-        <Route path='purchase-returns' element={<ManagerPurchaseReturnsPage />} />
+        <Route path='purchase-returns' element={<PurchaseReturnsPage />} />
         <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
         <Route path='products' element={<ManagerProductsPage />} />
         <Route path='products/:id' element={<Product />} />

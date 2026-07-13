@@ -38,12 +38,8 @@ Route::prefix("purchases")->group(function(){
     require __DIR__.'/purchases.php';
 });
 
-Route::prefix("sale-returns")->group(function () {
-    require __DIR__.'/sale-returns.php';
-});
-
-Route::prefix("purchase-returns")->group(function () {
-    require __DIR__.'/purchase-returns.php';
+Route::prefix("returns")->group(function () {
+    require __DIR__.'/returns.php';
 });
 
 Route::prefix("settings")->group(function(){

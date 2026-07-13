@@ -51,6 +51,7 @@ class ProductsTableSeeder extends Seeder
         foreach ($branches as $branch) {
             foreach ($categoryMap as $categoryName => $productData) {
                 $category = $productCategories->firstWhere('name', strtolower($categoryName));
+                $amount = rand(50000, 5000000);
                 Product::updateOrCreate(
                     ['business_branch_id' => $branch->id, 'name' => $productData['name']],
                     [
@@ -58,8 +59,11 @@ class ProductsTableSeeder extends Seeder
                         'sku' => $productData['sku'] . '-' . $branch->id,
                         'barcode' => $productData['barcode'],
                         'quantity' => rand(10, 50),
-                        'cost_price' => rand(5000, 50000) / 100,
-                        'price' => rand(8000, 80000) / 100,
+                        'markup_percentage' => random_int(20,90) / 100,
+                        'cost_price' => $amount,
+                        'price' => $amount / 2,
+                        'reorder_level' => rand(5, 15),
+                        'description' => 'some description for the product here',
                         'status' => 'active',
                     ]
                 );

@@ -167,8 +167,8 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
                     className={({ isActive }) =>
                       cn(
                         'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 relative',
-                        isActive
-                          ? 'bg-primary text-primary-foreground shadow-sm'
+                        isActive && item.label.toLowerCase() !== 'overview'
+                          ? 'bg-mutedd uppercase text-green-400 text-xs'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                       )
                     }
