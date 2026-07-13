@@ -16,6 +16,7 @@ export const SaleReturn = () => {
   if (isLoading) return <PageLoadingState />;
 
   const sr = srData?.sale_return || srData;
+  
   if (!sr) {
     return (
       <div className='flex items-center justify-center h-64'>

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const saleReturnsQuery = createApi({
   reducerPath: 'saleReturnsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/sale-returns/branch-sale-returns`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/returns/sale-returns`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -29,8 +29,4 @@ export const saleReturnsQuery = createApi({
   }),
 });
 
-export const {
-  useSaleReturnsQuery,
-  useSaleReturnQuery,
-  useAddSaleReturnMutation,
-} = saleReturnsQuery;
+export const { useSaleReturnsQuery, useSaleReturnQuery, useAddSaleReturnMutation } = saleReturnsQuery;

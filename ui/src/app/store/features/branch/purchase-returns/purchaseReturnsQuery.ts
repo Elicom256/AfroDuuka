@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const purchaseReturnsQuery = createApi({
   reducerPath: 'purchaseReturnsPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/purchase-returns/branch-purchase-returns`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/returns/purchase-returns`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -29,8 +29,4 @@ export const purchaseReturnsQuery = createApi({
   }),
 });
 
-export const {
-  usePurchaseReturnsQuery,
-  usePurchaseReturnQuery,
-  useAddPurchaseReturnMutation,
-} = purchaseReturnsQuery;
+export const { usePurchaseReturnsQuery, usePurchaseReturnQuery, useAddPurchaseReturnMutation } = purchaseReturnsQuery;

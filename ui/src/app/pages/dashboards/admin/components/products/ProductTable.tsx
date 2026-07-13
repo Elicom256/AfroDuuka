@@ -9,6 +9,7 @@ import { Package2, PencilLine, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { EditProduct } from './EditProduct';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -24,12 +25,12 @@ interface Product {
   status: string | boolean;
   description: string;
   markup_percentage: number;
-  category?: { name: string };
+  product_category?: { name: string };
   category_name?: string;
 }
 
 const getCategoryName = (product: Product) => {
-  return product.category_name || product.category?.name || 'Uncategorized';
+  return product.category_name || product.product_category?.name || 'Uncategorized';
 };
 
 export const ProductTable = () => {
@@ -39,6 +40,7 @@ export const ProductTable = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const itemsPerPage = 8;
+  const navigate = useNavigate();
 
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
@@ -74,7 +76,7 @@ export const ProductTable = () => {
   };
 
   if (loadBranchProducts) return <PageLoadingState />;
-
+  console.log('products==>', products);
   return (
     <div className='space-y-4'>
       <Card className='border-border/60'>
@@ -103,7 +105,8 @@ export const ProductTable = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Category ID</TableHead>
+                    <TableHead>ID</TableHead>
+                    {/* <TableHead>Category ID</TableHead> */}
                     <TableHead>Name</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead>Barcode</TableHead>
@@ -112,15 +115,15 @@ export const ProductTable = () => {
                     <TableHead>Quantity</TableHead>
                     <TableHead>Min Stock</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
+                    {/* <TableHead>Description</TableHead> */}
+                    {/* <TableHead>Category</TableHead> */}
                     <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedProducts.map((product: Product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.product_category_id || '-'}</TableCell>
+                    <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
+                      <TableCell>{product.id}</TableCell>
                       <TableCell className='font-medium'>{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>
@@ -135,16 +138,16 @@ export const ProductTable = () => {
                           {product.status === true || product.status === 'active' ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
-                      <TableCell className='max-w-[220px] truncate'>
+                      {/* <TableCell className='max-w-55 truncate'>
                         {product.description || 'No description'}
-                      </TableCell>
-                      <TableCell>{getCategoryName(product)}</TableCell>
+                      </TableCell> */}
+                      {/* <TableCell>{getCategoryName(product)}</TableCell> */}
                       <TableCell className='text-right'>
                         <div className='flex justify-end gap-2'>
                           <Button variant='outline' size='icon' onClick={() => openEditDialog(product)}>
                             <PencilLine className='h-4 w-4' />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant='outline'
                             size='icon'
                             className='text-destructive hover:text-destructive'
@@ -152,7 +155,7 @@ export const ProductTable = () => {
                             disabled={isDeleting}
                           >
                             <Trash2 className='h-4 w-4' />
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>

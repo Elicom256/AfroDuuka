@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('sku')->nullable();
             $table->string('barcode')->nullable();
-            $table->boolean('track_serial')->default(false);
             $table->integer('quantity')->default(0);
             $table->decimal('cost_price', 12, 2)->default(0);
             $table->decimal('price', 12, 2)->default(0);

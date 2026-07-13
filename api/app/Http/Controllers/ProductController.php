@@ -22,7 +22,10 @@ class ProductController extends Controller
     public function index()
     {
         $branchId =  Auth::user()->business_branch_id;
-        $products = Product::where("business_branch_id", $branchId)->with("productCategory")->get();
+        $products = Product::where("business_branch_id", $branchId)
+                     ->with("productCategory" )
+                     ->orderBy("id", "asc")
+                     ->get();
         return response()->json(["message" => "Products fetched", "products" => $products], 200);
     }
 
