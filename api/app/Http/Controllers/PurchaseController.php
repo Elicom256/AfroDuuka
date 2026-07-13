@@ -53,7 +53,7 @@ class PurchaseController extends Controller
      */
     public function show(string $purchase)
     {
-        $product = Purchase::with("supplier", "purchaseItems.businessBranchProduct")
+        $product = Purchase::with("supplier", "purchaseItems.product")
                   ->where("id", $purchase)
                   ->orderByDesc("created_at")
                   ->first();

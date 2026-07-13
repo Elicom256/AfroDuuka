@@ -11,11 +11,11 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const Sale = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
-  const { data: saleData, isLoading: saleLoading } = useSaleQuery(String(id), { skip: !id });
+  const { data: saleData, isLoading: saleLoading, error } = useSaleQuery(String(id), { skip: !id });
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;
-
+  console.log("test saleData==>", saleData ?? error)
   if (!sale) {
     return (
       <div className='flex items-center justify-center h-64'>

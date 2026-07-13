@@ -1,38 +1,67 @@
-# Add Ons to DuukaFlow project
+# MODULE 2 — Returns / Refunds
 
-You're a senior DevOps engineer
+Implement complete sales return and purchase return workflows.
 
-Diagonize this docker issue
+## Backend
 
-<!-- issue -->
-elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker compose up -d
-[+] up 0/1
- ⠹ Network inventory-tracker_app Creating                                                                                                         0.3s
-[+] up 5/5 Found orphan containers ([inventory-tracker-proxy-1]) for this project. If you removed or renamed this service in your compose file, you ca ✔ Network inventory-tracker_app          Created                                                                                                 0.3s
- ✔ Container inventory-tracker-redis-1    Healthy                                                                                                18.7s
- ✔ Container inventory-tracker-pgsql-1    Healthy                                                                                                18.2s
- ✘ Container inventory-tracker-backend-1  Error dependency backend failed to start                                                               20.9s
- ✔ Container inventory-tracker-frontend-1 Created                                                                                                 1.5s
-dependency failed to start: container inventory-tracker-backend-1 is unhealthy
-elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker ps
-CONTAINER ID   IMAGE                       COMMAND                  CREATED              STATUS                         PORTS      NAMES
-66ce39ebd90f   inventory-tracker-backend   "/usr/local/bin/dock…"   About a minute ago   Restarting (1) 9 seconds ago              inventory-tracker-backend-1
-ca7f162b63a8   postgres:17-alpine          "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)    5432/tcp   inventory-tracker-pgsql-1
-784e43570111   redis:7-alpine              "docker-entrypoint.s…"   About a minute ago   Up About a minute (healthy)    6379/tcp   inventory-tracker-redis-1
-elicom@elicom-HP-EliteBook-840-G2:~/Desktop/web2/2026/inventory-tracker$ docker logs inventory-tracker-backend-1
-Starting Laravel container...
+Create:
 
-In Application.php line 961:
-                                                      
-  Class "Laravel\Pail\PailServiceProvider" not found  
+SaleReturn
+SaleReturnItem
 
-  **Note:** This is docker-compose.dev.yml
+PurchaseReturn
+PurchaseReturnItem
 
-  ## Constraints
-  - Document you work under this directory in a file called docker.md
-  - Add comments to your work
-  - Do not hallucinate
-  - Take advanced and scalable actions
+Fields include:
 
-                                                      
+* original transaction
+* reason
+* notes
+* quantity
+* refund amount
+* restock flag
+* condition
+* processed_by
+* timestamps
 
+When processing returns:
+
+Sales Return
+
+* validate original sale
+* prevent returning more than sold
+* restore stock if restock=true
+* create stock movements
+* create cashflow adjustment
+* preserve audit trail
+
+Purchase Return
+
+* reduce inventory
+* update supplier balances where appropriate
+* create stock movements
+* create cashflow adjustment
+
+Never delete inventory history.
+
+## Frontend
+
+Create pages for:
+
+Sales Returns
+
+Purchase Returns
+
+Features:
+
+* Search original invoice
+* Select returned items
+* Partial returns
+* Full returns
+* Return reason
+* Condition
+* Refund amount
+* Notes
+* Confirmation dialog
+* Return history
+* Printable return receipt

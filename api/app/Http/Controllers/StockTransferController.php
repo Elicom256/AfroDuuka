@@ -23,7 +23,7 @@ class StockTransferController extends Controller
     public function index()
     {
         $transfers = StockTransfer::where('business_id', auth()->user()->business_id)
-            ->with(['fromBranch', 'toBranch', 'items.businessBranchProduct', 'transferredBy'])
+            ->with(['fromBranch', 'toBranch', 'items.product', 'transferredBy'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -38,7 +38,7 @@ class StockTransferController extends Controller
 
     public function show(StockTransfer $stockTransfer)
     {
-        $stockTransfer->load(['fromBranch', 'toBranch', 'items.businessBranchProduct', 'transferredBy', 'receivedBy']);
+        $stockTransfer->load(['fromBranch', 'toBranch', 'items.product', 'transferredBy', 'receivedBy']);
         return response()->json(['message' => 'Fetched stock transfer', 'data' => $stockTransfer]);
     }
 

@@ -151,7 +151,7 @@ Controller:
 StockSummaryReportController
 
 Model:
-BusinessBranchProduct
+product
 
 Purpose:
 Display current inventory position.
@@ -186,7 +186,7 @@ Controller:
 LowStockReportController
 
 Model:
-BusinessBranchProduct
+product
 
 Purpose:
 Identify products requiring replenishment.
@@ -219,7 +219,7 @@ Controller:
 OutOfStockReportController
 
 Model:
-BusinessBranchProduct
+product
 
 Purpose:
 Identify unavailable products.
@@ -247,7 +247,7 @@ Controller:
 DeadStockReportController
 
 Model:
-BusinessBranchProduct
+product
 
 Purpose:
 Identify products not sold recently.
@@ -283,7 +283,7 @@ Controller:
 InventoryValuationReportController
 
 Model:
-BusinessBranchProduct
+product
 
 Purpose:
 Determine total inventory value.

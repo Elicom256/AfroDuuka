@@ -47,7 +47,7 @@ class SupplierPurchases extends Tool
         }
 
         $purchases = Purchase::where('supplier_id', $supplierId)
-            ->with('purchaseItems.businessBranchProduct', 'businessBranch')
+            ->with('purchaseItems.product', 'businessBranch')
             ->latest()
             ->limit($limit)
             ->get()

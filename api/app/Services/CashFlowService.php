@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\CashFlow;
 use App\Models\Purchase;
+use App\Models\PurchaseReturn;
 use App\Models\Sale;
+use App\Models\SaleReturn;
 use App\Models\EmployeeRemuneration;
 use App\Models\BusinessTaxPayment;
 use App\Models\StockTransfer;
@@ -150,6 +152,47 @@ class CashFlowService
             'stock_transfer_id' => $transfer->id,
             'description' => 'Stock transfer receive from branch #'.$transfer->from_branch_id,
             'category' => 'stock_transfer',
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
+
+    // ================= cash flow sale return (outflow: refund to customer) ====================
+    public function createCashFlowForSaleReturn(SaleReturn $saleReturn, float $amount, array $validated): void
+    {
+        $user = Auth::user();
+        CashFlow::create([
+            'transaction_code' => 'CF-SR-'.str_pad($saleReturn->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'refund',
+            'amount' => $amount,
+            'currency' => 'UGX',
+            'business_id' => $user->business_id,
+            'business_branch_id' => $saleReturn->business_branch_id,
+            'sale_return_id' => $saleReturn->id,
+            'description' => $saleReturn->reason ?? 'Sale return refund',
+            'category' => 'product_sales',
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $user->id,
+        ]);
+    }
+
+    // ================= cash flow purchase return (inflow: money back from supplier) ====================
+    public function createCashFlowForPurchaseReturn(PurchaseReturn $purchaseReturn, float $amount, array $validated): void
+    {
+        $user = Auth::user();
+        CashFlow::create([
+            'transaction_code' => 'CF-PR-'.str_pad($purchaseReturn->id, 6, '0', STR_PAD_LEFT),
+            'type' => 'payment_in',
+            'amount' => $amount,
+            'currency' => 'UGX',
+            'business_id' => $user->business_id,
+            'business_branch_id' => $purchaseReturn->business_branch_id,
+            'supplier_id' => $purchaseReturn->supplier_id ?? null,
+            'purchase_return_id' => $purchaseReturn->id,
+            'description' => $purchaseReturn->reason ?? 'Purchase return from supplier',
+            'category' => 'product_sales',
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $user->id,

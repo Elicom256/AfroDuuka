@@ -29,6 +29,8 @@ class CashFlow extends BaseModel
         'purchase_id',
         'tax_payment_id',
         'stock_transfer_id',
+        'sale_return_id',
+        'purchase_return_id',
         'description',
         'category',
         'payment_method_id',
@@ -105,6 +107,18 @@ class CashFlow extends BaseModel
     public function stockTransfer(): BelongsTo
     {
         return $this->belongsTo(StockTransfer::class, 'stock_transfer_id');
+    }
+
+    // Link to Sale Return
+    public function saleReturn(): BelongsTo
+    {
+        return $this->belongsTo(SaleReturn::class, 'sale_return_id');
+    }
+
+    // Link to Purchase Return
+    public function purchaseReturn(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseReturn::class, 'purchase_return_id');
     }
 
     /**
