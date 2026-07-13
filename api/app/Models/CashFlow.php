@@ -31,6 +31,7 @@ class CashFlow extends BaseModel
         'stock_transfer_id',
         'sale_return_id',
         'purchase_return_id',
+        'expense_id',
         'description',
         'category',
         'payment_method_id',
@@ -121,6 +122,12 @@ class CashFlow extends BaseModel
         return $this->belongsTo(PurchaseReturn::class, 'purchase_return_id');
     }
 
+    // Link to Expense
+    public function expense(): BelongsTo
+    {
+        return $this->belongsTo(Expense::class, 'expense_id');
+    }
+
     /**
      * Scopes
      */
@@ -168,6 +175,7 @@ class CashFlow extends BaseModel
             'worker_payments'   => 'Worker Payments',
             'tax_payments'      => 'Tax Payments',
             'stock_transfer'    => 'Stock Transfer',
+            'expenses'          => 'Expenses',
             default             => ucfirst(str_replace('_', ' ', $this->category ?? 'N/A')),
         };
     }

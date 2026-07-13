@@ -26,6 +26,7 @@ import {
   CreditCard,
   Undo2,
   ArrowLeftToLine,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -73,6 +74,7 @@ const navSections: Array<{
       { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
       { label: 'Reports', to: '/admin/reports', icon: TrendingUp, settingKey: 'reports' },
       { label: 'Finances', to: '/admin/finances', icon: DollarSign },
+      { label: 'Expenses', to: '/admin/expenses', icon: Receipt },
       { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle, settingKey: 'attendance' },
       { label: 'Taxes', to: '/admin/taxes', icon: DollarSign },
       { label: 'Payroll', to: '/admin/remuneration', icon: Users },

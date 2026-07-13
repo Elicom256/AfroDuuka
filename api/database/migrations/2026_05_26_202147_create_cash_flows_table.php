@@ -31,6 +31,7 @@ return new class extends Migration
         // Optional: Link to actual documents
         $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('set null');
         $table->foreignId('purchase_id')->nullable()->constrained('purchases')->onDelete('set null');
+        $table->foreignId('expense_id')->nullable()->constrained('expenses')->onDelete('set null');
         
         // Description & categorization
         $table->string('description')->nullable();
