@@ -2,15 +2,15 @@ Implement the following four production-ready modules in the existing Laravel + 
 
 The implementation must include:
 
-* Backend (Models, Migrations, Controllers, Requests, Policies, Resources, Services where appropriate)
-* Frontend (React pages, dialogs, hooks, API integration, reusable components)
-* Validation
-* Authorization
-* Audit logging where applicable
-* Feature tests and unit tests where appropriate (here create the front end folder for tests)
-* Database seed updates if needed
-* Navigation/menu integration
-* Dashboard integration where relevant
+- Backend (Models, Migrations, Controllers, Requests, Policies, Resources, Services where appropriate)
+- Frontend (React pages, dialogs, hooks, API integration, reusable components)
+- Validation
+- Authorization
+- Audit logging where applicable
+- Feature tests and unit tests where appropriate (here create the front end folder for tests)
+- Database seed updates if needed
+- Navigation/menu integration
+- Dashboard integration where relevant
 
 ---
 
@@ -22,22 +22,22 @@ Create a production-grade POS interface optimized for speed.
 
 Implement APIs for:
 
-* Product search by:
+- Product search by:
+  - Barcode
+  - SKU
+  - Product name
 
-  * Barcode
-  * SKU
-  * Product name
-* Customer search
-* Add sale
-* Hold sale
-* Resume held sale
-* Void sale
-* Complete sale
-* Receipt generation
-* Stock validation before checkout
-* Automatic stock deduction
-* Cash drawer transaction creation if already supported
-* Printer integration using the existing Printer model
+- Customer search
+- Add sale
+- Hold sale
+- Resume held sale
+- Void sale
+- Complete sale
+- Receipt generation
+- Stock validation before checkout
+- Automatic stock deduction
+- Cash drawer transaction creation if already supported
+- Printer integration using the existing Printer model
 
 Respect business, branch and user permissions.
 
@@ -47,24 +47,24 @@ Create a full-screen `/pos` page.
 
 Features:
 
-* Barcode input autofocus
-* Product search
-* Touch-friendly product grid
-* Cart sidebar
-* Quantity editing
-* Discount editing
-* Tax display
-* Customer selection
-* Walk-in customer
-* Multiple payment methods
-* Running totals
-* Checkout dialog
-* Receipt preview
-* Print receipt
-* Hold sale
-* Resume held sale
-* Keyboard shortcuts
-* Fast workflow suitable for supermarket checkout
+- Barcode input autofocus
+- Product search
+- Touch-friendly product grid
+- Cart sidebar
+- Quantity editing
+- Discount editing
+- Tax display
+- Customer selection
+- Walk-in customer
+- Multiple payment methods
+- Running totals
+- Checkout dialog
+- Receipt preview
+- Print receipt
+- Hold sale
+- Resume held sale
+- Keyboard shortcuts
+- Fast workflow suitable for supermarket checkout
 
 The interface must not reuse the admin CRUD table.
 
@@ -86,33 +86,33 @@ PurchaseReturnItem
 
 Fields include:
 
-* original transaction
-* reason
-* notes
-* quantity
-* refund amount
-* restock flag
-* condition
-* processed_by
-* timestamps
+- original transaction
+- reason
+- notes
+- quantity
+- refund amount
+- restock flag
+- condition
+- processed_by
+- timestamps
 
 When processing returns:
 
 Sales Return
 
-* validate original sale
-* prevent returning more than sold
-* restore stock if restock=true
-* create stock movements
-* create cashflow adjustment
-* preserve audit trail
+- validate original sale
+- prevent returning more than sold
+- restore stock if restock=true
+- create stock movements
+- create cashflow adjustment
+- preserve audit trail
 
 Purchase Return
 
-* reduce inventory
-* update supplier balances where appropriate
-* create stock movements
-* create cashflow adjustment
+- reduce inventory
+- update supplier balances where appropriate
+- create stock movements
+- create cashflow adjustment
 
 Never delete inventory history.
 
@@ -126,18 +126,18 @@ Purchase Returns
 
 Features:
 
-* Search original invoice
-* Select returned items
-* Partial returns
-* Full returns
-* Return reason
-* Condition
-* Refund amount
-* Notes
-* Confirmation dialog
-* Return history
-* Printable return receipt
-  
+- Search original invoice
+- Select returned items
+- Partial returns
+- Full returns
+- Return reason
+- Condition
+- Refund amount
+- Notes
+- Confirmation dialog
+- Return history
+- Printable return receipt
+
 ---
 
 # MODULE 3 — Expense Management
@@ -350,7 +350,6 @@ At the end, provide:
 4. Components created
 5. Files modified
 6. Suggested follow-up improvements
-
 
 ### Constraints
 

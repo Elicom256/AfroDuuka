@@ -1,40 +1,50 @@
-# MODULE 3 — Expense Management
+# MODULE 4 — Price History
 
-Implement dedicated expense management instead of relying only on generic CashFlow.
+Track every product price change.
 
 ## Backend
 
-**Create:**
+Create:
 
-- ExpenseCategory
-- Expense
-- Fields include:
-  -> Category, Amount, Branch, Business, Vendor, Description, Receipt attachment reference, Recurring, flag, Payment date, Status, Created by
+- PriceHistory
+- Fields:
+- business_branch_product_id
+- old_cost_price
+- new_cost_price
+- old_sale_price
+- new_sale_price
+- changed_by
+- change_reason (optional)
+- timestamps
 
-- Approval status (optional if permissions already exist)
-- Automatically generate related CashFlow records.
-- Provide reporting endpoints.
-- Filtering:
-  ->Date, Branch, Category, Status, Search
+Automatically record history whenever prices change.
+Use observers/events.
+Never overwrite historical records.
+Expose API:
+Product price timeline
+Latest changes
+Filter by product
+Filter by date
 
 ## Frontend
 
-**Pages:**
+**On Product Details add:**
 
-- Expense Categories
-- Expenses
+- Price History tab
+- Timeline
+- Table showing:
+- Date
+- Old Cost
+- New Cost
+- Old Selling
+- New Selling
+- User
+- Reason
+- Include pagination.
 
-**Features:**
--> CRUD
--> Approve (if permitted)
--> Filters
--> Totals
--> Monthly summaries
--> Export integration
--> Charts using existing chart components
-
-## Constraints
-
+### Constraints
 - Do not hallucinate
-- Scalability is key
-- Work everything from api to ui with proper route naming
+- Check the possible outcome before you code
+- Implement scalable approaches
+- Include comments in your work
+- Ensure the end points are matched well with the backend routes
