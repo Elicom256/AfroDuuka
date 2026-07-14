@@ -1,23 +1,47 @@
-# Refactor on business level
+# Plan: Integrate PriceAnalytics into PriceHistoryTab
 
-Refactor the products hierarchy to
-product_category -> product
-Meaning now, you'll replace:
+## Goal
+Remove the standalone `/admin/price-analytics` route and embed the `PriceAnalytics` component inside the existing `PriceHistoryTab` on the product detail page.
 
-- products with product_categories
-- business_branch_products with products
-- Move the sku, barcode and track_serial to new product model
-  So after this, the business branches of a business will all have products, not business_branch_products
+## Files to change
 
+### 1. `ui/src/app/pages/dashboards/admin/components/products/PriceHistoryTab.tsx`
 
-delete category
+**Import changes:**
+- Add import for `PriceAnalytics` from `'../analytics/PriceAnalytics'`
+- Add import for `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger` from `'@/components/ui/accordion'`
+- Add `TrendingUp` to the lucide-react imports
 
-After this, clean up the front end to to match the new implementation
+**JSX changes (inside the return block, after the pagination):**
+- Add an `Accordion` section below `</PaginationComponent>` and before `</CardContent>`:
 
-## Constraints
+```tsx
+{/* Analytics section (collapsible) */}
+<Accordion type="single" collapsible className="w-full">
+  <AccordionItem value="analytics">
+    <AccordionTrigger className="text-sm font-medium">
+      <span className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        Price Change Analytics
+      </span>
+    </AccordionTrigger>
+    <AccordionContent className="pt-4">
+      <PriceAnalytics />
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+```
 
-- Do not hallucinate
-- DO the clean up for both front end and back end
-- Use proper naming that match with a specific module
-- Rename every related thing eg models, migrations, etc
-- Edit migrations directly since I'm still in production'
+### 2. `ui/src/app/pages/dashboards/admin/pages/AdminPriceAnalyticsPage.tsx`
+- **Delete this file entirely.** The `PriceAnalytics` component will now be rendered from inside `PriceHistoryTab` instead.
+
+### 3. `ui/src/app/routes/AdminRoutes.tsx`
+- **Remove** `import { AdminPriceAnalyticsPage } from '../pages/dashboards/admin/pages/AdminPriceAnalyticsPage';`
+- **Remove** the route: `<Route path='price-analytics' element={<AdminPriceAnalyticsPage />} />`
+
+### No changes needed
+- `AdminSidebar.tsx` — the sidebar had no link to `/admin/price-analytics`, so nothing to remove.
+
+## Result
+- Price Analytics (store-wide trends) appears as a collapsible section within the Price History tab on any product's detail page.
+- No orphan routes or dead sidebar items.
