@@ -8,7 +8,7 @@ Create:
 
 - PriceHistory
 - Fields:
-- business_branch_product_id
+- product_id
 - old_cost_price
 - new_cost_price
 - old_sale_price
@@ -20,11 +20,16 @@ Create:
 Automatically record history whenever prices change.
 Use observers/events.
 Never overwrite historical records.
-Expose API:
+Expose AP
 Product price timeline
 Latest changes
 Filter by product
 Filter by date
+
+**Analytics**
+
+- Add analytics for price changes over time
+- Follow how other analytics are designed, you can re-use period that comes as param fro the front end
 
 ## Frontend
 
@@ -42,7 +47,11 @@ Filter by date
 - Reason
 - Include pagination.
 
+**Page analytics**
+On this page, use chartjs(already installed) to render how prices have changed over time
+
 ### Constraints
+
 - Do not hallucinate
 - Check the possible outcome before you code
 - Implement scalable approaches

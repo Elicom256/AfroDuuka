@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/', [ProductController::class, 'store']);
      // ========== Metrics after wildcard (needs {product}) ==========
     Route::get("/{product}/metrics", [ProductController::class, "productMetrics"]);
+    Route::get("/{product}/price-history", [\App\Http\Controllers\PriceHistoryController::class, "productTimeline"]);
     Route::get('/{product}', [ProductController::class, 'show']);
     Route::match(['put', 'patch'], '/{product}', [ProductController::class, 'update']);
     Route::delete('/{product}', [ProductController::class, 'destroy']);

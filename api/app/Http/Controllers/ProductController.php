@@ -188,6 +188,12 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $validated = $request->validated();
+
+        // Pass change_reason to the model so PriceHistoryObserver can pick it up
+        if (isset($validated['change_reason'])) {
+            $product->change_reason = $validated['change_reason'];
+        }
+
         $product->update($validated);
         return response()->json(["message" => "Product Updated Successfully!", "product" => $product], 201);
     }
