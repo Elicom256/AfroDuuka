@@ -30,6 +30,7 @@ import { AdminSuppliersPage } from '../pages/dashboards/admin/pages/AdminSupplie
 import { AdminInventoryPage } from '../pages/dashboards/admin/pages/AdminInventoryPage';
 import { AdminCustomersPage } from '../pages/dashboards/admin/pages/AdminCustomersPage';
 import { AdminAnalyticsPage } from '../pages/dashboards/admin/pages/AdminAnalyticsPage';
+import { AdminPriceAnalyticsPage } from '../pages/dashboards/admin/pages/AdminPriceAnalyticsPage';
 import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPage';
 import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinancesPage';
 import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
@@ -100,6 +101,7 @@ export const AdminRoutes = () => {
           <Route path='customers/:id' element={<Customer />} />
 
           <Route path='analytics' element={<AdminAnalyticsPage />} />
+          <Route path='price-analytics' element={<AdminPriceAnalyticsPage />} />
           <Route path='todos' element={<TodoList />} />
           <Route path='create-todo' element={<TodoForm />} />
           <Route path='reports' element={<AdminReportsPage />} />

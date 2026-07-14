@@ -52,6 +52,7 @@ import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptio
 import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
 import { expenseCategoriesQuery } from '../features/business/admin/expenseCategoriesQuery';
 import { expenseQuery } from '../features/business/admin/expenseQuery';
+import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQuery';
 
 export const store = configureStore({
   reducer: {
@@ -108,6 +109,7 @@ export const store = configureStore({
     [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
     [expenseCategoriesQuery.reducerPath]: expenseCategoriesQuery.reducer,
     [expenseQuery.reducerPath]: expenseQuery.reducer,
+    [priceHistoryQuery.reducerPath]: priceHistoryQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -165,6 +167,7 @@ export const store = configureStore({
       superAdminBusinessesQuery.middleware,
       expenseCategoriesQuery.middleware,
       expenseQuery.middleware,
+      priceHistoryQuery.middleware,
     ),
 });
 

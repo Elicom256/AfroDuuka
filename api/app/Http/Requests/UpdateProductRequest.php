@@ -39,6 +39,7 @@ class UpdateProductRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['nullable', 'in:active,inactive,damaged,out_of_stock'],
             'expiry_date' => ['nullable', 'date'],
+            'change_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

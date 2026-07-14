@@ -86,6 +86,10 @@ Route::prefix("report-exports")->group(function () {
     require __DIR__."/report-exports.php";
 });
 
+Route::prefix("price-history")->group(function () {
+    require __DIR__.'/price-history.php';
+});
+
 Route::prefix('reports')->group(function () {
     require __DIR__.'/reports.php';
 });
