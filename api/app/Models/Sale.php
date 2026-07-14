@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 // receipt / invoice like
 class Sale extends BaseModel
 {
@@ -27,5 +28,10 @@ class Sale extends BaseModel
      public function salePayment(): BelongsTo
     {
         return $this->belongsTo(SalePayment::class);
+    }
+
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
     }
 }

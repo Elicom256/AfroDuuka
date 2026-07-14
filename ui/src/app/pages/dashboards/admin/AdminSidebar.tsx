@@ -51,6 +51,7 @@ const navSections: Array<{
     items: [
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
       { label: 'Sales', to: '/admin/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/admin/receipts', icon: FileText },
       { label: 'Purchases', to: '/admin/purchases', icon: Truck },
       { label: 'Sale Returns', to: '/admin/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/admin/purchase-returns', icon: ArrowLeftToLine },
