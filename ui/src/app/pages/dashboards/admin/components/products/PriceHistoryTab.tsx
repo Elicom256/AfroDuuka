@@ -1,12 +1,12 @@
-/*-----------------------------------------------------------------------------------
- * Component: PriceHistoryTab
- * -------------------------------
- * Displays price change history for a single product in a table + timeline.
- * Features:
- *   - Table columns: Date, Old Cost, New Cost, Old Selling, New Selling, User, Reason
- *   - Paginated (client-side via PaginationComponent)
- *   - Timeline-style list view as a secondary mode
- *---------------------------------------------------------------------------------*/
+// /*-----------------------------------------------------------------------------------
+//  * Component: PriceHistoryTab
+//  * -------------------------------
+//  * Displays price change history for a single product in a table + timeline.
+//  * Features:
+//  *   - Table columns: Date, Old Cost, New Cost, Old Selling, New Selling, User, Reason
+//  *   - Paginated (client-side via PaginationComponent)
+//  *   - Timeline-style list view as a secondary mode
+//  *---------------------------------------------------------------------------------*/
 
 import { useState } from 'react';
 import { useProductPriceHistoryQuery } from '@/app/store/features/branch/priceHistory/priceHistoryQuery';
@@ -16,7 +16,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { LoadingState } from '@/utils/LoadingState';
-import { Clock, ArrowUp, ArrowDown } from 'lucide-react';
+import { Clock, ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
+import { format } from 'date-fns';
+import { ProductPriceChart } from './ProductPriceChart';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface PriceHistoryTabProps {
   productId: string;
@@ -29,7 +32,7 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
 
   // The backend returns paginated data inside `data.data`
   const historyData = data?.data;
-  const records = historyData?.data ?? [];          // the actual page items
+  const records = historyData?.data ?? []; // the actual page items
   const currentPage = historyData?.current_page ?? 1;
   const lastPage = historyData?.last_page ?? 1;
 
@@ -44,9 +47,7 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
             <Clock className='h-5 w-5' /> Price History
           </CardTitle>
         </CardHeader>
-        <CardContent className='py-8 text-center text-muted-foreground'>
-          No price changes recorded yet.
-        </CardContent>
+        <CardContent className='py-8 text-center text-muted-foreground'>No price changes recorded yet.</CardContent>
       </Card>
     );
   }
@@ -65,10 +66,10 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Old Cost</TableHead>
-                <TableHead>New Cost</TableHead>
-                <TableHead>Old Selling</TableHead>
-                <TableHead>New Selling</TableHead>
+                <TableHead>Old Cost  ({ currency })</TableHead>
+                <TableHead>New Cost  ({ currency })</TableHead>
+                <TableHead>Old Selling  ({ currency })</TableHead>
+                <TableHead>New Selling  ({ currency })</TableHead>
                 <TableHead>Changed By</TableHead>
                 <TableHead>Reason</TableHead>
               </TableRow>
@@ -78,47 +79,42 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
                 <TableRow key={record.id}>
                   {/* Date */}
                   <TableCell className='text-xs whitespace-nowrap'>
-                    {new Date(record.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {format(new Date(record.created_at), 'PPP')}
                   </TableCell>
 
                   {/* Old Cost */}
                   <TableCell>
                     <span className='text-red-500'>
-                      {currency} {record.old_cost_price ?? '-'}
+                       {record.old_cost_price ?? '-'}
                     </span>
                   </TableCell>
 
                   {/* New Cost */}
                   <TableCell>
                     <span className='text-green-600'>
-                      {currency} {record.new_cost_price ?? '-'}
+                       {record.new_cost_price ?? '-'}
                     </span>
                   </TableCell>
 
                   {/* Old Selling */}
                   <TableCell>
                     <span className='text-red-500'>
-                      {currency} {record.old_sale_price ?? '-'}
+                       {record.old_sale_price ?? '-'}
                     </span>
                   </TableCell>
 
                   {/* New Selling */}
                   <TableCell>
                     <span className='text-green-600'>
-                      {currency} {record.new_sale_price ?? '-'}
+                       {record.new_sale_price ?? '-'}
                     </span>
                   </TableCell>
 
                   {/* Changed By */}
                   <TableCell className='text-xs'>
                     {record.changed_by_user
-                      ? `${record.changed_by_user.firstname ?? ''} ${record.changed_by_user.lastname ?? ''}`.trim() || 'System'
+                      ? `${record.changed_by_user.firstname ?? ''} ${record.changed_by_user.lastname ?? ''}`.trim() ||
+                        'System'
                       : 'System'}
                   </TableCell>
 
@@ -139,11 +135,22 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
         </div>
 
         {/* Pagination */}
-        <PaginationComponent
-          currentPage={currentPage}
-          totalPages={lastPage}
-          onPageChange={setPage}
-        />
+        <PaginationComponent currentPage={currentPage} totalPages={lastPage} onPageChange={setPage} />
+
+        {/* Analytics section (collapsible) */}
+        <Accordion type='single' collapsible className='w-full'>
+          <AccordionItem value='analytics'>
+            <AccordionTrigger className='text-sm font-medium'>
+              <span className='flex items-center gap-2'>
+                <TrendingUp className='h-4 w-4' />
+                Price Change Analytics
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className='pt-4'>
+              <ProductPriceChart productId={productId} />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
     </Card>
   );
