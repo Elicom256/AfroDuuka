@@ -85,6 +85,15 @@ class ReceiptController extends Controller
 
         $pdf = Pdf::loadView('pdfs.receipt', compact('receipt'));
 
+        $acceptHeader = request()->header('Accept', '');
+        if (str_contains($acceptHeader, '/json') || str_contains($acceptHeader, '+json')) {
+            return response()->json([
+                'message' => 'PDF generated successfully',
+                'pdf' => base64_encode($pdf->output()),
+                'filename' => "receipt-{$receipt->receipt_number}.pdf",
+            ]);
+        }
+
         return $pdf->download("receipt-{$receipt->receipt_number}.pdf");
     }
 }

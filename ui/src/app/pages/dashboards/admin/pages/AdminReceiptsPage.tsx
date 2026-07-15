@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useReceiptsQuery } from '@/app/store/features/branch/receipts/receiptsQuery';
+import { useReceiptsQuery, useDownloadReceiptPdfMutation } from '@/app/store/features/branch/receipts/receiptsQuery';
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -17,22 +17,23 @@ import { format } from 'date-fns';
 export const AdminReceiptsPage = () => {
   const { currency } = useCurrency();
   const [search, setSearch] = useState('');
-  const [customerId, setCustomerId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [status, setStatus] = useState('');
+  const [customerId, setCustomerId] = useState('all');
+  const [paymentMethod, setPaymentMethod] = useState('all');
+  const [status, setStatus] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   const params: Record<string, any> = { page: currentPage, per_page: 15 };
   if (search) params.search = search;
-  if (customerId) params.customer_id = customerId;
-  if (paymentMethod) params.payment_method = paymentMethod;
-  if (status) params.status = status;
+  if (customerId && customerId !== 'all') params.customer_id = customerId;
+  if (paymentMethod && paymentMethod !== 'all') params.payment_method = paymentMethod;
+  if (status && status !== 'all') params.status = status;
   if (dateFrom) params.date_from = dateFrom;
   if (dateTo) params.date_to = dateTo;
 
   const { data, isLoading } = useReceiptsQuery(params);
+  const [downloadReceiptPdf] = useDownloadReceiptPdfMutation();
   const { data: customersData } = useCustomersQuery();
 
   if (isLoading) return <PageLoadingState />;
@@ -45,10 +46,14 @@ export const AdminReceiptsPage = () => {
 
   const statusVariant = (s: string) => {
     switch (s) {
-      case 'completed': return 'success';
-      case 'refunded': return 'warning';
-      case 'voided': return 'destructive';
-      default: return 'secondary';
+      case 'completed':
+        return 'success';
+      case 'refunded':
+        return 'warning';
+      case 'voided':
+        return 'destructive';
+      default:
+        return 'secondary';
     }
   };
 
@@ -58,16 +63,36 @@ export const AdminReceiptsPage = () => {
 
   const handleClear = () => {
     setSearch('');
-    setCustomerId('');
-    setPaymentMethod('');
-    setStatus('');
+    setCustomerId('all');
+    setPaymentMethod('all');
+    setStatus('all');
     setDateFrom('');
     setDateTo('');
     setCurrentPage(1);
   };
 
-  const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost/api';
-
+  const handleDownloadPdf = async (receiptId: number, filename: string) => {
+    try {
+      const result = await downloadReceiptPdf(receiptId).unwrap();
+      const byteCharacters = atob(result.pdf);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      console.error('Failed to download receipt');
+    }
+  };
   return (
     <div className='space-y-6'>
       <Card className='rounded-3xl border border-border/70 bg-card p-2'>
@@ -84,7 +109,7 @@ export const AdminReceiptsPage = () => {
         <CardHeader>
           <div className='flex flex-col gap-4'>
             <div className='flex flex-wrap items-center gap-3'>
-              <div className='relative flex-1 min-w-[200px]'>
+              <div className='relative flex-1 min-w-50'>
                 <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input
                   placeholder='Search receipt number...'
@@ -94,11 +119,11 @@ export const AdminReceiptsPage = () => {
                 />
               </div>
               <Select value={customerId} onValueChange={setCustomerId}>
-                <SelectTrigger className='w-[160px]'>
+                <SelectTrigger className='w-40'>
                   <SelectValue placeholder='Customer' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=''>All Customers</SelectItem>
+                  <SelectItem value='all'>All Customers</SelectItem>
                   {customers.map((c: any) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.user?.firstname ?? c.company_name ?? `Customer #${c.id}`}
@@ -107,11 +132,11 @@ export const AdminReceiptsPage = () => {
                 </SelectContent>
               </Select>
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger className='w-[150px]'>
+                <SelectTrigger className='w-37'>
                   <SelectValue placeholder='Payment' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=''>All Methods</SelectItem>
+                  <SelectItem value='all'>All Methods</SelectItem>
                   <SelectItem value='cash'>Cash</SelectItem>
                   <SelectItem value='credit_card'>Credit Card</SelectItem>
                   <SelectItem value='mobile_money'>Mobile Money</SelectItem>
@@ -119,11 +144,11 @@ export const AdminReceiptsPage = () => {
                 </SelectContent>
               </Select>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className='w-[130px]'>
+                <SelectTrigger className='w-32'>
                   <SelectValue placeholder='Status' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=''>All Status</SelectItem>
+                  <SelectItem value='all'>All Status</SelectItem>
                   <SelectItem value='completed'>Completed</SelectItem>
                   <SelectItem value='refunded'>Refunded</SelectItem>
                   <SelectItem value='voided'>Voided</SelectItem>
@@ -133,14 +158,14 @@ export const AdminReceiptsPage = () => {
                 type='date'
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className='w-[140px]'
+                className='w-35'
                 placeholder='From'
               />
               <Input
                 type='date'
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className='w-[140px]'
+                className='w-35'
                 placeholder='To'
               />
               <Button onClick={handleFilter} size='sm' className='gap-2'>
@@ -180,13 +205,17 @@ export const AdminReceiptsPage = () => {
                     <TableCell className='font-medium'>{receipt.receipt_number}</TableCell>
                     <TableCell>
                       {receipt.customer
-                        ? (receipt.customer.user?.firstname ?? receipt.customer.company_name ?? `Customer #${receipt.customer.id}`)
+                        ? (receipt.customer.user?.firstname ??
+                          receipt.customer.company_name ??
+                          `Customer #${receipt.customer.id}`)
                         : '-'}
                     </TableCell>
                     <TableCell>
                       {receipt.user ? `${receipt.user.firstname ?? ''} ${receipt.user.lastname ?? ''}` : '-'}
                     </TableCell>
-                    <TableCell>{currency} {Number(receipt.total).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {currency} {Number(receipt.total).toLocaleString()}
+                    </TableCell>
                     <TableCell className='capitalize'>{receipt.payment_method?.replace(/_/g, ' ')}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant(receipt.status) as any}>{receipt.status}</Badge>
@@ -201,15 +230,13 @@ export const AdminReceiptsPage = () => {
                           <Eye className='h-3.5 w-3.5' />
                           View
                         </Link>
-                        <a
-                          href={`${baseUrl}/receipts/${receipt.id}/pdf?token=${localStorage.getItem('token')}`}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground'
+                        <button
+                          onClick={() => handleDownloadPdf(receipt.id, `receipt-${receipt.receipt_number}.pdf`)}
+                          className='flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground cursor-pointer'
                         >
                           <Download className='h-3.5 w-3.5' />
                           PDF
-                        </a>
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -220,11 +247,7 @@ export const AdminReceiptsPage = () => {
 
           {totalPages > 1 && (
             <div className='mt-4'>
-              <PaginationComponent
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </div>
           )}
         </CardContent>
