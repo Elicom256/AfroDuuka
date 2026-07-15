@@ -9,12 +9,13 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeft, Download, ExternalLink, Receipt as ReceiptIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { LoadingState } from '@/utils/LoadingState';
 
 export const ReceiptDetail = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const { data: receiptData, isLoading } = useReceiptQuery(String(id), { skip: !id });
-  const [downloadReceiptPdf, { error, isLoading: downloading }] = useDownloadReceiptPdfMutation();
+  const [downloadReceiptPdf, { isLoading: downloading }] = useDownloadReceiptPdfMutation();
 
   if (isLoading) return <PageLoadingState />;
 
@@ -94,8 +95,14 @@ export const ReceiptDetail = () => {
             Open PDF
           </Button>
           <Button size='sm' className='gap-2' onClick={handleDownloadPdf}>
-            <Download className='h-4 w-4' />
-            Download PDF
+            {downloading ? (
+              <LoadingState />
+            ) : (
+              <>
+                <Download className='h-4 w-4' />
+                Download PDF
+              </>
+            )}
           </Button>
         </div>
       </div>
