@@ -88,7 +88,7 @@ class SaleItemService
             $receiptService = app(ReceiptService::class);
             $paymentMethodName = $method ?? 'cash';
             $validated['payment_method'] = $paymentMethodName;
-            $receipt = $receiptService->createReceiptForSale($sale, $validated);
+            $receiptService->createReceiptForSale($sale, $validated);
 
             return $sale->load(["saleItems", "salePayment", "receipt"]);
         });
