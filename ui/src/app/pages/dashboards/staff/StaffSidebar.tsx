@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, DollarSign, AlertTriangle, TrendingUp, PackageCheck } from 'lucide-react';
+import { LayoutDashboard, DollarSign, AlertTriangle, TrendingUp, PackageCheck, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
@@ -14,6 +14,7 @@ const navSections = [
     items: [
       { label: 'Products', to: '/staff/products', icon: PackageCheck },
       { label: 'Sales', to: '/staff/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/staff/receipts', icon: Receipt },
       { label: 'Inventory', to: '/staff/inventory', icon: AlertTriangle },
     ],
   },

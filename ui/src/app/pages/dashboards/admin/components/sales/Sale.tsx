@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSaleQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { ArrowLeftCircle } from 'lucide-react';
+import { ArrowLeftCircle, Receipt as ReceiptIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
@@ -56,6 +56,18 @@ export const Sale = () => {
                 <p>
                   <span className='font-medium'>Total Amount:</span> {currency} {parseInt(sale.total_amount).toLocaleString()}
                 </p>
+                {sale.receipt && (
+                  <p>
+                    <span className='font-medium'>Receipt: </span>
+                    <Link
+                      to={`../receipts/${sale.receipt.id}`}
+                      className='inline-flex items-center gap-1 text-blue-400 hover:underline'
+                    >
+                      <ReceiptIcon className='h-3.5 w-3.5' />
+                      {sale.receipt.receipt_number}
+                    </Link>
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -58,6 +58,8 @@ import { AdminCurrencyRatesPage } from '../pages/dashboards/admin/pages/AdminCur
 import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
 import { AdminPrintersPage } from '../pages/dashboards/admin/pages/AdminPrintersPage';
 import { AdminStockTransfersPage } from '../pages/dashboards/admin/pages/AdminStockTransfersPage';
+import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceiptsPage';
+import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Receipt';
 import { AdminExpenseCategoriesPage } from '../pages/dashboards/admin/pages/AdminExpenseCategoriesPage';
 import { AdminExpensesPage } from '../pages/dashboards/admin/pages/AdminExpensesPage';
 import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReorderRulesPage';
@@ -138,6 +140,8 @@ export const AdminRoutes = () => {
           <Route path='loyalty' element={<AdminLoyaltyPage />} />
           <Route path='report-exports' element={<AdminReportExportsPage />} />
           <Route path='products/:id' element={<Product />} />
+          <Route path='receipts' element={<AdminReceiptsPage />} />
+          <Route path='receipts/:id' element={<ReceiptDetail />} />
           <Route path='expense-categories' element={<AdminExpenseCategoriesPage />} />
           <Route path='expenses' element={<AdminExpensesPage />} />
           <Route path='branches' element={<BusinessBranches />} />

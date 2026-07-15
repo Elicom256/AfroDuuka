@@ -25,6 +25,8 @@ import { PurchaseReturn } from '../pages/dashboards/manageradmin/components/purc
 import { SaleReturnsPage } from '../pages/dashboards/manageradmin/pages/SaleReturnsPage';
 import { PurchaseReturnsPage } from '../pages/dashboards/manageradmin/pages/PurchaseReturnsPage';
 import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
+import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceiptsPage';
+import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Receipt';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
@@ -39,6 +41,8 @@ export const ManagerRoutes = () => {
         <Route index element={<ManagerDashboardPage />} />
         <Route path='sales' element={<ManagerSalesPage />} />
         <Route path='sales/:id' element={<Sale />} />
+        <Route path='receipts' element={<AdminReceiptsPage />} />
+        <Route path='receipts/:id' element={<ReceiptDetail />} />
         <Route path='purchases' element={<ManagerPurchasesPage />} />
         <Route path='purchases/:id' element={<Purchase />} />
         <Route path='sale-returns' element={<SaleReturnsPage />} />

@@ -15,6 +15,7 @@ import {
   Bell,
   MessageSquare,
   Undo2,
+  FileText,
   ArrowLeftToLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,7 @@ const navSections: Array<{
     items: [
       { label: 'Products', to: '/manager/products', icon: PackageCheck },
       { label: 'Sales', to: '/manager/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/manager/receipts', icon: FileText },
       { label: 'Purchases', to: '/manager/purchases', icon: Truck },
       { label: 'Sale Returns', to: '/manager/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/manager/purchase-returns', icon: ArrowLeftToLine },

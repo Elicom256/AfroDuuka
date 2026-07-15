@@ -55,7 +55,7 @@ class SaleController extends Controller
     public function show(string $sale)
     {
         // $sale = Sale::find($sale)->load("saleItems");
-        $newSale = Sale::find($sale)->load("saleItems.product");
+        $newSale = Sale::find($sale)->load(["saleItems.product", "receipt"]);
         return response()->json(["message" => "Sale Fetched!", "sale" => $newSale]);
     }
 

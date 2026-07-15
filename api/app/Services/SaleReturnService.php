@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Receipt;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
@@ -84,6 +85,13 @@ class SaleReturnService
         }
 
         $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
+
+        $firstSaleItem = SaleItem::find($validated['items'][0]['sale_item_id']);
+        if ($firstSaleItem) {
+            Receipt::where('sale_id', $firstSaleItem->sale_id)
+                ->where('status', 'completed')
+                ->update(['status' => 'refunded']);
+        }
 
         return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
     }

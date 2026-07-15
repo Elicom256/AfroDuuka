@@ -26,14 +26,13 @@ Implement APIs for:
   - Barcode
   - SKU
   - Product name
-
 - Customer search
 - Add sale
 - Hold sale
 - Resume held sale
 - Void sale
 - Complete sale
-- Receipt generation
+- Receipt generation 
 - Stock validation before checkout
 - Automatic stock deduction
 - Cash drawer transaction creation if already supported
@@ -140,7 +139,7 @@ Features:
 
 ---
 
-# MODULE 3 — Expense Management
+# ✅ MODULE 3 — Expense Management
 
 Implement dedicated expense management instead of relying only on generic CashFlow.
 
@@ -226,7 +225,7 @@ Charts using existing chart components
 
 ---
 
-# MODULE 4 — Price History
+# ✅ MODULE 4 — Price History
 
 Track every product price change.
 
