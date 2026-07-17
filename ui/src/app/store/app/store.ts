@@ -54,6 +54,7 @@ import { expenseCategoriesQuery } from '../features/business/admin/expenseCatego
 import { expenseQuery } from '../features/business/admin/expenseQuery';
 import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQuery';
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
+import { posQuery } from '../features/branch/pos/posQuery';
 
 export const store = configureStore({
   reducer: {
@@ -112,6 +113,7 @@ export const store = configureStore({
     [expenseQuery.reducerPath]: expenseQuery.reducer,
     [priceHistoryQuery.reducerPath]: priceHistoryQuery.reducer,
     [receiptsQuery.reducerPath]: receiptsQuery.reducer,
+    [posQuery.reducerPath]: posQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -171,6 +173,7 @@ export const store = configureStore({
       expenseQuery.middleware,
       priceHistoryQuery.middleware,
       receiptsQuery.middleware,
+      posQuery.middleware,
     ),
 });
 

@@ -29,6 +29,8 @@ import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceipts
 import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Receipt';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
+import { ProtectedRoutes } from './ProtectedRoutes';
 
 export const ManagerRoutes = () => {
   const {  isLoading } = useLoggedinUserQuery();
@@ -37,6 +39,9 @@ export const ManagerRoutes = () => {
       }
   return (
     <Routes>
+      <Route element={<ProtectedRoutes />}>
+        <Route path='manager/pos' element={<PosPage />} />
+      </Route>
       <Route path='manager' element={<ManagerLayout />}>
         <Route index element={<ManagerDashboardPage />} />
         <Route path='sales' element={<ManagerSalesPage />} />
