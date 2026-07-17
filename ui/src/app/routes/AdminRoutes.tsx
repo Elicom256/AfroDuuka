@@ -76,10 +76,10 @@ export const AdminRoutes = () => {
   }
   return (
     <Routes>
-       <Route element={<ProtectedRoutes />}>
-          {/* Full-screen POS route (no sidebar) */}
-          <Route path='admin/pos' element={<PosPage />} />
-          <Route path='admin' element={<AdminLayout />}>
+      <Route element={<ProtectedRoutes />}>
+        {/* Full-screen POS route (no sidebar) */}
+        <Route path='admin/pos' element={<PosPage />} />
+        <Route path='admin' element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
 
           <Route path='workers' element={<AdminWorkersPage />} />
@@ -151,7 +151,7 @@ export const AdminRoutes = () => {
           <Route path='subscriptions' element={<AdminSubscriptionPaymentsPage />} />
         </Route>
       </Route>
-       
+
       {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );

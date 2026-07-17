@@ -12,10 +12,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId("business_branch_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("user_id")->nullable()->constrained("users")->nullOnDelete();
             $table->foreignId("customer_id")->nullable()->constrained()->cascadeOnDelete();
             $table->decimal('total_amount', 12, 2);
             $table->string('note')->nullable();
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['held', 'pending', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }

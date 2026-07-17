@@ -23,7 +23,7 @@ class StoreSaleRequest extends FormRequest
     {
         $user = Auth::user();
         $business = $user->business()->with('country')->first();
-        $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
+        $defaultCurrency = $business?->country?->currency_code;
 
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
