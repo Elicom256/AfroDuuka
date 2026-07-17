@@ -27,6 +27,7 @@ import {
   Undo2,
   ArrowLeftToLine,
   Receipt,
+  ShoppingCart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -49,6 +50,7 @@ const navSections: Array<{
   {
     title: 'Operations',
     items: [
+      { label: 'POS', to: '/admin/pos', icon: ShoppingCart },
       { label: 'Products', to: '/admin/products', icon: PackageCheck },
       { label: 'Sales', to: '/admin/sales', icon: DollarSign },
       { label: 'Receipts', to: '/admin/receipts', icon: FileText },

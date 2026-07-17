@@ -5,20 +5,16 @@ namespace Database\Factories;
 use App\Models\BusinessBranch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<BusinessBranch>
- */
 class BusinessBranchFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = BusinessBranch::class;
+
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->company() . ' Branch',
+            'phone' => fake()->phoneNumber(),
+            'status' => 'active',
         ];
     }
 }

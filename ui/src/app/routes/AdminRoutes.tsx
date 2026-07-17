@@ -26,6 +26,7 @@ import { AdminNotificationsPage } from '../pages/dashboards/admin/pages/AdminNot
 import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
 import { ProductCategory } from '../pages/dashboards/admin/components/products/ProductCategory';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { AdminSuppliersPage } from '../pages/dashboards/admin/pages/AdminSuppliersPage';
 import { AdminInventoryPage } from '../pages/dashboards/admin/pages/AdminInventoryPage';
 import { AdminCustomersPage } from '../pages/dashboards/admin/pages/AdminCustomersPage';
@@ -75,8 +76,10 @@ export const AdminRoutes = () => {
   }
   return (
     <Routes>
-      <Route element={<ProtectedRoutes />}>
-        <Route path='admin' element={<AdminLayout />}>
+       <Route element={<ProtectedRoutes />}>
+          {/* Full-screen POS route (no sidebar) */}
+          <Route path='admin/pos' element={<PosPage />} />
+          <Route path='admin' element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
 
           <Route path='workers' element={<AdminWorkersPage />} />
