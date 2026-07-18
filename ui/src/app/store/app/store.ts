@@ -55,6 +55,7 @@ import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQ
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
 import { posQuery } from '../features/branch/pos/posQuery';
 import { ordersQuery } from '../features/orders/ordersQuery';
+import { purchaseOrdersQuery } from '../features/orders/purchaseOrdersQuery';
 import { couponsQuery } from '../features/coupons/couponsQuery';
 
 export const store = configureStore({
@@ -115,6 +116,7 @@ export const store = configureStore({
     [receiptsQuery.reducerPath]: receiptsQuery.reducer,
     [posQuery.reducerPath]: posQuery.reducer,
     [ordersQuery.reducerPath]: ordersQuery.reducer,
+    [purchaseOrdersQuery.reducerPath]: purchaseOrdersQuery.reducer,
     [couponsQuery.reducerPath]: couponsQuery.reducer,
   },
 
@@ -176,6 +178,7 @@ export const store = configureStore({
       receiptsQuery.middleware,
       posQuery.middleware,
       ordersQuery.middleware,
+      purchaseOrdersQuery.middleware,
       couponsQuery.middleware,
     ),
 });

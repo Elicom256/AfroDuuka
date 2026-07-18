@@ -29,7 +29,7 @@ export const AdminCouponsPage = () => {
       toast.error(err?.data?.message || 'Failed to create coupon');
     }
   };
-
+console.log("coupons==>", data)
   if (isLoading) return <PageLoadingState />;
 
   return (
