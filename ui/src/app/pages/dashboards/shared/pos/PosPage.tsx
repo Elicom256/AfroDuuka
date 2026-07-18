@@ -60,7 +60,7 @@ export const PosPage = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<any>(null);
   const [note, setNote] = useState('');
-  const [payments, setPayments] = useState<PaymentInput[]>([{ method: 'cash', amount: 0 }]);
+  const [payments, setPayments] = useState<PaymentInput[]>([]);
   const [heldSaleId, setHeldSaleId] = useState<number | null>(null);
 
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchProductsQuery();
@@ -265,6 +265,7 @@ export const PosPage = () => {
       setShowReceiptModal(true);
       clearCart();
     } catch (err: any) {
+      console.log("error=>", err)
       toast.error(err?.data?.error || err?.data?.message || 'Checkout failed');
     }
   };
@@ -313,6 +314,12 @@ export const PosPage = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   });
+
+  useEffect(() => {
+    if (showCheckoutModal) {
+      setPayments([{ method: 'cash', amount: total }]);
+    }
+  }, [showCheckoutModal, total]);
 
   const totalPaid = payments.reduce((s, p) => s + (p.amount || 0), 0);
   const changeDue = Math.max(0, totalPaid - total);

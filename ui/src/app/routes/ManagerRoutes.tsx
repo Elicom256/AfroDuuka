@@ -16,7 +16,6 @@ import { ManagerNotificationsPage } from '../pages/dashboards/manager/pages/Mana
 import { ManagerMessagesPage } from '../pages/dashboards/manager/pages/ManagerMessagesPage';
 import { ManagerPromotionsPage } from '../pages/dashboards/manager/pages/ManagerPromotionsPage';
 import { ManagerAttendancePage } from '../pages/dashboards/manager/pages/ManagerAttendancePage';
-import { ManagerHistoryPage } from '../pages/dashboards/manager/pages/ManagerHistoryPage';
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
@@ -68,7 +67,6 @@ export const ManagerRoutes = () => {
         <Route path='messages' element={<ManagerMessagesPage />} />
         <Route path='promotions' element={<ManagerPromotionsPage />} />
         <Route path='attendance' element={<ManagerAttendancePage />} />
-        <Route path='history' element={<ManagerHistoryPage />} />
       </Route>
       {/* unmatched */}
       {/* <Route path='*' element={<NotFound />} /> */}

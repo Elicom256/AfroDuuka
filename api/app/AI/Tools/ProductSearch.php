@@ -36,9 +36,9 @@ class ProductSearch extends Tool
         }
 
         $products = Product::where(function ($q) use ($query) {
-            $q->where('name', 'like', "%{$query}%")
-              ->orWhere('sku', 'like', "%{$query}%")
-              ->orWhere('barcode', 'like', "%{$query}%");
+            $q->where('name', 'ilike', "%{$query}%")
+              ->orWhere('sku', 'ilike', "%{$query}%")
+              ->orWhere('barcode', 'ilike', "%{$query}%");
         })
             ->with('category')
             ->limit(20)

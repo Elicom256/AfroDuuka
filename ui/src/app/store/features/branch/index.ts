@@ -21,4 +21,3 @@ export { branchFinancesQuery, useBranchFinancesQuery } from './finances/branchFi
 export { branchMessagesQuery, useBranchMessagesQuery } from './messages/messagesQuery';
 export { branchPromotionsQuery, useBranchPromotionsQuery } from './promotions/promotionsQuery';
 export { branchAttendanceQuery, useBranchAttendanceQuery } from './attendance/attendanceQuery';
-export { branchHistoryQuery, useBranchHistoryQuery } from './history/historyQuery';

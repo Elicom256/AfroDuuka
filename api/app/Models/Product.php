@@ -23,6 +23,7 @@ class Product extends Model
         'markup_percentage',
         'reorder_level',
         'description',
+        'emoji',
         'status',
         'last_sold_at',
         'expiry_date',

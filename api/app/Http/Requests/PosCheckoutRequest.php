@@ -22,6 +22,7 @@ class PosCheckoutRequest extends FormRequest
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
             'business_id'        => $user->business_id,
+            'user_id'            => $user->id,
             'currency'           => $this->input('currency', $defaultCurrency),
         ]);
     }

@@ -25,6 +25,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
   const { data } = useProductCategoriesQuery();
 
+  const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
+
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -33,6 +35,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     quantity: '',
     reorder_level: '',
     description: '',
+    emoji: '',
     product_category_id: '',
   });
 
@@ -51,6 +54,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
           quantity: '',
           reorder_level: '',
           description: '',
+          emoji: '',
           product_category_id: '',
         });
       }
@@ -174,6 +178,23 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>Emoji</Label>
+              <div className='col-span-3 flex flex-wrap gap-2'>
+                {EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type='button'
+                    onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
+                    className={`text-2xl p-2 rounded-xl border transition-all ${
+                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='description' className='text-right'>

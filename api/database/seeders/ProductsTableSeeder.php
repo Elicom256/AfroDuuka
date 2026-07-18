@@ -21,16 +21,16 @@ class ProductsTableSeeder extends Seeder
         $branches = BusinessBranch::where('business_id', $business->id)->get();
 
         $categoryMap = [
-            'Phones' => ['name' => 'iPhone 15 Pro Max', 'sku' => 'PH-1001', 'barcode' => '890100000001', 'description' => 'Mobile phones and smartphones'],
-            'Computers' => ['name' => 'MacBook Air M3', 'sku' => 'PC-1002', 'barcode' => '890100000002', 'description' => 'Laptops, desktops and computer accessories'],
-            'Tablets & iPads' => ['name' => 'Samsung Galaxy Tab S9', 'sku' => 'TB-1003', 'barcode' => '890100000003', 'description' => 'Tablets, iPads and e-readers'],
-            'Audio & Headphones' => ['name' => 'Sony WH-1000XM5', 'sku' => 'AU-1004', 'barcode' => '890100000004', 'description' => 'Headphones, speakers and audio equipment'],
-            'Cameras & Drones' => ['name' => 'Canon EOS R50', 'sku' => 'CM-1005', 'barcode' => '890100000005', 'description' => 'Cameras, drones and photography gear'],
-            'TVs & Home Theater' => ['name' => 'Samsung 55" Smart TV', 'sku' => 'TV-1006', 'barcode' => '890100000006', 'description' => 'Televisions and home entertainment systems'],
-            'Gaming' => ['name' => 'PlayStation 5', 'sku' => 'GM-1007', 'barcode' => '890100000007', 'description' => 'Gaming consoles and accessories'],
-            'Wearables' => ['name' => 'Apple Watch Series 10', 'sku' => 'WR-1008', 'barcode' => '890100000008', 'description' => 'Smartwatches and fitness trackers'],
-            'Home Appliances' => ['name' => 'Smart Refrigerator', 'sku' => 'HA-1009', 'barcode' => '890100000009', 'description' => 'Refrigerators, washing machines and kitchen appliances'],
-            'Networking' => ['name' => 'WiFi Router', 'sku' => 'NW-1010', 'barcode' => '890100000010', 'description' => 'Routers, modems and networking equipment'],
+            'Phones' => ['name' => 'iPhone 15 Pro Max', 'sku' => 'PH-1001', 'barcode' => '890100000001', 'description' => 'Mobile phones and smartphones', 'emoji' => '📱'],
+            'Computers' => ['name' => 'MacBook Air M3', 'sku' => 'PC-1002', 'barcode' => '890100000002', 'description' => 'Laptops, desktops and computer accessories', 'emoji' => '💻'],
+            'Tablets & iPads' => ['name' => 'Samsung Galaxy Tab S9', 'sku' => 'TB-1003', 'barcode' => '890100000003', 'description' => 'Tablets, iPads and e-readers', 'emoji' => '📱'],
+            'Audio & Headphones' => ['name' => 'Sony WH-1000XM5', 'sku' => 'AU-1004', 'barcode' => '890100000004', 'description' => 'Headphones, speakers and audio equipment', 'emoji' => '🎧'],
+            'Cameras & Drones' => ['name' => 'Canon EOS R50', 'sku' => 'CM-1005', 'barcode' => '890100000005', 'description' => 'Cameras, drones and photography gear', 'emoji' => '📷'],
+            'TVs & Home Theater' => ['name' => 'Samsung 55" Smart TV', 'sku' => 'TV-1006', 'barcode' => '890100000006', 'description' => 'Televisions and home entertainment systems', 'emoji' => '📺'],
+            'Gaming' => ['name' => 'PlayStation 5', 'sku' => 'GM-1007', 'barcode' => '890100000007', 'description' => 'Gaming consoles and accessories', 'emoji' => '🎮'],
+            'Wearables' => ['name' => 'Apple Watch Series 10', 'sku' => 'WR-1008', 'barcode' => '890100000008', 'description' => 'Smartwatches and fitness trackers', 'emoji' => '⌚'],
+            'Home Appliances' => ['name' => 'Smart Refrigerator', 'sku' => 'HA-1009', 'barcode' => '890100000009', 'description' => 'Refrigerators, washing machines and kitchen appliances', 'emoji' => '🏠'],
+            'Networking' => ['name' => 'WiFi Router', 'sku' => 'NW-1010', 'barcode' => '890100000010', 'description' => 'Routers, modems and networking equipment', 'emoji' => '📡'],
         ];
 
         foreach ($categoryMap as $name => $data) {
@@ -64,6 +64,7 @@ class ProductsTableSeeder extends Seeder
                         'price' => $amount / 2,
                         'reorder_level' => rand(5, 15),
                         'description' => 'some description for the product here',
+                        'emoji' => $productData['emoji'],
                         'status' => 'active',
                     ]
                 );

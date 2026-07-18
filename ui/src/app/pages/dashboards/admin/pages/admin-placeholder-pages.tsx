@@ -11,28 +11,6 @@ const PageShell = ({ title, description, children }: { title: string; descriptio
   </Card>
 );
 
-export const AdminInventoryPage = () => {
-  const inventory = [
-    { id: 'INV-001', product: 'Palm Oil', stock: 280, location: 'Warehouse A' },
-    { id: 'INV-002', product: 'Maize Flour', stock: 120, location: 'Warehouse B' },
-    { id: 'INV-003', product: 'Cleaning Supplies', stock: 54, location: 'Warehouse C' },
-  ];
-
-  return (
-    <PageShell title='Inventory' description='Track product availability and warehouse stock levels.'>
-      <div className='grid gap-4 md:grid-cols-3'>
-        {inventory.map((item) => (
-          <div key={item.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <p className='text-sm font-medium text-muted-foreground'>{item.product}</p>
-            <p className='mt-3 text-2xl font-semibold'>{item.stock}</p>
-            <p className='mt-2 text-sm text-muted-foreground'>{item.location}</p>
-          </div>
-        ))}
-      </div>
-    </PageShell>
-  );
-};
-
 export const AdminCustomersPage = () => {
   const customers = [
     { name: 'Amina K.', phone: '+254 710 000 001', location: 'Nairobi' },
@@ -171,27 +149,6 @@ export const AdminCouponsPage = () => {
             <p className='font-semibold'>{coupon.code}</p>
             <p className='text-sm text-muted-foreground'>{coupon.discount}</p>
             <p className='text-sm text-muted-foreground'>{coupon.status}</p>
-          </div>
-        ))}
-      </div>
-    </PageShell>
-  );
-};
-
-export const AdminHistoryPage = () => {
-  const events = [
-    { time: 'Today', description: 'Worker accounts updated' },
-    { time: 'Yesterday', description: 'Inventory restocked' },
-    { time: '2 days ago', description: 'New customer signups processed' },
-  ];
-
-  return (
-    <PageShell title='History' description='Review recent system activity and business changes.'>
-      <div className='space-y-4'>
-        {events.map((event) => (
-          <div key={event.time} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <p className='text-sm text-muted-foreground'>{event.time}</p>
-            <p className='mt-1 font-medium'>{event.description}</p>
           </div>
         ))}
       </div>

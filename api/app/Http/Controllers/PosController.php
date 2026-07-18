@@ -8,6 +8,7 @@ use App\Http\Requests\PosProductSearchRequest;
 use App\Services\PosService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PosController extends Controller
 {
@@ -64,10 +65,11 @@ class PosController extends Controller
                 'sale'    => $sale,
             ], 200);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'message' => 'Checkout failed',
                 'error'   => $e->getMessage(),
-            ], $e->getCode() ?: 500);
+            ], 500);
         }
     }
 

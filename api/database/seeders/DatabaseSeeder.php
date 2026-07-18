@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ExpenseCategorySeeder::class);
         $this->call(ExpenseSeeder::class);
         $this->call(SubscriptionPaymentSeeder::class);
+        $this->call(CouponSeeder::class);
+        $this->call(OrderSeeder::class);
         // User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',

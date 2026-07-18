@@ -22,7 +22,6 @@ import { notificationsApi } from '../features/branch/notifications/notifications
 import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
-import { branchHistoryQuery } from '../features/branch/history/historyQuery';
 import { attendanceSettingsQuery } from '../features/business/settings/attendance';
 import { customerSettingsQuery } from '../features/business/settings/customer';
 import { paymentSettingsQuery } from '../features/business/settings/payment';
@@ -55,6 +54,8 @@ import { expenseQuery } from '../features/business/admin/expenseQuery';
 import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQuery';
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
 import { posQuery } from '../features/branch/pos/posQuery';
+import { ordersQuery } from '../features/orders/ordersQuery';
+import { couponsQuery } from '../features/coupons/couponsQuery';
 
 export const store = configureStore({
   reducer: {
@@ -80,7 +81,6 @@ export const store = configureStore({
     [branchMessagesQuery.reducerPath]: branchMessagesQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
-    [branchHistoryQuery.reducerPath]: branchHistoryQuery.reducer,
     [adminAttendanceQuery.reducerPath]: adminAttendanceQuery.reducer,
     [adminTaxesQuery.reducerPath]: adminTaxesQuery.reducer,
     [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
@@ -114,6 +114,8 @@ export const store = configureStore({
     [priceHistoryQuery.reducerPath]: priceHistoryQuery.reducer,
     [receiptsQuery.reducerPath]: receiptsQuery.reducer,
     [posQuery.reducerPath]: posQuery.reducer,
+    [ordersQuery.reducerPath]: ordersQuery.reducer,
+    [couponsQuery.reducerPath]: couponsQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -140,7 +142,6 @@ export const store = configureStore({
       branchMessagesQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
-      branchHistoryQuery.middleware,
       adminAttendanceQuery.middleware,
       adminTaxesQuery.middleware,
       adminEmployeeRemunerationQuery.middleware,
@@ -174,6 +175,8 @@ export const store = configureStore({
       priceHistoryQuery.middleware,
       receiptsQuery.middleware,
       posQuery.middleware,
+      ordersQuery.middleware,
+      couponsQuery.middleware,
     ),
 });
 

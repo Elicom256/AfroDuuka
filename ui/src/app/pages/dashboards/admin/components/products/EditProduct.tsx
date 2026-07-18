@@ -28,6 +28,8 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
   const categories = categoriesData?.categories ?? [];
   const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
+  const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
+
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -36,6 +38,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     minimum_stock: '',
     status: 'active',
     description: '',
+    emoji: '',
     product_category_id: '',
   });
 
@@ -49,6 +52,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
         minimum_stock: product.minimum_stock?.toString() || product.reorder_level?.toString() || '',
         status: product.status === true || product.status === 'active' ? 'active' : 'inactive',
         description: product.description || '',
+        emoji: product.emoji || '',
         product_category_id: product.product_category_id || '',
       });
     }
@@ -173,6 +177,23 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>Emoji</Label>
+              <div className='col-span-3 flex flex-wrap gap-2'>
+                {EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type='button'
+                    onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
+                    className={`text-2xl p-2 rounded-xl border transition-all ${
+                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='description' className='text-right'>

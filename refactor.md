@@ -1,15 +1,27 @@
-# POS
+# REFACTOR
 
-Read the codebase and understand sales vs pos
-On POS, we're actually dealing with sales in an easy way for users, just as modern inventory systems do.
+## Week 1: Fix P0 Broken Modules
 
-## Task
+**1. Wire up `Promotion` controller + routes**
+This should portray a modern system
+**2. Wire up `Coupon` controller + routes**
+Generate coupon codes, the code should follow a specific cretaria
+->First 4 letters od the business name, + the length of coupons a business has offered so far 3. Remove `AdminInventoryPage` end to end because I don't need it at all 6. delete todo.php route and delete `api.php` because todos and handled under user.php route 7. Delete History model migrations, UI everything
 
-pos has cart. Remove the cart model and everything, just create a sale instead. So where you see the cart for the front end, actually create a sale, and scan/search products and add them to a sale as sale items. In short, check what we're doing in the sales route and apply the same to pos, just the difference is that the one under pos is for easing cashier/admin/managers work, because it feels like a real world pos
+**8. Attachments**
+Here, you'll just edit the products model and migration and add imoji, so that when the user is creating a product, he selects an imoji to
+Wire this up both on the front end and back end
+So, I don't wanna add images yet
+On Product seeder, add emogis for products to
+
+**9. Orders**
+Wire up orders from back end to front end
 
 ## Constraints
 
+- Edit migrations directly where needed
+- Put comments on your work
 - Do not hallucinate
-- Do a clean work
-- Make sure you remove the models that relate to cart
-- Use the sale status to handle held sales etc, typically to handle what cart was doing
+- Maintain scalability
+- Follow modern Laravel conventions and the current design system
+- produce clean work

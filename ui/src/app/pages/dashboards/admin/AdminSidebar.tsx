@@ -119,7 +119,6 @@ const navSections: Array<{
     items: [
       { label: 'Notifications', to: '/admin/notifications', icon: Bell },
       { label: 'Messages', to: '/admin/messages', icon: MessageSquare },
-      { label: 'History', to: '/admin/history', icon: History },
       { label: 'Settings', to: '/admin/settings', icon: Settings },
     ],
   },

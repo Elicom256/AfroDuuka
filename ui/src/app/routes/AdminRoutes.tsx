@@ -28,7 +28,7 @@ import { ProductCategory } from '../pages/dashboards/admin/components/products/P
 import { ProtectedRoutes } from './ProtectedRoutes';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { AdminSuppliersPage } from '../pages/dashboards/admin/pages/AdminSuppliersPage';
-import { AdminInventoryPage } from '../pages/dashboards/admin/pages/AdminInventoryPage';
+
 import { AdminCustomersPage } from '../pages/dashboards/admin/pages/AdminCustomersPage';
 import { AdminAnalyticsPage } from '../pages/dashboards/admin/pages/AdminAnalyticsPage';
 import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPage';
@@ -40,7 +40,7 @@ import { AdminAttendancePage } from '../pages/dashboards/admin/pages/AdminAttend
 import { AdminBusinessActivityLogs } from '../pages/dashboards/admin/pages/AdminBusinessActivityLogs';
 import { AdminPromotionsPage } from '../pages/dashboards/admin/pages/AdminPromotionsPage';
 import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPage';
-import { AdminHistoryPage } from '../pages/dashboards/admin/pages/AdminHistoryPage';
+
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { TaxesObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxesObligatedTo';
@@ -100,7 +100,6 @@ export const AdminRoutes = () => {
           <Route path='purchase-returns' element={<PurchaseReturnsPage />} />
           <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
           <Route path='orders' element={<AdminOrdersPage />} />
-          <Route path='inventory' element={<AdminInventoryPage />} />
           <Route path='customers' element={<AdminCustomersPage />} />
           <Route path='customers/:id' element={<Customer />} />
 
@@ -119,7 +118,6 @@ export const AdminRoutes = () => {
           <Route path='activity-logs' element={<AdminBusinessActivityLogs />} />
           <Route path='promotions' element={<AdminPromotionsPage />} />
           <Route path='coupons' element={<AdminCouponsPage />} />
-          <Route path='history' element={<AdminHistoryPage />} />
           <Route path='messages' element={<AdminMessagesPage />} />
           <Route path='notifications' element={<AdminNotificationsPage />} />
 

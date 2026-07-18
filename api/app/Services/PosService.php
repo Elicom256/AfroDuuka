@@ -37,9 +37,9 @@ class PosService
         $products = Product::with('productCategory')
             ->where('business_branch_id', $branchId)
             ->where(function ($q) use ($query) {
-                $q->where('barcode', 'LIKE', "{$query}%")
-                  ->orWhere('sku', 'LIKE', "{$query}%")
-                  ->orWhere('name', 'LIKE', "%{$query}%");
+                $q->where('barcode', 'ILIKE', "{$query}%")
+                  ->orWhere('sku', 'ILIKE', "{$query}%")
+                  ->orWhere('name', 'ILIKE', "%{$query}%");
             })
             ->whereIn('status', ['active', 'inactive'])
             ->orderByRaw("CASE
@@ -62,9 +62,9 @@ class PosService
             ->whereHas('user', function ($q) use ($user, $query) {
                 $q->where('business_id', $user->business_id)
                   ->where(function ($sq) use ($query) {
-                      $sq->where('firstname', 'LIKE', "%{$query}%")
-                         ->orWhere('lastname', 'LIKE', "%{$query}%")
-                         ->orWhere('phone', 'LIKE', "%{$query}%")
+                      $sq->where('firstname', 'ILIKE', "%{$query}%")
+                         ->orWhere('lastname', 'ILIKE', "%{$query}%")
+                         ->orWhere('phone', 'ILIKE', "%{$query}%")
                          ->orWhereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$query}%"]);
                   });
             })
@@ -128,7 +128,6 @@ class PosService
             } else {
                 $sale = Sale::create([
                     'business_branch_id' => $branchId,
-                    'user_id'            => $user->id,
                     'customer_id'        => $validated['customer_id'] ?? null,
                     'total_amount'       => $totalAmount,
                     'note'               => $validated['note'] ?? null,

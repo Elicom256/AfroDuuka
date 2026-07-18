@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Gift,
   CalendarCheck,
-  History,
   Bell,
   MessageSquare,
   Undo2,
@@ -63,7 +62,6 @@ const navSections: Array<{
       { label: 'Messages', to: '/manager/messages', icon: MessageSquare },
       { label: 'Promotions', to: '/manager/promotions', icon: Gift, settingKey: 'promotions' },
       { label: 'Attendance', to: '/manager/attendance', icon: CalendarCheck, settingKey: 'attendance' },
-      { label: 'History', to: '/manager/history', icon: History },
     ],
   },
 ];
