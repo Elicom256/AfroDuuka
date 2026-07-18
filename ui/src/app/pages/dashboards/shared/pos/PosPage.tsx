@@ -1,16 +1,29 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ShoppingCart, X, Plus, Minus, Search, User, CreditCard, RotateCcw, Printer, Download, Ban } from 'lucide-react';
+import {
+  ShoppingCart,
+  X,
+  Plus,
+  Minus,
+  Search,
+  User,
+  CreditCard,
+  RotateCcw,
+  Printer,
+  Download,
+  Ban,
+  ArrowLeft,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   useLazySearchProductsQuery,
   useLazySearchCustomersQuery,
   useCheckoutMutation,
-  useHoldCartMutation,
-  useGetHeldCartsQuery,
-  useDeleteHeldCartMutation,
+  useHoldSaleMutation,
+  useGetHeldSalesQuery,
+  useDeleteHeldSaleMutation,
 } from '@/app/store/features/branch/pos/posQuery';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 
@@ -35,6 +48,7 @@ export const PosPage = () => {
   const navigate = useNavigate();
   const { data: userData } = useLoggedinUserQuery();
   const business = userData?.data?.business;
+  const role = userData?.data?.role?.name;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -46,45 +60,52 @@ export const PosPage = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<any>(null);
   const [note, setNote] = useState('');
-  const [payments, setPayments] = useState<PaymentInput[]>([{ method: 'cash', amount: 0 }]);
+  const [payments, setPayments] = useState<PaymentInput[]>([]);
+  const [heldSaleId, setHeldSaleId] = useState<number | null>(null);
 
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchProductsQuery();
   const [triggerCustomerSearch] = useLazySearchCustomersQuery();
   const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation();
-  const [holdCart] = useHoldCartMutation();
-  const { data: heldCartsData, refetch: refetchHeld } = useGetHeldCartsQuery();
-  const [deleteHeldCart] = useDeleteHeldCartMutation();
+  const [holdSale] = useHoldSaleMutation();
+  const { data: heldSalesData, refetch: refetchHeld } = useGetHeldSalesQuery();
+  const [deleteHeldSale] = useDeleteHeldSaleMutation();
 
   const searchRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<any>();
+  const debounceRef = useRef<any>(null);
 
-  const heldCarts = heldCartsData?.data || [];
+  const heldSales = heldSalesData?.data || [];
 
   useEffect(() => {
     searchRef.current?.focus();
   }, []);
 
-  const handleSearch = useCallback((q: string) => {
-    setSearchQuery(q);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (q.length < 1) return;
-    debounceRef.current = setTimeout(() => {
-      triggerSearch(q);
-    }, 300);
-  }, [triggerSearch]);
+  const handleSearch = useCallback(
+    (q: string) => {
+      setSearchQuery(q);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (q.length < 1) return;
+      debounceRef.current = setTimeout(() => {
+        triggerSearch(q);
+      }, 300);
+    },
+    [triggerSearch],
+  );
 
-  const handleBarcodeSubmit = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      e.preventDefault();
-      triggerSearch(searchQuery).then((res) => {
-        const products = res.data?.data || [];
-        if (products.length === 1) {
-          addToCart(products[0]);
-          setSearchQuery('');
-        }
-      });
-    }
-  }, [searchQuery, triggerSearch]);
+  const handleBarcodeSubmit = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && searchQuery.trim()) {
+        e.preventDefault();
+        triggerSearch(searchQuery).then((res) => {
+          const products = res.data?.data || [];
+          if (products.length === 1) {
+            addToCart(products[0]);
+            setSearchQuery('');
+          }
+        });
+      }
+    },
+    [searchQuery, triggerSearch],
+  );
 
   const addToCart = useCallback((product: any) => {
     setCart((prev) => {
@@ -94,19 +115,20 @@ export const PosPage = () => {
           toast.error(`Only ${product.stock} available`);
           return prev;
         }
-        return prev.map((c) =>
-          c.product_id === product.id ? { ...c, quantity: c.quantity + 1 } : c
-        );
+        return prev.map((c) => (c.product_id === product.id ? { ...c, quantity: c.quantity + 1 } : c));
       }
-      return [...prev, {
-        product_id: product.id,
-        name: product.name,
-        sku: product.sku,
-        quantity: 1,
-        unit_price: product.price,
-        discount: 0,
-        stock: product.stock,
-      }];
+      return [
+        ...prev,
+        {
+          product_id: product.id,
+          name: product.name,
+          sku: product.sku,
+          quantity: 1,
+          unit_price: product.price,
+          discount: 0,
+          stock: product.stock,
+        },
+      ];
     });
     setSearchQuery('');
   }, []);
@@ -122,7 +144,7 @@ export const PosPage = () => {
           return c;
         }
         return { ...c, quantity: newQty };
-      })
+      }),
     );
   };
 
@@ -134,6 +156,7 @@ export const PosPage = () => {
     setCart([]);
     setSelectedCustomer(null);
     setNote('');
+    setHeldSaleId(null);
   };
 
   const subtotal = cart.reduce((sum, c) => sum + c.quantity * c.unit_price, 0);
@@ -142,7 +165,10 @@ export const PosPage = () => {
 
   const handleCustomerSearch = async (q: string) => {
     setCustomerSearch(q);
-    if (q.length < 2) { setCustomerResults([]); return; }
+    if (q.length < 2) {
+      setCustomerResults([]);
+      return;
+    }
     const res = await triggerCustomerSearch(q);
     setCustomerResults(res.data?.data || []);
   };
@@ -154,8 +180,11 @@ export const PosPage = () => {
     setCustomerResults([]);
   };
 
-  const handleHoldCart = async () => {
-    if (cart.length === 0) { toast.error('Cart is empty'); return; }
+  const handleHoldSale = async () => {
+    if (cart.length === 0) {
+      toast.error('Cart is empty');
+      return;
+    }
     try {
       const items = cart.map((c) => ({
         product_id: c.product_id,
@@ -163,42 +192,46 @@ export const PosPage = () => {
         unit_price: c.unit_price,
         discount: c.discount,
       }));
-      await holdCart({ items, customer_id: selectedCustomer?.id, notes: note }).unwrap();
-      toast.success('Cart held successfully');
+      await holdSale({ items, customer_id: selectedCustomer?.id, notes: note }).unwrap();
+      toast.success('Sale held successfully');
       clearCart();
       refetchHeld();
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to hold cart');
+      toast.error(err?.data?.message || 'Failed to hold sale');
     }
   };
 
-  const resumeCart = (heldCart: any) => {
-    const items: CartItem[] = (heldCart.items || []).map((i: any) => ({
+  const resumeHeldSale = (heldSale: any) => {
+    const items: CartItem[] = (heldSale.sale_items || []).map((i: any) => ({
       product_id: i.product_id,
-      name: i.name || `Product #${i.product_id}`,
-      sku: i.sku || '',
+      name: i.product?.name || `Product #${i.product_id}`,
+      sku: i.product?.sku || '',
       quantity: i.quantity,
       unit_price: i.unit_price,
       discount: i.discount || 0,
       stock: 9999,
     }));
     setCart(items);
-    if (heldCart.customer) setSelectedCustomer(heldCart.customer);
-    if (heldCart.notes) setNote(heldCart.notes);
-    toast.success('Cart restored');
+    if (heldSale.customer) setSelectedCustomer(heldSale.customer);
+    if (heldSale.note) setNote(heldSale.note);
+    setHeldSaleId(heldSale.id);
+    toast.success('Held sale restored');
   };
 
-  const handleDeleteHeldCart = async (id: number) => {
+  const handleDeleteHeldSale = async (id: number) => {
     try {
-      await deleteHeldCart(id).unwrap();
-      toast.success('Held cart deleted');
+      await deleteHeldSale(id).unwrap();
+      toast.success('Held sale deleted');
     } catch {
       toast.error('Failed to delete');
     }
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) { toast.error('Cart is empty'); return; }
+    if (cart.length === 0) {
+      toast.error('Cart is empty');
+      return;
+    }
     const totalPayments = payments.reduce((s, p) => s + (p.amount || 0), 0);
     if (totalPayments < total) {
       toast.error(`Total payment (${totalPayments}) is less than total (${total})`);
@@ -213,18 +246,26 @@ export const PosPage = () => {
         discount: c.discount,
       }));
 
-      const res = await checkout({
+      const body: any = {
         items,
         payments: payments.map((p) => ({ method: p.method, amount: p.amount })),
         customer_id: selectedCustomer?.id || null,
         note: note || undefined,
-      }).unwrap();
+      };
 
+      if (heldSaleId) {
+        body.sale_id = heldSaleId;
+      }
+
+      const res = await checkout(body).unwrap();
+
+      toast.success(res.message || 'Sale completed successfully!');
       setCompletedSale(res.sale);
       setShowCheckoutModal(false);
       setShowReceiptModal(true);
       clearCart();
     } catch (err: any) {
+      console.log("error=>", err)
       toast.error(err?.data?.error || err?.data?.message || 'Checkout failed');
     }
   };
@@ -234,9 +275,7 @@ export const PosPage = () => {
   };
 
   const updatePayment = (index: number, field: string, value: any) => {
-    setPayments((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, [field]: value } : p))
-    );
+    setPayments((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
   const removePayment = (index: number) => {
@@ -246,16 +285,41 @@ export const PosPage = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F2') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key === 'F4') { e.preventDefault(); setShowCustomerModal(true); }
-      if (e.key === 'F8') { e.preventDefault(); handleHoldCart(); }
-      if (e.key === 'F9') { e.preventDefault(); setShowCheckoutModal(true); }
-      if (e.key === 'Escape') { setShowCheckoutModal(false); setShowCustomerModal(false); setShowReceiptModal(false); }
-      if (e.ctrlKey && e.key === 'Delete') { e.preventDefault(); clearCart(); }
+      if (e.key === 'F2') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === 'F4') {
+        e.preventDefault();
+        setShowCustomerModal(true);
+      }
+      if (e.key === 'F8') {
+        e.preventDefault();
+        handleHoldSale();
+      }
+      if (e.key === 'F9') {
+        e.preventDefault();
+        setShowCheckoutModal(true);
+      }
+      if (e.key === 'Escape') {
+        setShowCheckoutModal(false);
+        setShowCustomerModal(false);
+        setShowReceiptModal(false);
+      }
+      if (e.ctrlKey && e.key === 'Delete') {
+        e.preventDefault();
+        clearCart();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   });
+
+  useEffect(() => {
+    if (showCheckoutModal) {
+      setPayments([{ method: 'cash', amount: total }]);
+    }
+  }, [showCheckoutModal, total]);
 
   const totalPaid = payments.reduce((s, p) => s + (p.amount || 0), 0);
   const changeDue = Math.max(0, totalPaid - total);
@@ -265,14 +329,15 @@ export const PosPage = () => {
       {/* Top bar */}
       <header className='flex items-center justify-between border-b border-border px-6 py-3 bg-card shrink-0'>
         <div className='flex items-center gap-4'>
+          <Button variant='ghost' size='icon' onClick={() => navigate(`/${role}`)} className='h-9 w-9 rounded-xl'>
+            <ArrowLeft className='h-5 w-5' />
+          </Button>
+          <div className='h-6 w-px bg-border' />
           <h1 className='text-xl font-bold tracking-tight'>POS</h1>
           <span className='text-xs text-muted-foreground'>{business?.name}</span>
         </div>
         <div className='flex items-center gap-3'>
           <span className='text-xs text-muted-foreground'>F2 Search | F4 Customer | F8 Hold | F9 Pay | Esc Close</span>
-          <Button variant='outline' size='sm' onClick={() => navigate(-1)}>
-            <X className='h-4 w-4 mr-1' /> Exit
-          </Button>
         </div>
       </header>
 
@@ -304,7 +369,9 @@ export const PosPage = () => {
                   >
                     <div className='flex flex-col items-start'>
                       <span className='font-medium'>{p.name}</span>
-                      <span className='text-xs text-muted-foreground'>SKU: {p.sku} | Stock: {p.stock}</span>
+                      <span className='text-xs text-muted-foreground'>
+                        SKU: {p.sku} | Stock: {p.stock}
+                      </span>
                     </div>
                     <span className='font-semibold text-green-600'>{p.price.toLocaleString()}</span>
                   </button>
@@ -325,7 +392,10 @@ export const PosPage = () => {
             ) : (
               <div className='space-y-2'>
                 {cart.map((item) => (
-                  <div key={item.product_id} className='flex items-center justify-between p-3 border border-border rounded-2xl bg-card'>
+                  <div
+                    key={item.product_id}
+                    className='flex items-center justify-between p-3 border border-border rounded-2xl bg-card'
+                  >
                     <div className='flex-1 min-w-0'>
                       <p className='font-medium text-sm truncate'>{item.name}</p>
                       <p className='text-xs text-muted-foreground'>SKU: {item.sku}</p>
@@ -333,16 +403,27 @@ export const PosPage = () => {
                     </div>
                     <div className='flex items-center gap-3'>
                       <div className='flex items-center border border-border rounded-xl'>
-                        <button onClick={() => updateQty(item.product_id, -1)} className='p-1.5 hover:bg-muted rounded-l-xl'>
+                        <button
+                          onClick={() => updateQty(item.product_id, -1)}
+                          className='p-1.5 hover:bg-muted rounded-l-xl'
+                        >
                           <Minus className='h-3.5 w-3.5' />
                         </button>
-                        <span className='px-3 text-sm font-semibold min-w-[24px] text-center'>{item.quantity}</span>
-                        <button onClick={() => updateQty(item.product_id, 1)} className='p-1.5 hover:bg-muted rounded-r-xl'>
+                        <span className='px-3 text-sm font-semibold min-w-6 text-center'>{item.quantity}</span>
+                        <button
+                          onClick={() => updateQty(item.product_id, 1)}
+                          className='p-1.5 hover:bg-muted rounded-r-xl'
+                        >
                           <Plus className='h-3.5 w-3.5' />
                         </button>
                       </div>
-                      <span className='font-semibold text-sm w-24 text-right'>{(item.quantity * item.unit_price).toLocaleString()}</span>
-                      <button onClick={() => removeFromCart(item.product_id)} className='p-1.5 hover:bg-red-50 rounded-xl text-muted-foreground hover:text-red-500'>
+                      <span className='font-semibold text-sm w-24 text-right'>
+                        {(item.quantity * item.unit_price).toLocaleString()}
+                      </span>
+                      <button
+                        onClick={() => removeFromCart(item.product_id)}
+                        className='p-1.5 hover:bg-red-50 rounded-xl text-muted-foreground hover:text-red-500'
+                      >
                         <X className='h-4 w-4' />
                       </button>
                     </div>
@@ -380,7 +461,9 @@ export const PosPage = () => {
               onClick={() => setShowCustomerModal(true)}
             >
               <User className='h-5 w-5' />
-              {selectedCustomer ? selectedCustomer.name || selectedCustomer.company_name || `#${selectedCustomer.customer_code}` : 'Walk-in Customer'}
+              {selectedCustomer
+                ? selectedCustomer.name || selectedCustomer.company_name || `#${selectedCustomer.customer_code}`
+                : 'Walk-in Customer'}
             </Button>
 
             <Button
@@ -395,7 +478,7 @@ export const PosPage = () => {
             </Button>
 
             <div className='grid grid-cols-2 gap-2'>
-              <Button variant='secondary' size='sm' onClick={handleHoldCart} disabled={cart.length === 0}>
+              <Button variant='secondary' size='sm' onClick={handleHoldSale} disabled={cart.length === 0}>
                 <RotateCcw className='h-4 w-4 mr-1' /> Hold (F8)
               </Button>
               <Button variant='secondary' size='sm' onClick={clearCart} disabled={cart.length === 0}>
@@ -404,30 +487,35 @@ export const PosPage = () => {
             </div>
           </div>
 
-          {/* Held carts */}
+          {/* Held sales */}
           <div className='flex-1 overflow-y-auto p-4'>
-            <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3'>Held Carts</h3>
-            {heldCarts.length === 0 ? (
-              <p className='text-xs text-muted-foreground'>No held carts</p>
+            <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3'>Held Sales</h3>
+            {heldSales.length === 0 ? (
+              <p className='text-xs text-muted-foreground'>No held sales</p>
             ) : (
               <div className='space-y-2'>
-                {heldCarts.map((hc: any) => (
-                  <div key={hc.id} className='p-3 border border-border rounded-2xl text-sm'>
+                {heldSales.map((hs: any) => (
+                  <div key={hs.id} className='p-3 border border-border rounded-2xl text-sm'>
                     <div className='flex items-center justify-between mb-1'>
-                      <span className='font-medium'>Cart #{hc.id}</span>
+                      <span className='font-medium'>Sale #{hs.id}</span>
                       <span className='text-xs text-muted-foreground'>
-                        {new Date(hc.created_at).toLocaleTimeString()}
+                        {new Date(hs.created_at).toLocaleTimeString()}
                       </span>
                     </div>
                     <p className='text-xs text-muted-foreground'>
-                      {hc.items?.length || 0} item(s)
-                      {hc.customer?.name ? ` - ${hc.customer.name}` : ''}
+                      {hs.sale_items?.length || 0} item(s)
+                      {hs.customer?.name ? ` - ${hs.customer.name}` : ''}
                     </p>
                     <div className='flex gap-2 mt-2'>
-                      <Button size='sm' variant='outline' className='text-xs h-7' onClick={() => resumeCart(hc)}>
+                      <Button size='sm' variant='outline' className='text-xs h-7' onClick={() => resumeHeldSale(hs)}>
                         Resume
                       </Button>
-                      <Button size='sm' variant='outline' className='text-xs h-7 text-red-500' onClick={() => handleDeleteHeldCart(hc.id)}>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        className='text-xs h-7 text-red-500'
+                        onClick={() => handleDeleteHeldSale(hs.id)}
+                      >
                         Delete
                       </Button>
                     </div>
@@ -441,11 +529,19 @@ export const PosPage = () => {
 
       {/* Customer modal */}
       {showCustomerModal && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={() => setShowCustomerModal(false)}>
-          <div className='bg-card rounded-3xl border border-border p-6 w-[400px] max-h-[80vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+        <div
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          onClick={() => setShowCustomerModal(false)}
+        >
+          <div
+            className='bg-card rounded-3xl border border-border p-6 w-100 max-h-[80vh] overflow-y-auto'
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-lg font-semibold'>Select Customer</h2>
-              <Button variant='ghost' size='sm' onClick={() => setShowCustomerModal(false)}><X className='h-4 w-4' /></Button>
+              <Button variant='ghost' size='sm' onClick={() => setShowCustomerModal(false)}>
+                <X className='h-4 w-4' />
+              </Button>
             </div>
             <Input
               value={customerSearch}
@@ -465,7 +561,9 @@ export const PosPage = () => {
                   className='w-full text-left p-3 hover:bg-muted rounded-xl text-sm'
                 >
                   <p className='font-medium'>{c.name || c.company_name || 'Unknown'}</p>
-                  <p className='text-xs text-muted-foreground'>{c.phone} | {c.customer_code}</p>
+                  <p className='text-xs text-muted-foreground'>
+                    {c.phone} | {c.customer_code}
+                  </p>
                 </button>
               ))}
             </div>
@@ -475,24 +573,38 @@ export const PosPage = () => {
 
       {/* Checkout modal */}
       {showCheckoutModal && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={() => setShowCheckoutModal(false)}>
-          <div className='bg-card rounded-3xl border border-border p-6 w-[500px] max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+        <div
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          onClick={() => setShowCheckoutModal(false)}
+        >
+          <div
+            className='bg-card rounded-3xl border border-border p-6 w-125 max-h-[90vh] overflow-y-auto'
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-lg font-semibold'>Checkout</h2>
-              <Button variant='ghost' size='sm' onClick={() => setShowCheckoutModal(false)}><X className='h-4 w-4' /></Button>
+              <Button variant='ghost' size='sm' onClick={() => setShowCheckoutModal(false)}>
+                <X className='h-4 w-4' />
+              </Button>
             </div>
 
             {/* Customer */}
             <div className='mb-4 p-3 bg-muted rounded-2xl'>
               <p className='text-xs text-muted-foreground'>Customer</p>
-              <p className='font-medium'>{selectedCustomer ? (selectedCustomer.name || selectedCustomer.company_name || `#${selectedCustomer.customer_code}`) : 'Walk-in Customer'}</p>
+              <p className='font-medium'>
+                {selectedCustomer
+                  ? selectedCustomer.name || selectedCustomer.company_name || `#${selectedCustomer.customer_code}`
+                  : 'Walk-in Customer'}
+              </p>
             </div>
 
             {/* Order summary */}
             <div className='mb-4 space-y-1 max-h-40 overflow-y-auto'>
               {cart.map((item) => (
                 <div key={item.product_id} className='flex justify-between text-sm'>
-                  <span>{item.name} x{item.quantity}</span>
+                  <span>
+                    {item.name} x{item.quantity}
+                  </span>
                   <span>{(item.quantity * item.unit_price).toLocaleString()}</span>
                 </div>
               ))}
@@ -500,15 +612,18 @@ export const PosPage = () => {
 
             <div className='border-t border-border pt-3 mb-4 space-y-1'>
               <div className='flex justify-between text-sm'>
-                <span>Subtotal</span><span>{subtotal.toLocaleString()}</span>
+                <span>Subtotal</span>
+                <span>{subtotal.toLocaleString()}</span>
               </div>
               {discountTotal > 0 && (
                 <div className='flex justify-between text-sm text-green-600'>
-                  <span>Discount</span><span>-{discountTotal.toLocaleString()}</span>
+                  <span>Discount</span>
+                  <span>-{discountTotal.toLocaleString()}</span>
                 </div>
               )}
               <div className='flex justify-between text-lg font-bold'>
-                <span>Total</span><span>{total.toLocaleString()}</span>
+                <span>Total</span>
+                <span>{total.toLocaleString()}</span>
               </div>
             </div>
 
@@ -523,7 +638,9 @@ export const PosPage = () => {
                     className='flex h-10 rounded-2xl border border-input bg-background px-3 py-2 text-sm'
                   >
                     {PAYMENT_METHODS.map((m) => (
-                      <option key={m} value={m}>{m.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</option>
+                      <option key={m} value={m}>
+                        {m.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </option>
                     ))}
                   </select>
                   <Input
@@ -534,7 +651,9 @@ export const PosPage = () => {
                     className='flex-1'
                   />
                   {payments.length > 1 && (
-                    <Button variant='ghost' size='sm' onClick={() => removePayment(i)}><X className='h-4 w-4' /></Button>
+                    <Button variant='ghost' size='sm' onClick={() => removePayment(i)}>
+                      <X className='h-4 w-4' />
+                    </Button>
                   )}
                 </div>
               ))}
@@ -570,23 +689,37 @@ export const PosPage = () => {
 
       {/* Receipt modal */}
       {showReceiptModal && completedSale && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={() => setShowReceiptModal(false)}>
-          <div className='bg-card rounded-3xl border border-border p-6 w-[420px] max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+        <div
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          onClick={() => setShowReceiptModal(false)}
+        >
+          <div
+            className='bg-card rounded-3xl border border-border p-6 w-105 max-h-[90vh] overflow-y-auto'
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className='text-center mb-6'>
               <h2 className='text-xl font-bold'>{business?.name || 'Store'}</h2>
               <p className='text-sm text-muted-foreground'>Receipt</p>
             </div>
 
             <div className='text-sm space-y-1 mb-4'>
-              <p><span className='text-muted-foreground'>Invoice:</span> {completedSale.id}</p>
-              <p><span className='text-muted-foreground'>Date:</span> {new Date().toLocaleString()}</p>
-              <p><span className='text-muted-foreground'>Customer:</span> {selectedCustomer?.name || 'Walk-in'}</p>
+              <p>
+                <span className='text-muted-foreground'>Invoice:</span> {completedSale.id}
+              </p>
+              <p>
+                <span className='text-muted-foreground'>Date:</span> {new Date().toLocaleString()}
+              </p>
+              <p>
+                <span className='text-muted-foreground'>Customer:</span> {selectedCustomer?.name || 'Walk-in'}
+              </p>
             </div>
 
             <div className='border-t border-border pt-3 mb-4'>
               {completedSale.sale_items?.map((item: any) => (
                 <div key={item.id} className='flex justify-between text-sm py-1'>
-                  <span>{item.product?.name || `Product #${item.product_id}`} x{item.quantity}</span>
+                  <span>
+                    {item.product?.name || `Product #${item.product_id}`} x{item.quantity}
+                  </span>
                   <span>{item.subtotal.toLocaleString()}</span>
                 </div>
               ))}
@@ -594,7 +727,8 @@ export const PosPage = () => {
 
             <div className='border-t border-border pt-3 mb-6 space-y-1'>
               <div className='flex justify-between text-sm'>
-                <span>Total</span><span className='font-bold'>{(completedSale.total_amount || 0).toLocaleString()}</span>
+                <span>Total</span>
+                <span className='font-bold'>{(completedSale.total_amount || 0).toLocaleString()}</span>
               </div>
             </div>
 

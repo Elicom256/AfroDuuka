@@ -22,6 +22,7 @@ class PosCheckoutRequest extends FormRequest
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
             'business_id'        => $user->business_id,
+            'user_id'            => $user->id,
             'currency'           => $this->input('currency', $defaultCurrency),
         ]);
     }
@@ -34,7 +35,9 @@ class PosCheckoutRequest extends FormRequest
 
             'customer_id' => 'nullable|exists:customers,id',
 
-            'items' => 'required|array|min:1',
+            'sale_id' => 'nullable|exists:sales,id',
+
+            'items' => 'required_without:sale_id|array|min:1',
             'items.*.product_id'   => 'required|exists:products,id',
             'items.*.quantity'     => 'required|integer|min:1',
             'items.*.unit_price'   => 'required|numeric|min:0',

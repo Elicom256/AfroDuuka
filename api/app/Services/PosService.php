@@ -6,7 +6,6 @@ use App\Http\Resources\PosCustomerResource;
 use App\Http\Resources\PosProductResource;
 use App\Models\CashFlow;
 use App\Models\Customer;
-use App\Models\HeldCart;
 use App\Models\Product;
 use App\Models\Receipt;
 use App\Models\ReceiptItem;
@@ -38,9 +37,9 @@ class PosService
         $products = Product::with('productCategory')
             ->where('business_branch_id', $branchId)
             ->where(function ($q) use ($query) {
-                $q->where('barcode', 'LIKE', "{$query}%")
-                  ->orWhere('sku', 'LIKE', "{$query}%")
-                  ->orWhere('name', 'LIKE', "%{$query}%");
+                $q->where('barcode', 'ILIKE', "{$query}%")
+                  ->orWhere('sku', 'ILIKE', "{$query}%")
+                  ->orWhere('name', 'ILIKE', "%{$query}%");
             })
             ->whereIn('status', ['active', 'inactive'])
             ->orderByRaw("CASE
@@ -63,9 +62,9 @@ class PosService
             ->whereHas('user', function ($q) use ($user, $query) {
                 $q->where('business_id', $user->business_id)
                   ->where(function ($sq) use ($query) {
-                      $sq->where('firstname', 'LIKE', "%{$query}%")
-                         ->orWhere('lastname', 'LIKE', "%{$query}%")
-                         ->orWhere('phone', 'LIKE', "%{$query}%")
+                      $sq->where('firstname', 'ILIKE', "%{$query}%")
+                         ->orWhere('lastname', 'ILIKE', "%{$query}%")
+                         ->orWhere('phone', 'ILIKE', "%{$query}%")
                          ->orWhereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$query}%"]);
                   });
             })
@@ -120,49 +119,57 @@ class PosService
             $totalAmount = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
             $totalDiscount = collect($validated['items'])->sum(fn($i) => ($i['discount'] ?? 0) * $i['quantity']);
 
-            $sale = Sale::create([
-                'business_branch_id' => $branchId,
-                'customer_id'        => $validated['customer_id'] ?? null,
-                'total_amount'       => $totalAmount,
-                'note'               => $validated['note'] ?? null,
-                'status'             => 'completed',
-            ]);
-
-            foreach ($validated['items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
-                $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
-
-                SaleItem::create([
-                    'sale_id'    => $sale->id,
-                    'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'discount'   => $item['discount'] ?? 0,
-                    'subtotal'   => $subtotal,
-                ]);
-
-                $product->decrement('quantity', $item['quantity']);
-                $product->update(['last_sold_at' => now()]);
-
-                StockMovement::create([
-                    'business_id'       => $user->business_id,
+            if (isset($validated['sale_id'])) {
+                $sale = Sale::where('id', $validated['sale_id'])
+                    ->where('business_branch_id', $branchId)
+                    ->where('status', 'held')
+                    ->firstOrFail();
+                $sale->update(['status' => 'completed', 'note' => $validated['note'] ?? $sale->note]);
+            } else {
+                $sale = Sale::create([
                     'business_branch_id' => $branchId,
-                    'product_id'        => $item['product_id'],
-                    'type'              => 'out',
-                    'quantity'          => $item['quantity'],
-                    'reference_type'    => Sale::class,
-                    'reference_id'      => $sale->id,
-                    'notes'             => 'POS sale',
+                    'customer_id'        => $validated['customer_id'] ?? null,
+                    'total_amount'       => $totalAmount,
+                    'note'               => $validated['note'] ?? null,
+                    'status'             => 'completed',
                 ]);
 
-                if ($product->quantity <= $product->reorder_level) {
-                    $this->notificationService->lowStockAlert(
-                        $user,
-                        $product->name ?? $product->id,
-                        $product->quantity,
-                        $product->reorder_level
-                    );
+                foreach ($validated['items'] as $item) {
+                    $product = Product::findOrFail($item['product_id']);
+                    $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
+                    $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
+
+                    SaleItem::create([
+                        'sale_id'    => $sale->id,
+                        'product_id' => $item['product_id'],
+                        'quantity'   => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'discount'   => $item['discount'] ?? 0,
+                        'subtotal'   => $subtotal,
+                    ]);
+
+                    $product->decrement('quantity', $item['quantity']);
+                    $product->update(['last_sold_at' => now()]);
+
+                    StockMovement::create([
+                        'business_id'       => $user->business_id,
+                        'business_branch_id' => $branchId,
+                        'product_id'        => $item['product_id'],
+                        'type'              => 'out',
+                        'quantity'          => $item['quantity'],
+                        'reference_type'    => Sale::class,
+                        'reference_id'      => $sale->id,
+                        'notes'             => 'POS sale',
+                    ]);
+
+                    if ($product->quantity <= $product->reorder_level) {
+                        $this->notificationService->lowStockAlert(
+                            $user,
+                            $product->name ?? $product->id,
+                            $product->quantity,
+                            $product->reorder_level
+                        );
+                    }
                 }
             }
 
@@ -250,52 +257,76 @@ class PosService
         return $prefix . $date . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    public function holdCart(array $items, ?int $customerId, ?string $notes): HeldCart
+    public function holdSale(array $items, ?int $customerId, ?string $notes): Sale
     {
         $user = Auth::user();
+        $branchId = $user->business_branch_id;
 
-        return HeldCart::create([
-            'business_branch_id' => $user->business_branch_id,
-            'user_id'            => $user->id,
-            'customer_id'        => $customerId,
-            'items'              => $items,
-            'notes'              => $notes,
-        ]);
+        return DB::transaction(function () use ($items, $customerId, $notes, $user, $branchId) {
+            $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+
+            $sale = Sale::create([
+                'business_branch_id' => $branchId,
+                'user_id'            => $user->id,
+                'customer_id'        => $customerId,
+                'total_amount'       => $totalAmount,
+                'note'               => $notes,
+                'status'             => 'held',
+            ]);
+
+            foreach ($items as $item) {
+                $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
+                $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
+
+                SaleItem::create([
+                    'sale_id'    => $sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'discount'   => $item['discount'] ?? 0,
+                    'subtotal'   => $subtotal,
+                ]);
+            }
+
+            return $sale->load(['saleItems.product', 'customer.user']);
+        });
     }
 
-    public function getHeldCarts(): array
+    public function getHeldSales(): array
     {
         $user = Auth::user();
 
-        return HeldCart::where('business_branch_id', $user->business_branch_id)
+        return Sale::where('business_branch_id', $user->business_branch_id)
             ->where('user_id', $user->id)
-            ->with('customer.user')
+            ->where('status', 'held')
+            ->with('customer.user', 'saleItems.product')
             ->orderByDesc('created_at')
             ->get()
             ->toArray();
     }
 
-    public function resumeCart(int $id): HeldCart
+    public function resumeHeldSale(int $id): Sale
     {
         $user = Auth::user();
 
-        $heldCart = HeldCart::where('id', $id)
+        return Sale::where('id', $id)
             ->where('business_branch_id', $user->business_branch_id)
             ->where('user_id', $user->id)
+            ->where('status', 'held')
+            ->with('saleItems.product', 'customer.user')
             ->firstOrFail();
-
-        return $heldCart;
     }
 
-    public function deleteHeldCart(int $id): void
+    public function deleteHeldSale(int $id): void
     {
         $user = Auth::user();
 
-        $heldCart = HeldCart::where('id', $id)
+        $sale = Sale::where('id', $id)
             ->where('business_branch_id', $user->business_branch_id)
             ->where('user_id', $user->id)
+            ->where('status', 'held')
             ->firstOrFail();
 
-        $heldCart->delete();
+        $sale->delete();
     }
 }

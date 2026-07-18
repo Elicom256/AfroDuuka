@@ -106,7 +106,7 @@ export const ProductTable = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
-                    {/* <TableHead>Category ID</TableHead> */}
+                    <TableHead></TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead>Barcode</TableHead>
@@ -124,6 +124,7 @@ export const ProductTable = () => {
                   {paginatedProducts.map((product: Product) => (
                     <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
                       <TableCell>{product.id}</TableCell>
+                      <TableCell className='text-xl'>{product.emoji || ''}</TableCell>
                       <TableCell className='font-medium'>{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>

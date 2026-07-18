@@ -28,15 +28,17 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
   const { data: categories } = useProductCategoriesQuery();
   const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
+  const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
+
   const [formData, setFormData] = useState({
     name: '',
-
     price: '',
     cost_price: '',
     quantity: '',
     minimum_stock: '',
     status: '',
     description: '',
+    emoji: '',
     product_category_id: '',
   });
 
@@ -44,14 +46,14 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     if (product) {
       setFormData({
         name: product.name || '',
-
         price: product.price?.toString() || '',
         cost_price: product.cost_price?.toString() || '',
         quantity: product.quantity?.toString() || '',
-        minimum_stock: product.minimum_stock?.toString() || '',
-        status: product.status || 'active',
+        minimum_stock: product.reorder_level?.toString() || '',
+        status: product.status === true || product.status === 'active' ? 'active' : 'inactive',
         description: product.description || '',
-        product_category_id: product.product_category_id?.toString() || '',
+        emoji: product.emoji || '',
+        product_category_id: product.product_category_id || '',
       });
     }
   }, [product]);
@@ -173,6 +175,23 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>Emoji</Label>
+              <div className='col-span-3 flex flex-wrap gap-2'>
+                {EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type='button'
+                    onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
+                    className={`text-2xl p-2 rounded-xl border transition-all ${
+                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='description' className='text-right'>

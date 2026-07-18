@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Sale extends BaseModel
 {
 
-    protected $fillable = [ 'business_branch_id', 'customer_id', 'total_amount', 'status', 'note'];
+    protected $fillable = [ 'business_branch_id', 'user_id', 'customer_id', 'total_amount', 'status', 'note'];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
@@ -20,6 +20,12 @@ class Sale extends BaseModel
     {
         return $this->hasMany(SaleItem::class);
     }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function businessBranch(): BelongsTo
     {
         return $this->belongsTo(BusinessBranch::class);

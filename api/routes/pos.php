@@ -10,8 +10,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/validate', [PosController::class, 'validateCart']);
     Route::post('/checkout', [PosController::class, 'checkout']);
 
-    Route::post('/cart/hold', [PosController::class, 'holdCart']);
-    Route::get('/cart/held', [PosController::class, 'getHeldCarts']);
-    Route::get('/cart/resume/{id}', [PosController::class, 'resumeCart']);
-    Route::delete('/cart/held/{id}', [PosController::class, 'deleteHeldCart']);
+    Route::post('/sales/hold', [PosController::class, 'holdSale']);
+    Route::get('/sales/held', [PosController::class, 'getHeldSales']);
+    Route::get('/sales/held/{id}', [PosController::class, 'resumeHeldSale']);
+    Route::delete('/sales/held/{id}', [PosController::class, 'deleteHeldSale']);
 });

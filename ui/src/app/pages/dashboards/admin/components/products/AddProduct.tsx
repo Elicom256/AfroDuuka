@@ -26,6 +26,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const { data: categoriesData } = useProductCategoriesQuery();
   const categories = categoriesData?.categories ?? [];
 
+  const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
+
   const [formData, setFormData] = useState({
     name: '',
     markup_percentage: '',
@@ -34,6 +36,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     quantity: '',
     reorder_level: '',
     description: '',
+    emoji: '',
     product_category_id: '',
   });
 
@@ -68,6 +71,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
         quantity: '',
         reorder_level: '',
         description: '',
+        emoji: '',
         product_category_id: '',
       });
     } catch (error) {
@@ -202,6 +206,23 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 onChange={(e) => handleChange('description', e.target.value)}
                 className='col-span-3'
               />
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>Emoji</Label>
+              <div className='col-span-3 flex flex-wrap gap-2'>
+                {EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type='button'
+                    onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
+                    className={`text-2xl p-2 rounded-xl border transition-all ${
+                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>

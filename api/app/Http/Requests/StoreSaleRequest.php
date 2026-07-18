@@ -23,11 +23,12 @@ class StoreSaleRequest extends FormRequest
     {
         $user = Auth::user();
         $business = $user->business()->with('country')->first();
-        $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
+        $defaultCurrency = $business?->country?->currency_code;
 
         $this->merge([
             'business_branch_id' => $user->business_branch_id,
             'business_id'        => $user->business_id,
+            'user_id'        => $user->id,
             'status'             => $this->input('status', 'completed'),
             'paymentStatus'      => $this->input('paymentStatus', 'paid'),
             'payment_status_id'  => $this->input('payment_status_id', null),
@@ -43,6 +44,7 @@ class StoreSaleRequest extends FormRequest
         return [
             'business_branch_id' => 'required|exists:business_branches,id',
             'business_id'        => 'required|exists:businesses,id',
+            'user_id'        => 'required|exists:users,id',
 
             // Customer (nullable - walk-in allowed)
             'customer_id' => 'nullable|exists:customers,id',

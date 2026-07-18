@@ -12,7 +12,7 @@ export const posQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['PosAPI', 'HeldCarts'],
+  tagTypes: ['PosAPI', 'HeldSales'],
   endpoints: (builder) => ({
     searchProducts: builder.query<any, string>({
       query: (q) => ({
@@ -41,36 +41,36 @@ export const posQuery = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['PosAPI', 'HeldCarts'],
+      invalidatesTags: ['PosAPI', 'HeldSales'],
     }),
-    holdCart: builder.mutation<any, any>({
+    holdSale: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/cart/hold',
+        url: '/sales/hold',
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['HeldCarts'],
+      invalidatesTags: ['HeldSales'],
     }),
-    getHeldCarts: builder.query<any, void>({
+    getHeldSales: builder.query<any, void>({
       query: () => ({
-        url: '/cart/held',
+        url: '/sales/held',
         method: 'GET',
       }),
-      providesTags: ['HeldCarts'],
+      providesTags: ['HeldSales'],
     }),
-    resumeCart: builder.query<any, number>({
+    resumeHeldSale: builder.query<any, number>({
       query: (id) => ({
-        url: `/cart/resume/${id}`,
+        url: `/sales/held/${id}`,
         method: 'GET',
       }),
-      providesTags: ['HeldCarts'],
+      providesTags: ['HeldSales'],
     }),
-    deleteHeldCart: builder.mutation<any, number>({
+    deleteHeldSale: builder.mutation<any, number>({
       query: (id) => ({
-        url: `/cart/held/${id}`,
+        url: `/sales/held/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['HeldCarts'],
+      invalidatesTags: ['HeldSales'],
     }),
   }),
 });
@@ -80,8 +80,8 @@ export const {
   useLazySearchCustomersQuery,
   useValidateCartMutation,
   useCheckoutMutation,
-  useHoldCartMutation,
-  useGetHeldCartsQuery,
-  useLazyResumeCartQuery,
-  useDeleteHeldCartMutation,
+  useHoldSaleMutation,
+  useGetHeldSalesQuery,
+  useLazyResumeHeldSaleQuery,
+  useDeleteHeldSaleMutation,
 } = posQuery;

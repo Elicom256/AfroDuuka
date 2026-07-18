@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PosCheckoutRequest;
 use App\Http\Requests\PosCustomerSearchRequest;
-use App\Http\Requests\PosHoldCartRequest;
 use App\Http\Requests\PosProductSearchRequest;
 use App\Services\PosService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PosController extends Controller
 {
@@ -65,54 +65,65 @@ class PosController extends Controller
                 'sale'    => $sale,
             ], 200);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'message' => 'Checkout failed',
                 'error'   => $e->getMessage(),
-            ], $e->getCode() ?: 500);
+            ], 500);
         }
     }
 
-    public function holdCart(PosHoldCartRequest $request): JsonResponse
+    public function holdSale(Request $request): JsonResponse
     {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity'   => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount'   => 'nullable|numeric|min:0',
+            'customer_id' => 'nullable|exists:customers,id',
+            'notes'       => 'nullable|string|max:500',
+        ]);
+
         try {
-            $heldCart = $this->posService->holdCart(
+            $sale = $this->posService->holdSale(
                 $request->input('items'),
                 $request->input('customer_id'),
                 $request->input('notes')
             );
-            return response()->json(['message' => 'Cart held successfully', 'data' => $heldCart], 201);
+            return response()->json(['message' => 'Sale held successfully', 'data' => $sale], 201);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to hold cart', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to hold sale', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function getHeldCarts(): JsonResponse
+    public function getHeldSales(): JsonResponse
     {
         try {
-            $carts = $this->posService->getHeldCarts();
-            return response()->json(['message' => 'Held carts fetched', 'data' => $carts]);
+            $sales = $this->posService->getHeldSales();
+            return response()->json(['message' => 'Held sales fetched', 'data' => $sales]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch held carts', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch held sales', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function resumeCart(int $id): JsonResponse
+    public function resumeHeldSale(int $id): JsonResponse
     {
         try {
-            $heldCart = $this->posService->resumeCart($id);
-            return response()->json(['message' => 'Cart resumed', 'data' => $heldCart]);
+            $sale = $this->posService->resumeHeldSale($id);
+            return response()->json(['message' => 'Held sale resumed', 'data' => $sale]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Cart not found', 'error' => $e->getMessage()], 404);
+            return response()->json(['message' => 'Held sale not found', 'error' => $e->getMessage()], 404);
         }
     }
 
-    public function deleteHeldCart(int $id): JsonResponse
+    public function deleteHeldSale(int $id): JsonResponse
     {
         try {
-            $this->posService->deleteHeldCart($id);
-            return response()->json(['message' => 'Held cart deleted']);
+            $this->posService->deleteHeldSale($id);
+            return response()->json(['message' => 'Held sale deleted']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to delete held cart', 'error' => $e->getMessage()], 404);
+            return response()->json(['message' => 'Failed to delete held sale', 'error' => $e->getMessage()], 404);
         }
     }
 }

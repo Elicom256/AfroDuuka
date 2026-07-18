@@ -98,10 +98,6 @@ Route::prefix("countries")->group(function () {
     Route::get('/', [CountryController::class, 'index']);
 });
 
-// Route::prefix("todos")->group(function () {
-//     require __DIR__.'/todos.php';
-// });
-
 Route::prefix("plans")->group(function () {
     require __DIR__."/plans.php";
 });
@@ -120,6 +116,30 @@ Route::prefix("receipts")->group(function () {
 
 Route::prefix("pos")->group(function () {
     require __DIR__.'/pos.php';
+});
+
+Route::prefix("orders")->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [\App\Http\Controllers\OrderController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\OrderController::class, 'store']);
+    Route::get('/{order}', [\App\Http\Controllers\OrderController::class, 'show']);
+    Route::put('/{order}', [\App\Http\Controllers\OrderController::class, 'update']);
+    Route::delete('/{order}', [\App\Http\Controllers\OrderController::class, 'destroy']);
+});
+
+Route::prefix("promotions")->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PromotionController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\PromotionController::class, 'store']);
+    Route::get('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'show']);
+    Route::put('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'update']);
+    Route::delete('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'destroy']);
+});
+
+Route::prefix("coupons")->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CouponController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\CouponController::class, 'store']);
+    Route::get('/{coupon}', [\App\Http\Controllers\CouponController::class, 'show']);
+    Route::put('/{coupon}', [\App\Http\Controllers\CouponController::class, 'update']);
+    Route::delete('/{coupon}', [\App\Http\Controllers\CouponController::class, 'destroy']);
 });
 
 Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
