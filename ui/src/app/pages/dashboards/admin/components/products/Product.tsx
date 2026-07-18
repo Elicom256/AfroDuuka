@@ -5,6 +5,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EditProduct } from './EditProduct';
 import { PriceHistoryTab } from './PriceHistoryTab';
 import { ArrowLeftCircle, Trash2, Info, Clock } from 'lucide-react';
@@ -15,8 +16,6 @@ import {
 import { toast } from 'sonner';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
-type TabId = 'details' | 'price-history';
-
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
@@ -25,7 +24,6 @@ export const Product = () => {
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>('details');
 
   if (isLoading) return <PageLoadingState />;
   if (error) return <div>Error loading product</div>;
@@ -48,17 +46,10 @@ export const Product = () => {
     return <PageLoadingState />;
   }
 
-  /* ---- Tab definition ---- */
-  const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: 'details', label: 'Details', icon: <Info className='h-4 w-4' /> },
-    { id: 'price-history', label: 'Price History', icon: <Clock className='h-4 w-4' /> },
-  ];
-
   return (
     <div className=''>
       {product ? (
         <div className='container mx-auto p-6'>
-          {/* Back + Header */}
           <div className='mb-4'>
             <Link to='../products' className='flex items-center gap-2 text-blue-400 hover:underline'>
               <ArrowLeftCircle />
@@ -81,82 +72,74 @@ export const Product = () => {
             </div>
           </div>
 
-          {/* Tab navigation */}
-          <div className='flex gap-1 mb-6 border-b'>
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <Tabs defaultValue='details'>
+            <TabsList>
+              <TabsTrigger value='details' className='flex items-center gap-2'>
+                <Info className='h-4 w-4' /> Details
+              </TabsTrigger>
+              <TabsTrigger value='price-history' className='flex items-center gap-2'>
+                <Clock className='h-4 w-4' /> Price History
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value='details'>
+              <Card>
+                <CardHeader>
+                  <CardAction>
+                    <Badge variant={product.status === true ? 'default' : 'secondary'}>
+                      {product.status === true ? 'Active' : 'Innactive'}
+                    </Badge>
+                  </CardAction>
+                  <CardTitle>{product.name}</CardTitle>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>SKU</label>
+                      <p className=''>{product.sku}</p>
+                    </div>
 
-          {/* Tab content */}
-          {activeTab === 'details' && (
-            <Card>
-              <CardHeader>
-                <CardAction>
-                  <Badge variant={product.status === true ? 'default' : 'secondary'}>
-                    {product.status === true ? 'Active' : 'Innactive'}
-                  </Badge>
-                </CardAction>
-                <CardTitle>{product.name}</CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='grid grid-cols-2 gap-4'>
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>SKU</label>
-                    <p className=''>{product.sku}</p>
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Barcode</label>
+                      <p className=''>{product.barcode || 'N/A'}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Price</label>
+                      <p className=''>{currency} {product.price}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Cost Price</label>
+                      <p className=''>{currency} {product.cost_price}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Quantity</label>
+                      <p className=''>{product.quantity}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
+                      <p className=''>{product.reorder_level ?? '-'}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <label className='text-sm font-medium text-gray-500'>Category</label>
+                      <p className=''>{product.product_category_id ?? '-'}</p>
+                    </div>
                   </div>
-
+                  <Separator />
                   <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Barcode</label>
-                    <p className=''>{product.barcode || 'N/A'}</p>
+                    <label className='text-sm font-medium text-gray-500'>Description</label>
+                    <p className=''>{product.description || 'No description'}</p>
                   </div>
-
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Price</label>
-                    <p className=''>{currency} {product.price}</p>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Cost Price</label>
-                    <p className=''>{currency} {product.cost_price}</p>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Quantity</label>
-                    <p className=''>{product.quantity}</p>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
-                    <p className=''>{product.reorder_level ?? '-'}</p>
-                  </div>
-
-                  <div className='flex items-center gap-2'>
-                    <label className='text-sm font-medium text-gray-500'>Category</label>
-                    <p className=''>{product.product_category_id ?? '-'}</p>
-                  </div>
-                </div>
-                <Separator />
-                <div className='flex items-center gap-2'>
-                  <label className='text-sm font-medium text-gray-500'>Description</label>
-                  <p className=''>{product.description || 'No description'}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {activeTab === 'price-history' && <PriceHistoryTab productId={product.id} />}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value='price-history'>
+              <PriceHistoryTab productId={product.id} />
+            </TabsContent>
+          </Tabs>
 
           <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product} />
         </div>
