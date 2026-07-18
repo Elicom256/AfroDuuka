@@ -17,6 +17,7 @@ import {
   FileText,
   ArrowLeftToLine,
   ShoppingCart,
+  Package2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -41,6 +42,7 @@ const navSections: Array<{
       { label: 'Purchases', to: '/manager/purchases', icon: Truck },
       { label: 'Sale Returns', to: '/manager/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/manager/purchase-returns', icon: ArrowLeftToLine },
+      { label: 'Orders', to: '/manager/orders', icon: Package2 },
       { label: 'Inventory', to: '/manager/inventory', icon: AlertTriangle },
       { label: 'Workers', to: '/manager/workers', icon: Users },
       { label: 'Customers', to: '/manager/customers', icon: Users2, settingKey: 'customers' },
