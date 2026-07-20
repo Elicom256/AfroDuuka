@@ -16,8 +16,10 @@ return new class extends Migration
         
         // Core transaction info
         $table->string('transaction_code')->unique();   // e.g. CF-00001, INV-00045, PO-00321
-        $table->string('type');                         // 'sale', 'purchase', 'expense', 'payment_in', 'payment_out', 'refund'
+        $table->string('type');                         // 'sale', 'purchase', 'expense', 'payment_in', 'payment_out', 'refund', 'adjustment'
+        $table->enum('direction', ['credit', 'debit'])->nullable();
         $table->decimal('amount', 15, 2);               // Positive for inflows, Negative for outflows (or use separate sign logic)
+        $table->decimal('running_balance', 15, 2)->nullable();
         $table->string('currency')->default('UGX');
         
         // Relationship to business
@@ -35,6 +37,7 @@ return new class extends Migration
         
         // Description & categorization
         $table->string('description')->nullable();
+        $table->text('notes')->nullable();
         $table->string('category', 100)->nullable();
               // e.g. 'product_sales', 'raw_materials', 'rent', 'utilities'
         

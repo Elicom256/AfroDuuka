@@ -1,16 +1,16 @@
-import { DollarSign, TrendingUp } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { useBranchFinancesQuery } from '@/app/store/features/branch';
+import { useGetFinanceDashboardQuery } from '@/app/store/features/finance/financeQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const ManagerFinancesPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useBranchFinancesQuery();
-  const finances = data?.data ?? data ?? {};
-  const revenue = Number(finances.revenue ?? finances.totalRevenue ?? finances.sales ?? 0);
-  const expenses = Number(finances.expenses ?? finances.totalExpenses ?? 0);
-  const profit = revenue - expenses;
+  const { data, isLoading } = useGetFinanceDashboardQuery();
+  const finances = data?.data ?? {};
+  const revenue = Number(finances.total_revenue ?? 0);
+  const expenses = Number(finances.total_expenses ?? 0);
+  const profit = Number(finances.net_profit ?? 0);
 
   if (isLoading) return <PageLoadingState />;
 
@@ -26,7 +26,7 @@ export const ManagerFinancesPage = () => {
           <SectionCard
             title='Expenses'
             value={`${currency} ${expenses.toLocaleString()}`}
-            icon={<DollarSign className='h-5 w-5' />}
+            icon={<TrendingDown className='h-5 w-5' />}
           />
           <SectionCard
             title='Profit'

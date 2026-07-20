@@ -18,6 +18,7 @@ import {
   ArrowLeftToLine,
   ShoppingCart,
   Package2,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -50,11 +51,16 @@ const navSections: Array<{
     ],
   },
   {
+    title: 'Finance',
+    items: [
+      { label: 'Dashboard', to: '/manager/finance', icon: Wallet },
+    ],
+  },
+  {
     title: 'Performance',
     items: [
       { label: 'Analytics', to: '/manager/analytics', icon: BarChart3 },
       { label: 'Reports', to: '/manager/reports', icon: TrendingUp, settingKey: 'reports' },
-      { label: 'Finances', to: '/manager/finances', icon: DollarSign },
     ],
   },
   {

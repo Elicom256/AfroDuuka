@@ -64,6 +64,7 @@ export const ManagerRoutes = () => {
         <Route path='suppliers' element={<ManagerSuppliersPage />} />
         <Route path='reports' element={<ManagerReportsPage />} />
         <Route path='finances' element={<ManagerFinancesPage />} />
+        <Route path='finance' element={<ManagerFinancesPage />} />
         <Route path='notifications' element={<ManagerNotificationsPage />} />
         <Route path='messages' element={<ManagerMessagesPage />} />
         <Route path='orders' element={<ManagerOrdersPage />} />

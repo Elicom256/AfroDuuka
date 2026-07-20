@@ -29,6 +29,9 @@ import {
   Receipt,
   ShoppingCart,
   Package2,
+  Wallet,
+  Landmark,
+  PieChart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -78,13 +81,21 @@ const navSections: Array<{
     items: [
       { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
       { label: 'Reports', to: '/admin/reports', icon: TrendingUp, settingKey: 'reports' },
-      { label: 'Finances', to: '/admin/finances', icon: DollarSign },
       { label: 'Expenses', to: '/admin/expenses', icon: Receipt },
       { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle, settingKey: 'attendance' },
       { label: 'Taxes', to: '/admin/taxes', icon: DollarSign },
       { label: 'Payroll', to: '/admin/remuneration', icon: Users },
       { label: 'Salaries', to: '/admin/employee-salaries', icon: DollarSign },
       { label: 'Branches', to: '/admin/branches', icon: Truck },
+    ],
+  },
+  {
+    title: 'Finance',
+    items: [
+      { label: 'Dashboard', to: '/admin/finance', icon: Wallet },
+      { label: 'Transactions', to: '/admin/finance/transactions', icon: Landmark },
+      { label: 'Cash Flow', to: '/admin/finance/cash-flow', icon: DollarSign },
+      { label: 'Reports', to: '/admin/finance/reports', icon: PieChart },
     ],
   },
   {
