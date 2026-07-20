@@ -11,7 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Package, Eye, Plus, X, Minus, PlusIcon, Truck } from 'lucide-react';
 import { useOrdersQuery, useCreateOrderMutation } from '@/app/store/features/orders/ordersQuery';
-import { usePurchaseOrdersQuery, useCreatePurchaseOrderMutation } from '@/app/store/features/orders/purchaseOrdersQuery';
+import {
+  usePurchaseOrdersQuery,
+  useCreatePurchaseOrderMutation,
+} from '@/app/store/features/orders/purchaseOrdersQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchSuppliersQuery } from '@/app/store/features/branch/suppliers/branchSuppliersQuery';
 import { useState } from 'react';
@@ -34,7 +37,7 @@ interface OrderItemInput {
 }
 
 const SalesOrdersTab = () => {
-  const { data, isLoading } = useOrdersQuery();
+  const { data, isLoading, error } = useOrdersQuery();
   const { data: productsData } = useProductsQuery();
   const [createOrder] = useCreateOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -45,16 +48,21 @@ const SalesOrdersTab = () => {
 
   const orders = data?.data ?? [];
   const products = productsData?.products ?? [];
+  console.log('orders=>', data ?? error);
 
   const filteredProducts = searchQuery
-    ? products.filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())))
+    ? products.filter(
+        (p: any) =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())),
+      )
     : products;
 
   const addItem = (product: any) => {
     setOrderItems((prev) => {
       const existing = prev.find((i) => i.product_id === product.id);
       if (existing) {
-        return prev.map((i) => i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map((i) => (i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
       return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
     });
@@ -62,7 +70,7 @@ const SalesOrdersTab = () => {
 
   const updateItemQty = (productId: number, delta: number) => {
     setOrderItems((prev) =>
-      prev.map((i) => i.product_id === productId ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i)
+      prev.map((i) => (i.product_id === productId ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i)),
     );
   };
 
@@ -114,7 +122,11 @@ const SalesOrdersTab = () => {
               <div className='space-y-4'>
                 <div>
                   <Label>Search Products</Label>
-                  <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder='Search by name or SKU...'
+                  />
                 </div>
                 {searchQuery && filteredProducts.length > 0 && (
                   <div className='border border-border rounded-xl max-h-40 overflow-y-auto'>
@@ -125,7 +137,9 @@ const SalesOrdersTab = () => {
                         onClick={() => addItem(p)}
                         className='flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted border-b border-border last:border-0'
                       >
-                        <span>{p.emoji} {p.name}</span>
+                        <span>
+                          {p.emoji} {p.name}
+                        </span>
                         <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
                       </button>
                     ))}
@@ -135,19 +149,39 @@ const SalesOrdersTab = () => {
                   <div className='space-y-2'>
                     <Label>Items</Label>
                     {orderItems.map((item) => (
-                      <div key={item.product_id} className='flex items-center justify-between gap-2 bg-muted rounded-xl px-3 py-2'>
+                      <div
+                        key={item.product_id}
+                        className='flex items-center justify-between gap-2 bg-muted rounded-xl px-3 py-2'
+                      >
                         <span className='text-sm flex-1'>{item.name}</span>
                         <div className='flex items-center gap-1'>
-                          <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => updateItemQty(item.product_id, -1)}>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-7 w-7'
+                            onClick={() => updateItemQty(item.product_id, -1)}
+                          >
                             <Minus className='h-3 w-3' />
                           </Button>
                           <span className='text-sm font-medium w-6 text-center'>{item.quantity}</span>
-                          <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => updateItemQty(item.product_id, 1)}>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-7 w-7'
+                            onClick={() => updateItemQty(item.product_id, 1)}
+                          >
                             <PlusIcon className='h-3 w-3' />
                           </Button>
                         </div>
-                        <span className='text-sm w-24 text-right'>{(item.quantity * item.unit_price).toLocaleString()}</span>
-                        <Button variant='ghost' size='icon' className='h-7 w-7 text-red-500' onClick={() => removeItem(item.product_id)}>
+                        <span className='text-sm w-24 text-right'>
+                          {(item.quantity * item.unit_price).toLocaleString()}
+                        </span>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          className='h-7 w-7 text-red-500'
+                          onClick={() => removeItem(item.product_id)}
+                        >
                           <X className='h-3 w-3' />
                         </Button>
                       </div>
@@ -235,17 +269,30 @@ const SalesOrdersTab = () => {
               </Button>
             </div>
             <div className='space-y-2 mb-4'>
-              <p className='text-sm'><span className='text-muted-foreground'>Status:</span> {selectedOrder.status}</p>
-              <p className='text-sm'><span className='text-muted-foreground'>Customer:</span> {selectedOrder.customer?.name || 'Walk-in'}</p>
-              <p className='text-sm'><span className='text-muted-foreground'>Date:</span> {new Date(selectedOrder.created_at).toLocaleString()}</p>
-              {selectedOrder.notes && <p className='text-sm'><span className='text-muted-foreground'>Notes:</span> {selectedOrder.notes}</p>}
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Status:</span> {selectedOrder.status}
+              </p>
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Customer:</span> {selectedOrder.customer?.name || 'Walk-in'}
+              </p>
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Date:</span>{' '}
+                {new Date(selectedOrder.created_at).toLocaleString()}
+              </p>
+              {selectedOrder.notes && (
+                <p className='text-sm'>
+                  <span className='text-muted-foreground'>Notes:</span> {selectedOrder.notes}
+                </p>
+              )}
             </div>
             <div className='border-t border-border pt-3'>
               <h3 className='text-sm font-semibold mb-2'>Items</h3>
               <div className='space-y-2'>
                 {selectedOrder.items?.map((item: any) => (
                   <div key={item.id} className='flex justify-between text-sm'>
-                    <span>{item.product?.name || `Product #${item.product_id}`} x{item.quantity}</span>
+                    <span>
+                      {item.product?.name || `Product #${item.product_id}`} x{item.quantity}
+                    </span>
                     <span>{Number(item.subtotal).toLocaleString()}</span>
                   </div>
                 ))}
@@ -279,14 +326,18 @@ const PurchaseOrdersTab = () => {
   const suppliers = suppliersData?.data ?? [];
 
   const filteredProducts = searchQuery
-    ? products.filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())))
+    ? products.filter(
+        (p: any) =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())),
+      )
     : products;
 
   const addItem = (product: any) => {
     setOrderItems((prev) => {
       const existing = prev.find((i) => i.product_id === product.id);
       if (existing) {
-        return prev.map((i) => i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map((i) => (i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
       return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
     });
@@ -294,7 +345,7 @@ const PurchaseOrdersTab = () => {
 
   const updateItemQty = (productId: number, delta: number) => {
     setOrderItems((prev) =>
-      prev.map((i) => i.product_id === productId ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i)
+      prev.map((i) => (i.product_id === productId ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i)),
     );
   };
 
@@ -358,14 +409,20 @@ const PurchaseOrdersTab = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {suppliers.map((s: any) => (
-                        <SelectItem key={s.id} value={String(s.id)}>{s.company_name || s.user?.name}</SelectItem>
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.company_name || s.user?.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label>Search Products</Label>
-                  <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder='Search by name or SKU...'
+                  />
                 </div>
                 {searchQuery && filteredProducts.length > 0 && (
                   <div className='border border-border rounded-xl max-h-40 overflow-y-auto'>
@@ -376,7 +433,9 @@ const PurchaseOrdersTab = () => {
                         onClick={() => addItem(p)}
                         className='flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted border-b border-border last:border-0'
                       >
-                        <span>{p.emoji} {p.name}</span>
+                        <span>
+                          {p.emoji} {p.name}
+                        </span>
                         <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
                       </button>
                     ))}
@@ -386,19 +445,39 @@ const PurchaseOrdersTab = () => {
                   <div className='space-y-2'>
                     <Label>Items</Label>
                     {orderItems.map((item) => (
-                      <div key={item.product_id} className='flex items-center justify-between gap-2 bg-muted rounded-xl px-3 py-2'>
+                      <div
+                        key={item.product_id}
+                        className='flex items-center justify-between gap-2 bg-muted rounded-xl px-3 py-2'
+                      >
                         <span className='text-sm flex-1'>{item.name}</span>
                         <div className='flex items-center gap-1'>
-                          <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => updateItemQty(item.product_id, -1)}>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-7 w-7'
+                            onClick={() => updateItemQty(item.product_id, -1)}
+                          >
                             <Minus className='h-3 w-3' />
                           </Button>
                           <span className='text-sm font-medium w-6 text-center'>{item.quantity}</span>
-                          <Button variant='ghost' size='icon' className='h-7 w-7' onClick={() => updateItemQty(item.product_id, 1)}>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-7 w-7'
+                            onClick={() => updateItemQty(item.product_id, 1)}
+                          >
                             <PlusIcon className='h-3 w-3' />
                           </Button>
                         </div>
-                        <span className='text-sm w-24 text-right'>{(item.quantity * item.unit_price).toLocaleString()}</span>
-                        <Button variant='ghost' size='icon' className='h-7 w-7 text-red-500' onClick={() => removeItem(item.product_id)}>
+                        <span className='text-sm w-24 text-right'>
+                          {(item.quantity * item.unit_price).toLocaleString()}
+                        </span>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          className='h-7 w-7 text-red-500'
+                          onClick={() => removeItem(item.product_id)}
+                        >
                           <X className='h-3 w-3' />
                         </Button>
                       </div>
@@ -413,7 +492,11 @@ const PurchaseOrdersTab = () => {
                   <Label>Notes</Label>
                   <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
-                <Button className='w-full' onClick={handleCreateOrder} disabled={orderItems.length === 0 || !supplierId}>
+                <Button
+                  className='w-full'
+                  onClick={handleCreateOrder}
+                  disabled={orderItems.length === 0 || !supplierId}
+                >
                   Create Purchase Order - {totalAmount.toLocaleString()}
                 </Button>
               </div>
@@ -486,17 +569,31 @@ const PurchaseOrdersTab = () => {
               </Button>
             </div>
             <div className='space-y-2 mb-4'>
-              <p className='text-sm'><span className='text-muted-foreground'>Status:</span> {selectedOrder.status}</p>
-              <p className='text-sm'><span className='text-muted-foreground'>Supplier:</span> {selectedOrder.supplier?.company_name || selectedOrder.supplier?.user?.name || 'N/A'}</p>
-              <p className='text-sm'><span className='text-muted-foreground'>Date:</span> {new Date(selectedOrder.created_at).toLocaleString()}</p>
-              {selectedOrder.notes && <p className='text-sm'><span className='text-muted-foreground'>Notes:</span> {selectedOrder.notes}</p>}
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Status:</span> {selectedOrder.status}
+              </p>
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Supplier:</span>{' '}
+                {selectedOrder.supplier?.company_name || selectedOrder.supplier?.user?.name || 'N/A'}
+              </p>
+              <p className='text-sm'>
+                <span className='text-muted-foreground'>Date:</span>{' '}
+                {new Date(selectedOrder.created_at).toLocaleString()}
+              </p>
+              {selectedOrder.notes && (
+                <p className='text-sm'>
+                  <span className='text-muted-foreground'>Notes:</span> {selectedOrder.notes}
+                </p>
+              )}
             </div>
             <div className='border-t border-border pt-3'>
               <h3 className='text-sm font-semibold mb-2'>Items</h3>
               <div className='space-y-2'>
                 {selectedOrder.items?.map((item: any) => (
                   <div key={item.id} className='flex justify-between text-sm'>
-                    <span>{item.product?.name || `Product #${item.product_id}`} x{item.quantity}</span>
+                    <span>
+                      {item.product?.name || `Product #${item.product_id}`} x{item.quantity}
+                    </span>
                     <span>{Number(item.subtotal).toLocaleString()}</span>
                   </div>
                 ))}

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 /**
  * Tracks exchange rates for multi-currency support.
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CurrencyRate extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'base_currency',

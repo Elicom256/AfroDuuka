@@ -16,7 +16,9 @@ class CouponSeeder extends Seeder
             throw new \Exception("Business not found");
         }
 
-        $branch = BusinessBranch::where("business_id", $business->id)->first();
+        $branch = BusinessBranch::where("business_id", $business->id)
+                   ->where("name", "Main Branch")
+                   ->first();
         if (!$branch) {
             throw new \Exception("Branch not found");
         }

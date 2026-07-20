@@ -1,49 +1,40 @@
 <?php
 
-use App\Http\Controllers\CountryController;
 use Illuminate\Support\Facades\Route;
 
-// Application health check
-
-Route::get('/up', function () {
+Route::get("/up", function () {
     return response()->json([
-        'status' => 'ok',
-        'timestamp' => now(),
+        "status" => "ok",
+        "timestamp" => now(),
     ]);
 });
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-| This file acts as the entry point for all API route modules.
-| Each domain (auth, users, products, sales, etc.) is split into
-| its own file for scalability.
-|
-*/
-Route::prefix("users")->group(function(){
-  require __DIR__.'/users.php';
-});
-Route::prefix("products")->group(function(){
-  require __DIR__.'/products.php';
-});
-Route::prefix("sales")->group(function(){
-  require __DIR__.'/sales.php';
-});
-Route::prefix("admin")->group(function(){
-    require __DIR__.'/admin.php';
+Route::prefix("users")->group(function () {
+    require __DIR__."/users.php";
 });
 
-Route::prefix("purchases")->group(function(){
-    require __DIR__.'/purchases.php';
+Route::prefix("products")->group(function () {
+    require __DIR__."/products.php";
+});
+
+Route::prefix("sales")->group(function () {
+    require __DIR__."/sales.php";
+});
+
+Route::prefix("admin")->group(function () {
+    require __DIR__."/admin.php";
+});
+
+Route::prefix("purchases")->group(function () {
+    require __DIR__."/purchases.php";
 });
 
 Route::prefix("returns")->group(function () {
-    require __DIR__.'/returns.php';
+    require __DIR__."/returns.php";
 });
 
-Route::prefix("settings")->group(function(){
-  require __DIR__.'/settings.php';
+Route::prefix("settings")->group(function () {
+    require __DIR__."/settings.php";
 });
 
 Route::prefix("finances")->group(function () {
@@ -87,15 +78,15 @@ Route::prefix("report-exports")->group(function () {
 });
 
 Route::prefix("price-history")->group(function () {
-    require __DIR__.'/price-history.php';
+    require __DIR__."/price-history.php";
 });
 
-Route::prefix('reports')->group(function () {
-    require __DIR__.'/reports.php';
+Route::prefix("reports")->group(function () {
+    require __DIR__."/reports.php";
 });
 
 Route::prefix("countries")->group(function () {
-    Route::get('/', [CountryController::class, 'index']);
+    require __DIR__."/countries.php";
 });
 
 Route::prefix("plans")->group(function () {
@@ -111,44 +102,29 @@ Route::prefix("subscription-payments")->group(function () {
 });
 
 Route::prefix("receipts")->group(function () {
-    require __DIR__.'/receipts.php';
+    require __DIR__."/receipts.php";
 });
 
 Route::prefix("pos")->group(function () {
-    require __DIR__.'/pos.php';
+    require __DIR__."/pos.php";
 });
 
-Route::prefix("orders")->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [\App\Http\Controllers\OrderController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\OrderController::class, 'store']);
-    Route::get('/{order}', [\App\Http\Controllers\OrderController::class, 'show']);
-    Route::put('/{order}', [\App\Http\Controllers\OrderController::class, 'update']);
-    Route::delete('/{order}', [\App\Http\Controllers\OrderController::class, 'destroy']);
+Route::prefix("orders")->group(function () {
+    require __DIR__."/orders.php";
 });
 
-Route::prefix("promotions")->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [\App\Http\Controllers\PromotionController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\PromotionController::class, 'store']);
-    Route::get('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'show']);
-    Route::put('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'update']);
-    Route::delete('/{promotion}', [\App\Http\Controllers\PromotionController::class, 'destroy']);
+Route::prefix("promotions")->group(function () {
+    require __DIR__."/promotions.php";
 });
 
-Route::prefix("coupons")->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [\App\Http\Controllers\CouponController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\CouponController::class, 'store']);
-    Route::get('/{coupon}', [\App\Http\Controllers\CouponController::class, 'show']);
-    Route::put('/{coupon}', [\App\Http\Controllers\CouponController::class, 'update']);
-    Route::delete('/{coupon}', [\App\Http\Controllers\CouponController::class, 'destroy']);
+Route::prefix("coupons")->group(function () {
+    require __DIR__."/coupons.php";
 });
 
-Route::prefix("ai")->middleware('auth:sanctum')->group(function () {
-    Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat']);
-    Route::get('/tools', [\App\Http\Controllers\AiController::class, 'tools']);
+Route::prefix("ai")->group(function () {
+    require __DIR__."/ai.php";
 });
 
-Route::prefix("super-admin")->middleware('auth:sanctum')->group(function () {
-    Route::get('/businesses', [\App\Http\Controllers\SuperAdminBusinessController::class, 'index']);
-    Route::get('/businesses/{business}', [\App\Http\Controllers\SuperAdminBusinessController::class, 'show']);
-    Route::patch('/businesses/{business}/status', [\App\Http\Controllers\SuperAdminBusinessController::class, 'updateStatus']);
+Route::prefix("super-admin")->group(function () {
+    require __DIR__."/super-admin.php";
 });

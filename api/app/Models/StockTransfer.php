@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity;
 
 /**
  * Tracks stock movement between branches for inter-branch logistics.
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class StockTransfer extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'from_branch_id',

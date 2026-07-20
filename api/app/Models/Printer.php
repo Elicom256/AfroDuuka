@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 /**
  * Represents a thermal receipt printer connected to a branch.
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Printer extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'business_branch_id',

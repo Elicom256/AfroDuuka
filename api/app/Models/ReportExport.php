@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 /**
  * Tracks asynchronously generated report exports (CSV, XLSX, PDF).
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ReportExport extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'user_id',

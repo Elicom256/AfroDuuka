@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity;
 
 class SaleReturn extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_branch_id',
         'reason',

@@ -15,6 +15,11 @@ return new class extends Migration
             $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
             $table->string('action');
             $table->text('description')->nullable();
+            $table->string('subject_type')->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->json('metadata')->nullable();
+
+            $table->index(['subject_type', 'subject_id']);
 
             $table->timestamps();
             $table->softDeletes();

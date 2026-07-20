@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReorderRuleRequest;
 use App\Http\Requests\UpdateReorderRuleRequest;
+use App\Models\Product;
 use App\Models\ReorderRule;
-
+use Illuminate\Support\Facades\Auth;
 /**
  * Manages automatic reorder rules for inventory products.
  */
@@ -13,7 +14,7 @@ class ReorderRuleController extends Controller
 {
     public function index()
     {
-        $rules = ReorderRule::where('business_id', auth()->user()->business_id)
+        $rules = ReorderRule::where('business_id', Auth::user()->business_id)
             ->with(['product', 'preferredSupplier'])
             ->get();
 
@@ -23,6 +24,8 @@ class ReorderRuleController extends Controller
     public function store(StoreReorderRuleRequest $request)
     {
         $rule = ReorderRule::create($request->validated());
+        //  update product re-order level 
+        $rule->product->update(["reorder_level" => $rule->reorder_quantity]);
         return response()->json(['message' => 'Reorder rule created', 'data' => $rule], 201);
     }
 
@@ -35,6 +38,8 @@ class ReorderRuleController extends Controller
     public function update(UpdateReorderRuleRequest $request, ReorderRule $reorderRule)
     {
         $reorderRule->update($request->validated());
+        $reorderRule->product->update(["reorder_level" => $reorderRule->reorder_quantity]);
+        
         return response()->json(['message' => 'Reorder rule updated', 'data' => $reorderRule]);
     }
 
