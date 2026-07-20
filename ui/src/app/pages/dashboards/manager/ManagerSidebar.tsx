@@ -51,7 +51,7 @@ const navSections: Array<{
     ],
   },
   {
-    title: 'Finance',
+    title: 'Financials',
     items: [
       { label: 'Dashboard', to: '/manager/finance', icon: Wallet },
     ],
