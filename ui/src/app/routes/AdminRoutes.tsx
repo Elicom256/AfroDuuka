@@ -33,6 +33,8 @@ import { AdminCustomersPage } from '../pages/dashboards/admin/pages/AdminCustome
 import { AdminAnalyticsPage } from '../pages/dashboards/admin/pages/AdminAnalyticsPage';
 import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPage';
 import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinancesPage';
+import { AdminFinanceTransactionsPage } from '../pages/dashboards/admin/pages/AdminFinanceTransactionsPage';
+import { AdminFinanceReportsPage } from '../pages/dashboards/admin/pages/AdminFinanceReportsPage';
 import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
 import { AdminEmployeeRemunerationPage } from '../pages/dashboards/admin/pages/AdminEmployeeRemunerationPage';
 import { AdminEmployeeSalaryPage } from '../pages/dashboards/admin/pages/AdminEmployeeSalaryPage';
@@ -108,6 +110,9 @@ export const AdminRoutes = () => {
           <Route path='create-todo' element={<TodoForm />} />
           <Route path='reports' element={<AdminReportsPage />} />
           <Route path='finances' element={<AdminFinancesPage />} />
+          <Route path='finance' element={<AdminFinancesPage />} />
+          <Route path='finance/transactions' element={<AdminFinanceTransactionsPage />} />
+          <Route path='finance/reports' element={<AdminFinanceReportsPage />} />
           <Route path='attendance' element={<AdminAttendancePage />} />
           <Route path='attendance/:id' element={<Attendance />} />
           <Route path='employee-salaries' element={<AdminEmployeeSalaryPage />} />
