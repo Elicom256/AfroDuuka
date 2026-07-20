@@ -18,6 +18,8 @@ RUN install-php-extensions \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN chown www-data:www-data /usr/local/bin/
+
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chown ${USER_ID}:${GROUP_ID} /usr/local/bin/docker-entrypoint.sh && \
     chmod 755 /usr/local/bin/docker-entrypoint.sh

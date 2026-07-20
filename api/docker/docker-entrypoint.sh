@@ -10,7 +10,7 @@ if [ "$APP_ENV" = "local" ] || [ "$APP_ENV" = "development" ] || [ ! -d "vendor"
     echo "Installing Composer dependencies..."
     # --no-autoloader prevents post-autoload-dump scripts (e.g. package:discover)
     # from firing before migrations have run. Autoloader is dumped manually later.
-    composer install --no-interaction --no-scripts --no-autoloader
+    composer install --no-interaction --no-scripts
 fi
 
 # Clear any bad local cache files left on your host machine
