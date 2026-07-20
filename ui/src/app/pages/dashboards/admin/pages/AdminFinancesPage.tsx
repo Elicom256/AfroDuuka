@@ -24,7 +24,7 @@ export const AdminFinancesPage = () => {
   return (
     <div className='space-y-6'>
       <div>
-        <h1 className='text-3xl font-bold tracking-tight'>Finance Dashboard</h1>
+        <h1 className='text-3xl font-bold tracking-tight'>Financials</h1>
         <p className='text-muted-foreground'>Real-time financial overview of your business</p>
       </div>
 

@@ -35,6 +35,7 @@ import { AdminReportsPage } from '../pages/dashboards/admin/pages/AdminReportsPa
 import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinancesPage';
 import { AdminFinanceTransactionsPage } from '../pages/dashboards/admin/pages/AdminFinanceTransactionsPage';
 import { AdminFinanceReportsPage } from '../pages/dashboards/admin/pages/AdminFinanceReportsPage';
+import { AdminFinanceCashFlowPage } from '../pages/dashboards/admin/pages/AdminFinanceCashFlowPage';
 import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
 import { AdminEmployeeRemunerationPage } from '../pages/dashboards/admin/pages/AdminEmployeeRemunerationPage';
 import { AdminEmployeeSalaryPage } from '../pages/dashboards/admin/pages/AdminEmployeeSalaryPage';
@@ -109,10 +110,10 @@ export const AdminRoutes = () => {
           <Route path='todos' element={<TodoList />} />
           <Route path='create-todo' element={<TodoForm />} />
           <Route path='reports' element={<AdminReportsPage />} />
-          <Route path='finances' element={<AdminFinancesPage />} />
-          <Route path='finance' element={<AdminFinancesPage />} />
           <Route path='finance/transactions' element={<AdminFinanceTransactionsPage />} />
           <Route path='finance/reports' element={<AdminFinanceReportsPage />} />
+          <Route path='finance/cashflow' element={<AdminFinanceCashFlowPage />} />
+          <Route path='cashflow' element={<AdminFinanceCashFlowPage />} />
           <Route path='attendance' element={<AdminAttendancePage />} />
           <Route path='attendance/:id' element={<Attendance />} />
           <Route path='employee-salaries' element={<AdminEmployeeSalaryPage />} />

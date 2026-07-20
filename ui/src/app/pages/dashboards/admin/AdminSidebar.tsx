@@ -48,7 +48,7 @@ const navSections: Array<{
   items: Array<{ label: string; to: string; icon: any; settingKey?: string }>;
 }> = [
   {
-    title: 'Overview',
+    title: 'Dashboard',
     items: [{ label: 'Overview', to: '/admin', icon: LayoutDashboard }],
   },
   {
@@ -90,11 +90,10 @@ const navSections: Array<{
     ],
   },
   {
-    title: 'Finance',
+    title: 'Financials',
     items: [
-      { label: 'Dashboard', to: '/admin/finance', icon: Wallet },
+      { label: 'Cash Flow', to: '/admin/cashflow', icon: Wallet },
       { label: 'Transactions', to: '/admin/finance/transactions', icon: Landmark },
-      { label: 'Cash Flow', to: '/admin/finance/cash-flow', icon: DollarSign },
       { label: 'Reports', to: '/admin/finance/reports', icon: PieChart },
     ],
   },
