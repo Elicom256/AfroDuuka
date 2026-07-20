@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity;
 
 /**
  * Defines a customer loyalty program (points, stamps, or tiered).
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class LoyaltyProgram extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'name',

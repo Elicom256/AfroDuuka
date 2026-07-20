@@ -2,20 +2,24 @@ import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PaginationComponent } from '@/app/utils/Pagination';
 
-export const ReorderRulesTable = ({ rules, onDelete }: any) => {
+export const ReorderRulesTable = ({ rules, onDelete, onEdit }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const totalPages = Math.ceil((rules?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRules = rules?.slice(startIndex, startIndex + itemsPerPage);
-
   const handleDelete = async (id: string) => {
-    try { await onDelete(id).unwrap(); toast.success('Deleted'); } catch { toast.error('Failed'); }
+    try {
+      await onDelete(id).unwrap();
+      toast.success('Deleted');
+    } catch {
+      toast.error('Failed');
+    }
   };
 
   return (
@@ -37,12 +41,25 @@ export const ReorderRulesTable = ({ rules, onDelete }: any) => {
               <TableCell>{r.reorder_quantity}</TableCell>
               <TableCell>{r.preferred_supplier?.user?.firstname || 'Any'}</TableCell>
               <TableCell>
-                {r.auto_approve
-                  ? <Badge variant='default'><CheckCircle className='h-3 w-3 mr-1' /> Yes</Badge>
-                  : <Badge variant='secondary'><XCircle className='h-3 w-3 mr-1' /> No</Badge>}
+                {r.auto_approve ? (
+                  <Badge variant='default'>
+                    <CheckCircle className='h-3 w-3 mr-1' /> Yes
+                  </Badge>
+                ) : (
+                  <Badge variant='secondary'>
+                    <XCircle className='h-3 w-3 mr-1' /> No
+                  </Badge>
+                )}
               </TableCell>
               <TableCell>
-                <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                <div className='flex items-center gap-1'>
+                  <Button variant='ghost' size='icon' onClick={() => onEdit(r)}>
+                    <Pencil className='h-4 w-4' />
+                  </Button>
+                  <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}>
+                    <Trash2 className='h-4 w-4 text-destructive' />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

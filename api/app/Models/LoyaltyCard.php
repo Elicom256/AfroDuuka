@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity;
 
 /**
  * Links a customer to a loyalty program with their points balance and tier.
  */
 class LoyaltyCard extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'loyalty_program_id',
         'business_id',

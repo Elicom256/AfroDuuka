@@ -37,10 +37,5 @@ export const ordersQuery = createApi({
   }),
 });
 
-export const {
-  useOrdersQuery,
-  useOrderQuery,
-  useCreateOrderMutation,
-  useUpdateOrderMutation,
-  useDeleteOrderMutation,
-} = ordersQuery;
+export const { useOrdersQuery, useOrderQuery, useCreateOrderMutation, useUpdateOrderMutation, useDeleteOrderMutation } =
+  ordersQuery;

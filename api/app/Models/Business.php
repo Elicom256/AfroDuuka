@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\LogsActivity;
 
 class Business extends Model
 {
+    use LogsActivity;
+
     protected $fillable = [
         'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', "status", "subscription_balance"
         ];

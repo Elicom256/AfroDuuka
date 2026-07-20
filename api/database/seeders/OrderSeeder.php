@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Customer;
-use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\SaleOrder;
+use App\Models\SaleOrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -20,7 +20,9 @@ class OrderSeeder extends Seeder
             throw new \Exception("Business not found");
         }
 
-        $branch = BusinessBranch::where("business_id", $business->id)->first();
+        $branch = BusinessBranch::where("business_id", $business->id)
+                   ->where("name", "Main Branch")
+                   ->first();
         if (!$branch) {
             throw new \Exception("Branch not found");
         }
@@ -76,7 +78,7 @@ class OrderSeeder extends Seeder
             ],
         ];
 
-        $orderCount = Order::where("business_id", $business->id)->count();
+        $orderCount = SaleOrder::where("business_id", $business->id)->count();
 
         foreach ($orders as $i => $orderData) {
             $orderCount++;
@@ -97,7 +99,7 @@ class OrderSeeder extends Seeder
                 ];
             }
 
-            $order = Order::create([
+            $order = SaleOrder::create([
                 "business_id" => $business->id,
                 "business_branch_id" => $branch->id,
                 "user_id" => $user?->id,
@@ -111,7 +113,7 @@ class OrderSeeder extends Seeder
             ]);
 
             foreach ($items as $item) {
-                OrderItem::create([
+                SaleOrderItem::create([
                     "order_id" => $order->id,
                     ...$item,
                 ]);

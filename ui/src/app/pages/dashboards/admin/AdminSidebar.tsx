@@ -84,7 +84,6 @@ const navSections: Array<{
       { label: 'Taxes', to: '/admin/taxes', icon: DollarSign },
       { label: 'Payroll', to: '/admin/remuneration', icon: Users },
       { label: 'Salaries', to: '/admin/employee-salaries', icon: DollarSign },
-      { label: 'Activity Logs', to: '/admin/activity-logs', icon: History },
       { label: 'Branches', to: '/admin/branches', icon: Truck },
     ],
   },
@@ -121,6 +120,7 @@ const navSections: Array<{
     items: [
       { label: 'Notifications', to: '/admin/notifications', icon: Bell },
       { label: 'Messages', to: '/admin/messages', icon: MessageSquare },
+      { label: 'Activity Logs', to: '/admin/activity-logs', icon: History },
       { label: 'Settings', to: '/admin/settings', icon: Settings },
     ],
   },

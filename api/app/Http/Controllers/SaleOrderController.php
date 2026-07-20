@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\SaleOrder;
+use App\Models\SaleOrderItem;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class OrderController extends Controller
+class SaleOrderController extends Controller
 {
     public function index(): JsonResponse
     {
         $user = Auth::user();
-        $orders = Order::where("business_branch_id", $user->business_branch_id)
+        $orders = SaleOrder::where("business_branch_id", $user->business_branch_id)
             ->with("items.product", "customer")
             ->orderByDesc("created_at")
             ->get();
@@ -37,12 +37,12 @@ class OrderController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated, $user) {
-            $orderCount = Order::where("business_id", $user->business_id)->count();
+            $orderCount = SaleOrder::where("business_id", $user->business_id)->count();
             $orderNumber = "ORD-" . str_pad($orderCount + 1, 6, "0", STR_PAD_LEFT);
 
             $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
 
-            $order = Order::create([
+            $order = SaleOrder::create([
                 "business_id" => $user->business_id,
                 "business_branch_id" => $user->business_branch_id,
                 "user_id" => $user->id,
@@ -54,7 +54,7 @@ class OrderController extends Controller
             ]);
 
             foreach ($validated["items"] as $item) {
-                OrderItem::create([
+                SaleOrderItem::create([
                     "order_id" => $order->id,
                     "product_id" => $item["product_id"],
                     "quantity" => $item["quantity"],
@@ -67,27 +67,27 @@ class OrderController extends Controller
         });
     }
 
-    public function show(Order $order): JsonResponse
+    public function show(SaleOrder $sale_order): JsonResponse
     {
-        return response()->json(["message" => "Order fetched", "data" => $order->load("items.product", "customer")]);
+        return response()->json(["message" => "Order fetched", "data" => $sale_order->load("items.product", "customer")]);
     }
 
-    public function update(Request $request, Order $order): JsonResponse
+    public function update(Request $request, SaleOrder $sale_order): JsonResponse
     {
         $validated = $request->validate([
             "status" => "sometimes|in:pending,confirmed,processing,shipped,delivered,cancelled",
             "notes" => "nullable|string|max:500",
         ]);
 
-        $order->update($validated);
+        $sale_order->update($validated);
 
-        return response()->json(["message" => "Order updated", "data" => $order->load("items.product", "customer")]);
+        return response()->json(["message" => "Order updated", "data" => $sale_order->load("items.product", "customer")]);
     }
 
-    public function destroy(Order $order): JsonResponse
+    public function destroy(SaleOrder $sale_order): JsonResponse
     {
-        $order->items()->delete();
-        $order->delete();
+        $sale_order->items()->delete();
+        $sale_order->delete();
         return response()->json(["message" => "Order deleted"]);
     }
 }

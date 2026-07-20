@@ -1,21 +1,32 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useReorderRulesQuery, useCreateReorderRuleMutation, useDeleteReorderRuleMutation } from '@/app/store/features/business/admin/reorderRulesQuery';
+import {
+  useReorderRulesQuery,
+  useCreateReorderRuleMutation,
+  useUpdateReorderRuleMutation,
+  useDeleteReorderRuleMutation,
+} from '@/app/store/features/business/admin/reorderRulesQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { PackageSearch } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddReorderRule } from '../components/reorder-rules/AddReorderRule';
+import { EditReorderRule } from '../components/reorder-rules/EditReorderRule';
 import { ReorderRulesTable } from '../components/reorder-rules/ReorderRulesTable';
 
 export const AdminReorderRulesPage = () => {
   const { data, isLoading } = useReorderRulesQuery();
   const [createRule] = useCreateReorderRuleMutation();
+  const [updateRule] = useUpdateReorderRuleMutation();
   const [deleteRule] = useDeleteReorderRuleMutation();
   const { data: productsData } = useProductsQuery();
   const { data: suppliersData } = useSuppliersQuery();
   const rules = data?.data || [];
-  const products = productsData?.data || [];
-  const suppliers = suppliersData?.data || [];
+  const products = productsData?.products || [];
+  // console.log('suppliersData==>', suppliersData);
+
+  const suppliers = suppliersData?.suppliers || [];
+  const [editRule, setEditRule] = useState<any>(null);
 
   if (isLoading) return <PageLoadingState />;
 
@@ -31,15 +42,25 @@ export const AdminReorderRulesPage = () => {
         <AddReorderRule createRule={createRule} products={products} suppliers={suppliers} />
       </div>
       <Card>
-        <CardHeader><CardTitle>All Rules ({rules.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Rules ({rules.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {rules.length === 0 ? (
             <p className='text-muted-foreground text-sm text-center py-8'>No reorder rules configured.</p>
           ) : (
-            <ReorderRulesTable rules={rules} onDelete={deleteRule} />
+            <ReorderRulesTable rules={rules} onDelete={deleteRule} onEdit={setEditRule} />
           )}
         </CardContent>
       </Card>
+      <EditReorderRule
+        open={!!editRule}
+        onOpenChange={(open: boolean) => !open && setEditRule(null)}
+        rule={editRule}
+        products={products}
+        suppliers={suppliers}
+        updateRule={updateRule}
+      />
     </div>
   );
 };

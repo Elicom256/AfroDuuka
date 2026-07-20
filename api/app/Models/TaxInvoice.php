@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 /**
  * URA-compliant tax invoice linked to a sale.
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TaxInvoice extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'business_branch_id',

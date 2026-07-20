@@ -1,27 +1,9 @@
 # REFACTOR
 
-## Week 1: Fix P0 Broken Modules
-
-**1. Wire up `Promotion` controller + routes**
-This should portray a modern system
-**2. Wire up `Coupon` controller + routes**
-Generate coupon codes, the code should follow a specific cretaria
-->First 4 letters od the business name, + the length of coupons a business has offered so far 3. Remove `AdminInventoryPage` end to end because I don't need it at all 6. delete todo.php route and delete `api.php` because todos and handled under user.php route 7. Delete History model migrations, UI everything
-
-**8. Attachments**
-Here, you'll just edit the products model and migration and add imoji, so that when the user is creating a product, he selects an imoji to
-Wire this up both on the front end and back end
-So, I don't wanna add images yet
-On Product seeder, add emogis for products to
-
-**9. Orders**
-Wire up orders from back end to front end
+On the re-order module, CRUD is not complete. Make sure it's complete from api to UI
+While performing this task, follow the current architecture, so that the code is clean and performant
 
 ## Constraints
 
-- Edit migrations directly where needed
-- Put comments on your work
-- Do not hallucinate
-- Maintain scalability
-- Follow modern Laravel conventions and the current design system
-- produce clean work
+- Maintain the architecture
+- Take advantage of the available packages and UI components especially from shadcn and lucide

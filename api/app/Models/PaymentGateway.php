@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 /**
  * Stores payment provider credentials (MTN MoMo, Airtel Money, etc.)
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class PaymentGateway extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'provider',

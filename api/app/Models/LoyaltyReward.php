@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+
 /**
  * A redeemable reward in the loyalty program (discount, free item, etc.).
  */
 class LoyaltyReward extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'name',
