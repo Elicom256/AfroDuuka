@@ -58,6 +58,8 @@ import { ordersQuery } from '../features/orders/ordersQuery';
 import { purchaseOrdersQuery } from '../features/orders/purchaseOrdersQuery';
 import { couponsQuery } from '../features/coupons/couponsQuery';
 import { financeQuery } from '../features/finance/financeQuery';
+import { productAuditQuery } from '../features/audit/productAuditQuery';
+import { financialAuditQuery } from '../features/audit/financialAuditQuery';
 
 export const store = configureStore({
   reducer: {
@@ -120,6 +122,8 @@ export const store = configureStore({
     [purchaseOrdersQuery.reducerPath]: purchaseOrdersQuery.reducer,
     [couponsQuery.reducerPath]: couponsQuery.reducer,
     [financeQuery.reducerPath]: financeQuery.reducer,
+    [productAuditQuery.reducerPath]: productAuditQuery.reducer,
+    [financialAuditQuery.reducerPath]: financialAuditQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -183,6 +187,8 @@ export const store = configureStore({
       purchaseOrdersQuery.middleware,
       couponsQuery.middleware,
       financeQuery.middleware,
+      productAuditQuery.middleware,
+      financialAuditQuery.middleware,
     ),
 });
 

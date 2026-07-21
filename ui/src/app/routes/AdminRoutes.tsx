@@ -71,6 +71,12 @@ import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxIn
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
 import { AdminSubscriptionPaymentsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionPaymentsPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
+import { AdminProductAuditsPage } from '../pages/dashboards/admin/pages/AdminProductAuditsPage';
+import { AdminProductAuditPage } from '../pages/dashboards/admin/pages/AdminProductAuditPage';
+import { AdminProductAuditReportPage } from '../pages/dashboards/admin/pages/AdminProductAuditReportPage';
+import { AdminFinancialAuditsPage } from '../pages/dashboards/admin/pages/AdminFinancialAuditsPage';
+import { AdminFinancialAuditPage } from '../pages/dashboards/admin/pages/AdminFinancialAuditPage';
+import { AdminFinancialAuditReportPage } from '../pages/dashboards/admin/pages/AdminFinancialAuditReportPage';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -153,6 +159,12 @@ export const AdminRoutes = () => {
           <Route path='expenses' element={<AdminExpensesPage />} />
           <Route path='branches' element={<BusinessBranches />} />
           <Route path='subscriptions' element={<AdminSubscriptionPaymentsPage />} />
+          <Route path='product-audits' element={<AdminProductAuditsPage />} />
+          <Route path='product-audits/:id' element={<AdminProductAuditPage />} />
+          <Route path='product-audits/:id/report' element={<AdminProductAuditReportPage />} />
+          <Route path='financial-audits' element={<AdminFinancialAuditsPage />} />
+          <Route path='financial-audits/:id' element={<AdminFinancialAuditPage />} />
+          <Route path='financial-audits/:id/report' element={<AdminFinancialAuditReportPage />} />
         </Route>
       </Route>
 

@@ -121,6 +121,14 @@ Route::prefix("coupons")->group(function () {
     require __DIR__."/coupons.php";
 });
 
+Route::prefix("product-audits")->group(function () {
+    require __DIR__."/product-audits.php";
+});
+
+Route::prefix("financial-audits")->group(function () {
+    require __DIR__."/financial-audits.php";
+});
+
 Route::prefix("ai")->group(function () {
     require __DIR__."/ai.php";
 });
