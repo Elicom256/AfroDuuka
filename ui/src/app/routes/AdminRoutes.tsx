@@ -60,6 +60,7 @@ import { BusinessInfoSettings } from '../pages/dashboards/admin/components/setti
 import { PlanBillingSettings } from '../pages/dashboards/admin/components/settings/PlanBillingSettings';
 import { AdminCurrencyRatesPage } from '../pages/dashboards/admin/pages/AdminCurrencyRatesPage';
 import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
+import { WhatsAppSettings } from '../pages/dashboards/admin/components/settings/WhatsAppSettings';
 import { AdminPrintersPage } from '../pages/dashboards/admin/pages/AdminPrintersPage';
 import { AdminStockTransfersPage } from '../pages/dashboards/admin/pages/AdminStockTransfersPage';
 import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceiptsPage';
@@ -138,6 +139,7 @@ export const AdminRoutes = () => {
             <Route path='attendance-settings' element={<AttendanceSettings />} />
             <Route path='supplier-settings' element={<SupplierSettings />} />
             <Route path='currency-settings' element={<CurrencySettings />} />
+            <Route path='whatsapp-settings' element={<WhatsAppSettings />} />
           </Route>
           <Route path='currency-rates' element={<AdminCurrencyRatesPage />} />
           <Route path='printers' element={<AdminPrintersPage />} />

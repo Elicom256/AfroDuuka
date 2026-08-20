@@ -18,6 +18,7 @@ import {
   Globe,
   Building2,
   Crown,
+  MessageSquareText,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,7 @@ export const AdminSettingsPage = () => {
     { to: 'attendance-settings', label: 'Attendance', Icon: Clock },
     { to: 'business-info', label: 'Business Info', Icon: Building2 },
     { to: 'currency-settings', label: 'Currency', Icon: Globe },
+    { to: 'whatsapp-settings', label: 'WhatsApp', Icon: MessageSquareText },
   ];
 
   const filteredNav = searchQuery
