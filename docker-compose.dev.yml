@@ -55,7 +55,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_DATABASE:-inventory}
       POSTGRES_USER: ${DB_USERNAME:-elicom}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-elicom256}
     env_file:
       - ./api/.env
     volumes:
