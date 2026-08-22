@@ -253,14 +253,14 @@ export const PricingSection = () => {
       />
       
       {/* Plans Grid */}
-      <div className='mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 '>
         {planLoading
           ? [1, 2, 3, 4].map((i) => <PricingCardSkeleton key={i} />)
           : plans.map((plan: any) => <PlanCard key={plan.id} plan={plan} />)}
       </div>
 
       {/* ROI Stats High-Converting Band */}
-      <div className='mt-24 rounded-3xl border border-primary/20 bg-linear-to-br from-primary/5 to-primary/0 p-8 md:p-12 shadow-inner'>
+      <div className='mt-24 rounded-3xl border border-primary/20 bg-linear-to-br from-primary/5 to-primary/0 p-8 md:p-12 shadow-inner '>
         <div className='text-center max-w-3xl mx-auto'>
           <Badge className='bg-primary/10 hover:bg-primary/25 text-primary border-none px-4 py-1 text-xs font-semibold uppercase tracking-wider mb-4'>
             Enterprise Value
