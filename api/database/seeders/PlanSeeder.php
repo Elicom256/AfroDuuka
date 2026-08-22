@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Database\Seeder;
 
 class PlanSeeder extends Seeder
@@ -12,14 +13,14 @@ class PlanSeeder extends Seeder
         $plans = [
 
             [
-                'name' => 'Starter',
-                'slug' => 'starter',
+                'name' => 'Essentials',
+                'slug' => 'essentials',
                 'mark' => 'Affordable',
-                'description' => 'Perfect for small and growing businesses looking for a modern inventory management solution.',
-                'monthly_price' => 55000,
-                'yearly_price' => 561000,
+                'description' => 'A simple starting point for small shops that need reliable stock and sales control.',
+                'monthly_price' => 12.00,
+                'yearly_price' => 120.00,
                 'billing_cycle' => 'monthly',
-                'discount_percentage' => 15,
+                'discount_percentage' => 0,
                 'features' => [
                     'Up to 500 products',
                     '1 business branch',
@@ -30,7 +31,7 @@ class PlanSeeder extends Seeder
                     'Profit & loss reports',
                     'Low stock alerts',
                     'Automated WhatsApp notifications',
-                    'AI Business Assistant',
+                    'AI business assistant',
                     'Email support',
                 ],
                 'limits' => [
@@ -41,94 +42,59 @@ class PlanSeeder extends Seeder
                 'status' => 'active',
                 'is_active' => true,
                 'sort_order' => 1,
-                'currency' => 'UGX',
+                'currency' => 'USD',
             ],
 
             [
-                'name' => 'Business',
-                'slug' => 'business',
+                'name' => 'Professional',
+                'slug' => 'professional',
                 'mark' => 'Most Popular',
-                'description' => 'Built for established businesses managing multiple employees and growing inventory.',
-                'monthly_price' => 85000,
-                'yearly_price' => 816000,
+                'description' => 'For established businesses that need deeper reporting and control across their teams.',
+                'monthly_price' => 39.00,
+                'yearly_price' => 390.00,
                 'billing_cycle' => 'monthly',
-                'discount_percentage' => 20,
+                'discount_percentage' => 0,
                 'features' => [
-                    'Up to 2,000 products',
-                    'Up to 3 branches',
-                    '8 users',
+                    'Up to 5,000 products',
+                    'Up to 5 branches',
+                    '15 users',
                     'Advanced inventory tracking',
                     'Sales analytics',
                     'Supplier management',
                     'Employee management',
                     'Barcode support',
                     'Profit & loss reports',
-                    'Advanced AI Assistant',
+                    'Advanced AI assistant',
                     'Automated WhatsApp notifications',
                     'Priority email support',
                 ],
                 'limits' => [
-                    'max_products' => 2000,
-                    'max_branches' => 3,
-                    'max_users' => 8,
+                    'max_products' => 5000,
+                    'max_branches' => 5,
+                    'max_users' => 15,
                 ],
                 'status' => 'active',
                 'is_active' => true,
                 'sort_order' => 2,
-                'currency' => 'UGX',
-            ],
-
-            [
-                'name' => 'Growth',
-                'slug' => 'growth',
-                'mark' => 'Best Value',
-                'description' => 'Ideal for supermarkets, wholesalers and businesses with multiple branches.',
-                'monthly_price' => 135000,
-                'yearly_price' => 1215000,
-                'billing_cycle' => 'monthly',
-                'discount_percentage' => 25,
-                'features' => [
-                    'Up to 10,000 products',
-                    'Up to 10 branches',
-                    '25 users',
-                    'Real-time inventory',
-                    'Stock transfers',
-                    'Purchase order management',
-                    'Promotions & discounts',
-                    'Advanced analytics',
-                    'Forecasting reports',
-                    'Advanced AI insights',
-                    'Automated WhatsApp notifications',
-                    'API access',
-                    'Priority support',
-                ],
-                'limits' => [
-                    'max_products' => 10000,
-                    'max_branches' => 10,
-                    'max_users' => 25,
-                ],
-                'status' => 'active',
-                'is_active' => true,
-                'sort_order' => 3,
-                'currency' => 'UGX',
+                'currency' => 'USD',
             ],
 
             [
                 'name' => 'Enterprise',
                 'slug' => 'enterprise',
                 'mark' => 'Enterprise',
-                'description' => 'For organizations requiring unlimited scalability, dedicated support and custom integrations.',
-                'monthly_price' => 250000,
-                'yearly_price' => 2100000,
+                'description' => 'For larger organizations that need unlimited scale, integrations and hands-on support.',
+                'monthly_price' => 99.00,
+                'yearly_price' => 990.00,
                 'billing_cycle' => 'monthly',
-                'discount_percentage' => 30,
+                'discount_percentage' => 0,
                 'features' => [
                     'Unlimited products',
                     'Unlimited branches',
                     'Unlimited users',
                     'Custom integrations',
                     'Dedicated onboarding',
-                    'Advanced AI Assistant',
+                    'Advanced AI assistant',
                     'Advanced analytics',
                     'Custom reports',
                     'Role & permission management',
@@ -145,8 +111,8 @@ class PlanSeeder extends Seeder
                 ],
                 'status' => 'active',
                 'is_active' => true,
-                'sort_order' => 4,
-                'currency' => 'UGX',
+                'sort_order' => 3,
+                'currency' => 'USD',
             ],
 
         ];
@@ -156,6 +122,23 @@ class PlanSeeder extends Seeder
                 ['slug' => $plan['slug']],
                 $plan
             );
+        }
+
+        $legacyPlanMap = [
+            'starter' => 'essentials',
+            'business' => 'professional',
+            'growth' => 'professional',
+        ];
+
+        foreach ($legacyPlanMap as $legacySlug => $currentSlug) {
+            $legacyPlan = Plan::where('slug', $legacySlug)->first();
+            $currentPlan = Plan::where('slug', $currentSlug)->first();
+
+            if ($legacyPlan && $currentPlan) {
+                Subscription::where('plan_id', $legacyPlan->id)
+                    ->update(['plan_id' => $currentPlan->id]);
+                $legacyPlan->delete();
+            }
         }
 
         $this->command->info('✅ Seeded ' . count($plans) . ' plans successfully!');
