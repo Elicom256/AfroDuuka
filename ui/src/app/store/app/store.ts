@@ -34,6 +34,7 @@ import { adminEmployeeRemunerationQuery } from '../features/business/admin/emplo
 import { adminBusinessActivityLogsQuery } from '../features/business/admin/businessActivityLogsQuery';
 import { currencyRatesQuery } from '../features/business/admin/currencyRatesQuery';
 import { paymentGatewaysQuery } from '../features/business/admin/paymentGatewaysQuery';
+import { whatsappQuery } from '../features/business/admin/whatsappQuery';
 import { printersQuery } from '../features/business/admin/printersQuery';
 import { stockTransfersQuery } from '../features/business/admin/stockTransfersQuery';
 import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery';
@@ -91,6 +92,7 @@ export const store = configureStore({
     [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
     [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
     [paymentGatewaysQuery.reducerPath]: paymentGatewaysQuery.reducer,
+    [whatsappQuery.reducerPath]: whatsappQuery.reducer,
     [printersQuery.reducerPath]: printersQuery.reducer,
     [stockTransfersQuery.reducerPath]: stockTransfersQuery.reducer,
     [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
@@ -156,6 +158,7 @@ export const store = configureStore({
       adminBusinessActivityLogsQuery.middleware,
       currencyRatesQuery.middleware,
       paymentGatewaysQuery.middleware,
+      whatsappQuery.middleware,
       printersQuery.middleware,
       stockTransfersQuery.middleware,
       reorderRulesQuery.middleware,

@@ -49,6 +49,10 @@ Route::prefix("payment-gateways")->group(function () {
     require __DIR__."/payment-gateways.php";
 });
 
+Route::prefix("whatsapp")->group(function () {
+    require __DIR__."/whatsapp.php";
+});
+
 Route::prefix("printers")->group(function () {
     require __DIR__."/printers.php";
 });
