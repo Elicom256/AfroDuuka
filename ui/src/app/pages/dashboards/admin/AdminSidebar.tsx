@@ -32,6 +32,8 @@ import {
   Wallet,
   Landmark,
   PieChart,
+  ClipboardList,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -123,6 +125,13 @@ const navSections: Array<{
       { label: 'Stock Transfers', to: '/admin/stock-transfers', icon: ArrowLeftRight },
       { label: 'Reorder Rules', to: '/admin/reorder-rules', icon: PackageSearch },
       { label: 'Report Exports', to: '/admin/report-exports', icon: FileDown },
+    ],
+  },
+  {
+    title: 'Audits',
+    items: [
+      { label: 'Product Audits', to: '/admin/product-audits', icon: ClipboardList },
+      { label: 'Financial Audits', to: '/admin/financial-audits', icon: Calculator },
     ],
   },
   {
