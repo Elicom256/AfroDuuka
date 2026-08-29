@@ -2,6 +2,7 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Jobs\ProcessWhatsAppNotificationJob;
 use App\Jobs\SendWhatsAppNotificationJob;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
@@ -91,7 +92,19 @@ class WhatsAppService
     {
         $config ??= $this->getConfigForBusiness();
 
-        SendWhatsAppNotificationJob::dispatch($config->business_id, $recipient, $message, $config->id);
+        $notification = (new WhatsAppNotificationService())->buildPayload([
+            'business_id' => $config->business_id,
+            'branch_id' => null,
+            'type' => 'demo_test',
+            'template_key' => 'demo_test',
+            'recipient_phone' => $recipient,
+            'template_data' => [
+                'business_name' => 'DuukaFlow',
+                'message' => $message,
+            ],
+        ]);
+
+        ProcessWhatsAppNotificationJob::dispatch($notification);
 
         return [
             'success' => true,
@@ -100,12 +113,40 @@ class WhatsAppService
             'message' => 'Demo WhatsApp message queued for processing.',
             'recipient' => $recipient,
             'queued' => true,
+            'dedupe_key' => $notification['dedupe_key'],
         ];
     }
 
     public function sendDemoMessage(string $recipient, string $message, ?WhatsAppConfig $config = null): array
     {
         $config ??= $this->getConfigForBusiness();
+
+        $payload = [
+            'business_id' => $config->business_id,
+            'branch_id' => null,
+            'type' => 'demo_test',
+            'template_key' => 'demo_test',
+            'recipient_phone' => $recipient,
+            'template_data' => [
+                'business_name' => 'DuukaFlow',
+                'message' => $message,
+            ],
+        ];
+
+        $notification = (new WhatsAppNotificationService())->buildPayload($payload);
+        $provider = WhatsAppProviderFactory::create([
+            'provider' => $config->provider,
+            'business_phone' => $config->business_phone,
+            'access_token' => $config->access_token,
+            'phone_number_id' => $config->phone_number_id,
+        ]);
+
+        $result = $provider->sendMessage([
+            'to' => $recipient,
+            'message' => $message,
+            'template_key' => 'demo_test',
+            'business_id' => $config->business_id,
+        ]);
 
         $log = WhatsAppMessageLog::create([
             'business_id' => $config->business_id,
@@ -114,25 +155,9 @@ class WhatsAppService
             'channel' => 'whatsapp',
             'message_body' => $message,
             'variables' => ['business_phone' => $config->business_phone],
-            'status' => 'queued',
-            'provider_response' => [
-                'provider' => 'demo',
-                'mode' => 'mock',
-                'business_phone' => $config->business_phone,
-                'status' => 'queued',
-            ],
-            'sent_at' => now(),
-        ]);
-
-        $log->update([
-            'status' => 'sent',
-            'provider_response' => [
-                'provider' => 'demo',
-                'mode' => 'mock',
-                'business_phone' => $config->business_phone,
-                'status' => 'sent',
-                'message' => 'Demo delivery only. No paid WhatsApp API configured yet.',
-            ],
+            'status' => $result['success'] ? 'sent' : 'failed',
+            'provider_response' => $result,
+            'sent_at' => $result['success'] ? now() : null,
         ]);
 
         return [
@@ -142,6 +167,7 @@ class WhatsAppService
             'message' => 'Demo WhatsApp message queued successfully. No live API billing is attached yet.',
             'recipient' => $recipient,
             'log_id' => $log->id,
+            'dedupe_key' => $notification['dedupe_key'],
         ];
     }
 }
