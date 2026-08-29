@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\WhatsApp\WhatsAppNotificationService;
 use Illuminate\Support\Facades\Request;
 
 class BusinessService
@@ -52,6 +53,17 @@ class BusinessService
         ]);
         BusinessBranch::create([
             "business_id" => $business->id, 
+        ]);
+
+        (new WhatsAppNotificationService())->queueBusinessNotification([
+            'business_id' => $business->id,
+            'type' => 'registration',
+            'template_key' => 'registration.welcome',
+            'recipient_phone' => $user->phone ?? $business->phone,
+            'template_data' => [
+                'business_name' => $business->name,
+                'phone' => $user->phone ?? $business->phone,
+            ],
         ]);
 
         // ======================= set starter plan ================= to create a plan based on what the user picked

@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\CheckNotificationsJob;
+use App\Jobs\ProcessSubscriptionLifecycleWhatsAppJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -11,6 +12,7 @@ Artisan::command('inspire', function () {
 
 // ============== Job Schedule ===================
 Schedule::job(new CheckNotificationsJob())->everySixHours()->withoutOverlapping();
+Schedule::job(new ProcessSubscriptionLifecycleWhatsAppJob())->everySixHours()->withoutOverlapping();
 // ============== Schedule commands ====================
 Schedule::command("inspire")->hourly();
 Schedule::command("queue:work")->everyMinute();
