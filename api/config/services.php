@@ -32,6 +32,16 @@ return [
         'api_key' => env('GEMINI_API_KEY'),
     ],
 
+    'whatsapp' => [
+        'provider' => env('WHATSAPP_PROVIDER', 'demo'),
+        'demo_mode' => filter_var(env('WHATSAPP_DEMO_MODE', true), FILTER_VALIDATE_BOOLEAN),
+        'business_phone' => env('WHATSAPP_BUSINESS_PHONE', '+256731794401'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID', 'demo_phone_number_id'),
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN', 'demo_access_token'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'demo_verify_token'),
+        'default_template' => env('WHATSAPP_DEFAULT_TEMPLATE', 'demo_business_alert'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
