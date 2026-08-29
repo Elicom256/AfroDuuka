@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSubscriptionRequest;
 use App\Http\Requests\UpdateSubscriptionRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Services\WhatsApp\WhatsAppNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
@@ -28,6 +29,19 @@ class SubscriptionController extends Controller
 
         $subscription = Subscription::create($validated);
         $plan = Plan::find($subscription->plan_id);
+
+        (new WhatsAppNotificationService())->queueBusinessNotification([
+            'business_id' => $subscription->business_id,
+            'type' => 'subscription.created',
+            'template_key' => 'subscription.created',
+            'recipient_phone' => $subscription->business?->phone ?? Auth::user()?->phone ?? '+256731794401',
+            'template_data' => [
+                'business_name' => $subscription->business?->name ?? 'Your business',
+                'plan_name' => $plan?->name ?? 'Your plan',
+                'expiry_date' => $subscription->ends_at?->format('Y-m-d') ?? now()->addMonth()->format('Y-m-d'),
+            ],
+        ]);
+
         return response()->json([
             "subscription" => $subscription->load(['plan', 'business', 'payments']),
             "message" => "Subscribed to $plan->name!"
