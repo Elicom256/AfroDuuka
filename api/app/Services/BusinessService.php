@@ -27,6 +27,9 @@ class BusinessService
             'business_category_id' => $data['business_category_id'],
         ]);
 
+        // Dispatch business registration event
+        event(new BusinessRegistered($business));
+
         // Create the admin role for this business
         $adminRole = Role::create([
             'name' => 'admin',
