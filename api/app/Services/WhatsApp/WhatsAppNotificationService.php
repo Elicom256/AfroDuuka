@@ -182,4 +182,54 @@ class WhatsAppNotificationService
             ],
         ]);
     }
+
+    public function queuePaymentFailureAlert(array $payload): array
+    {
+        return $this->queueBusinessNotification([
+            'business_id' => $payload['business_id'] ?? 0,
+            'branch_id' => $payload['branch_id'] ?? null,
+            'type' => 'payment.failed',
+            'template_key' => 'payment.failed',
+            'recipient_phone' => $payload['recipient_phone'] ?? '',
+            'template_data' => [
+                'business_name' => $payload['business_name'] ?? 'Your business',
+                'plan_name' => $payload['plan_name'] ?? 'Your plan',
+                'amount' => $payload['amount'] ?? 0,
+                'payment_date' => $payload['payment_date'] ?? now()->toDateString(),
+            ],
+        ]);
+    }
+
+    public function queueNewSubscriptionAlert(array $payload): array
+    {
+        return $this->queueBusinessNotification([
+            'business_id' => $payload['business_id'] ?? 0,
+            'branch_id' => $payload['branch_id'] ?? null,
+            'type' => 'subscription.created',
+            'template_key' => 'subscription.created',
+            'recipient_phone' => $payload['recipient_phone'] ?? '',
+            'template_data' => [
+                'business_name' => $payload['business_name'] ?? 'Your business',
+                'plan_name' => $payload['plan_name'] ?? 'Your plan',
+                'expiry_date' => $payload['expiry_date'] ?? now()->addMonth()->toDateString(),
+            ],
+        ]);
+    }
+
+    public function queuePlanChangeAlert(array $payload): array
+    {
+        return $this->queueBusinessNotification([
+            'business_id' => $payload['business_id'] ?? 0,
+            'branch_id' => $payload['branch_id'] ?? null,
+            'type' => 'subscription.plan_changed',
+            'template_key' => 'subscription.plan_changed',
+            'recipient_phone' => $payload['recipient_phone'] ?? '',
+            'template_data' => [
+                'business_name' => $payload['business_name'] ?? 'Your business',
+                'old_plan' => $payload['old_plan'] ?? 'Previous plan',
+                'new_plan' => $payload['new_plan'] ?? 'New plan',
+                'effective_date' => $payload['effective_date'] ?? now()->toDateString(),
+            ],
+        ]);
+    }
 }

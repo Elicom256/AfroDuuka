@@ -30,6 +30,24 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
 
         $normalized = $notificationService->buildPayload($this->payload);
         $businessId = (int) ($normalized['business_id'] ?? 0);
+        $dedupeKey = $normalized['dedupe_key'] ?? null;
+
+        if ($dedupeKey) {
+            $existingLog = WhatsAppMessageLog::where('business_id', $businessId)
+                ->where('dedupe_key', $dedupeKey)
+                ->where('status', 'sent')
+                ->first();
+
+            if ($existingLog) {
+                Log::info('Skipping duplicate WhatsApp notification', [
+                    'business_id' => $businessId,
+                    'dedupe_key' => $dedupeKey,
+                    'existing_log_id' => $existingLog->id,
+                ]);
+                return;
+            }
+        }
+
         $config = WhatsAppConfig::where('business_id', $businessId)->first();
 
         if (! $config) {
@@ -74,6 +92,7 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
             'provider_response' => $result,
             'error_code' => $result['success'] ? null : 'provider_error',
             'sent_at' => $result['success'] ? now() : null,
+            'dedupe_key' => $normalized['dedupe_key'] ?? null,
         ]);
 
         Log::info('WhatsApp notification processed', [

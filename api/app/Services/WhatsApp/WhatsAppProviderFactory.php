@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Services\WhatsApp\Contracts\WhatsAppProviderInterface;
 use App\Services\WhatsApp\Providers\DemoWhatsAppProvider;
+use App\Services\WhatsApp\Providers\MetaWhatsAppProvider;
 
 class WhatsAppProviderFactory
 {
@@ -13,6 +14,7 @@ class WhatsAppProviderFactory
 
         return match ($providerName) {
             'demo' => new DemoWhatsAppProvider($config),
+            'meta' => new MetaWhatsAppProvider($config),
             default => new DemoWhatsAppProvider($config),
         };
     }
