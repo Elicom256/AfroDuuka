@@ -19,6 +19,7 @@ class WhatsAppMessageLog extends BaseModel
         'sent_at',
         'delivered_at',
         'read_at',
+        'dedupe_key',
     ];
 
     protected function casts(): array
