@@ -48,7 +48,18 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             return;
         }
 
-        if ($this->hasRecentAlert($business->id, 'subscription.expired')) {
+        $dedupeKey = 'notification:subscription:expired:business-' . $business->id . ':plan-' . ($subscription->plan?->id ?? 'none');
+
+        $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
+            ->where('dedupe_key', $dedupeKey)
+            ->where('status', 'sent')
+            ->first();
+
+        if ($existingLog) {
+            Log::info('Skipping duplicate subscription expiry notification', [
+                'business_id' => $business->id,
+                'dedupe_key' => $dedupeKey,
+            ]);
             return;
         }
 
@@ -74,7 +85,18 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             return;
         }
 
-        if ($this->hasRecentAlert($business->id, 'subscription.expiry_reminder')) {
+        $dedupeKey = 'notification:subscription:expiry_reminder:business-' . $business->id . ':days-' . $daysSinceExpiry;
+
+        $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
+            ->where('dedupe_key', $dedupeKey)
+            ->where('status', 'sent')
+            ->first();
+
+        if ($existingLog) {
+            Log::info('Skipping duplicate subscription expiry reminder', [
+                'business_id' => $business->id,
+                'dedupe_key' => $dedupeKey,
+            ]);
             return;
         }
 
@@ -99,7 +121,15 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             ->where('starts_at', '<=', now())
             ->exists();
 
-        if ($hasActiveSubscription || $this->hasRecentAlert($business->id, 'subscription.free_trial_expired')) {
+        $dedupeKey = 'notification:subscription:free_trial_expired:business-' . $business->id;
+
+        $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
+            ->where('dedupe_key', $dedupeKey)
+            ->where('status', 'sent')
+            ->where('sent_at', '>=', now()->subDays(7))
+            ->first();
+
+        if ($hasActiveSubscription || $existingLog) {
             return;
         }
 
@@ -110,14 +140,5 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             'trial_end_date' => $subscription->trial_ends_at->toDateString(),
             'recipient_phone' => $business->phone,
         ]);
-    }
-
-    private function hasRecentAlert(int $businessId, string $alertType): bool
-    {
-        return WhatsAppMessageLog::where('business_id', $businessId)
-            ->where('status', 'sent')
-            ->where('message_body', 'like', '%' . $alertType . '%')
-            ->where('sent_at', '>=', now()->subDays(2))
-            ->exists();
     }
 }
