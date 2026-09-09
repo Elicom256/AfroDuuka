@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Listeners\WhatsApp\BusinessRegisteredListener;
 use App\Listeners\WhatsApp\SubscriptionCreatedListener;
 use App\Listeners\WhatsApp\SubscriptionPlanChangedListener;
+use App\Listeners\WhatsApp\FreeTrialExpiredListener;
 use App\Listeners\WhatsApp\PaymentFailedListener;
 use App\Listeners\WhatsApp\SubscriptionExpiredListener;
 use App\Listeners\WhatsApp\LowStockAlertListener;
@@ -27,6 +28,9 @@ class WhatsAppEventServiceProvider extends ServiceProvider
         ],
         WhatsAppNotificationEvents\PaymentFailed::class => [
             PaymentFailedListener::class,
+        ],
+        WhatsAppNotificationEvents\FreeTrialExpired::class => [
+            FreeTrialExpiredListener::class,
         ],
         WhatsAppNotificationEvents\SubscriptionExpired::class => [
             SubscriptionExpiredListener::class,
