@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
+use App\Models\WhatsAppTemplate;
 use App\Services\WhatsApp\WhatsAppNotificationService;
 use App\Services\WhatsApp\WhatsAppProviderFactory;
 use App\Services\WhatsApp\WhatsAppTemplateService;
@@ -71,23 +72,31 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
             'phone_number_id' => $config->phone_number_id,
         ]);
 
-        $templateString = (string) ($config->message_template ?? 'Hello {{business_name}}, this is a DuukaFlow WhatsApp alert.');
-        $message = $templateService->render($templateString, $normalized['template_data'] ?? []);
+        $templateKey = $normalized['template_key'] ?? 'general';
+        $template = WhatsAppTemplate::where('business_id', $businessId)
+            ->where('category', $templateKey)
+            ->where('status', 'approved')
+            ->latest('created_at')
+            ->first();
+
+        $templateString = $template?->body ?? ($config->message_template ?? 'Hello {{business_name}}, this is a DuukaFlow WhatsApp alert.');
+        $templateData = $template?->variables ?? ($normalized['template_data'] ?? []);
+        $message = $templateService->render($templateString, $templateData);
 
         $result = $provider->sendMessage([
             'to' => $normalized['recipient_phone'] ?: $config->business_phone,
             'message' => $message,
-            'template_key' => $normalized['template_key'] ?? 'general',
+            'template_key' => $templateKey,
             'business_id' => $businessId,
         ]);
 
         $log = WhatsAppMessageLog::create([
             'business_id' => $businessId,
-            'template_id' => null,
+            'template_id' => $template?->id,
             'recipient' => $normalized['recipient_phone'] ?: $config->business_phone,
             'channel' => 'whatsapp',
             'message_body' => $message,
-            'variables' => $normalized['template_data'] ?? [],
+            'variables' => $templateData,
             'status' => $result['success'] ? 'sent' : 'failed',
             'provider_response' => $result,
             'error_code' => $result['success'] ? null : 'provider_error',

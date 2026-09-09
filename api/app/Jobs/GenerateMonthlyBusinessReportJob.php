@@ -2,18 +2,20 @@
 
 namespace App\Jobs;
 
-use App\Services\WhatsApp\WhatsAppNotificationService;
-use App\Services\WhatsApp\WhatsAppProviderFactory;
-use App\Services\WhatsApp\WhatsAppTemplateService;
+use App\Models\Business;
+use App\Models\Purchase;
+use App\Models\Sale;
+use App\Models\Expense;
 use App\Models\WhatsAppConfig;
-use App\Models\WhatsAppTemplate;
+use App\Models\WhatsAppMessageLog;
+use App\Services\WhatsApp\WhatsAppNotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class GenerateMonthlyBusinessReportJob implements ShouldQueue
 {
@@ -21,102 +23,105 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
 
     public function handle(): void
     {
-        $notificationService = new WhatsAppNotificationService();
-        $templateService = new WhatsAppTemplateService();
-
-        $config = WhatsAppConfig::where('provider', 'demo')
-            ->orWhere('is_active', true)
-            ->first();
-
-        if (! $config) {
-            Log::info('No active WhatsApp config found for monthly report job');
-            return;
-        }
-
-        $provider = WhatsAppProviderFactory::create([
-            'provider' => $config->provider,
-            'business_phone' => $config->business_phone,
-            'access_token' => $config->access_token,
-            'phone_number_id' => $config->phone_number_id,
-        ]);
-
-        // Determine the previous completed month
-        $now = now();
-        $firstOfCurrentMonth = $now->startOfMonth;
-        $lastDayOfPreviousMonth = $firstOfCurrentMonth->subDay();
-        $firstDayOfPreviousMonth = $lastDayOfPreviousMonth->startOfMonth;
-        $monthName = $firstDayOfPreviousMonth->monthName;
-
-        // Calculate metrics from existing data (simplified - would use analytics services)
-        $businesses = \App\Models\Business::where('is_active', true)->get();
+        $businesses = Business::all();
 
         foreach ($businesses as $business) {
-            $dedupeKey = 'notification:report:monthly:business-' . $business->id . '-' . $firstDayOfPreviousMonth->format('Y-m');
+            $businessId = $business->id;
 
-            $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
-                ->where('dedupe_key', $dedupeKey)
-                ->where('status', 'sent')
+            $totalSales = Sale::where('business_id', $businessId)
+                ->whereRaw('created_at >= ? AND created_at < ?', [
+                    Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
+                    Carbon::now()->startOfMonth()->format('Y-m-d'),
+                ])
+                ->sum('total_amount');
+
+            $totalPurchases = Purchase::where('business_id', $businessId)
+                ->whereRaw('created_at >= ? AND created_at < ?', [
+                    Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
+                    Carbon::now()->startOfMonth()->format('Y-m-d'),
+                ])
+                ->sum('total_amount');
+
+            $totalExpenses = Expense::where('business_id', $businessId)
+                ->whereRaw('created_at >= ? AND created_at < ?', [
+                    Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
+                    Carbon::now()->startOfMonth()->format('Y-m-d'),
+                ])
+                ->sum('amount');
+
+            $profitLoss = (is_numeric($totalSales) ? $totalSales : 0) - (is_numeric($totalPurchases) ? $totalPurchases : 0) - (is_numeric($totalExpenses) ? $totalExpenses : 0);
+
+            $numberOfSales = Sale::where('business_id', $businessId)
+                ->whereRaw('created_at >= ? AND created_at < ?', [
+                    Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
+                    Carbon::now()->startOfMonth()->format('Y-m-d'),
+                ])
+                ->count();
+
+            $numberOfPurchases = Purchase::where('business_id', $businessId)
+                ->whereRaw('created_at >= ? AND created_at < ?', [
+                    Carbon::now()->startOfMonth()->subMonth()->format('Y-m-d'),
+                    Carbon::now()->startOfMonth()->format('Y-m-d'),
+                ])
+                ->count();
+
+            $recipientPhone = $business->phone ?? '+256731794401';
+
+            $config = WhatsAppConfig::where('business_id', $businessId)->first();
+
+            $templateKey = 'report.monthly';
+            $template = WhatsAppTemplate::where('business_id', $businessId)
+                ->where('category', 'report')
+                ->where('status', 'approved')
+                ->latest('created_at')
                 ->first();
 
-            if ($existingLog) {
-                Log::info('Skipping duplicate monthly report', [
-                    'business_id' => $business->id,
-                    'dedupe_key' => $dedupeKey,
-                ]);
-                continue;
-            }
-
-            // In a real implementation, would query actual sales/purchase data
-            // Here we use placeholder values based on existing analytics infrastructure
-            $totalSales = 0; // Would: $business->sales()->sum('total') in relevant period
-            $totalPurchases = 0; // Would: $business->purchases()->sum('total') in relevant period
-            $profit = 0; // Would: calculate from sales and purchases
-            $numberOfSales = 0; // Would: $business->sales()->count() in relevant period
-            $numberOfPurchases = 0; // Would: $business->purchases()->count() in relevant period
-
-            $payload = [
-                'business_id' => $business->id,
-                'branch_id' => null,
-                'type' => 'report.monthly',
-                'template_key' => 'report.monthly',
-                'recipient_phone' => $business->phone ?? '+256731794401',
-                'template_data' => [
-                    'business_name' => $business->name,
-                    'month_name' => $monthName,
-                    'total_sales' => $totalSales,
-                    'total_purchases' => $totalPurchases,
-                    'profit' => $profit,
-                ],
+            $templateString = $template?->body ?? 'Monthly Report: Sales {{total_sales}}, Purchases {{total_purchases}}, Profit/Loss {{profit_loss}}';
+            $templateData = $template?->variables ?? [
+                'business_name' => $business->name,
+                'month_name' => Carbon::now()->subMonth()->monthName,
+                'total_sales' => is_numeric($totalSales) ? number_format($totalSales, 2) : '0.00',
+                'total_purchases' => is_numeric($totalPurchases) ? number_format($totalPurchases, 2) : '0.00',
+                'profit_loss' => is_numeric($profitLoss) ? number_format($profitLoss, 2) : '0.00',
+                'number_of_sales' => is_numeric($numberOfSales) ? $numberOfSales : 0,
+                'number_of_purchases' => is_numeric($numberOfPurchases) ? $numberOfPurchases : 0,
             ];
 
-            $normalized = $notificationService->buildPayload($payload);
+            $message = (new WhatsAppTemplateService())->render($templateString, $templateData);
 
-            $provider->sendMessage([
-                'to' => $normalized['recipient_phone'],
-                'message' => (string) ($templateService->render(
-                    $config->message_template ?? 'Hello {{business_name}}, your monthly report for {{month_name}}: sales {{total_sales}}, profit {{profit}}.',
-                    $normalized['template_data'] ?? []
-                )),
-                'template_key' => $normalized['template_key'],
-                'business_id' => $business->id,
+            $provider = \App\Services\WhatsApp\WhatsAppProviderFactory::create([
+                'provider' => $config?->provider ?? 'demo',
+                'business_phone' => $config?->business_phone ?? '+256731794401',
+                'access_token' => $config?->access_token,
+                'phone_number_id' => $config?->phone_number_id,
+            ]);
+
+            $result = $provider->sendMessage([
+                'to' => $recipientPhone,
+                'message' => $message,
+                'template_key' => $templateKey,
+                'business_id' => $businessId,
             ]);
 
             WhatsAppMessageLog::create([
-                'business_id' => $business->id,
-                'template_id' => null,
-                'recipient' => $normalized['recipient_phone'],
+                'business_id' => $businessId,
+                'template_id' => $template?->id,
+                'recipient' => $recipientPhone,
                 'channel' => 'whatsapp',
-                'message_body' => $normalized['template_data'] ?? [],
-                'status' => 'sent',
-                'provider_response' => ['provider' => $provider->getName()],
-                'sent_at' => now(),
-                'dedupe_key' => $normalized['dedupe_key'],
+                'message_body' => $message,
+                'variables' => $templateData,
+                'status' => $result['success'] ? 'sent' : 'failed',
+                'provider_response' => $result,
+                'sent_at' => $result['success'] ? now() : null,
+                'dedupe_key' => 'report:monthly:business-' . $businessId . ':' . Carbon::now()->subMonth()->format('Y-m'),
             ]);
 
-            Log::info('Monthly business report sent', [
-                'business_id' => $business->id,
-                'dedupe_key' => $normalized['dedupe_key'],
-                'month' => $monthName,
+            Log::info('Monthly business report generated', [
+                'business_id' => $businessId,
+                'total_sales' => $totalSales,
+                'total_purchases' => $totalPurchases,
+                'profit_loss' => $profitLoss,
+                'status' => $result['success'] ? 'sent' : 'failed',
             ]);
         }
     }
