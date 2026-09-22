@@ -15,7 +15,7 @@ interface Product {
   name: string;
   sku: string;
   barcode: string;
-  price: number;
+  selling_price: number;
   cost_price: number;
   quantity: number;
   reorder_level: number;
@@ -39,7 +39,7 @@ export const ProductTable = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = branchProds?.products.slice(startIndex, startIndex + itemsPerPage);
 
-  const tableHeaders = ['No', 'Name', 'SKU', 'Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
+  const tableHeaders = ['No', 'Name', 'SKU', 'Selling Price', 'CP', 'Quantity', 'RL', 'Status', 'Actions'];
   const handleDelete = async (id: string) => {
     setProdId(id);
     try {
@@ -72,7 +72,7 @@ export const ProductTable = () => {
               {/* <TableCell>{product.category_id}</TableCell> */}
               <TableCell>{product.name}</TableCell>
               <TableCell>{product.sku}</TableCell>
-              <TableCell>{Number(product.price)}</TableCell>
+              <TableCell>{Number(product.selling_price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
               <TableCell>{product.quantity}</TableCell>
               <TableCell>{product.reorder_level ?? '-'}</TableCell>

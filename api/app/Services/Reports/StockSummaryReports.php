@@ -21,7 +21,7 @@ class StockSummaryReports
 
         $products = Product::query()
             ->where('business_branch_id', $user->business_branch_id)
-            ->select(['id', 'name', 'quantity', 'cost_price', 'price', 'reorder_level', 'status'])
+            ->select(['id', 'name', 'quantity', 'cost_price', 'selling_price', 'reorder_level', 'status'])
             ->paginate($perPage)
             ->toArray();
 

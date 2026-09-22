@@ -46,6 +46,16 @@ class Product extends Model
         'selling_price' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'markup_percentage',
+    ];
+
+    /**
+     * Transient price change reason consumed by PriceHistoryObserver.
+     * Declared as a real property so it is never persisted to the database.
+     */
+    public ?string $priceChangeReason = null;
+
     /*
     |--------------------------------------------------------------------------
     | Relationships

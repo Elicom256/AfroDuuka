@@ -66,10 +66,14 @@ class PosController extends Controller
             ], 200);
         } catch (\Exception $e) {
             Log::error($e);
+            $status = $e->getCode();
+            if ($status < 400 || $status > 599) {
+                $status = 500;
+            }
             return response()->json([
                 'message' => 'Checkout failed',
                 'error'   => $e->getMessage(),
-            ], 500);
+            ], $status);
         }
     }
 

@@ -23,7 +23,7 @@ class ProductController extends Controller
     {
         $branchId =  Auth::user()->business_branch_id;
         $products = Product::where("business_branch_id", $branchId)
-                     ->with("productCategory" )
+                     ->with(["productCategory", "taxCategory"])
                      ->orderBy("id", "asc")
                      ->get();
         return response()->json(["message" => "Products fetched", "products" => $products], 200);
@@ -38,7 +38,7 @@ class ProductController extends Controller
 
     public function show(string $product)
     {
-        $product = Product::with("productCategory")->findOrFail($product);
+        $product = Product::with(["productCategory", "taxCategory"])->findOrFail($product);
         return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);
     }
 
@@ -191,7 +191,7 @@ class ProductController extends Controller
 
         // Pass change_reason to the model so PriceHistoryObserver can pick it up
         if (isset($validated['change_reason'])) {
-            $product->change_reason = $validated['change_reason'];
+            $product->priceChangeReason = $validated['change_reason'];
         }
 
         $product->update($validated);
