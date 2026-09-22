@@ -9,7 +9,6 @@ use App\Models\Sale;
 use App\Models\SaleReturn;
 use App\Models\EmployeeRemuneration;
 use App\Models\Expense;
-use App\Models\BusinessTaxPayment;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use Illuminate\Database\Eloquent\Collection;
@@ -86,29 +85,6 @@ class CashFlowService
             'description' => $remuneration->description ?? 'Worker payment',
             'category' => 'worker_payments',
             'reference' => $remuneration->reference ?? null,
-            'status' => 'completed',
-            'transaction_date' => now()->toDateString(),
-            'created_by' => $user->id,
-        ]);
-    }
-
-    // ================= cash flow tax payment (outflow) ====================
-    public function createCashFlowForTaxPayment(BusinessTaxPayment $payment, float $amount): void
-    {
-        $user = Auth::user();
-        $business = $user->business()->with('country')->first();
-        $currency = $business?->country?->currency_code ?? 'UGX';
-        CashFlow::create([
-            'transaction_code' => 'CF-TAX-'.str_pad($payment->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'expense',
-            'amount' => $amount,
-            'currency' => $currency,
-            'business_id' => $user->business_id,
-            'business_branch_id' => $payment->business_branch_id,
-            'tax_payment_id' => $payment->id,
-            'description' => 'Tax payment for period '.($payment->tax_period ?? 'N/A'),
-            'category' => 'tax_payments',
-            'reference' => $payment->reference_number ?? null,
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $user->id,
