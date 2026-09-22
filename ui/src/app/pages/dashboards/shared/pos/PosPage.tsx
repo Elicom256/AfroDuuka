@@ -124,7 +124,7 @@ export const PosPage = () => {
           name: product.name,
           sku: product.sku,
           quantity: 1,
-          unit_price: product.price,
+          unit_price: product.selling_price,
           discount: 0,
           stock: product.stock,
         },
@@ -373,7 +373,7 @@ export const PosPage = () => {
                         SKU: {p.sku} | Stock: {p.stock}
                       </span>
                     </div>
-                    <span className='font-semibold text-green-600'>{p.price.toLocaleString()}</span>
+                    <span className='font-semibold text-green-600'>{p.selling_price.toLocaleString()}</span>
                   </button>
                 ))}
               </div>

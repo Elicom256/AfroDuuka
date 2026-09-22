@@ -56,7 +56,7 @@ const SalesOrdersTab = () => {
       if (existing) {
         return prev.map((i) => i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
+      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.selling_price) }];
     });
   };
 
@@ -123,7 +123,7 @@ const SalesOrdersTab = () => {
                       className='flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted border-b border-border last:border-0'
                     >
                       <span>{p.emoji} {p.name}</span>
-                      <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
+                      <span className='text-muted-foreground'>{Number(p.selling_price).toLocaleString()}</span>
                     </button>
                   ))}
                 </div>
@@ -270,7 +270,7 @@ const PurchaseOrdersTab = () => {
       if (existing) {
         return prev.map((i) => i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
+      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.selling_price) }];
     });
   };
 
@@ -356,7 +356,7 @@ const PurchaseOrdersTab = () => {
                       className='flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted border-b border-border last:border-0'
                     >
                       <span>{p.emoji} {p.name}</span>
-                      <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
+                      <span className='text-muted-foreground'>{Number(p.selling_price).toLocaleString()}</span>
                     </button>
                   ))}
                 </div>

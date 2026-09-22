@@ -89,12 +89,12 @@ class OrderSeeder extends Seeder
             $items = [];
             foreach ($orderData["items"] as $itemData) {
                 $product = $products[$itemData["product_index"] % $products->count()];
-                $subtotal = $product->price * $itemData["quantity"];
+                $subtotal = $product->selling_price * $itemData["quantity"];
                 $totalAmount += $subtotal;
                 $items[] = [
                     "product_id" => $product->id,
                     "quantity" => $itemData["quantity"],
-                    "unit_price" => $product->price,
+                    "unit_price" => $product->selling_price,
                     "subtotal" => $subtotal,
                 ];
             }

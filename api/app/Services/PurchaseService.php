@@ -41,11 +41,9 @@ class PurchaseService
             ]);
             $businessProduct = Product::find($item["product_id"]);
             if ($businessProduct) {
-                $price = $item["cost_price"] * (1 + $businessProduct->markup_percentage) ?? $businessProduct->price;
                 $businessProduct->increment("quantity", $item["quantity"]);
                 $businessProduct->update([
                     "cost_price" => $item["cost_price"],
-                    "price" => $price,
                 ]);
             }
         }

@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string("barcode")->nullable();
             $table->integer("quantity")->default(0);
             $table->decimal("cost_price", 12, 2)->default(0);
-            $table->decimal("price", 12, 2)->default(0);
-            $table->decimal("markup_percentage", 5, 2)->default(0)->after("cost_price");
+            $table->decimal("selling_price", 12, 2)->default(0);
+            $table->boolean("is_tax_inclusive")->default(false);
+            $table->foreignId("tax_category_id")->nullable()->constrained("tax_categories")->nullOnDelete();
             $table->integer("reorder_level")->default(0);
             $table->text("description")->nullable();
             $table->string("emoji")->nullable()->after("description");

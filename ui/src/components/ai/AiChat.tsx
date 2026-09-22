@@ -162,7 +162,7 @@ function formatResponse(data: any): string {
     items.forEach((p) => {
       const details = [`• ${p.name}${p.sku ? ` (SKU: ${p.sku})` : ''}`];
       if (p.quantity !== undefined) details.push(`  Stock: ${p.quantity}`);
-      if (p.price !== undefined) details.push(`  Price: ${p.price}`);
+      if (p.selling_price !== undefined) details.push(`  Price: ${p.selling_price}`);
       if (p.total_sold !== undefined) details.push(`  Sold: ${p.total_sold}`);
       if (p.profit_margin_percent !== undefined) details.push(`  Margin: ${p.profit_margin_percent}%`);
       lines.push(details.join('\n'));

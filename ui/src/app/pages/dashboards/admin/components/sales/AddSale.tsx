@@ -202,7 +202,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                               ? {
                                   ...i,
                                   product_id: value,
-                                  unit_price: selected?.price?.toString() || '',
+                                  unit_price: selected?.selling_price?.toString() || '',
                                 }
                               : i,
                           ),

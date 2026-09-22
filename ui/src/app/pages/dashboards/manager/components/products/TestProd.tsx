@@ -17,7 +17,7 @@ export const TestProd: React.FC = () => {
               name: product.name,
               sku: product.sku,
               costPrice: item.cost_price,
-              price: product.price,
+              price: product.selling_price,
               quantity: item.quantity,
               status: product.status,
             });
