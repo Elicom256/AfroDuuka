@@ -14,7 +14,7 @@ export const financeQuery = createApi({
   endpoints: (builder) => ({
     // Dashboard summary
     getFinanceDashboard: builder.query<any, { branch_id?: string } | void>({
-      query: (params) => ({ url: '/dashboard', method: 'GET', params }),
+      query: (params) => ({ url: '/dashboard', method: 'GET', params: params ?? undefined }),
       providesTags: ['FinanceAPI'],
     }),
     // Paginated transactions with filters

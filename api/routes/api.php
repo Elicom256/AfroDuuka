@@ -69,10 +69,6 @@ Route::prefix("reorder-rules")->group(function () {
     require __DIR__."/reorder-rules.php";
 });
 
-Route::prefix("tax-invoices")->group(function () {
-    require __DIR__."/tax-invoices.php";
-});
-
 Route::prefix("loyalty")->group(function () {
     require __DIR__."/loyalty.php";
 });

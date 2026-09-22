@@ -22,6 +22,7 @@ interface Product {
   quantity: number;
   reorder_level: number;
   minimum_stock: number;
+  emoji?: string;
   status: string | boolean;
   description: string;
   markup_percentage: number;
