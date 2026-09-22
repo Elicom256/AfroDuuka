@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\LogsActivity;
 
 class Role extends BaseModel
 {
-    use LogsActivity;
+    use HasFactory, LogsActivity;
 
     protected $fillable = ["name", "business_id"];
 

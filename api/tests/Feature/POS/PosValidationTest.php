@@ -38,7 +38,7 @@ class PosValidationTest extends TestCase
         $this->product = Product::factory()->create([
             'business_branch_id' => $this->branch->id,
             'quantity' => 5,
-            'price' => 10000,
+            'selling_price' => 10000,
             'status' => 'active',
         ]);
 

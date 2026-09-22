@@ -47,7 +47,7 @@ class PosSearchTest extends TestCase
             'sku' => 'TST-001',
             'barcode' => '123456789',
             'quantity' => 10,
-            'price' => 5000,
+            'selling_price' => 5000,
             'status' => 'active',
         ]);
 
@@ -65,7 +65,7 @@ class PosSearchTest extends TestCase
             'sku' => 'BRC-001',
             'barcode' => '987654321',
             'quantity' => 5,
-            'price' => 2500,
+            'selling_price' => 2500,
             'status' => 'active',
         ]);
 
@@ -82,7 +82,7 @@ class PosSearchTest extends TestCase
             'sku' => 'SKU-999',
             'barcode' => '111111111',
             'quantity' => 20,
-            'price' => 15000,
+            'selling_price' => 15000,
             'status' => 'active',
         ]);
 

@@ -104,8 +104,8 @@ export const Product = () => {
                     </div>
 
                     <div className='flex items-center gap-2'>
-                      <label className='text-sm font-medium text-gray-500'>Price</label>
-                      <p className=''>{currency} {product.price}</p>
+                      <label className='text-sm font-medium text-gray-500'>Selling Price</label>
+                      <p className=''>{currency} {product.selling_price}</p>
                     </div>
 
                     <div className='flex items-center gap-2'>

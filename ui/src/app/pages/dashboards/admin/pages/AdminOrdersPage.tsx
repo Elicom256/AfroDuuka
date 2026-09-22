@@ -64,7 +64,7 @@ const SalesOrdersTab = () => {
       if (existing) {
         return prev.map((i) => (i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
-      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
+      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.selling_price) }];
     });
   };
 
@@ -140,7 +140,7 @@ const SalesOrdersTab = () => {
                         <span>
                           {p.emoji} {p.name}
                         </span>
-                        <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
+                        <span className='text-muted-foreground'>{Number(p.selling_price).toLocaleString()}</span>
                       </button>
                     ))}
                   </div>
@@ -339,7 +339,7 @@ const PurchaseOrdersTab = () => {
       if (existing) {
         return prev.map((i) => (i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
-      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.price) }];
+      return [...prev, { product_id: product.id, name: product.name, quantity: 1, unit_price: Number(product.selling_price) }];
     });
   };
 
@@ -436,7 +436,7 @@ const PurchaseOrdersTab = () => {
                         <span>
                           {p.emoji} {p.name}
                         </span>
-                        <span className='text-muted-foreground'>{Number(p.price).toLocaleString()}</span>
+                        <span className='text-muted-foreground'>{Number(p.selling_price).toLocaleString()}</span>
                       </button>
                     ))}
                   </div>

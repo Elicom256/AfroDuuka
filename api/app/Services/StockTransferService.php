@@ -109,7 +109,7 @@ class StockTransferService
                     [
                         'name' => $item->product->name,
                         'cost_price' => $item->product->cost_price,
-                        'price' => $item->product->price,
+                        'selling_price' => $item->product->selling_price,
                         'quantity' => 0,
                     ]
                 );

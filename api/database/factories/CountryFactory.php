@@ -18,7 +18,11 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->country(),
+            'iso_alpha2' => strtoupper(fake()->unique()->lexify('??')),
+            'currency_code' => fake()->currencyCode(),
+            'currency_symbol' => '$',
+            'default_vat_rate' => 0.00,
         ];
     }
 }

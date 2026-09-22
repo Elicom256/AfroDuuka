@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,26 +30,14 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
   const [formData, setFormData] = useState({
     name: '',
-    markup_percentage: '',
     cost_price: '',
-    price: '',
+    selling_price: '',
     quantity: '',
     reorder_level: '',
     description: '',
     emoji: '',
     product_category_id: '',
   });
-
-  useEffect(() => {
-    const cost = Number(formData.cost_price) || 0;
-    const markup = Number(formData.markup_percentage) || 0;
-    const calculatedPrice = cost + (cost * markup) / 100;
-
-    setFormData((prev) => ({
-      ...prev,
-      price: calculatedPrice.toString(),
-    }));
-  }, [formData.cost_price, formData.markup_percentage]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,9 +53,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
       setOpen(false);
       setFormData({
         name: '',
-        markup_percentage: '',
         cost_price: '',
-        price: '',
+        selling_price: '',
         quantity: '',
         reorder_level: '',
         description: '',
@@ -125,28 +112,14 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='markup_percentage' className='text-right'>
-                Markup Percentage
-              </Label>
-              <Input
-                id='markup_percentage'
-                type='number'
-                value={formData.markup_percentage}
-                onChange={(e) => handleChange('markup_percentage', e.target.value)}
-                className='col-span-3'
-                required
-              />
-            </div>
-
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='price' className='text-right'>
+              <Label htmlFor='selling_price' className='text-right'>
                 Selling Price
               </Label>
               <Input
-                id='price'
+                id='selling_price'
                 type='number'
-                value={formData.price}
-                onChange={(e) => handleChange('price', e.target.value)}
+                value={formData.selling_price}
+                onChange={(e) => handleChange('selling_price', e.target.value)}
                 className='col-span-3'
                 required
               />

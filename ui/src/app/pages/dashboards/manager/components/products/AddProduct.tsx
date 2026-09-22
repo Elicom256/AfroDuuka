@@ -27,7 +27,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
+    selling_price: '',
     cost_price: '',
     quantity: '',
     reorder_level: '',
@@ -44,7 +44,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
         setOpen(false);
         setFormData({
           name: '',
-          price: '',
+          selling_price: '',
           cost_price: '',
           quantity: '',
           reorder_level: '',
@@ -103,14 +103,14 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
             </div> */}
 
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='price' className='text-right'>
-                Price
+              <Label htmlFor='selling_price' className='text-right'>
+                Selling Price
               </Label>
               <Input
-                id='price'
+                id='selling_price'
                 type='number'
-                value={formData.price}
-                onChange={(e) => handleChange('price', e.target.value)}
+                value={formData.selling_price}
+                onChange={(e) => handleChange('selling_price', e.target.value)}
                 className='col-span-3'
                 required
               />

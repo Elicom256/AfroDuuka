@@ -17,7 +17,7 @@ interface Product {
   name: string;
   sku: string;
   barcode: string;
-  price: number;
+  selling_price: number;
   cost_price: number;
   quantity: number;
   reorder_level: number;
@@ -129,7 +129,7 @@ export const ProductTable = () => {
                       <TableCell className='font-medium'>{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>
-                      <TableCell>{Number(product.price).toFixed(2)}</TableCell>
+                      <TableCell>{Number(product.selling_price).toFixed(2)}</TableCell>
                       <TableCell>{Number(product.cost_price).toFixed(2)}</TableCell>
                       <TableCell>{product.quantity}</TableCell>
                       <TableCell>{product.minimum_stock ?? product.reorder_level ?? '-'}</TableCell>
