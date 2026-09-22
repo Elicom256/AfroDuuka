@@ -52,7 +52,7 @@ class SlowMovingProducts extends Tool
                 'name' => $p->name,
                 'sku' => $p->sku,
                 'quantity' => $p->quantity,
-                'price' => $p->price,
+                'selling_price' => $p->selling_price,
                 'last_sold_at' => $p->last_sold_at?->toDateString() ?? 'Never sold',
                 'days_since_last_sale' => $p->last_sold_at ? $p->last_sold_at->diffInDays() : null,
             ]);

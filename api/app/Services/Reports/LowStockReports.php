@@ -12,7 +12,7 @@ class LowStockReports
         $products = Product::query()
             ->where('business_branch_id', $user->business_branch_id)
             ->whereColumn('quantity', '<=', 'reorder_level')
-            ->select(['id', 'name', 'quantity', 'reorder_level', 'cost_price', 'price', 'status'])
+            ->select(['id', 'name', 'quantity', 'reorder_level', 'cost_price', 'selling_price', 'status'])
             ->get();
 
         return [

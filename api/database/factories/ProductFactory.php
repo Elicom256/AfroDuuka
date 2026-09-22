@@ -17,7 +17,8 @@ class ProductFactory extends Factory
             'barcode' => fake()->numerify('2##########'),
             'quantity' => fake()->numberBetween(0, 100),
             'cost_price' => fake()->randomFloat(2, 500, 5000),
-            'price' => fake()->randomFloat(2, 1000, 20000),
+            'selling_price' => fake()->randomFloat(2, 1000, 20000),
+            'is_tax_inclusive' => fake()->boolean(),
             'reorder_level' => 10,
             'status' => 'active',
         ];

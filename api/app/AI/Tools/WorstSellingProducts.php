@@ -40,7 +40,7 @@ class WorstSellingProducts extends Tool
                 'name' => $p->name,
                 'sku' => $p->sku,
                 'quantity' => $p->quantity,
-                'price' => $p->price,
+                'selling_price' => $p->selling_price,
                 'cost_price' => $p->cost_price,
                 'last_sold_at' => 'Never sold',
             ]);

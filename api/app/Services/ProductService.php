@@ -28,13 +28,13 @@ class ProductService
             ->total;
         $totalPotentialRevenue = (clone $products)
             ->where("quantity", ">", 0)
-            ->selectRaw("COALESCE(SUM(quantity * price), 0) as total")
+            ->selectRaw("COALESCE(SUM(quantity * selling_price), 0) as total")
             ->first()
             ->total;
 
         $profits = (clone $products)
             ->where("quantity", ">", 0)
-            ->selectRaw("COALESCE(SUM((price - cost_price) * quantity), 0) as total")
+            ->selectRaw("COALESCE(SUM((selling_price - cost_price) * quantity), 0) as total")
             ->first()
             ->total;
 
@@ -81,7 +81,7 @@ class ProductService
             ->withSum([
                 'saleItems as total_profit' => function ($q) {
                     $q->select(DB::raw(
-                        'SUM(quantity * (price - cost_price))'
+                        'SUM(quantity * (selling_price - cost_price))'
                     ));
                 }
             ], DB::raw('quantity'))
@@ -91,7 +91,11 @@ class ProductService
 
         $poorMarginProducts = (clone $products)
             ->where('quantity', '>', 0)
-            ->where('markup_percentage', '<=', 20)
+            ->where('cost_price', '>', 0)
+            ->where('selling_price', '>', 0)
+            ->select('products.*')
+            ->addSelect(DB::raw('((selling_price - cost_price) / cost_price) * 100 as markup_percentage'))
+            ->having('markup_percentage', '<=', 20)
             ->orderBy('markup_percentage')
             ->take(10)
             ->get();

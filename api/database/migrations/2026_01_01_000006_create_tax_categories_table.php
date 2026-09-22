@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('tax_categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->nullOnDelete();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            $table->index('business_branch_id');
         });
     }
 

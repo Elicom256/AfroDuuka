@@ -38,7 +38,7 @@ class StockValuation extends Tool
 
         $valuation = (clone $query)->select(
             DB::raw('COALESCE(SUM(quantity * cost_price), 0) as total_cost_value'),
-            DB::raw('COALESCE(SUM(quantity * price), 0) as total_retail_value'),
+            DB::raw('COALESCE(SUM(quantity * selling_price), 0) as total_retail_value'),
             DB::raw('COUNT(*) as product_count'),
             DB::raw('COALESCE(SUM(quantity), 0) as total_units')
         )->first();

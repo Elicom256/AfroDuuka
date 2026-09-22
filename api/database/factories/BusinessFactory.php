@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Business;
+use App\Models\BusinessCategory;
+use App\Models\Country;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BusinessFactory extends Factory
@@ -12,9 +14,11 @@ class BusinessFactory extends Factory
     public function definition(): array
     {
         return [
+            'business_category_id' => BusinessCategory::factory(),
+            'country_id' => Country::factory(),
             'name' => fake()->company(),
-            'email' => fake()->companyEmail(),
-            'phone' => fake()->phoneNumber(),
+            'email' => fake()->unique()->companyEmail(),
+            'phone' => fake()->unique()->phoneNumber(),
             'status' => 'active',
         ];
     }

@@ -29,7 +29,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     name: '',
     sku: '',
     barcode: '',
-    price: '',
+    selling_price: '',
     cost_price: '',
     quantity: '',
     minimum_stock: '',
@@ -44,7 +44,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
         name: product.name || '',
         sku: product.sku || '',
         barcode: product.barcode || '',
-        price: product.price?.toString() || '',
+        selling_price: product.selling_price?.toString() || '',
         cost_price: product.cost_price?.toString() || '',
         quantity: product.quantity?.toString() || '',
         minimum_stock: product.minimum_stock?.toString() || '',
@@ -118,14 +118,14 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='price' className='text-right'>
-                Price
+              <Label htmlFor='selling_price' className='text-right'>
+                Selling Price
               </Label>
               <Input
-                id='price'
+                id='selling_price'
                 type='number'
-                value={formData.price}
-                onChange={(e) => handleChange('price', e.target.value)}
+                value={formData.selling_price}
+                onChange={(e) => handleChange('selling_price', e.target.value)}
                 className='col-span-3'
                 required
               />

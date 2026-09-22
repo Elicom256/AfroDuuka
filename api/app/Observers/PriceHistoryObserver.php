@@ -31,9 +31,9 @@ class PriceHistoryObserver
         }
 
         // Check sale price changes
-        if ($product->isDirty('price')) {
-            $changes['old_sale_price'] = $product->getOriginal('price');
-            $changes['new_sale_price'] = $product->price;
+        if ($product->isDirty('selling_price')) {
+            $changes['old_sale_price'] = $product->getOriginal('selling_price');
+            $changes['new_sale_price'] = $product->selling_price;
         }
 
         // Only record if at least one price field changed
@@ -41,8 +41,8 @@ class PriceHistoryObserver
             return;
         }
 
-        // change_reason can be passed as a temporary attribute on the product model
-        $changeReason = $product->change_reason ?? null;
+        // change_reason can be passed as a transient attribute on the product model
+        $changeReason = $product->priceChangeReason ?? null;
 
         PriceHistory::create(array_merge($changes, [
             'product_id'    => $product->id,

@@ -38,7 +38,7 @@ class ProductProfit extends Tool
         $limit = min((int) ($parameters['limit'] ?? 20), 100);
 
         $products = Product::where('quantity', '>', 0)
-            ->where('price', '>', 0)
+            ->where('selling_price', '>', 0)
             ->where('cost_price', '>', 0)
             ->with('productCategory')
             ->limit($limit)
@@ -46,12 +46,12 @@ class ProductProfit extends Tool
             ->map(fn ($p) => [
                 'name' => $p->name,
                 'sku' => $p->sku,
-                'selling_price' => $p->price,
+                'selling_price' => $p->selling_price,
                 'cost_price' => $p->cost_price,
-                'profit_per_unit' => round($p->price - $p->cost_price, 2),
-                'profit_margin_percent' => $p->price > 0 ? round((($p->price - $p->cost_price) / $p->price) * 100, 2) : 0,
+                'profit_per_unit' => round($p->selling_price - $p->cost_price, 2),
+                'profit_margin_percent' => $p->selling_price > 0 ? round((($p->selling_price - $p->cost_price) / $p->selling_price) * 100, 2) : 0,
                 'quantity' => $p->quantity,
-                'total_potential_profit' => round(($p->price - $p->cost_price) * $p->quantity, 2),
+                'total_potential_profit' => round(($p->selling_price - $p->cost_price) * $p->quantity, 2),
             ])
             ->sortByDesc(fn ($item) => match ($sortBy) {
                 'profit_amount' => $item['profit_per_unit'],
