@@ -35,13 +35,12 @@ WORKDIR /app
 # Only dependency files first for optimal layer caching
 COPY composer.json composer.lock ./
 
-# Prefer source as fallback when dist downloads fail (e.g. GitHub HTTP 400)
 # --mount=type=cache persists Composer's cache across builds
 RUN --mount=type=cache,id=composer,target=/tmp/cache \
     composer install \
         --no-interaction \
         --no-progress \
-        --prefer-source \
+        --prefer-dist \
         --optimize-autoloader \
         --no-scripts
 

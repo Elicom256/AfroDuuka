@@ -85,7 +85,6 @@ const navSections: Array<{
       { label: 'Reports', to: '/admin/reports', icon: TrendingUp, settingKey: 'reports' },
       { label: 'Expenses', to: '/admin/expenses', icon: Receipt },
       { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle, settingKey: 'attendance' },
-      { label: 'Taxes', to: '/admin/taxes', icon: DollarSign },
       { label: 'Payroll', to: '/admin/remuneration', icon: Users },
       { label: 'Salaries', to: '/admin/employee-salaries', icon: DollarSign },
       { label: 'Branches', to: '/admin/branches', icon: Truck },
@@ -116,7 +115,6 @@ const navSections: Array<{
     items: [
       { label: 'Currency Rates', to: '/admin/currency-rates', icon: Globe },
       { label: 'Printers', to: '/admin/printers', icon: Printer },
-      { label: 'Tax Invoices', to: '/admin/tax-invoices', icon: FileText },
     ],
   },
   {

@@ -36,7 +36,6 @@ import { AdminFinancesPage } from '../pages/dashboards/admin/pages/AdminFinances
 import { AdminFinanceTransactionsPage } from '../pages/dashboards/admin/pages/AdminFinanceTransactionsPage';
 import { AdminFinanceReportsPage } from '../pages/dashboards/admin/pages/AdminFinanceReportsPage';
 import { AdminFinanceCashFlowPage } from '../pages/dashboards/admin/pages/AdminFinanceCashFlowPage';
-import { AdminTaxesPage } from '../pages/dashboards/admin/pages/AdminTaxesPage';
 import { AdminEmployeeRemunerationPage } from '../pages/dashboards/admin/pages/AdminEmployeeRemunerationPage';
 import { AdminEmployeeSalaryPage } from '../pages/dashboards/admin/pages/AdminEmployeeSalaryPage';
 import { AdminAttendancePage } from '../pages/dashboards/admin/pages/AdminAttendancePage';
@@ -46,10 +45,8 @@ import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPa
 
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { TaxesObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxesObligatedTo';
 import { Attendance } from '../pages/dashboards/admin/components/attendance/Attendance';
 import { Worker } from '../pages/dashboards/admin/components/workers/Worker';
-import { TaxObligatedTo } from '../pages/dashboards/admin/components/taxes/TaxObligatedTo';
 import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplier';
 import { Customer } from '../pages/dashboards/admin/components/customers/Customer';
 import { TodoList } from '../pages/dashboards/admin/components/todos/TodoList';
@@ -68,7 +65,6 @@ import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Rec
 import { AdminExpenseCategoriesPage } from '../pages/dashboards/admin/pages/AdminExpenseCategoriesPage';
 import { AdminExpensesPage } from '../pages/dashboards/admin/pages/AdminExpensesPage';
 import { AdminReorderRulesPage } from '../pages/dashboards/admin/pages/AdminReorderRulesPage';
-import { AdminTaxInvoicesPage } from '../pages/dashboards/admin/pages/AdminTaxInvoicesPage';
 import { AdminLoyaltyPage } from '../pages/dashboards/admin/pages/AdminLoyaltyPage';
 import { AdminSubscriptionPaymentsPage } from '../pages/dashboards/admin/pages/AdminSubscriptionPaymentsPage';
 import { AdminReportExportsPage } from '../pages/dashboards/admin/pages/AdminReportExportsPage';
@@ -124,9 +120,6 @@ export const AdminRoutes = () => {
           <Route path='attendance' element={<AdminAttendancePage />} />
           <Route path='attendance/:id' element={<Attendance />} />
           <Route path='employee-salaries' element={<AdminEmployeeSalaryPage />} />
-          <Route path='taxes' element={<AdminTaxesPage />} />
-          <Route path='obligated-taxes' element={<TaxesObligatedTo />} />
-          <Route path='obligated-taxes/:id' element={<TaxObligatedTo />} />
           <Route path='remuneration' element={<AdminEmployeeRemunerationPage />} />
           <Route path='activity-logs' element={<AdminBusinessActivityLogs />} />
           <Route path='promotions' element={<AdminPromotionsPage />} />
@@ -151,7 +144,6 @@ export const AdminRoutes = () => {
           <Route path='printers' element={<AdminPrintersPage />} />
           <Route path='stock-transfers' element={<AdminStockTransfersPage />} />
           <Route path='reorder-rules' element={<AdminReorderRulesPage />} />
-          <Route path='tax-invoices' element={<AdminTaxInvoicesPage />} />
           <Route path='loyalty' element={<AdminLoyaltyPage />} />
           <Route path='report-exports' element={<AdminReportExportsPage />} />
           <Route path='products/:id' element={<Product />} />
