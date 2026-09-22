@@ -82,20 +82,7 @@
 
 ---
 
-## 7. URA Tax Compliance Module (e-Receipting, VAT, LST, WHT)
-
-**Why:** URA requires e-receipts for VAT-registered businesses (turnover > UGX 150M/year). Local Service Tax (LST) and withholding tax (WHT) apply to specific transactions. Manual compliance is error-prone and audits are costly. DuukaFlow can automate tax calculations, generate URA-compliant receipts, and produce tax returns.
-
-**How:**
-
-- Backend: Extend `BusinessTax` to store URA tax codes and rates. Create a `TaxInvoice` model (sale_id, invoice_number, ura_qr_code, generated_at, submitted_to_ura_at). Implement URA EFRIS API integration (register invoice, submit batch, get QR code). Track VAT input/output with `BusinessTaxPayment` linking to purchases (input VAT reclaim).
-- Create a `TaxReport` model (business_id, period_start, period_end, total_sales, vat_collected, vat_paid, lst_due, wht_due, status). A scheduled job generates and emails draft returns monthly.
-- Frontend: Tax-compliance dashboard showing VAT payable/reclaimable. "Generate URA Invoice" button on each sale. Export tax reports as XLS/PDF for submission.
-- This is critical for formal-sector retailers in Kampala, Jinja, Mbale, and other urban centres.
-
----
-
-## 8. Stock Transfer & Inter-Branch Logistics
+## 7. Stock Transfer & Inter-Branch Logistics
 
 **Why:** Businesses with multiple branches (e.g., a hardware store in Kampala + Jinja) move stock between locations. Currently, each branch's inventory is siloed. A manager needs to transfer 50 bags of cement from the main branch to a new branch — this should be a single click, recorded in both inventories, with a paper trail for the driver.
 
@@ -108,7 +95,7 @@
 
 ---
 
-## 9. Automated Inventory Reordering & Supplier Alerts
+## 8. Automated Inventory Reordering & Supplier Alerts
 
 **Why:** A rural shop in Gulu might not notice a product is out of stock until a customer asks. By that time, the supplier runaround adds 2-3 days of lost sales. Low stock thresholds are set but never acted on. DuukaFlow should auto-generate purchase orders and alert suppliers when stock hits reorder level.
 
@@ -121,7 +108,7 @@
 
 ---
 
-## 10. Employee Shift Scheduling & Biometric Clock-In
+## 9. Employee Shift Scheduling & Biometric Clock-In
 
 **Why:** In Ugandan retail, attendance is often paper-based — sheets get lost, staff sign in for each other ("ghost workers"), and payroll calculations are tedious. Biometric (fingerprint) clock-in eliminates buddy-punching. Shift scheduling ensures coverage during peak hours and prevents wage disputes.
 
@@ -134,7 +121,7 @@
 
 ---
 
-## 11. Loyalty & Customer Rewards Program
+## 10. Loyalty & Customer Rewards Program
 
 **Why:** In Uganda's competitive retail landscape (especially in trading centres), customer retention is everything. Informal shops rely on personal relationships ("I know my customers"), but as shops scale, that relationship breaks. A digital loyalty program — points, stamps, referrals — keeps customers coming back. MVPs (Most Valuable Patrons) can be identified and rewarded.
 
@@ -147,7 +134,7 @@
 
 ---
 
-## 12. Data Export & Analytics Dashboard (Power BI / Metabase Bridge)
+## 11. Data Export & Analytics Dashboard (Power BI / Metabase Bridge)
 
 **Why:** Shop owners need to see trends — which products sold best last month, which branch is underperforming, seasonal patterns. The current in-app analytics is basic. Exporting to Excel/Power BI allows deeper analysis, investor reporting, and loan applications (banks ask for financial statements).
 
@@ -160,7 +147,7 @@
 
 ---
 
-## 13. 2FA & Role-Based Access Hardening
+## 12. 2FA & Role-Based Access Hardening
 
 **Why:** In shared retail environments, staff share devices — a cashier leaves themselves logged in, and a colleague processes a fake refund. PIN codes, session timeouts, and two-factor authentication for admin actions (bulk discounts, supplier payments) prevent internal fraud. URA also requires strong access controls for e-invoicing.
 
@@ -173,7 +160,7 @@
 
 ---
 
-## 14. WhatsApp Integration (Future — Stub Architecture)
+## 13. WhatsApp Integration (Future — Stub Architecture)
 
 Although deferred, the architecture should be ready:
 
@@ -186,7 +173,7 @@ Although deferred, the architecture should be ready:
 
 ---
 
-## 15. Best Practices & Code Quality Improvements
+## 14. Best Practices & Code Quality Improvements
 
 ### Backend (Laravel)
 
@@ -227,7 +214,7 @@ Although deferred, the architecture should be ready:
 
 ---
 
-## 16. Frontend UX Gaps to Address
+## 15. Frontend UX Gaps to Address
 
 - **Home page `/`**: Currently a generic landing. Should be tailored to DuukaFlow value props: "Inventory that understands Uganda."
 - **Admin dashboard**: Currently only shows workers count. Add widgets: today's sales, low stock count, pending orders, recent activity feed.
@@ -240,12 +227,11 @@ Although deferred, the architecture should be ready:
 
 ---
 
-## 17. Priority Matrix
+## 16. Priority Matrix
 
 | Priority | Feature               | Effort    | Impact                  |
 | -------- | --------------------- | --------- | ----------------------- |
 | P0       | Mobile Money Payments | High      | Critical — core revenue |
-| P0       | URA Tax Compliance    | High      | Legal requirement       |
 | P1       | Offline-First Sync    | Very High | Reliability             |
 | P1       | Stock Transfer        | Medium    | Multi-branch ops        |
 | P2       | Auto Reordering       | Medium    | Inventory efficiency    |
@@ -261,7 +247,7 @@ Although deferred, the architecture should be ready:
 
 ---
 
-## 18. Fixed Bugs (from audit)
+## 17. Fixed Bugs (from audit)
 
 These bugs should be fixed immediately before building new features:
 

@@ -29,7 +29,6 @@ import { promotionsSettingsQuery } from '../features/business/settings/promotion
 import { reportsSettingsQuery } from '../features/business/settings/reports';
 import { supplierSettingsQuery } from '../features/business/settings/supplier';
 import { adminAttendanceQuery } from '../features/business/admin/attendanceQuery';
-import { adminTaxesQuery } from '../features/business/admin/taxesQuery';
 import { adminEmployeeRemunerationQuery } from '../features/business/admin/employeeRemunerationQuery';
 import { adminBusinessActivityLogsQuery } from '../features/business/admin/businessActivityLogsQuery';
 import { currencyRatesQuery } from '../features/business/admin/currencyRatesQuery';
@@ -38,7 +37,6 @@ import { whatsappQuery } from '../features/business/admin/whatsappQuery';
 import { printersQuery } from '../features/business/admin/printersQuery';
 import { stockTransfersQuery } from '../features/business/admin/stockTransfersQuery';
 import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery';
-import { taxInvoicesQuery } from '../features/business/admin/taxInvoicesQuery';
 import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
 import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQuery';
 import { countriesQuery } from '../features/countries/countriesQuery';
@@ -87,7 +85,6 @@ export const store = configureStore({
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [adminAttendanceQuery.reducerPath]: adminAttendanceQuery.reducer,
-    [adminTaxesQuery.reducerPath]: adminTaxesQuery.reducer,
     [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
     [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
     [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
@@ -96,7 +93,6 @@ export const store = configureStore({
     [printersQuery.reducerPath]: printersQuery.reducer,
     [stockTransfersQuery.reducerPath]: stockTransfersQuery.reducer,
     [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
-    [taxInvoicesQuery.reducerPath]: taxInvoicesQuery.reducer,
     [loyaltyQuery.reducerPath]: loyaltyQuery.reducer,
     [employeeSalaryQuery.reducerPath]: employeeSalaryQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
@@ -153,7 +149,6 @@ export const store = configureStore({
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       adminAttendanceQuery.middleware,
-      adminTaxesQuery.middleware,
       adminEmployeeRemunerationQuery.middleware,
       adminBusinessActivityLogsQuery.middleware,
       currencyRatesQuery.middleware,
@@ -162,7 +157,6 @@ export const store = configureStore({
       printersQuery.middleware,
       stockTransfersQuery.middleware,
       reorderRulesQuery.middleware,
-      taxInvoicesQuery.middleware,
       loyaltyQuery.middleware,
       employeeSalaryQuery.middleware,
       attendanceSettingsQuery.middleware,

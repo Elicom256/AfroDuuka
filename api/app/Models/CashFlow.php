@@ -28,7 +28,6 @@ class CashFlow extends BaseModel
         'supplier_id',
         'sale_id',
         'purchase_id',
-        'tax_payment_id',
         'stock_transfer_id',
         'sale_return_id',
         'purchase_return_id',
@@ -103,12 +102,6 @@ class CashFlow extends BaseModel
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Link to Tax Payment
-    public function taxPayment(): BelongsTo
-    {
-        return $this->belongsTo(BusinessTaxPayment::class, 'tax_payment_id');
-    }
-
     // Link to Stock Transfer
     public function stockTransfer(): BelongsTo
     {
@@ -178,7 +171,6 @@ class CashFlow extends BaseModel
             'raw_materials'     => 'Raw Materials',
             'rent'              => 'Rent',
             'worker_payments'   => 'Worker Payments',
-            'tax_payments'      => 'Tax Payments',
             'stock_transfer'    => 'Stock Transfer',
             'expenses'          => 'Expenses',
             default             => ucfirst(str_replace('_', ' ', $this->category ?? 'N/A')),

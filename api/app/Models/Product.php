@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\LogsActivity;
 
 class Product extends Model
 {
@@ -15,13 +15,19 @@ class Product extends Model
     protected $fillable = [
         'business_branch_id',
         'product_category_id',
+        'tax_category_id',
+
         'name',
         'sku',
         'barcode',
+
         'quantity',
+
+        // Pricing
         'cost_price',
-        'price',
-        'markup_percentage',
+        'selling_price',
+        'is_tax_inclusive',
+
         'reorder_level',
         'description',
         'emoji',
@@ -33,9 +39,18 @@ class Product extends Model
     protected $casts = [
         'last_sold_at' => 'datetime',
         'expiry_date' => 'date',
-        'track_serial' => 'boolean',
-        'markup_percentage' => 'decimal:2',
+
+        'is_tax_inclusive' => 'boolean',
+
+        'cost_price' => 'decimal:2',
+        'selling_price' => 'decimal:2',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function saleItems(): HasMany
     {
@@ -50,5 +65,39 @@ class Product extends Model
     public function businessBranch(): BelongsTo
     {
         return $this->belongsTo(BusinessBranch::class);
+    }
+
+    public function taxCategory(): BelongsTo
+    {
+        return $this->belongsTo(TaxCategory::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Calculate the markup percentage from cost and selling price.
+     *
+     * Markup is intentionally NOT stored in the database because it is
+     * derived from the two source values.
+     */
+    public function getMarkupPercentageAttribute(): ?float
+    {
+        if (
+            $this->cost_price === null ||
+            (float) $this->cost_price <= 0 ||
+            $this->selling_price === null
+        ) {
+            return null;
+        }
+
+        return round(
+            (((float) $this->selling_price - (float) $this->cost_price)
+                / (float) $this->cost_price) * 100,
+            2
+        );
     }
 }
