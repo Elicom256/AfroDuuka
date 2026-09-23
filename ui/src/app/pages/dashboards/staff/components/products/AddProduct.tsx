@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
+import { useTaxCategoriesQuery } from '@/app/store/features/business/tax/taxQuery';
 import { toast } from 'sonner';
 
 interface AddProductProps {
@@ -24,6 +26,8 @@ interface AddProductProps {
 export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
   const { data } = useProductCategoriesQuery();
+  const { data: taxCategoriesData } = useTaxCategoriesQuery();
+  const taxCategories = (taxCategoriesData?.categories ?? []).filter((c: any) => c.is_active);
 
   const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
 
@@ -37,6 +41,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
     description: '',
     emoji: '',
     product_category_id: '',
+    tax_category_id: '',
+    is_tax_inclusive: false,
   });
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -56,6 +62,8 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
           description: '',
           emoji: '',
           product_category_id: '',
+          tax_category_id: '',
+          is_tax_inclusive: false,
         });
       }
     } catch (error) {
@@ -178,6 +186,36 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='tax_category_id' className='text-right'>
+                Tax Category
+              </Label>
+              <Select value={formData.tax_category_id} onValueChange={(value) => handleChange('tax_category_id', value)}>
+                <SelectTrigger className='col-span-3'>
+                  <SelectValue placeholder='No tax (optional)' />
+                </SelectTrigger>
+                <SelectContent>
+                  {taxCategories.map((cat: any) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='is_tax_inclusive' className='text-right'>
+                Tax Inclusive
+              </Label>
+              <div className='col-span-3 flex items-center gap-2'>
+                <Switch
+                  id='is_tax_inclusive'
+                  checked={formData.is_tax_inclusive}
+                  onCheckedChange={(checked) => setFormData((p) => ({ ...p, is_tax_inclusive: checked }))}
+                />
+                <span className='text-sm text-muted-foreground'>Selling price already includes tax</span>
+              </div>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label className='text-right'>Emoji</Label>

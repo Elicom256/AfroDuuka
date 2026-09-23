@@ -21,7 +21,13 @@ class BusinessBranch extends BaseModel
     public function purchases(){
         $this->hasMany(Purchase::class);
     }
-    public function sales(){
-        $this->hasMany(Sale::class);
+public function sales(){
+        return $this->hasMany(Sale::class);
+    }
+    public function taxCategories(){
+        return $this->hasMany(TaxCategory::class);
+    }
+    public function taxPayments(){
+        return $this->hasMany(TaxPayment::class);
     }
 }

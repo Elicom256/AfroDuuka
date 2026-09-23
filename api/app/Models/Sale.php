@@ -13,9 +13,11 @@ class Sale extends BaseModel
 {
     use LogsActivity;
 
-    protected $fillable = [ 'business_branch_id', 'user_id', 'customer_id', 'total_amount', 'status', 'note'];
+    protected $fillable = [ 'business_branch_id', 'user_id', 'customer_id', 'subtotal', 'tax_amount', 'total_amount', 'status', 'note'];
 
     protected $casts = [
+        'subtotal'     => 'decimal:2',
+        'tax_amount'   => 'decimal:2',
         'total_amount' => 'decimal:2',
     ];
 
@@ -27,6 +29,11 @@ class Sale extends BaseModel
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function businessBranch(): BelongsTo

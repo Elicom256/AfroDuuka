@@ -136,3 +136,15 @@ Route::prefix("ai")->group(function () {
 Route::prefix("super-admin")->group(function () {
     require __DIR__."/super-admin.php";
 });
+
+Route::prefix("tax-categories")->group(function () {
+    require __DIR__."/tax-categories.php";
+});
+
+Route::prefix("tax-rates")->group(function () {
+    require __DIR__."/tax-rates.php";
+});
+
+Route::prefix("tax-payments")->group(function () {
+    require __DIR__."/tax-payments.php";
+});
