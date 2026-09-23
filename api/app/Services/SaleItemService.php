@@ -34,18 +34,20 @@ class SaleItemService
         return DB::transaction(function () use ($validated, $business_branch_id) {
             $notificationService = app(NotificationService::class);
             $user = Auth::user();
+            $taxService = app(TaxService::class);
 
-            $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
-            $sale = Sale::create([
-                'business_branch_id' => $business_branch_id,
-                "total_amount" => $totalAmount,
-                "customer_id" => $validated["customer_id"],
-                'note' => $validated["note"] ?? null,
-                "status" => "completed"
-            ]);
+            $productIds = collect($validated["items"])->pluck('product_id')->unique()->values()->all();
+            $products = Product::with('taxCategory.taxRates')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
 
-            foreach ($validated['items'] as $item) {
-                $product = Product::find($item['product_id']);
+            $lineTaxes = [];
+            $totalSubtotal = 0;
+            $totalTaxAmount = 0;
+
+            foreach (array_values($validated['items']) as $index => $item) {
+                $product = $products->get($item['product_id']);
                 if (!$product) {
                     throw new Exception("Product not found", 404);
                 }
@@ -60,12 +62,43 @@ class SaleItemService
                         $product->reorder_level
                     );
                 }
+
+                $tax = $taxService->calculateForProduct(
+                    $product,
+                    (float) $item['unit_price'],
+                    (int) $item['quantity']
+                );
+                $lineTaxes[$index] = $tax;
+                $totalSubtotal += $tax['taxable_amount'];
+                $totalTaxAmount += $tax['tax_amount'];
+            }
+
+            $totalAmount = round($totalSubtotal + $totalTaxAmount, 2);
+
+            $sale = Sale::create([
+                'business_branch_id' => $business_branch_id,
+                'subtotal'           => round($totalSubtotal, 2),
+                'tax_amount'         => round($totalTaxAmount, 2),
+                "total_amount"       => $totalAmount,
+                "customer_id"        => $validated["customer_id"],
+                'note'               => $validated["note"] ?? null,
+                "status"             => "completed"
+            ]);
+
+            foreach (array_values($validated['items']) as $index => $item) {
+                $product = $products->get($item['product_id']);
+                $tax = $lineTaxes[$index];
+
                 SaleItem::create([
-                    'sale_id' => $sale->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'subtotal' => $item['quantity'] * $item['unit_price'],
+                    'sale_id'          => $sale->id,
+                    'product_id'       => $item['product_id'],
+                    'quantity'         => $item['quantity'],
+                    'unit_price'       => $item['unit_price'],
+                    'tax_rate'         => $tax['rate'],
+                    'is_tax_inclusive' => $tax['is_tax_inclusive'],
+                    'taxable_amount'   => $tax['taxable_amount'],
+                    'tax_amount'       => $tax['tax_amount'],
+                    'subtotal'         => $item['quantity'] * $item['unit_price'],
                 ]);
                 $product->decrement("quantity", $item['quantity']);
                 $product->update(['last_sold_at' => now()]);

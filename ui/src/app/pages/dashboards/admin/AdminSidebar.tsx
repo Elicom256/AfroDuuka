@@ -34,6 +34,7 @@ import {
   PieChart,
   ClipboardList,
   Calculator,
+  Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -131,6 +132,10 @@ const navSections: Array<{
       { label: 'Product Audits', to: '/admin/product-audits', icon: ClipboardList },
       { label: 'Financial Audits', to: '/admin/financial-audits', icon: Calculator },
     ],
+  },
+  {
+    title: 'Taxes',
+    items: [{ label: 'Tax Management', to: '/admin/tax', icon: Percent }],
   },
   {
     title: 'System',
