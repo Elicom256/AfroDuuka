@@ -35,6 +35,8 @@ interface CartItem {
   unit_price: number;
   discount: number;
   stock: number;
+  tax_rate: number;
+  is_tax_inclusive: boolean;
 }
 
 interface PaymentInput {
@@ -127,6 +129,8 @@ export const PosPage = () => {
           unit_price: product.selling_price,
           discount: 0,
           stock: product.stock,
+          tax_rate: Number(product.tax_rate) || 0,
+          is_tax_inclusive: !!product.is_tax_inclusive,
         },
       ];
     });
@@ -148,6 +152,17 @@ export const PosPage = () => {
     );
   };
 
+  const updateDiscount = (productId: number, discount: string) => {
+    setCart((prev) =>
+      prev.map((c) => {
+        if (c.product_id !== productId) return c;
+        const value = parseFloat(discount);
+        const max = c.unit_price * c.quantity;
+        return { ...c, discount: isNaN(value) ? 0 : Math.min(Math.max(0, value), max) };
+      }),
+    );
+  };
+
   const removeFromCart = (productId: number) => {
     setCart((prev) => prev.filter((c) => c.product_id !== productId));
   };
@@ -159,9 +174,24 @@ export const PosPage = () => {
     setHeldSaleId(null);
   };
 
-  const subtotal = cart.reduce((sum, c) => sum + c.quantity * c.unit_price, 0);
+  const getLineTotals = (c: CartItem) => {
+    const discounted = c.quantity * c.unit_price - c.discount * c.quantity;
+    if (!c.tax_rate) {
+      return { taxable: discounted, tax: 0, total: discounted };
+    }
+    if (c.is_tax_inclusive) {
+      const taxable = Math.round((discounted / (1 + c.tax_rate)) * 100) / 100;
+      const tax = Math.round((discounted - taxable) * 100) / 100;
+      return { taxable, tax, total: discounted };
+    }
+    const tax = Math.round(discounted * c.tax_rate * 100) / 100;
+    return { taxable: discounted, tax, total: discounted + tax };
+  };
+
   const discountTotal = cart.reduce((sum, c) => sum + c.discount * c.quantity, 0);
-  const total = subtotal - discountTotal;
+  const subtotal = cart.reduce((sum, c) => sum + getLineTotals(c).taxable, 0);
+  const taxTotal = cart.reduce((sum, c) => sum + getLineTotals(c).tax, 0);
+  const total = cart.reduce((sum, c) => sum + getLineTotals(c).total, 0);
 
   const handleCustomerSearch = async (q: string) => {
     setCustomerSearch(q);
@@ -210,6 +240,8 @@ export const PosPage = () => {
       unit_price: i.unit_price,
       discount: i.discount || 0,
       stock: 9999,
+      tax_rate: Number(i.tax_rate) || 0,
+      is_tax_inclusive: !!i.is_tax_inclusive,
     }));
     setCart(items);
     if (heldSale.customer) setSelectedCustomer(heldSale.customer);
@@ -400,32 +432,51 @@ export const PosPage = () => {
                       <p className='font-medium text-sm truncate'>{item.name}</p>
                       <p className='text-xs text-muted-foreground'>SKU: {item.sku}</p>
                       <p className='text-xs text-muted-foreground'>@ {item.unit_price.toLocaleString()}</p>
+                      <div className='flex items-center gap-2 mt-1.5'>
+                        <span className='text-xs text-muted-foreground'>Disc</span>
+                        <Input
+                          type='number'
+                          min='0'
+                          className='h-7 w-24 text-xs'
+                          value={item.discount || ''}
+                          placeholder='0'
+                          onChange={(e) => updateDiscount(item.product_id, e.target.value)}
+                        />
+                      </div>
                     </div>
-                    <div className='flex items-center gap-3'>
-                      <div className='flex items-center border border-border rounded-xl'>
+                    <div className='flex flex-col items-end gap-1.5'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex items-center border border-border rounded-xl'>
+                          <button
+                            onClick={() => updateQty(item.product_id, -1)}
+                            className='p-1.5 hover:bg-muted rounded-l-xl'
+                          >
+                            <Minus className='h-3.5 w-3.5' />
+                          </button>
+                          <span className='px-3 text-sm font-semibold min-w-6 text-center'>{item.quantity}</span>
+                          <button
+                            onClick={() => updateQty(item.product_id, 1)}
+                            className='p-1.5 hover:bg-muted rounded-r-xl'
+                          >
+                            <Plus className='h-3.5 w-3.5' />
+                          </button>
+                        </div>
+                        <span className='font-semibold text-sm w-24 text-right'>
+                          {(item.quantity * item.unit_price).toLocaleString()}
+                        </span>
                         <button
-                          onClick={() => updateQty(item.product_id, -1)}
-                          className='p-1.5 hover:bg-muted rounded-l-xl'
+                          onClick={() => removeFromCart(item.product_id)}
+                          className='p-1.5 hover:bg-red-50 rounded-xl text-muted-foreground hover:text-red-500'
                         >
-                          <Minus className='h-3.5 w-3.5' />
-                        </button>
-                        <span className='px-3 text-sm font-semibold min-w-6 text-center'>{item.quantity}</span>
-                        <button
-                          onClick={() => updateQty(item.product_id, 1)}
-                          className='p-1.5 hover:bg-muted rounded-r-xl'
-                        >
-                          <Plus className='h-3.5 w-3.5' />
+                          <X className='h-4 w-4' />
                         </button>
                       </div>
-                      <span className='font-semibold text-sm w-24 text-right'>
-                        {(item.quantity * item.unit_price).toLocaleString()}
-                      </span>
-                      <button
-                        onClick={() => removeFromCart(item.product_id)}
-                        className='p-1.5 hover:bg-red-50 rounded-xl text-muted-foreground hover:text-red-500'
-                      >
-                        <X className='h-4 w-4' />
-                      </button>
+                      {item.tax_rate > 0 && (
+                        <span className='text-xs text-muted-foreground'>
+                          {item.is_tax_inclusive ? 'incl.' : '+'} {((item.tax_rate) * 100).toFixed(0)}% tax:{' '}
+                          {getLineTotals(item).tax.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -436,8 +487,8 @@ export const PosPage = () => {
           {/* Cart summary */}
           <div className='border-t border-border p-4 bg-card space-y-2'>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>Subtotal</span>
-              <span>{subtotal.toLocaleString()}</span>
+              <span className='text-muted-foreground'>Subtotal {discountTotal > 0 && '(after discount)'}</span>
+              <span>{subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
             </div>
             {discountTotal > 0 && (
               <div className='flex justify-between text-sm text-green-600'>
@@ -445,9 +496,15 @@ export const PosPage = () => {
                 <span>-{discountTotal.toLocaleString()}</span>
               </div>
             )}
+            {taxTotal > 0 && (
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>Tax</span>
+                <span>{taxTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
             <div className='flex justify-between text-lg font-bold'>
               <span>Total</span>
-              <span>{total.toLocaleString()}</span>
+              <span>{total.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
@@ -604,8 +661,9 @@ export const PosPage = () => {
                 <div key={item.product_id} className='flex justify-between text-sm'>
                   <span>
                     {item.name} x{item.quantity}
+                    {item.tax_rate > 0 && ` (${item.is_tax_inclusive ? 'incl.' : '+'}${(item.tax_rate * 100).toFixed(0)}%)`}
                   </span>
-                  <span>{(item.quantity * item.unit_price).toLocaleString()}</span>
+                  <span>{getLineTotals(item).total.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                 </div>
               ))}
             </div>
@@ -613,7 +671,7 @@ export const PosPage = () => {
             <div className='border-t border-border pt-3 mb-4 space-y-1'>
               <div className='flex justify-between text-sm'>
                 <span>Subtotal</span>
-                <span>{subtotal.toLocaleString()}</span>
+                <span>{subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
               {discountTotal > 0 && (
                 <div className='flex justify-between text-sm text-green-600'>
@@ -621,9 +679,15 @@ export const PosPage = () => {
                   <span>-{discountTotal.toLocaleString()}</span>
                 </div>
               )}
+              {taxTotal > 0 && (
+                <div className='flex justify-between text-sm'>
+                  <span>Tax</span>
+                  <span>{taxTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                </div>
+              )}
               <div className='flex justify-between text-lg font-bold'>
                 <span>Total</span>
-                <span>{total.toLocaleString()}</span>
+                <span>{total.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
             </div>
 
@@ -726,6 +790,16 @@ export const PosPage = () => {
             </div>
 
             <div className='border-t border-border pt-3 mb-6 space-y-1'>
+              <div className='flex justify-between text-sm'>
+                <span>Subtotal</span>
+                <span>{(completedSale.subtotal || 0).toLocaleString()}</span>
+              </div>
+              {Number(completedSale.tax_amount || 0) > 0 && (
+                <div className='flex justify-between text-sm'>
+                  <span>Tax</span>
+                  <span>{(completedSale.tax_amount || 0).toLocaleString()}</span>
+                </div>
+              )}
               <div className='flex justify-between text-sm'>
                 <span>Total</span>
                 <span className='font-bold'>{(completedSale.total_amount || 0).toLocaleString()}</span>

@@ -22,11 +22,16 @@ class PosService
 {
     protected CashFlowService $cashFlowService;
     protected NotificationService $notificationService;
+    protected TaxService $taxService;
 
-    public function __construct(CashFlowService $cashFlowService, NotificationService $notificationService)
-    {
+    public function __construct(
+        CashFlowService $cashFlowService,
+        NotificationService $notificationService,
+        TaxService $taxService
+    ) {
         $this->cashFlowService = $cashFlowService;
         $this->notificationService = $notificationService;
+        $this->taxService = $taxService;
     }
 
     public function searchProducts(string $query, int $limit = 20): array
@@ -116,8 +121,16 @@ class PosService
         }
 
         return DB::transaction(function () use ($validated, $user, $branchId) {
-            $totalAmount = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
-            $totalDiscount = collect($validated['items'])->sum(fn($i) => ($i['discount'] ?? 0) * $i['quantity']);
+            $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
+            $products = Product::with('taxCategory.taxRates')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
+
+            $totalAmount = 0;
+            $totalDiscount = 0;
+            $totalSubtotal = 0;
+            $totalTaxAmount = 0;
 
             if (isset($validated['sale_id'])) {
                 $sale = Sale::where('id', $validated['sale_id'])
@@ -125,27 +138,58 @@ class PosService
                     ->where('status', 'held')
                     ->firstOrFail();
                 $sale->update(['status' => 'completed', 'note' => $validated['note'] ?? $sale->note]);
+
+                $totalAmount = collect($validated['items'] ?? [])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+                $totalDiscount = collect($validated['items'] ?? [])->sum(fn($i) => ($i['discount'] ?? 0) * $i['quantity']);
             } else {
+                foreach ($validated['items'] as $item) {
+                    $product = $products->get($item['product_id']);
+                    $tax = $this->taxService->calculateForProduct(
+                        $product,
+                        (float) $item['unit_price'],
+                        (int) $item['quantity'],
+                        (float) ($item['discount'] ?? 0)
+                    );
+                    $totalSubtotal += $tax['taxable_amount'];
+                    $totalTaxAmount += $tax['tax_amount'];
+                }
+
+                $totalAmount = round($totalSubtotal + $totalTaxAmount, 2);
+                $totalSubtotal = round($totalSubtotal, 2);
+                $totalTaxAmount = round($totalTaxAmount, 2);
+
                 $sale = Sale::create([
                     'business_branch_id' => $branchId,
                     'customer_id'        => $validated['customer_id'] ?? null,
+                    'subtotal'           => $totalSubtotal,
+                    'tax_amount'         => $totalTaxAmount,
                     'total_amount'       => $totalAmount,
                     'note'               => $validated['note'] ?? null,
                     'status'             => 'completed',
                 ]);
 
                 foreach ($validated['items'] as $item) {
-                    $product = Product::findOrFail($item['product_id']);
+                    $product = $products->get($item['product_id']);
                     $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
                     $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
+                    $tax = $this->taxService->calculateForProduct(
+                        $product,
+                        (float) $item['unit_price'],
+                        (int) $item['quantity'],
+                        (float) ($item['discount'] ?? 0)
+                    );
 
                     SaleItem::create([
-                        'sale_id'    => $sale->id,
-                        'product_id' => $item['product_id'],
-                        'quantity'   => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'discount'   => $item['discount'] ?? 0,
-                        'subtotal'   => $subtotal,
+                        'sale_id'          => $sale->id,
+                        'product_id'       => $item['product_id'],
+                        'quantity'         => $item['quantity'],
+                        'unit_price'       => $item['unit_price'],
+                        'discount'         => $item['discount'] ?? 0,
+                        'tax_rate'         => $tax['rate'],
+                        'is_tax_inclusive' => $tax['is_tax_inclusive'],
+                        'taxable_amount'   => $tax['taxable_amount'],
+                        'tax_amount'       => $tax['tax_amount'],
+                        'subtotal'         => $subtotal,
                     ]);
 
                     $product->decrement('quantity', $item['quantity']);
@@ -184,21 +228,22 @@ class PosService
                 $totalPaid += $payment['amount'];
             }
 
-            $changeGiven = max(0, $totalPaid - ($totalAmount - $totalDiscount));
+            $netTotal = $totalAmount - $totalDiscount;
+            $changeGiven = max(0, $totalPaid - $netTotal);
 
             $customer = isset($validated['customer_id'])
                 ? Customer::with('user')->find($validated['customer_id'])?->user
                 : null;
             $customerName = $customer ? trim($customer->firstname . ' ' . $customer->lastname) : 'Walk-in Customer';
 
-            $this->cashFlowService->createCashFlowForSale($sale, $totalAmount - $totalDiscount, [
+            $this->cashFlowService->createCashFlowForSale($sale, $netTotal, [
                 'transaction_code'  => 'CF-POS-' . str_pad($sale->id, 6, '0', STR_PAD_LEFT),
                 'currency'          => $validated['currency'] ?? 'UGX',
                 'payment_status_id' => 1,
                 'reference'         => null,
             ]);
 
-            $this->notificationService->newSaleRecorded($user, number_format($totalAmount - $totalDiscount), $customerName);
+            $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName);
 
             $this->createPosReceipt($sale, $validated, $totalPaid, $changeGiven);
 
@@ -210,7 +255,9 @@ class PosService
     {
         $user = Auth::user();
         $discountTotal = SaleItem::where('sale_id', $sale->id)->sum('discount');
-        $subtotal = $sale->total_amount - $discountTotal;
+        $subtotal = (float) $sale->subtotal ?? $sale->total_amount;
+        $tax = (float) $sale->tax_amount ?? 0;
+        $total = (float) $sale->total_amount;
         $paymentMethod = collect($validated['payments'])->pluck('method')->implode(', ');
 
         $receipt = Receipt::create([
@@ -222,8 +269,8 @@ class PosService
             'sale_id'            => $sale->id,
             'subtotal'           => $subtotal,
             'discount'           => $discountTotal,
-            'tax'                => 0,
-            'total'              => $subtotal,
+            'tax'                => $tax,
+            'total'              => $total,
             'amount_paid'        => $amountPaid,
             'change_given'       => $changeGiven,
             'payment_method'     => $paymentMethod,
@@ -263,28 +310,64 @@ class PosService
         $branchId = $user->business_branch_id;
 
         return DB::transaction(function () use ($items, $customerId, $notes, $user, $branchId) {
-            $totalAmount = collect($items)->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+            $productIds = collect($items)->pluck('product_id')->unique()->values()->all();
+            $products = Product::with('taxCategory.taxRates')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
+
+            $totalSubtotal = 0;
+            $totalTaxAmount = 0;
+
+            foreach ($items as $item) {
+                $product = $products->get($item['product_id']);
+                $tax = $this->taxService->calculateForProduct(
+                    $product,
+                    (float) $item['unit_price'],
+                    (int) $item['quantity'],
+                    (float) ($item['discount'] ?? 0)
+                );
+                $totalSubtotal += $tax['taxable_amount'];
+                $totalTaxAmount += $tax['tax_amount'];
+            }
+
+            $totalAmount = round($totalSubtotal + $totalTaxAmount, 2);
+            $totalSubtotal = round($totalSubtotal, 2);
+            $totalTaxAmount = round($totalTaxAmount, 2);
 
             $sale = Sale::create([
                 'business_branch_id' => $branchId,
                 'user_id'            => $user->id,
                 'customer_id'        => $customerId,
+                'subtotal'           => $totalSubtotal,
+                'tax_amount'         => $totalTaxAmount,
                 'total_amount'       => $totalAmount,
                 'note'               => $notes,
                 'status'             => 'held',
             ]);
 
             foreach ($items as $item) {
+                $product = $products->get($item['product_id']);
                 $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
                 $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
+                $tax = $this->taxService->calculateForProduct(
+                    $product,
+                    (float) $item['unit_price'],
+                    (int) $item['quantity'],
+                    (float) ($item['discount'] ?? 0)
+                );
 
                 SaleItem::create([
-                    'sale_id'    => $sale->id,
-                    'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'discount'   => $item['discount'] ?? 0,
-                    'subtotal'   => $subtotal,
+                    'sale_id'          => $sale->id,
+                    'product_id'       => $item['product_id'],
+                    'quantity'         => $item['quantity'],
+                    'unit_price'       => $item['unit_price'],
+                    'discount'         => $item['discount'] ?? 0,
+                    'tax_rate'         => $tax['rate'],
+                    'is_tax_inclusive' => $tax['is_tax_inclusive'],
+                    'taxable_amount'   => $tax['taxable_amount'],
+                    'tax_amount'       => $tax['tax_amount'],
+                    'subtotal'         => $subtotal,
                 ]);
             }
 
