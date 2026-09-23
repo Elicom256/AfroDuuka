@@ -51,6 +51,7 @@ return new class extends Migration
             $table->timestamp('sent_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('read_at')->nullable();
+            $table->string('dedupe_key')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
         });
