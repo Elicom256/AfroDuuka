@@ -24,8 +24,9 @@ class ReceiptService
         return DB::transaction(function () use ($sale, $validated) {
             $user = Auth::user();
 
-            $subtotal = $sale->total_amount;
-            $total = $subtotal;
+            $subtotal = (float) $sale->subtotal ?? $sale->total_amount;
+            $tax = (float) $sale->tax_amount ?? 0;
+            $total = (float) $sale->total_amount;
             $amountPaid = $validated['amount_paid'] ?? $total;
             $changeGiven = $validated['change_given'] ?? max(0, $amountPaid - $total);
 
@@ -38,7 +39,7 @@ class ReceiptService
                 'sale_id' => $sale->id,
                 'subtotal' => $subtotal,
                 'discount' => $validated['discount'] ?? 0,
-                'tax' => $validated['tax'] ?? 0,
+                'tax' => $tax,
                 'total' => $total,
                 'amount_paid' => $amountPaid,
                 'change_given' => $changeGiven,
