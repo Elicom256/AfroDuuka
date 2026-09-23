@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SubscriptionSeeder::class);
         $this->call(ExpenseCategorySeeder::class);
         $this->call(ExpenseSeeder::class);
+        $this->call(TaxSeeder::class);
         $this->call(SubscriptionPaymentSeeder::class);
         $this->call(CouponSeeder::class);
         $this->call(OrderSeeder::class);
