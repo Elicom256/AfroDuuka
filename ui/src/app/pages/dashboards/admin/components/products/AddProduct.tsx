@@ -37,6 +37,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
   const [formData, setFormData] = useState({
     name: '',
+    barcode: '',
     cost_price: '',
     selling_price: '',
     quantity: '',
@@ -72,6 +73,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
       setImageFile(null);
       setFormData({
         name: '',
+        barcode: '',
         cost_price: '',
         selling_price: '',
         quantity: '',
@@ -100,7 +102,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-2xl'>
+      <DialogContent className='sm:max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>Enter the details for the new branch product and link it to a category.</DialogDescription>
@@ -117,6 +119,17 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 onChange={(e) => handleChange('name', e.target.value)}
                 className='col-span-3'
                 required
+              />
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='barcode' className='text-right'>
+                Barcode
+              </Label>
+              <Input
+                id='barcode'
+                value={formData.barcode}
+                onChange={(e) => handleChange('barcode', e.target.value)}
+                className='col-span-3'
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
@@ -177,7 +190,10 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
+              <Select
+                value={formData.product_category_id}
+                onValueChange={(value) => handleChange('product_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
@@ -194,7 +210,10 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               <Label htmlFor='tax_category_id' className='text-right'>
                 Tax Category
               </Label>
-              <Select value={formData.tax_category_id} onValueChange={(value) => handleChange('tax_category_id', value)}>
+              <Select
+                value={formData.tax_category_id}
+                onValueChange={(value) => handleChange('tax_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='No tax (optional)' />
                 </SelectTrigger>
@@ -240,7 +259,9 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                     type='button'
                     onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
                     className={`text-2xl p-2 rounded-xl border transition-all ${
-                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                      formData.emoji === emoji
+                        ? 'border-primary bg-primary/10 scale-110'
+                        : 'border-border hover:border-primary/50'
                     }`}
                   >
                     {emoji}
@@ -252,7 +273,11 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               <Label className='text-right'>Image</Label>
               <div className='col-span-3 flex items-center gap-3'>
                 {imageFile ? (
-                  <img src={URL.createObjectURL(imageFile)} alt='preview' className='h-14 w-14 rounded-lg border object-cover' />
+                  <img
+                    src={URL.createObjectURL(imageFile)}
+                    alt='preview'
+                    className='h-14 w-14 rounded-lg border object-cover'
+                  />
                 ) : null}
                 <Button
                   type='button'

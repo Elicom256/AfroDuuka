@@ -14,6 +14,8 @@ if [ ! -f "vendor/autoload.php" ]; then
     composer install --no-interaction --no-scripts
 fi
 
+php artisan storage:link || true
+
 # Local development does not need cache rebuilds on every restart.
 if [ "$APP_ENV" != "local" ] && [ "$APP_ENV" != "development" ]; then
     rm -f bootstrap/cache/config.php bootstrap/cache/routes.php bootstrap/cache/services.php bootstrap/cache/packages.php
