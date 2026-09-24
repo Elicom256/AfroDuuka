@@ -14,8 +14,8 @@ class WorkerService
     public function addWorker(array $data)
     {
         return $this->profileService->create($data, function($user, $data){
-            $work = Worker::with("user", function($q){
-                $q->where("business_id", Auth::user()->business_id);
+            $work = Worker::whereHas('user', function($q) use ($data) {
+                $q->where('business_id', $data['business_id'] ?? Auth::user()->business_id);
             })->count();
             return Worker::create([
                     "user_id" => $user->id,

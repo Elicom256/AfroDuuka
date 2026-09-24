@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Role;
-use Illuminate\Contracts\Validation\Validator;
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -22,24 +22,30 @@ class UpdateWorkerRequest extends FormRequest
         $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")->value("id");
         $this->merge([
             "business_id"        => $user->business_id,
-            "business_branch_id" => $this->input("business_branch_id", $user->business_branch_id),
             "status" => $this->input("status", "active"),
             "role_id" => $this->input("role_id", $role_id)
         ]);
-    }
 
-     protected function failedValidation(Validator $validator)
-     {
-        // return dd($validator);
-        return response()->json(["message"=>"Validation failed", "error" =>$validator]);
-     }
+        if ($user?->business_branch_id && ! $this->has('business_branch_id')) {
+            $this->merge([
+                'business_branch_id' => $user->business_branch_id,
+            ]);
+        }
+    }
 
     public function rules(): array
     {
         // Adjust route param names to match your routes
         $worker = $this->route("worker"); 
         $userId   = $worker->user_id;
-        // dd($userId);
+
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
+
         return [
             
             'department'      => 'nullable|string|max:255',
@@ -69,7 +75,7 @@ class UpdateWorkerRequest extends FormRequest
                 Rule::unique('users','nin')->ignore($userId),
             ],
             'address'   => 'nullable|string|max:255',
-            'business_branch_id' => 'nullable|exists:business_branches,id',
+            'business_branch_id' => ['nullable', 'integer', 'exists:business_branches,id', $branchWithinSet],
             'status'             => 'required|in:active,inactive',
         ];
     }
