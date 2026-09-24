@@ -1,355 +1,216 @@
-# NEW MODULE
+# DuukaFlow — Implementation Plan: Core 2026 Features (roadmap §5)
 
-Follow the existing project architecture and conventions to implement a complete **Audit** module.
-
-Do **not** introduce a new architecture or coding style. Analyze the current Laravel API and React (TypeScript) SPA and implement this module exactly as the rest of the project is structured.
-
-The implementation should reuse existing services, patterns, middleware, permissions, layouts, components, API conventions, validation, response format, and UI design.
+> Plan for the features listed in `roadmap.md` → **§5. Core 2026 Features That Are NOT Implemented (yet)**.
+> Ordered by **effort-to-implement, lowest first** so we bank quick wins before the heavy builds.
+> Update as work lands. Each item links to the roadmap row it implements.
 
 ---
 
-# Why add Audit Module
+## Ordering principle
 
-The application already maintains the current product quantity by updating `products.quantity` whenever stock movements occur.
+1. **Low energy / low API surface first** — polish + wiring of already-built machinery.
+2. **Medium builds** — one new model + one new screen.
+3. **Heavy builds** — new models, gateways/providers, background jobs, webhooks.
+4. **Post-launch** — explicitly out of MVP scope in roadmap §2.
 
-However, businesses also need the ability to:
+| Wave | Feature | Effort | Roadmap row |
+|---|---|---|---|
+| **A** | Notifications / alerts center polish | Low | P1 |
+| **A** | Barcode scanning at POS | Low | P1 |
+| **B** | Loyalty wired into checkout | Medium | P1 |
+| **B** | Product images & document attachments | Medium | P0 |
+| **C** | Quotations / proforma invoices | High | P0 |
+| **C** | Automated payment/billing (subscriptions self-renew) | High | P1 |
+| **C** | Customer communication (email/SMS/WhatsApp) | High | P0 |
+| **D** | Finance as single source of truth | High | P2 |
+| **D** | Real payment collection (mobile money / card) | High | P0 |
+| **D** | Warehouses / stock locations, serial & batch | High | P2 |
+| **D** | Payment reconciliation | High | P2 |
 
-- Perform physical stock counts.
-- Compare physical quantities against system quantities.
-- Adjust inventory after an audit.
-- Keep a permanent audit trail.
-- Audit financial records and cash balances.
-- View historical audit reports.
-
-The Audit module should integrate naturally with the existing Inventory and Financial modules.
-
----
-
-# Scope
-
-Implement:
-
-- Product Audits
-- Financial Audits
-
-The implementation should include:
-
-- Backend
-- Frontend
-- Routes
-- Permissions
-- Navigation
-- API integration
-- UI
-- Validation
-- Reports where applicable
+> **Dependency note:** Wave D payments/finance should follow Quotations (C) so the ledger and
+> payment gateway can be fed by the full sales cycle (quote → sale → payment) at once.
 
 ---
 
-# Product Audit
+## WAVE A — Quick wins (low energy, minimal new API)
 
-Implement complete product stock auditing.
+### A1. Notifications / alerts center polish  — roadmap P1
 
-## Backend
+**Goal:** turn in-app notifications from "list + polling" into an ops center: filter by category,
+unread counts per module, and actions that jump the user to the relevant record.
 
-Create:
+**Current state:**
+- Notification model exists with types; a controller fetches/list marks-reads; frontend polls a
+  notifications endpoint and shows a dropdown/center.
+- Generators already exist as queued jobs (low-stock, expiring, dues) — some are dead code and were
+  fixed in roadmap §3.4 (`CheckNotificationsJob`); not all are wired to actually **create** in-app rows.
 
-- ProductAudit
-- ProductAuditItem
+**Backend changes (small):**
+- Add `type`/`category` filtering + `paginate` to the list endpoint (query params only, no new model).
+- Add unread-count endpoint returning per-category counts (`unread_by_category`) — one lightweight
+  grouped query.
+- Ensure every alert job that pushes in-app notifications is actually scheduled (route the
+  low-stock/expiry/restock generators that are currently unwired).
+- Add `notification_action_url`/`meta` payload on creation so UI can jump to the record.
 
-Suggested fields include:
+**Frontend changes:**
+- Notifications screen: category filter chips (low-stock, expiry, dues, system), unread badge per chip.
+- Mark-as-read (`POST read/{id}` — extend existing) and mark-all-read.
+- Click-through actions from each notification to its record page.
 
-ProductAudit
-
-- business_id
-- business_branch_id
-- audit_number
-- audit_date (follow a systematic audit number eg "FAUDIT+ business branch audit length for financial autit and PAUDIT + "same as financial audit" for product audit")
-- status (enum)
-- notes
-- performed_by
-- approved_by
-- timestamps
-
-ProductAuditItem
-
-- product_id
-- system_quantity
-- counted_quantity
-- difference
-- adjustment_quantity
-- notes
+**Tests:** controller tests for filter + unread counts; job test that generators create rows.
+**API surface:** ~0 new models, 1–2 enriched endpoints.
 
 ---
 
-## Workflow
+### A2. Barcode scanning at POS  — roadmap P1
 
-When creating an audit:
+**Goal:** scan a product barcode (keyboard-wedge/HID USB scanner "types" the code) → row adds to cart.
 
-- Fetch the current quantity from `products.quantity`.
-- Store it as `system_quantity`.
-- Allow the user to enter the physical quantity.
-- Automatically compute the difference.
-- Allow saving as Draft.
+**Current state:**
+- `products.barcode` + `sku` columns already exist.
+- POS search endpoint matches name/SKU/barcode already and the POS search bar exists.
+- No dedicated scan input mapping the scanner into add-to-cart.
 
-Statuses should follow the existing project conventions.
+**Changes (mostly frontend):**
+- POS frontend: dedicated barcode/scan input (autofocus, captures keyboard-wedge input, ends on Enter
+  or `<ENTER>` suffix) → calls the existing product search/buy-by-barcode path → adds to cart + clears field.
+- Backend: add `by-barcode` route (exact barcode match, tenant-scoped via `Product` L1 scope) returning
+  the minimal product payload; fall back to the existing search if needed.
+- Optionally a "click barcode to scan again" affordance; scanner beep/error flash on no-match.
 
-Suggested statuses:
-
-- Draft
-- In Progress
-- Completed
-- Approved
-- Cancelled
-
-Only Approved audits should affect inventory.
+**Tests:** one route test (exact barcode, scoped); frontend manual.
+**API surface:** 1 small route.
 
 ---
 
-## Approval
+## WAVE B — Medium builds (one new model / screen each)
 
-When an audit is approved:
+### B1. Loyalty wired into checkout  — roadmap P1
 
-For every item whose counted quantity differs from the system quantity:
+**Goal:** loyalty earns points on completed sale; POS can look up a customer's card and redeem/burn points at checkout.
 
-1. Create an Inventory Movement using the existing inventory movement infrastructure (to the audited business branch).
-2. Update the product quantity using the project's existing inventory service/pattern.
-3. Record the adjustment reason as Stock Audit.
+**Current state:** loyalty models + `LoyaltyService` exist with earn/burn methods, **but nothing calls
+them from POS checkout / sale completion.**
 
-Do not bypass the current inventory movement workflow.
+**Plan:**
+1. Hook earn into sale completion: on successful sale, call `LoyaltyService` earn against the
+   sale customer (idempotent — keyed by sale, so re-runs/refunds don't double-earn).
+2. POS redemption: card lookup field in the POS customer panel → shows balance → buyer selects redeem →
+   discount applied in the POS totals → burn on payment success.
+3. Backend: ensure `LoyaltyService` methods used are tenant/branch-scoped; add any missing
+   balance/redeem endpoints behind existing auth.
+4. Refund handling: reverse earned points on sale refund (with refund event).
 
-The inventory movement should become the historical record.
-
----
-
-# Financial Audit
-
-Implement complete financial audits.
-
-Financial audits are intended to verify recorded financial balances against actual balances.
-
-Create:
-
-- FinancialAudit
-
-Fields may include:
-
-- business_id
-- business_branch_id
-- audit_number
-- audit_date
-- expected_balance
-- actual_balance
-- difference
-- notes
-- status
-- performed_by
-- approved_by
-
-The audit should compare the expected financial balance with the actual counted balance.
-
-If there is a variance:
-
-- Store the difference.
-- Preserve it as part of the audit history.
-- Do not automatically modify financial records unless that matches the existing project architecture.
-
-If the project already contains Financial Transactions, integrate with them.
+**Tests:** unit tests on earn/burn idempotency; feature test sale→earn, redeem→sale totals.
+**API surface:** reuse `LoyaltyService`, wire 1–2 POS endpoints.
 
 ---
 
-# Integration
+### B2. Product images & document attachments  — roadmap P0
 
-Integrate naturally with:
+**Goal:** polymorphic attachments (product images, customer/supplier docs) with storage + UI upload.
 
-- Products
-- Inventory Movements
-- Financial Transactions
-- Dashboard statistics
-- Reports where appropriate
+**Plan:**
+1. New polymorphic `Attachment` model + migration (`attachable_id/type`, `path`, `disk`, `mime`, `name`).
+2. Storage on local/private disk (production: object storage later). Image variants
+   (thumbnail) via file on upload or simple resize.
+3. Routes: upload + list/delete per attachable (tenant-scoped; authorize against the parent model).
+4. UI: product image upload/photo in Product form + image in product cards; customer/supplier doc
+   attachment slots on their detail pages.
+5. Migrate nothing existing; products keep optional image from attachment list (first image = cover).
 
-Do not duplicate business logic.
-
-Reuse existing services whenever possible.
-
----
-
-# Frontend
-
-Follow the current React application architecture.
-
-Create all necessary:
-
-- pages
-- components
-- API hooks/services
-- types
-- forms
-- dialogs
-- tables
-- filters
-- breadcrumbs
-- routes
-
-Reuse existing reusable components.
+**Tests:** model + controller upload (fake storage), scoping + authz test.
+**API surface:** 1 new model + 3–4 routes.
 
 ---
 
-# UI
+## WAVE C — Heavy builds
 
-Follow the existing application design.
+### C1. Quotations / proforma invoices  — roadmap P0
 
-Reuse existing:
+**Goal:** Draft → Sent → Accepted → Converted workflow; converting an accepted quote creates a `Sale`.
 
-- shadcn/ui components
-- lucide-react icons
-- table components
-- dialogs
-- sheets
-- cards
-- badges
-- pagination
-- search
-- filters
-- loading states
-- empty states
-- confirmation dialogs
+**Plan:**
+1. New `Quotation` + `QuotationItem` models (business/branch-scoped, requote number, item snapshot of
+   price/qty, validity, status enum, notes, discount/tax like sales).
+2. Routes (CRUD + `accept` + `convert`), tenant-scoped, `convert` builds a `Sale` via the same
+   service used by POS checkout (so stock/cash-flow/ledger stay consistent).
+3. Quote number generator + PDF/download (reuse the existing receipt PDF pipeline).
+4. UI: Quotes list (status chips), Quote editor (mirrors POS cart), Quote detail with
+   Send (email/WhatsApp later) and Convert to Sale.
+5. Conversion idempotency (quote marked converted; cannot double-convert).
 
-Do not introduce a different design language.
-
-The module should look identical to the rest of the application.
+**Tests:** model, workflow feature tests (convert→sale stock/cash-flow), idempotency.
+**Note:** this slots in before Wave D so Payments and Finance can consume converted sales.
 
 ---
 
-# Pages
+### C2. Automated payment/billing (subscriptions self-renew)  — roadmap P1
 
-Implement pages similar to the rest of the system:
+**Goal:** subscriptions renew automatically via gateway with dunning/retry.
 
-Product Audits
-
-- Audit List
-- Create Audit
-- View Audit
-- Edit Draft Audit
-- Approve Audit
-- Print/View Audit Report
-
-Financial Audits
-
-- Audit List
-- Create Audit
-- View Audit
-- Edit Draft Audit
-- Approve Audit
-- Print/View Audit Report
+**Plan:**
+1. Extend `Subscription` with auto-renew flag, next_billing_date, grace period; add `SubscriptionPayment`
+   statuses (pending/paid/failed/succeeded-retry).
+2. Scheduled job on `next_billing_date`: attempt charge via gateway (Wave D), record payment,
+   extend period, notify via WhatsApp/email (Wave C3). On failure → retry schedule + dunning notice.
+3. Webhook handler for gateway charge results (idempotent).
+4. UI: subscription page shows auto-renew toggle, billing history, retry button on failed.
+5. Depends on C3 (provider) + D1 (gateway) for real charging; structure so the job can run in
+   "manual verify" mode until the gateway lands.
 
 ---
 
-# API
+### C3. Customer communication (email/SMS/WhatsApp)  — roadmap P0
 
-Follow existing API conventions.
+**Goal:** real providers behind the existing `WhatsAppService` abstraction; add email; finish scheduled jobs.
 
-Implement:
-
-- index
-- show
-- store
-- update
-- destroy (if allowed by current project conventions)
-- approve
-- cancel
-
-Use:
-
-- Form Requests
-- API Resources (if used)
-- Policies / Authorization
-- Validation
-- Database Transactions where appropriate
-
-Return responses using the existing API response structure.
+**Plan:**
+1. `WHATSAPP_PROVIDER=demo` → provider adapters (WhatsApp Business API + email transport) behind one
+   `NotificationChannel` interface; demo stays as fallback.
+2. Add email template pipeline + unsubscribe/preferences.
+3. Wire scheduled jobs (expiry, monthly report, low-stock, receipt on sale, quote send) to real providers.
+4. Dedupe/preferences already specced in `whatsapp*.md` — implement the dedupe column fix from roadmap §3.3
+   and preferences filtering.
+5. Flop `WHATSAPP_PROVIDER` to a real provider last after test coverage.
 
 ---
 
-# Navigation
+## WAVE D — Post-launch / heavy (roadmap P2 + P0 payments)
 
-Add menu entries following the current sidebar structure.
+### D1. Finance as single source of truth  — roadmap P2
 
-Suggested placement:
+**Goal:** `FinancialTransaction` ledger fed by all workflows; retire CashFlow duplication.
 
-Inventory
+**Plan:** new ledger model + writers wired into sales/purchases/expenses/transfers/refunds; report
+queries migrate to it; keep CashFlow as read-only facade temporarily; cutover + drop duplicates.
+(Split into sub-tasks; spec exists in `todayswork.md`.)
 
-- Product Audits
+### D2. Real payment collection (mobile money / card)  — roadmap P0
 
-Finance
+**Goal:** POS takes MTN MoMo / Airtel Money / card via gateway.
 
-- Financial Audits
+**Plan:** gateway adapter (1 mobile-money provider + card), POS split-payment connects to gateway
+(already exists client-side), webhook verification + reconciliation hooks with D1. Pairs with C2.
 
-Only if these sections already exist.
+### D3. Warehouses / stock locations, serial & batch tracking  — roadmap P2
 
-Otherwise, place them where they best match the current navigation.
+Straightforward but large schema/scope change (post-MVP, excluded from roadmap §2 MVP).
 
----
+### D4. Payment reconciliation  — roadmap P2
 
-# Authorization
-
-This module is **Admin only**.
-
-Only administrators should be able to:
-
-- View audits
-- Create audits
-- Edit drafts
-- Approve audits
-- Cancel audits
-- Delete audits (if supported)
-
-Non-admin users should have no access.
-
-Use the project's existing authorization approach.
+Matches gateway statements to ledger entries; layered on D1 + D2.
 
 ---
 
-# Reports
+## Suggested execution order (time-boxed)
 
-Implement printable audit reports following the project's existing reporting style.
+1. **A1 Notifications polish** + **A2 Barcode scanning** (quick wins)
+2. **B1 Loyalty at checkout** (high demo value, machinery exists)
+3. **B2 Attachments/images** (unblocks UI visual quality)
+4. **C1 Quotations** → then **C2 auto-billing** + **C3 comms** as provider layers
+5. **D1 Finance ledger**, then **D2 Payments** on top of it, finally **D3/D4**
 
-Product Audit Report should include:
-
-- Audit details
-- Products
-- System Quantity
-- Counted Quantity
-- Difference
-- Adjustments
-- Auditor
-- Approval information
-
-Financial Audit Report should include:
-
-- Expected balance
-- Actual balance
-- Difference
-- Notes
-- Auditor
-- Approval information
-
----
-
-# Constraints
-
-- Maintain the existing architecture.
-- Reuse existing project services and patterns.
-- Do not duplicate inventory or financial logic.
-- Follow the project's coding conventions.
-- Use database transactions where needed.
-- Keep business logic inside the appropriate services.
-- Reuse existing repositories/services/helpers if they already exist.
-- Follow RESTful API conventions.
-- Follow existing route organization.
-- Wire up the complete frontend and backend.
-- Reuse existing shadcn/ui components and lucide-react icons.
-- Ensure responsive layouts.
-- Preserve existing UI/UX consistency.
-- Ensure the implementation is production-ready.
-- If an existing package, helper, component, or service already solves a problem, use it instead of creating a new implementation.
+Each feature ships with: backend tests (per roadmap §6 advice), tenant-scoping checked, and the
+roadmap §5 row marked done.
