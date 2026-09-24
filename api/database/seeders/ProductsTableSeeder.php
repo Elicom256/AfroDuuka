@@ -6,17 +6,16 @@ use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\ProductCategory;
 use App\Models\Product;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 
 class ProductsTableSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     public function run(): void
     {
-        $business = Business::where("email", "testbusinessone@gmail.com")->first();
-
-        if (!$business) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
 
         $branches = BusinessBranch::where('business_id', $business->id)->get();
 

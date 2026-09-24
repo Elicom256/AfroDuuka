@@ -5,23 +5,21 @@ namespace Database\Seeders;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Coupon;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 
 class CouponSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     public function run(): void
     {
-        $business = Business::where("email", "testbusinessone@gmail.com")->first();
-        if (!$business) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
 
         $branch = BusinessBranch::where("business_id", $business->id)
                    ->where("name", "Main Branch")
-                   ->first();
-        if (!$branch) {
-            throw new \Exception("Branch not found");
-        }
+                   ->first()
+                   ?? $this->fixtureMainBranch($business);
 
         $coupons = [
             [

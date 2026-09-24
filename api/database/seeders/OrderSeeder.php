@@ -9,23 +9,21 @@ use App\Models\SaleOrder;
 use App\Models\SaleOrderItem;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     public function run(): void
     {
-        $business = Business::where("email", "testbusinessone@gmail.com")->first();
-        if (!$business) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
 
         $branch = BusinessBranch::where("business_id", $business->id)
                    ->where("name", "Main Branch")
-                   ->first();
-        if (!$branch) {
-            throw new \Exception("Branch not found");
-        }
+                   ->first()
+                   ?? $this->fixtureMainBranch($business);
 
         $user = User::where("business_id", $business->id)->where("email", "admin@gmail.com")->first();
         $customers = Customer::whereHas("user", fn($q) => $q->where("business_id", $business->id))->get();
@@ -79,6 +77,11 @@ class OrderSeeder extends Seeder
         ];
 
         $orderCount = SaleOrder::where("business_id", $business->id)->count();
+
+        if ($orderCount > 0) {
+            $this->command->info("✅ Orders already seeded, skipping.");
+            return;
+        }
 
         foreach ($orders as $i => $orderData) {
             $orderCount++;
