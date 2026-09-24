@@ -27,6 +27,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
 
   const [formData, setFormData] = useState({
     name: '',
+    barcode: '',
     selling_price: '',
     cost_price: '',
     quantity: '',
@@ -44,6 +45,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
         setOpen(false);
         setFormData({
           name: '',
+          barcode: '',
           selling_price: '',
           cost_price: '',
           quantity: '',
@@ -70,7 +72,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-106.25'>
+      <DialogContent className='sm:max-w-106.25 max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>Enter the details for the new product.</DialogDescription>
@@ -102,6 +104,17 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               />
             </div> */}
 
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='barcode' className='text-right'>
+                Barcode
+              </Label>
+              <Input
+                id='barcode'
+                value={formData.barcode}
+                onChange={(e) => handleChange('barcode', e.target.value)}
+                className='col-span-3'
+              />
+            </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='selling_price' className='text-right'>
                 Selling Price
@@ -159,7 +172,10 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
               <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
+              <Select
+                value={formData.product_category_id}
+                onValueChange={(value) => handleChange('product_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
