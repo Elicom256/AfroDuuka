@@ -14,7 +14,6 @@ class DeadStockReports
         $cutoffDate = Carbon::now()->subDays(90)->toDateString();
 
         $query = Product::query()
-            ->where('business_branch_id', $user->business_branch_id)
             ->where(function ($query) use ($cutoffDate) {
                 $query->whereNull('last_sold_at')
                     ->orWhere('last_sold_at', '<=', $cutoffDate);

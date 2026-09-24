@@ -14,9 +14,9 @@ class FinanceService
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
 
-    public function dashboard(string $businessId, ?string $branchId = null): array
+    public function dashboard(?string $branchId = null): array
     {
-        $query = CashFlow::where('business_id', $businessId);
+        $query = CashFlow::query();
         if ($branchId) {
             $query->where('business_branch_id', $branchId);
         }
@@ -43,9 +43,9 @@ class FinanceService
         ];
     }
 
-    public function runningBalance(string $businessId, ?string $branchId = null): void
+    public function runningBalance(?string $branchId = null): void
     {
-        $query = CashFlow::where('business_id', $businessId);
+        $query = CashFlow::query();
         if ($branchId) {
             $query->where('business_branch_id', $branchId);
         }
@@ -63,10 +63,9 @@ class FinanceService
         }
     }
 
-    public function revenueReport(string $businessId, ?string $branchId, string $startDate, string $endDate, string $groupBy = 'day'): array
+    public function revenueReport(?string $branchId, string $startDate, string $endDate, string $groupBy = 'day'): array
     {
-        $query = CashFlow::where('business_id', $businessId)
-            ->whereIn('type', ['sale', 'payment_in'])
+        $query = CashFlow::whereIn('type', ['sale', 'payment_in'])
             ->whereBetween('transaction_date', [$startDate, $endDate]);
 
         if ($branchId) {
@@ -74,13 +73,13 @@ class FinanceService
         }
 
         $dateFormat = match ($groupBy) {
-            'week' => '%Y-%u',
-            'month' => '%Y-%m',
-            default => '%Y-%m-%d',
+            'week' => 'IYYY-IW',
+            'month' => 'YYYY-MM',
+            default => 'YYYY-MM-DD',
         };
 
         $records = $query->select(
-            DB::raw("DATE_FORMAT(transaction_date, '$dateFormat') as date"),
+            DB::raw("TO_CHAR(transaction_date, '$dateFormat') as date"),
             DB::raw('SUM(amount) as revenue'),
             DB::raw('COUNT(*) as count')
         )
@@ -91,10 +90,9 @@ class FinanceService
         return $records->toArray();
     }
 
-    public function expenseReport(string $businessId, ?string $branchId, string $startDate, string $endDate): array
+    public function expenseReport(?string $branchId, string $startDate, string $endDate): array
     {
-        $query = CashFlow::where('business_id', $businessId)
-            ->whereIn('type', ['purchase', 'expense', 'payment_out'])
+        $query = CashFlow::whereIn('type', ['purchase', 'expense', 'payment_out'])
             ->whereBetween('transaction_date', [$startDate, $endDate]);
 
         if ($branchId) {
@@ -113,10 +111,9 @@ class FinanceService
         return $records->toArray();
     }
 
-    public function incomeSummary(string $businessId, ?string $branchId, string $year): array
+    public function incomeSummary(?string $branchId, string $year): array
     {
-        $query = CashFlow::where('business_id', $businessId)
-            ->whereYear('transaction_date', $year);
+        $query = CashFlow::whereYear('transaction_date', $year);
 
         if ($branchId) {
             $query->where('business_branch_id', $branchId);
@@ -124,7 +121,7 @@ class FinanceService
 
         $revenue = (clone $query)->whereIn('type', ['sale', 'payment_in'])
             ->select(
-                DB::raw('MONTH(transaction_date) as month'),
+                DB::raw('EXTRACT(MONTH FROM transaction_date) as month'),
                 DB::raw('SUM(amount) as total')
             )
             ->groupBy('month')
@@ -134,7 +131,7 @@ class FinanceService
 
         $expenses = (clone $query)->whereIn('type', ['purchase', 'expense', 'payment_out'])
             ->select(
-                DB::raw('MONTH(transaction_date) as month'),
+                DB::raw('EXTRACT(MONTH FROM transaction_date) as month'),
                 DB::raw('SUM(amount) as total')
             )
             ->groupBy('month')
@@ -160,10 +157,9 @@ class FinanceService
         return $summary;
     }
 
-    public function branchStatement(string $businessId, string $branchId): array
+    public function branchStatement(string $branchId): array
     {
-        $records = CashFlow::where('business_id', $businessId)
-            ->where('business_branch_id', $branchId)
+        $records = CashFlow::where('business_branch_id', $branchId)
             ->with(['createdBy'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -181,10 +177,9 @@ class FinanceService
         ];
     }
 
-    public function businessStatement(string $businessId): array
+    public function businessStatement(): array
     {
-        $records = CashFlow::where('business_id', $businessId)
-            ->with(['branch', 'createdBy'])
+        $records = CashFlow::with(['branch', 'createdBy'])
             ->orderBy('created_at', 'desc')
             ->get();
 

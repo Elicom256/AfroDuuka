@@ -87,13 +87,15 @@ class PosController extends Controller
             'items.*.discount'   => 'nullable|numeric|min:0',
             'customer_id' => 'nullable|exists:customers,id',
             'notes'       => 'nullable|string|max:500',
+            'business_branch_id' => 'nullable|integer|exists:business_branches,id',
         ]);
 
         try {
             $sale = $this->posService->holdSale(
                 $request->input('items'),
                 $request->input('customer_id'),
-                $request->input('notes')
+                $request->input('notes'),
+                $request->input('business_branch_id')
             );
             return response()->json(['message' => 'Sale held successfully', 'data' => $sale], 201);
         } catch (\Exception $e) {

@@ -6,6 +6,7 @@ use App\Models\PurchaseItem;
 use App\Models\SaleItem;
 use App\Models\User;
 use App\Services\AnalyticsTrendHelper;
+use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,13 +26,17 @@ class StockMovementReports
         $startDate = Carbon::parse($dates['start'])->startOfDay();
         $endDate = Carbon::parse($dates['end'])->endOfDay();
 
+        $branchIds = EffectiveBranchScope::branchesFor($user)[1] ?? null;
+
         $purchaseTrend = PurchaseItem::query()
             ->select([
                 DB::raw('DATE(purchases.created_at) as date'),
                 DB::raw('SUM(purchase_items.quantity) as stock_in'),
             ])
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
-            ->where('purchases.business_branch_id', $user->business_branch_id)
+            ->when($branchIds !== null, function ($query) use ($branchIds) {
+                $query->whereIn('purchases.business_branch_id', $branchIds);
+            })
             ->whereBetween('purchases.created_at', [$startDate, $endDate])
             ->groupBy('date')
             ->get()
@@ -43,7 +48,9 @@ class StockMovementReports
                 DB::raw('SUM(sale_items.quantity) as stock_out'),
             ])
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.business_branch_id', $user->business_branch_id)
+            ->when($branchIds !== null, function ($query) use ($branchIds) {
+                $query->whereIn('sales.business_branch_id', $branchIds);
+            })
             ->whereBetween('sales.created_at', [$startDate, $endDate])
             ->groupBy('date')
             ->get()

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -26,8 +27,7 @@ class StorePurchaseRequest extends FormRequest
         $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
 
         $this->merge([
-            'business_id'        => $user->business_id,
-            'business_branch_id' => $user->business_branch_id,
+            'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
             'status'             => $this->input('status', 'completed'),
             'currency'           => $this->input('currency', $defaultCurrency),
         ]);
@@ -38,11 +38,17 @@ class StorePurchaseRequest extends FormRequest
      */
     public function rules(): array
     {
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
+
         return [
             'supplier_id' => 'nullable|exists:suppliers,id',
 
-            'business_id'        => 'required|exists:businesses,id',
-            'business_branch_id' => 'required|exists:business_branches,id',
+            'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
 
             // Purchase Header
             'total_amount' => 'nullable|numeric|min:0',

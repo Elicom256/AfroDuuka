@@ -25,7 +25,7 @@ class SaleItemService
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
 
-   public function handleSaveSaleItem(array $validated, string $business_branch_id)
+   public function handleSaveSaleItem(array $validated, ?string $business_branch_id = null)
    {
         if (empty($validated["items"]) || count($validated["items"]) < 1) {
             throw new Exception("A sale must have at least one item.", 422);
@@ -36,6 +36,14 @@ class SaleItemService
             $user = Auth::user();
             $taxService = app(TaxService::class);
 
+            $branchId = $validated['business_branch_id'] ?? $business_branch_id ?? $user?->business_branch_id;
+            $resolved = $user ? \App\Support\Tenant\EffectiveBranchScope::branchesFor($user) : null;
+            if ($branchId && $resolved !== null) {
+                [, $branchIds] = $resolved;
+                if (! in_array($branchId, $branchIds, true)) {
+                    throw new Exception("Branch is not within your allowed scope", 403);
+                }
+            }
             $productIds = collect($validated["items"])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
@@ -76,7 +84,7 @@ class SaleItemService
             $totalAmount = round($totalSubtotal + $totalTaxAmount, 2);
 
             $sale = Sale::create([
-                'business_branch_id' => $business_branch_id,
+                'business_branch_id' => $branchId,
                 'subtotal'           => round($totalSubtotal, 2),
                 'tax_amount'         => round($totalTaxAmount, 2),
                 "total_amount"       => $totalAmount,
