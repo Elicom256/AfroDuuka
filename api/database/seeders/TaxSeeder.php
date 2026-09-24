@@ -8,21 +8,21 @@ use App\Models\TaxCategory;
 use App\Models\TaxPayment;
 use App\Models\TaxRate;
 use Carbon\Carbon;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 
 class TaxSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     public function run(): void
     {
-        $business = Business::where('email', 'testbusinessone@gmail.com')->first();
-
-        if (!$business) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
 
         $mainBranch = BusinessBranch::where('business_id', $business->id)
             ->where('name', 'Main Branch')
-            ->value('id');
+            ->value('id')
+            ?? $this->fixtureMainBranch($business)->id;
 
         $categories = [
             ['name' => 'VAT', 'description' => 'Value Added Tax on goods and services'],

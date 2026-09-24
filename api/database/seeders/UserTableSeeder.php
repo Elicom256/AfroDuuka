@@ -8,23 +8,22 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Worker;
 use Carbon\Carbon;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserTableSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
         // Get business ID safely
-        $business_id = Business::where("email", "testbusinessone@gmail.com")
-            ->value("id");
-
-        if (!$business_id) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
+        $business_id = $business->id;
 
         // =============================================
         // SUPER ADMIN (1)
@@ -96,7 +95,8 @@ class UserTableSeeder extends Seeder
                 "phone" => "0781490822"
             ],
         ];
-        $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id");
+        $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id")
+            ?? $this->fixtureMainBranch($business)->id;
         $workers = [];
         foreach ($users as $name => $data) {
             $nin = strtoupper( 'CM' . rand(10, 99) . rand(10000000, 99999999) . chr(rand(65, 90)) . chr(rand(65, 90)));
@@ -131,9 +131,9 @@ class UserTableSeeder extends Seeder
                     "nin" => $nin
                 ]
             );
-                $work = Worker::with("user", function($q) use ($business_id){
-                $q->where("business_id", $business_id);
-            })->count();
+                $work = Worker::whereHas("user", function ($q) use ($business_id) {
+                    $q->where("business_id", $business_id);
+                })->count();
                 $deps = ["tech", "marketing", "managerial", "security"];
                 // seed worker
                 if(!in_array($data->id, $workers)){
