@@ -14,6 +14,7 @@ use App\Models\SaleItem;
 use App\Models\SalePayment;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Support\Tenant\EffectiveBranchScope;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,11 +37,7 @@ class PosService
 
     public function searchProducts(string $query, int $limit = 20): array
     {
-        $user = Auth::user();
-        $branchId = $user->business_branch_id;
-
         $products = Product::with('productCategory')
-            ->where('business_branch_id', $branchId)
             ->where(function ($q) use ($query) {
                 $q->where('barcode', 'ILIKE', "{$query}%")
                   ->orWhere('sku', 'ILIKE', "{$query}%")
@@ -82,13 +79,10 @@ class PosService
 
     public function validateCart(array $items): array
     {
-        $user = Auth::user();
-        $branchId = $user->business_branch_id;
         $errors = [];
 
         foreach ($items as $index => $item) {
             $product = Product::where('id', $item['product_id'])
-                ->where('business_branch_id', $branchId)
                 ->first();
 
             if (!$product) {
@@ -113,7 +107,15 @@ class PosService
     public function checkout(array $validated): Sale
     {
         $user = Auth::user();
-        $branchId = $user->business_branch_id;
+        $branchId = $validated['business_branch_id'] ?? $user->business_branch_id;
+
+        $resolved = $user ? EffectiveBranchScope::branchesFor($user) : null;
+        if ($branchId && $resolved !== null) {
+            [, $branchIds] = $resolved;
+            if (! in_array($branchId, $branchIds, true)) {
+                throw new Exception('Branch is not within your allowed scope', 403);
+            }
+        }
 
         $cartErrors = $this->validateCart($validated['items']);
         if (!empty($cartErrors)) {
