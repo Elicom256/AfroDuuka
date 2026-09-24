@@ -199,18 +199,16 @@ class CashFlowService
         ]);
     }
 
-    public function analytics(string $business_branch_id, string $period = "last_7_days"){
+    public function analytics(string $period = "last_7_days"){
         $dates = $this->analyticsTrendHelper->getPeriodDates($period);
         $date_range = [$dates["start"], $dates["end"]];
         // ✅ Total Revenue (inflows: sale + payment_in + refund)
-        $totalRevenue = CashFlow::where("business_branch_id", $business_branch_id)
-                                 ->whereIn("type", ["sale", "payment_in", "refund"])
+        $totalRevenue = CashFlow::whereIn("type", ["sale", "payment_in", "refund"])
                                  ->whereBetween("created_at", $date_range)
                                  ->sum("amount");
 
         // ✅ Total Expenses (outflows: purchase + expense + payment_out)
-        $totalExpenses = CashFlow::where("business_branch_id", $business_branch_id)
-                        ->whereIn("type", ["purchase", "expense", "payment_out"])
+        $totalExpenses = CashFlow::whereIn("type", ["purchase", "expense", "payment_out"])
                         ->whereBetween("created_at", $date_range)
                         ->sum("amount");
         //  ✅ Net Cash Flow

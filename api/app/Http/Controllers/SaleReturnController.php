@@ -18,20 +18,9 @@ class SaleReturnController extends Controller
 
     public function index()
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin') {
-            $saleReturns = SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
-                ->where('business_branch_id', $user->business_branch_id)
-                ->orderByDesc('created_at')
-                ->get();
-        } else {
-            $saleReturns = SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
-                ->whereHas('businessBranch', function ($q) use ($user) {
-                    $q->where('business_id', $user->business_id);
-                })
-                ->orderByDesc('created_at')
-                ->get();
-        }
+        $saleReturns = SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
+            ->orderByDesc('created_at')
+            ->get();
 
         return response()->json(['message' => 'All sale returns fetched', 'sale_returns' => $saleReturns]);
     }

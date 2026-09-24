@@ -56,11 +56,7 @@ class PurchaseService
 
     public function analytics(string $period = "last_7_days")
     {
-        $user = Auth::user();
-        $branchId = $user->business_branch_id;
-
-        $query = Purchase::where('business_branch_id', $branchId)
-                     ->where('status', 'completed');
+        $query = Purchase::where('status', 'completed');
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
 

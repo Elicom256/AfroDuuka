@@ -86,7 +86,7 @@ class UserService
      */
     public function getUserById(int $id)
     {
-        return User::with('business', 'role')->findOrFail($id);
+        return User::tenantVisible()->with('business', 'role')->findOrFail($id);
     }
 
     /**
@@ -98,7 +98,6 @@ class UserService
             // 'name' => $validated['name'] ?? $user->name,
             'email' => $validated['email'] ?? $user->email,
             'username' => "@" . $validated['username'] ?? $user->username,
-            'business_id' => $validated['business_id'] ?? $user->business_id,
             'role_id' => $validated['role_id'] ?? $user->role_id,
         ]);
         $worker = Worker::where("user_id", $user?->id)->first();

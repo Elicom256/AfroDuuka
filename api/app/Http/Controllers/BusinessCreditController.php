@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessCreditRequest;
 use App\Http\Requests\UpdateBusinessCreditRequest;
 use App\Models\BusinessCredit;
-use Illuminate\Support\Facades\Auth;
 
 class BusinessCreditController extends Controller
 {
@@ -38,8 +37,6 @@ class BusinessCreditController extends Controller
      */
     public function update(UpdateBusinessCreditRequest $request, BusinessCredit $businessCredit)
     {
-        abort_if($businessCredit->business_branch_id !== Auth::user()->business_branch_id,403);
-        
         $businessCredit->update($request->validated());
         return response()->json([
         'message' => 'Credit updated successfully',

@@ -19,19 +19,9 @@ class SaleController extends Controller
     
     public function index()
     {
-        $user = Auth::user();
-        if($user->role !== "admin"){
-            $sales = Sale::with("saleItems", "businessBranch")
-                     ->where("business_branch_id", $user->business_branch_id)
-                     ->orderByDesc("created_at")->get();
-        }else{
-            $sales = Sale::with("saleItems", "businessBranch")
-                     ->where("businessBranch", function($q) use($user){
-                             $q->where("business_id", $user->business_id);
-                         })
-                     ->orderByDesc("created_at")
-                     ->get();
-        }
+        $sales = Sale::with("saleItems", "businessBranch")
+                 ->orderByDesc("created_at")
+                 ->get();
 
         return response()->json(["message" => "All sales fetched", "sales" => $sales]);
     }
@@ -54,8 +44,7 @@ class SaleController extends Controller
      */
     public function show(string $sale)
     {
-        // $sale = Sale::find($sale)->load("saleItems");
-        $newSale = Sale::find($sale)->load(["saleItems.product", "receipt"]);
+        $newSale = Sale::with(["saleItems.product", "receipt"])->findOrFail($sale);
         return response()->json(["message" => "Sale Fetched!", "sale" => $newSale]);
     }
 

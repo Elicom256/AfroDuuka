@@ -129,11 +129,7 @@ class SaleItemService
 
     public function analytics(string $period = 'last_7_days')
     {
-        $user = Auth::user();
-        $branchId = $user->business_branch_id;
-
-        $query = Sale::where('business_branch_id', $branchId)
-                     ->where('status', 'completed');
+        $query = Sale::where('status', 'completed');
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
         $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));

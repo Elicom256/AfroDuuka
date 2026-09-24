@@ -4,20 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Receipt;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
 
 class ReceiptController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
         $query = Receipt::with(['user', 'customer', 'items']);
-
-        if ($user->role !== 'admin') {
-            $query->where('business_branch_id', $user->business_branch_id);
-        } else {
-            $query->where('business_id', $user->business_id);
-        }
 
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
@@ -61,11 +53,6 @@ class ReceiptController extends Controller
 
     public function show(Receipt $receipt)
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin' && $receipt->business_branch_id !== $user->business_branch_id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
         $receipt->load(['user', 'customer', 'items.product', 'sale', 'businessBranch']);
 
         return response()->json([
@@ -76,11 +63,6 @@ class ReceiptController extends Controller
 
     public function pdf(Receipt $receipt)
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin' && $receipt->business_branch_id !== $user->business_branch_id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
         $receipt->load(['user', 'customer', 'items', 'businessBranch']);
 
         $pdf = Pdf::loadView('pdfs.receipt', compact('receipt'));

@@ -8,7 +8,7 @@ use App\Models\ActivityLog;
 use App\Models\ExpenseCategory;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class ExpenseCategoryController extends Controller
 {
@@ -59,15 +59,10 @@ class ExpenseCategoryController extends Controller
 
     public function update(UpdateExpenseCategoryRequest $request, ExpenseCategory $expenseCategory): JsonResponse
     {
-        $user = Auth::user();
-        if ($expenseCategory->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expenseCategory->update($request->validated());
 
         ActivityLog::log(
-            $user,
+            $request->user(),
             'updated_expense_category',
             $expenseCategory,
             "Updated expense category ID {$expenseCategory->id}",
@@ -80,17 +75,12 @@ class ExpenseCategoryController extends Controller
         ]);
     }
 
-    public function destroy(ExpenseCategory $expenseCategory): JsonResponse
+    public function destroy(Request $request, ExpenseCategory $expenseCategory): JsonResponse
     {
-        $user = Auth::user();
-        if ($expenseCategory->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expenseCategory->delete();
 
         ActivityLog::log(
-            $user,
+            $request->user(),
             'deleted_expense_category',
             $expenseCategory,
             "Deleted expense category ID {$expenseCategory->id}"
