@@ -10,12 +10,14 @@ class SaleOrderItem extends Model
 {
     use HasFactory;
 
-    protected $table = "order_items";
+    protected $table = "sale_order_items";
 
     protected $fillable = [
-        "order_id",
+        "sale_order_id",
         "product_id",
         "quantity",
+        "allocated_qty",
+        "shipped_qty",
         "unit_price",
         "subtotal",
     ];
@@ -23,11 +25,13 @@ class SaleOrderItem extends Model
     protected $casts = [
         "unit_price" => "decimal:2",
         "subtotal" => "decimal:2",
+        "allocated_qty" => "integer",
+        "shipped_qty" => "integer",
     ];
 
-    public function order(): BelongsTo
+    public function saleOrder(): BelongsTo
     {
-        return $this->belongsTo(SaleOrder::class, "order_id");
+        return $this->belongsTo(SaleOrder::class);
     }
 
     public function product(): BelongsTo

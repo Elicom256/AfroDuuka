@@ -162,22 +162,35 @@ them from POS checkout / sale completion.**
 
 ## WAVE C — Heavy builds
 
-### C1. Quotations / proforma invoices  — roadmap P0
+### C1. Quotations / proforma invoices  — roadmap P0  ✅ DONE
 
-**Goal:** Draft → Sent → Accepted → Converted workflow; converting an accepted quote creates a `Sale`.
+**Goal:** Draft → Sent → Accepted workflow; accepting a quote creates a **Sales Order with inventory
+allocated (reserved)** — no financial sale, no stock movement (proposal.md steps 1–2). Shipment and
+Invoice (steps 3–4) are tracked follow-ups.
 
 **Plan:**
 1. New `Quotation` + `QuotationItem` models (business/branch-scoped, requote number, item snapshot of
    price/qty, validity, status enum, notes, discount/tax like sales).
-2. Routes (CRUD + `accept` + `convert`), tenant-scoped, `convert` builds a `Sale` via the same
-   service used by POS checkout (so stock/cash-flow/ledger stay consistent).
-3. Quote number generator + PDF/download (reuse the existing receipt PDF pipeline).
-4. UI: Quotes list (status chips), Quote editor (mirrors POS cart), Quote detail with
-   Send (email/WhatsApp later) and Convert to Sale.
-5. Conversion idempotency (quote marked converted; cannot double-convert).
+2. Routes (CRUD + `send`/`accept`/`cancel` + `pdf`), tenant-scoped, `accept` builds a `SaleOrder`
+   (status `approved`) with `allocated_qty` reservation via `QuotationService`. No cash-flow/ledger
+   rows are written.
+3. Quote number generator (`QT-YYYYMMDD-####`) + PDF/download (`pdfs.quotation`).
+4. UI: Quotes list (status chips), Quote editor (mirrors POS cart), Quote detail with Send / Accept /
+   Cancel and PDF download (`QuotationsPage` wired for admin + manager).
+5. Acceptance idempotency (quote marked `accepted` + `accepted_order_id`; cannot double-accept).
 
-**Tests:** model, workflow feature tests (convert→sale stock/cash-flow), idempotency.
-**Note:** this slots in before Wave D so Payments and Finance can consume converted sales.
+**Done (2026-09-24):**
+- Migrations `2026_09_24_181000_create_quotations_table.php` + `2026_09_24_181100_add_allocations_to_sale_orders.php` run on live DB.
+- `QuotationService` (create/update/send/accept/cancel), `QuotationPolicy`, `Store/UpdateQuotationRequest`,
+  `QuotationController`, `api/routes/quotations.php`.
+- SO/PO rename to `sale_orders`/`purchase_orders` + explicit status enums (`pending|approved|cancelled`) with CHECK constraints; `sale_order_items.allocated_qty`/`shipped_qty`; `Product::availableQuantity()`.
+- `QuotationTest` 17 cases green; full suite **143 passed / 2 failed** (only pre-existing POS auth tests).
+- Frontend `quotationsQuery.ts` + shared `QuotationsPage`; nav entry in admin + manager sidebars. `tsc` clean.
+
+**Tests:** model, workflow feature tests (accept→SO allocation, no stock/financial rows), idempotency,
+allocation overrun 422, cancelled-SO releases allocation, cross-branch 404, expired filter, PDF base64+stream.
+**Note:** slots in before Wave D so Payments and Finance can consume converted sales; Shipment (C1b) drops
+stock and Invoice (C1c) records the `Sale` per proposal.md.
 
 ---
 

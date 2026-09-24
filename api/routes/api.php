@@ -109,8 +109,16 @@ Route::prefix("pos")->group(function () {
     require __DIR__."/pos.php";
 });
 
-Route::prefix("orders")->group(function () {
-    require __DIR__."/orders.php";
+Route::prefix("sale-orders")->group(function () {
+    require __DIR__."/sale-orders.php";
+});
+
+Route::prefix("purchase-orders")->group(function () {
+    require __DIR__."/purchase-orders.php";
+});
+
+Route::prefix("quotations")->group(function () {
+    require __DIR__."/quotations.php";
 });
 
 Route::prefix("promotions")->group(function () {
