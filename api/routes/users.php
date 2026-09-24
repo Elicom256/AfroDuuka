@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ================== NOTIFICATIONS ======================
     Route::apiResource('notifications', NotificationController::class)->only([
-        'index', 'destroy'
+        'index', 'show', 'destroy'
     ]);
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);

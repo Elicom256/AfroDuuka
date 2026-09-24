@@ -24,6 +24,7 @@ import { BusinessBranches } from '../pages/dashboards/admin/pages/BusinessBranch
 import { Route, Routes } from 'react-router-dom';
 import { AdminMessagesPage } from '../pages/dashboards/admin/pages/AdminMessagesPage';
 import { AdminNotificationsPage } from '../pages/dashboards/admin/pages/AdminNotificationsPage';
+import { NotificationDetailPage } from '../pages/dashboards/shared/notifications/NotificationDetailPage';
 import { ProductCategories } from '../pages/dashboards/admin/components/products/ProductCategories';
 import { ProductCategory } from '../pages/dashboards/admin/components/products/ProductCategory';
 import { ProtectedRoutes } from './ProtectedRoutes';
@@ -129,6 +130,7 @@ export const AdminRoutes = () => {
           <Route path='coupons' element={<AdminCouponsPage />} />
           <Route path='messages' element={<AdminMessagesPage />} />
           <Route path='notifications' element={<AdminNotificationsPage />} />
+          <Route path='notifications/:id' element={<NotificationDetailPage scope='admin' />} />
 
           <Route path='settings' element={<AdminSettingsPage />}>
             <Route index element={<BusinessInfoSettings />} />
