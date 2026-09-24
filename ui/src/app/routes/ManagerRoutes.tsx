@@ -16,6 +16,7 @@ import { ManagerNotificationsPage } from '../pages/dashboards/manager/pages/Mana
 import { ManagerMessagesPage } from '../pages/dashboards/manager/pages/ManagerMessagesPage';
 import { ManagerPromotionsPage } from '../pages/dashboards/manager/pages/ManagerPromotionsPage';
 import { ManagerOrdersPage } from '../pages/dashboards/manager/pages/ManagerOrdersPage';
+import { QuotationsPage } from '../pages/dashboards/shared/quotations/QuotationsPage';
 import { ManagerAttendancePage } from '../pages/dashboards/manager/pages/ManagerAttendancePage';
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
@@ -68,6 +69,7 @@ export const ManagerRoutes = () => {
         <Route path='notifications' element={<ManagerNotificationsPage />} />
         <Route path='messages' element={<ManagerMessagesPage />} />
         <Route path='orders' element={<ManagerOrdersPage />} />
+        <Route path='quotations' element={<QuotationsPage />} />
         <Route path='promotions' element={<ManagerPromotionsPage />} />
         <Route path='attendance' element={<ManagerAttendancePage />} />
       </Route>

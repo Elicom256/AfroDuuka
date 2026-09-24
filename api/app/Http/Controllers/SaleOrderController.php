@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSaleOrderRequest;
+use App\Http\Requests\UpdateSaleOrderRequest;
 use App\Models\SaleOrder;
 use App\Models\SaleOrderItem;
-use App\Models\Product;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -21,18 +21,10 @@ class SaleOrderController extends Controller
         return response()->json(["message" => "Orders fetched", "data" => $orders]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreSaleOrderRequest $request): JsonResponse
     {
         $user = Auth::user();
-
-        $validated = $request->validate([
-            "customer_id" => "nullable|exists:customers,id",
-            "items" => "required|array|min:1",
-            "items.*.product_id" => "required|exists:products,id",
-            "items.*.quantity" => "required|integer|min:1",
-            "items.*.unit_price" => "required|numeric|min:0",
-            "notes" => "nullable|string|max:500",
-        ]);
+        $validated = $request->validated();
 
         return DB::transaction(function () use ($validated, $user) {
             $orderCount = SaleOrder::where("business_id", $user->business_id)->count();
@@ -51,9 +43,10 @@ class SaleOrderController extends Controller
 
             foreach ($validated["items"] as $item) {
                 SaleOrderItem::create([
-                    "order_id" => $order->id,
+                    "sale_order_id" => $order->id,
                     "product_id" => $item["product_id"],
                     "quantity" => $item["quantity"],
+                    "allocated_qty" => $item["quantity"],
                     "unit_price" => $item["unit_price"],
                     "subtotal" => $item["quantity"] * $item["unit_price"],
                 ]);
@@ -68,14 +61,9 @@ class SaleOrderController extends Controller
         return response()->json(["message" => "Order fetched", "data" => $sale_order->load("items.product", "customer")]);
     }
 
-    public function update(Request $request, SaleOrder $sale_order): JsonResponse
+    public function update(UpdateSaleOrderRequest $request, SaleOrder $sale_order): JsonResponse
     {
-        $validated = $request->validate([
-            "status" => "sometimes|in:pending,confirmed,processing,shipped,delivered,cancelled",
-            "notes" => "nullable|string|max:500",
-        ]);
-
-        $sale_order->update($validated);
+        $sale_order->update($request->validated());
 
         return response()->json(["message" => "Order updated", "data" => $sale_order->load("items.product", "customer")]);
     }

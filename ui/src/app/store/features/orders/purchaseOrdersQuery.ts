@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const purchaseOrdersQuery = createApi({
   reducerPath: 'purchaseOrdersPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/orders/purchase-orders`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/purchase-orders`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {

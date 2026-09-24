@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId("supplier_id")->nullable()->constrained()->nullOnDelete();
             $table->string("order_number")->unique();
             $table->decimal("total_amount", 12, 2)->default(0);
-            $table->string("status")->default("pending");
+            $table->enum("status", ["pending", "approved", "cancelled"])->default("pending");
             $table->text("notes")->nullable();
             $table->timestamps();
         });

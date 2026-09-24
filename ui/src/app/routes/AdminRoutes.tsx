@@ -3,6 +3,7 @@ import { AdminDashboardPage } from '../pages/dashboards/admin/pages/AdminDashboa
 import { AdminWorkersPage } from '../pages/dashboards/admin/pages/AdminWorkersPage';
 import { AdminProductsPage } from '../pages/dashboards/admin/pages/AdminProductsPage';
 import { AdminOrdersPage } from '../pages/dashboards/admin/pages/AdminOrdersPage';
+import { QuotationsPage } from '../pages/dashboards/shared/quotations/QuotationsPage';
 import { AdminSalesPage } from '../pages/dashboards/admin/pages/AdminSalesPage';
 import { AdminPurchasesPage } from '../pages/dashboards/admin/pages/AdminPurchasesPage';
 import { AdminSettingsPage } from '../pages/dashboards/admin/pages/settings';
@@ -107,6 +108,7 @@ export const AdminRoutes = () => {
           <Route path='purchase-returns' element={<PurchaseReturnsPage />} />
           <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
           <Route path='orders' element={<AdminOrdersPage />} />
+          <Route path='quotations' element={<QuotationsPage />} />
           <Route path='customers' element={<AdminCustomersPage />} />
           <Route path='customers/:id' element={<Customer />} />
 

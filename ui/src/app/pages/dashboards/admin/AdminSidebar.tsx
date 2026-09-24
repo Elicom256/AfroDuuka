@@ -65,6 +65,7 @@ const navSections: Array<{
       { label: 'Sale Returns', to: '/admin/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/admin/purchase-returns', icon: ArrowLeftToLine },
       { label: 'Orders', to: '/admin/orders', icon: Package2 },
+      { label: 'Quotations', to: '/admin/quotations', icon: FileText },
     ],
   },
   {

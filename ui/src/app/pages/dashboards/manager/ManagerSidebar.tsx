@@ -44,6 +44,7 @@ const navSections: Array<{
       { label: 'Sale Returns', to: '/manager/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/manager/purchase-returns', icon: ArrowLeftToLine },
       { label: 'Orders', to: '/manager/orders', icon: Package2 },
+      { label: 'Quotations', to: '/manager/quotations', icon: FileText },
       { label: 'Inventory', to: '/manager/inventory', icon: AlertTriangle },
       { label: 'Workers', to: '/manager/workers', icon: Users },
       { label: 'Customers', to: '/manager/customers', icon: Users2, settingKey: 'customers' },

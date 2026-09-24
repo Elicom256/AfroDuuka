@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePurchaseOrderRequest;
+use App\Http\Requests\UpdatePurchaseOrderRequest;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
-use App\Models\Product;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -21,18 +21,10 @@ class PurchaseOrderController extends Controller
         return response()->json(["message" => "Purchase orders fetched", "data" => $orders]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StorePurchaseOrderRequest $request): JsonResponse
     {
         $user = Auth::user();
-
-        $validated = $request->validate([
-            "supplier_id" => "required|exists:suppliers,id",
-            "items" => "required|array|min:1",
-            "items.*.product_id" => "required|exists:products,id",
-            "items.*.quantity" => "required|integer|min:1",
-            "items.*.unit_price" => "required|numeric|min:0",
-            "notes" => "nullable|string|max:500",
-        ]);
+        $validated = $request->validated();
 
         return DB::transaction(function () use ($validated, $user) {
             $orderCount = PurchaseOrder::where("business_id", $user->business_id)->count();
@@ -68,14 +60,9 @@ class PurchaseOrderController extends Controller
         return response()->json(["message" => "Purchase order fetched", "data" => $purchase_order->load("items.product", "supplier")]);
     }
 
-    public function update(Request $request, PurchaseOrder $purchase_order): JsonResponse
+    public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchase_order): JsonResponse
     {
-        $validated = $request->validate([
-            "status" => "sometimes|in:pending,confirmed,processing,shipped,delivered,cancelled",
-            "notes" => "nullable|string|max:500",
-        ]);
-
-        $purchase_order->update($validated);
+        $purchase_order->update($request->validated());
 
         return response()->json(["message" => "Purchase order updated", "data" => $purchase_order->load("items.product", "supplier")]);
     }
