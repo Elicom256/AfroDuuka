@@ -22,6 +22,7 @@ import { notificationsApi } from '../features/branch/notifications/notifications
 import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
+import { attachmentsQuery } from '../features/branch/attachments/attachmentsQuery';
 import { attendanceSettingsQuery } from '../features/business/settings/attendance';
 import { customerSettingsQuery } from '../features/business/settings/customer';
 import { paymentSettingsQuery } from '../features/business/settings/payment';
@@ -59,11 +60,7 @@ import { couponsQuery } from '../features/coupons/couponsQuery';
 import { financeQuery } from '../features/finance/financeQuery';
 import { productAuditQuery } from '../features/audit/productAuditQuery';
 import { financialAuditQuery } from '../features/audit/financialAuditQuery';
-import {
-  taxCategoriesQuery,
-  taxPaymentsQuery,
-  taxRatesQuery,
-} from '../features/business/tax/taxQuery';
+import { taxCategoriesQuery, taxPaymentsQuery, taxRatesQuery } from '../features/business/tax/taxQuery';
 
 export const store = configureStore({
   reducer: {
@@ -89,6 +86,7 @@ export const store = configureStore({
     [branchMessagesQuery.reducerPath]: branchMessagesQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
+    [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
     [adminAttendanceQuery.reducerPath]: adminAttendanceQuery.reducer,
     [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
     [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
@@ -156,6 +154,7 @@ export const store = configureStore({
       branchMessagesQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
+      attachmentsQuery.middleware,
       adminAttendanceQuery.middleware,
       adminEmployeeRemunerationQuery.middleware,
       adminBusinessActivityLogsQuery.middleware,
