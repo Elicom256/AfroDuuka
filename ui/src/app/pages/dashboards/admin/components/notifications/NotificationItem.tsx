@@ -25,18 +25,27 @@ interface NotificationItemProps {
 export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen }: NotificationItemProps) => {
   const Icon = iconMap[notification.type] || iconMap.default;
   const isClickable = typeof onOpen === 'function';
+  const openNotification = () => onOpen?.(notification);
 
   return (
     <div
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={() => isClickable && openNotification()}
+      onKeyDown={(event) => {
+        if (isClickable && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          openNotification();
+        }
+      }}
       className={`flex items-start justify-between rounded-lg border p-4 transition hover:bg-muted/40 ${
         !notification.is_read ? 'bg-muted/30 border-l-4 border-l-yellow-500' : ''
-      }`}
+      } ${isClickable ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary' : ''}`}
     >
       <div className='flex gap-4 flex-1'>
         {/* Icon */}
         <button
           type='button'
-          onClick={() => isClickable && onOpen?.(notification)}
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted ${isClickable ? 'cursor-pointer hover:bg-muted/70' : ''}`}
         >
           <Icon className='h-5 w-5 text-muted-foreground' />
@@ -45,12 +54,7 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen 
         {/* Content */}
         <div className='space-y-1 flex-1'>
           <div className='flex items-center gap-2'>
-            <h3
-              className={`font-medium ${isClickable ? 'cursor-pointer hover:underline' : ''}`}
-              onClick={() => isClickable && onOpen?.(notification)}
-            >
-              {notification.title}
-            </h3>
+            <h3 className={`font-medium ${isClickable ? 'hover:underline' : ''}`}>{notification.title}</h3>
             <Badge variant='secondary' className='text-xs capitalize'>
               {notificationTypeLabel(notification.type)}
             </Badge>
@@ -61,17 +65,19 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen 
             )}
           </div>
 
-          <p
-            className='text-sm text-muted-foreground leading-relaxed'
-            onClick={() => isClickable && onOpen?.(notification)}
-          >
-            {notification.message}
-          </p>
+          <p className='text-sm text-muted-foreground leading-relaxed'>{notification.message}</p>
 
           {isClickable && (
-            <span className='inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline cursor-pointer'>
+            <button
+              type='button'
+              onClick={(event) => {
+                event.stopPropagation();
+                openNotification();
+              }}
+              className='inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline cursor-pointer'
+            >
               View <ArrowUpRight className='h-3 w-3' />
-            </span>
+            </button>
           )}
 
           <span className='text-xs text-muted-foreground block'>
@@ -83,7 +89,15 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen 
       {/* Actions */}
       <div className='flex flex-col gap-2 ml-4'>
         {!notification.is_read && (
-          <Button size='sm' variant='ghost' onClick={() => onMarkAsRead(notification.id)} className='text-xs'>
+          <Button
+            size='sm'
+            variant='ghost'
+            onClick={(event) => {
+              event.stopPropagation();
+              onMarkAsRead(notification.id);
+            }}
+            className='text-xs'
+          >
             <CheckCheck />
             Mark as read
           </Button>
@@ -92,7 +106,10 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen 
         <Button
           size='sm'
           variant='ghost'
-          onClick={() => onDelete(notification.id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete(notification.id);
+          }}
           className='text-destructive hover:text-destructive'
         >
           <Trash2 className='h-4 w-4' />
