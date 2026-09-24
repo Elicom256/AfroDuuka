@@ -50,9 +50,6 @@ class BusinessBranchController extends Controller
      */
     public function show(BusinessBranch $branch)
     {
-       
-        // $test = BusinessBranch::find($branch);
-        //  dd($test);
         return response()->json(["message" => "Fetched branch!", "branch" => $branch], 200);
     }
 
