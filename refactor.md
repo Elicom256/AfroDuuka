@@ -61,6 +61,26 @@ unread counts per module, and actions that jump the user to the relevant record.
 **Tests:** controller tests for filter + unread counts; job test that generators create rows.
 **API surface:** ~0 new models, 1–2 enriched endpoints.
 
+**Status: DONE (backend + frontend + tests).**
+- `NotificationController`: `index` accepts `?type=|type=a,b` + `?is_read=`, meta now returns `unread` and
+  `unread_by_type`; `unreadCount` returns both `unread_count` and grouped `unread_by_type`. New
+  `POST /users/notifications/clear-all` (soft-deletes only the caller's rows). Route added in `routes/users.php`.
+- `CheckNotificationsJob` rewritten: `getAdminUser` bug (`where('role','admin')` — `role` is a relation,
+  not a column) removed; now scans per business and notifies that business's admin(s) (no cross-tenant
+  leak); overdue-payment query no longer references the non-existent `sales.paymentStatus`
+  (renamed to `status`); low-stock dedupe now keyed per user+business+type within 24h; overdue alerts get
+  the same dedupe + notifiable link. Scheduled every 6h already in `routes/console.php`.
+- `NotificationService` alert methods now carry `notifiable_type/id` (`Product`, `Sale`, `Purchase`) with
+  ids in the `data` payload (e.g. `product_id`, `sale_id`, `purchase_id`) — callers
+  (`SaleItemService`, `PosService`, `PurchaseService`) pass the record ids. `Customer::name()` helper added.
+- Frontend: `notificationsQuery` gains `getUnreadCount` + `clearAll` and `getNotifications` filter params;
+  admin notifications page has filter chips with per-type unread badges, wired Clear All, and
+  click-through navigation (shared `notificationUtils.ts` maps type→route per role); `NotificationItem`
+  shows type label + "View" click-through; `ManagerNotificationsPage` now fetches real data (was a stub);
+  `AdminSidebar` unread badge polls the lightweight `unread-count` endpoint (60s) instead of the full list.
+- Tests: `api/tests/Feature/NotificationTest.php` (8 tests: tenant isolation, type/is_read filter,
+  `unread_by_type` breakdown, unread-count grouping, mark-read ownership, clear-all scoping).
+
 ---
 
 ### A2. Barcode scanning at POS  — roadmap P1

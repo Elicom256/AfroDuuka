@@ -61,7 +61,7 @@ class PurchaseService
         }
         $supplier = Supplier::find($purchase->supplier_id);
         $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
-        $notificationService->newPurchaseRecorded($user, $supplier->company_name, number_format($total_amount));
+        $notificationService->newPurchaseRecorded($user, $supplier->company_name, number_format($total_amount), $purchase->id);
 
         return $purchase->load("purchaseItems");
     }

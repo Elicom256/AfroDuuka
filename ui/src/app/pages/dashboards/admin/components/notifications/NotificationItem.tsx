@@ -2,7 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { AlertTriangle, Bell, CheckCheck, Package, ShoppingCart, Trash2, Users } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, Bell, CheckCheck, Package, ShoppingCart, Trash2, Users } from 'lucide-react';
+import { notificationTypeLabel } from './notificationUtils';
 
 const iconMap: Record<string, React.ElementType> = {
   low_stock: Package,
@@ -18,10 +19,12 @@ interface NotificationItemProps {
   notification: any;
   onMarkAsRead: (id: number) => void;
   onDelete: (id: number) => void;
+  onOpen?: (notification: any) => void;
 }
 
-export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: NotificationItemProps) => {
+export const NotificationItem = ({ notification, onMarkAsRead, onDelete, onOpen }: NotificationItemProps) => {
   const Icon = iconMap[notification.type] || iconMap.default;
+  const isClickable = typeof onOpen === 'function';
 
   return (
     <div
@@ -29,18 +32,27 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
         !notification.is_read ? 'bg-muted/30 border-l-4 border-l-yellow-500' : ''
       }`}
     >
-      <div className='flex gap-4'>
+      <div className='flex gap-4 flex-1'>
         {/* Icon */}
-        <div className='flex h-11 w-11 items-center justify-center rounded-full bg-muted'>
+        <button
+          type='button'
+          onClick={() => isClickable && onOpen?.(notification)}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted ${isClickable ? 'cursor-pointer hover:bg-muted/70' : ''}`}
+        >
           <Icon className='h-5 w-5 text-muted-foreground' />
-        </div>
+        </button>
 
         {/* Content */}
         <div className='space-y-1 flex-1'>
           <div className='flex items-center gap-2'>
-            <h3 className='font-medium'>{notification.title}</h3>
-            <Badge variant='secondary' className='text-xs'>
-              {notification.type.replace('_', ' ')}
+            <h3
+              className={`font-medium ${isClickable ? 'cursor-pointer hover:underline' : ''}`}
+              onClick={() => isClickable && onOpen?.(notification)}
+            >
+              {notification.title}
+            </h3>
+            <Badge variant='secondary' className='text-xs capitalize'>
+              {notificationTypeLabel(notification.type)}
             </Badge>
             {!notification.is_read && (
               <Badge variant='default' className='text-xs bg-yellow-500 hover:bg-yellow-600'>
@@ -49,9 +61,20 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
             )}
           </div>
 
-          <p className='text-sm text-muted-foreground leading-relaxed'>{notification.message}</p>
+          <p
+            className='text-sm text-muted-foreground leading-relaxed'
+            onClick={() => isClickable && onOpen?.(notification)}
+          >
+            {notification.message}
+          </p>
 
-          <span className='text-xs text-muted-foreground'>
+          {isClickable && (
+            <span className='inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline cursor-pointer'>
+              View <ArrowUpRight className='h-3 w-3' />
+            </span>
+          )}
+
+          <span className='text-xs text-muted-foreground block'>
             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
           </span>
         </div>

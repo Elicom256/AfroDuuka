@@ -213,7 +213,8 @@ class PosService
                             $user,
                             $product->name ?? $product->id,
                             $product->quantity,
-                            $product->reorder_level
+                            $product->reorder_level,
+                            $product->id
                         );
                     }
                 }
@@ -245,7 +246,7 @@ class PosService
                 'reference'         => null,
             ]);
 
-            $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName);
+            $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName, $sale->id);
 
             $this->createPosReceipt($sale, $validated, $totalPaid, $changeGiven);
 
