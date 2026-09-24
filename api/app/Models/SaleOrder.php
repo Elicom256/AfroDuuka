@@ -11,13 +11,14 @@ class SaleOrder extends BaseModel
 {
     use HasFactory, LogsActivity;
 
-    protected $table = "orders";
+    protected $table = "sale_orders";
 
     protected $fillable = [
         "business_id",
         "business_branch_id",
         "user_id",
         "customer_id",
+        "quotation_id",
         "order_number",
         "total_amount",
         "status",
@@ -30,7 +31,12 @@ class SaleOrder extends BaseModel
 
     public function items(): HasMany
     {
-        return $this->hasMany(SaleOrderItem::class, "order_id");
+        return $this->hasMany(SaleOrderItem::class);
+    }
+
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
     }
 
     public function user(): BelongsTo
