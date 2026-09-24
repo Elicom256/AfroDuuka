@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 
     // ================== Todos =============================== ->only(["index", "store", "show", "update", "destroy"]);
         Route::apiResource("todos", TodoController::class);

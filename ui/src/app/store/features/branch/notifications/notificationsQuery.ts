@@ -1,6 +1,11 @@
 // app/store/features/notifications/notificationsQuery.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+export interface NotificationsFilter {
+  type?: string;
+  is_read?: boolean;
+}
+
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
   baseQuery: fetchBaseQuery({
@@ -16,9 +21,23 @@ export const notificationsApi = createApi({
   }),
   tagTypes: ['Notifications'],
   endpoints: (builder) => ({
-    getNotifications: builder.query({
+    getNotifications: builder.query<any, NotificationsFilter | void>({
+      query: (filters) => {
+        const params = new URLSearchParams();
+        if (filters?.type) params.set('type', filters.type);
+        if (filters?.is_read !== undefined) params.set('is_read', String(filters.is_read));
+        const qs = params.toString();
+        return {
+          url: qs ? `/?${qs}` : '/',
+          method: 'GET',
+        };
+      },
+      providesTags: ['Notifications'],
+    }),
+
+    getUnreadCount: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/unread-count',
         method: 'GET',
       }),
       providesTags: ['Notifications'],
@@ -47,12 +66,22 @@ export const notificationsApi = createApi({
       }),
       invalidatesTags: ['Notifications'],
     }),
+
+    clearAll: builder.mutation<any, void>({
+      query: () => ({
+        url: '/clear-all',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
   }),
 });
 
 export const {
   useGetNotificationsQuery,
+  useGetUnreadCountQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
   useDeleteNotificationMutation,
+  useClearAllMutation,
 } = notificationsApi;

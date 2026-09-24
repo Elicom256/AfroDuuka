@@ -39,7 +39,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
-import { useGetNotificationsQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
+import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
 
 type AdminSidebarProps = {
@@ -150,12 +150,11 @@ const navSections: Array<{
 
 export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { data: userData } = useLoggedinUserQuery();
-  const { data: notificationsData } = useGetNotificationsQuery(undefined, { pollingInterval: 720000 });
+  const { data: unreadData } = useGetUnreadCountQuery(undefined, { pollingInterval: 60000 });
   const features = useFeatureSettings();
 
   const role = userData?.data?.role?.name;
-  const notifications = notificationsData?.notifications || [];
-  const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+  const unreadCount = unreadData?.unread_count ?? 0;
 
   // Filter nav sections based on feature settings
   const filteredSections = navSections

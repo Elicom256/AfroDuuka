@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -73,7 +76,7 @@ class NotificationService
      * Common Business Notifications
      */
 
-    public function lowStockAlert(User $user, string $productName, int $currentStock, int $reorderLevel): Notification
+    public function lowStockAlert(User $user, string $productName, int $currentStock, int $reorderLevel, ?int $productId = null): Notification
     {
         return $this->create(
             $user,
@@ -84,11 +87,14 @@ class NotificationService
                 'product_name' => $productName,
                 'current_stock' => $currentStock,
                 'reorder_level' => $reorderLevel,
-            ]
+                'product_id' => $productId,
+            ],
+            Product::class,
+            $productId
         );
     }
 
-    public function newSaleRecorded(User $user, string $saleAmount, ?string $customerName = null): Notification
+    public function newSaleRecorded(User $user, string $saleAmount, ?string $customerName = null, ?int $saleId = null): Notification
     {
         $customerText = $customerName ? " to {$customerName}" : '';
 
@@ -97,18 +103,22 @@ class NotificationService
             'new_sale',
             'New Sale Recorded',
             "A new sale of UGX {$saleAmount}{$customerText} was made.",
-            ['amount' => $saleAmount, 'customer' => $customerName]
+            ['amount' => $saleAmount, 'customer' => $customerName, 'sale_id' => $saleId],
+            Sale::class,
+            $saleId
         );
     }
 
-    public function newPurchaseRecorded(User $user, string $supplierName, string $amount): Notification
+    public function newPurchaseRecorded(User $user, string $supplierName, string $amount, ?int $purchaseId = null): Notification
     {
         return $this->create(
             $user,
             'new_purchase',
             'New Purchase Recorded',
             "New purchase of UGX {$amount} from {$supplierName}.",
-            ['supplier' => $supplierName, 'amount' => $amount]
+            ['supplier' => $supplierName, 'amount' => $amount, 'purchase_id' => $purchaseId],
+            Purchase::class,
+            $purchaseId
         );
     }
 
