@@ -23,19 +23,28 @@ class NotificationController extends Controller
      */
     public function index(): JsonResponse
     {
-        $notifications = Notification::where('user_id', Auth::id())
-            ->latest()
-            ->paginate(30);
-        $unread = Notification::where('user_id', Auth::id())
-                            ->where('is_read', false)
-                            ->count();
+        $query = Notification::where('user_id', Auth::id());
+
+        if ($type = request()->query('type')) {
+            $types = array_filter(explode(',', $type));
+            if ($types) {
+                $query->whereIn('type', $types);
+            }
+        }
+
+        if (request()->has('is_read')) {
+            $query->where('is_read', filter_var(request()->query('is_read'), FILTER_VALIDATE_BOOLEAN));
+        }
+
+        $notifications = $query->latest()->paginate(30);
 
         return response()->json([
             'message' => 'Notifications fetched successfully',
             'notifications' => $notifications->items(),
             'meta' => [
                 'total' => $notifications->total(),
-                'unread' => $unread,
+                'unread' => $this->unreadCountForUser(),
+                'unread_by_type' => $this->unreadByTypeForUser(),
                 'current_page' => $notifications->currentPage(),
                 'last_page' => $notifications->lastPage(),
             ]
@@ -99,12 +108,41 @@ class NotificationController extends Controller
      */
     public function unreadCount(): JsonResponse
     {
-        $count = Notification::where('user_id', Auth::id())
-            ->where('is_read', false)
-            ->count();
+        return response()->json([
+            'unread_count' => $this->unreadCountForUser(),
+            'unread_by_type' => $this->unreadByTypeForUser(),
+        ]);
+    }
+
+    /**
+     * Clear all notifications for the authenticated user
+     */
+    public function clearAll(): JsonResponse
+    {
+        $count = Notification::where('user_id', Auth::id())->delete();
 
         return response()->json([
-            'unread_count' => $count
+            'message' => 'All notifications cleared',
+            'cleared_count' => $count,
         ]);
+    }
+
+    private function unreadCountForUser(): int
+    {
+        return Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->count();
+    }
+
+    private function unreadByTypeForUser(): array
+    {
+        return Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->selectRaw('type, count(*) as total')
+            ->groupBy('type')
+            ->orderByDesc('total')
+            ->pluck('total', 'type')
+            ->map(fn ($v) => (int) $v)
+            ->all();
     }
 }

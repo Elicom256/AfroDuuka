@@ -1,9 +1,53 @@
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
+import { toast } from 'sonner';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
+import { NotificationItem } from '../../admin/components/notifications/NotificationItem';
+import { notificationRouteForType } from '../../admin/components/notifications/notificationUtils';
+import {
+  useDeleteNotificationMutation,
+  useGetNotificationsQuery,
+  useGetUnreadCountQuery,
+  useMarkAsReadMutation,
+} from '@/app/store/features/branch/notifications/notificationsQuery';
 
 export const ManagerNotificationsPage = () => {
-  let notifications: any = [];
-  const unreadCount = notifications.filter((item: any) => !item.read).length;
+  const navigate = useNavigate();
+  const { data, isLoading } = useGetNotificationsQuery(undefined, { pollingInterval: 5000 });
+  const { data: unreadData } = useGetUnreadCountQuery(undefined, { pollingInterval: 5000 });
+  const [markAsRead] = useMarkAsReadMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+
+  const notifications = data?.notifications || [];
+  const unreadCount = unreadData?.unread_count ?? data?.meta?.unread ?? 0;
+
+  const handleMarkAsRead = async (id: any) => {
+    try {
+      await markAsRead(id).unwrap();
+    } catch (err) {
+      toast.error('Failed to mark notification as read');
+    }
+  };
+
+  const handleDelete = async (id: any) => {
+    if (!confirm('Are you sure you want to delete this notification?')) return;
+    try {
+      await deleteNotification(id).unwrap();
+      toast.success('Notification deleted');
+    } catch (err) {
+      toast.error('Failed to delete notification');
+    }
+  };
+
+  const handleOpen = (notification: any) => {
+    const route = notificationRouteForType(notification.type, 'manager');
+    if (route) {
+      navigate(route);
+      if (!notification.is_read) {
+        markAsRead(notification.id);
+      }
+    }
+  };
 
   return (
     <div className='space-y-6'>
@@ -18,16 +62,19 @@ export const ManagerNotificationsPage = () => {
           />
         </div>
         <div className='space-y-3'>
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <p className='text-sm text-muted-foreground'>Loading notifications...</p>
+          ) : notifications.length === 0 ? (
             <p className='text-sm text-muted-foreground'>No branch notifications available yet.</p>
           ) : (
-            notifications.slice(0, 6).map((notification: any, index: number) => (
-              <div key={notification.id ?? index} className='rounded-3xl border border-border/70 bg-background p-4'>
-                <p className='font-semibold'>{notification.title ?? 'Notification'}</p>
-                <p className='text-sm text-muted-foreground'>
-                  {notification.message ?? notification.description ?? ''}
-                </p>
-              </div>
+            notifications.slice(0, 6).map((notification: any) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onMarkAsRead={handleMarkAsRead}
+                onDelete={handleDelete}
+                onOpen={handleOpen}
+              />
             ))
           )}
         </div>

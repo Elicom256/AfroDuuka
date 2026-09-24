@@ -61,9 +61,29 @@ unread counts per module, and actions that jump the user to the relevant record.
 **Tests:** controller tests for filter + unread counts; job test that generators create rows.
 **API surface:** ~0 new models, 1–2 enriched endpoints.
 
+**Status: DONE (backend + frontend + tests).**
+- `NotificationController`: `index` accepts `?type=|type=a,b` + `?is_read=`, meta now returns `unread` and
+  `unread_by_type`; `unreadCount` returns both `unread_count` and grouped `unread_by_type`. New
+  `POST /users/notifications/clear-all` (soft-deletes only the caller's rows). Route added in `routes/users.php`.
+- `CheckNotificationsJob` rewritten: `getAdminUser` bug (`where('role','admin')` — `role` is a relation,
+  not a column) removed; now scans per business and notifies that business's admin(s) (no cross-tenant
+  leak); overdue-payment query no longer references the non-existent `sales.paymentStatus`
+  (renamed to `status`); low-stock dedupe now keyed per user+business+type within 24h; overdue alerts get
+  the same dedupe + notifiable link. Scheduled every 6h already in `routes/console.php`.
+- `NotificationService` alert methods now carry `notifiable_type/id` (`Product`, `Sale`, `Purchase`) with
+  ids in the `data` payload (e.g. `product_id`, `sale_id`, `purchase_id`) — callers
+  (`SaleItemService`, `PosService`, `PurchaseService`) pass the record ids. `Customer::name()` helper added.
+- Frontend: `notificationsQuery` gains `getUnreadCount` + `clearAll` and `getNotifications` filter params;
+  admin notifications page has filter chips with per-type unread badges, wired Clear All, and
+  click-through navigation (shared `notificationUtils.ts` maps type→route per role); `NotificationItem`
+  shows type label + "View" click-through; `ManagerNotificationsPage` now fetches real data (was a stub);
+  `AdminSidebar` unread badge polls the lightweight `unread-count` endpoint (60s) instead of the full list.
+- Tests: `api/tests/Feature/NotificationTest.php` (8 tests: tenant isolation, type/is_read filter,
+  `unread_by_type` breakdown, unread-count grouping, mark-read ownership, clear-all scoping).
+
 ---
 
-### A2. Barcode scanning at POS  — roadmap P1
+### A2. Barcode scanning at POS  — roadmap P1  ✅ DONE
 
 **Goal:** scan a product barcode (keyboard-wedge/HID USB scanner "types" the code) → row adds to cart.
 
@@ -72,14 +92,19 @@ unread counts per module, and actions that jump the user to the relevant record.
 - POS search endpoint matches name/SKU/barcode already and the POS search bar exists.
 - No dedicated scan input mapping the scanner into add-to-cart.
 
-**Changes (mostly frontend):**
-- POS frontend: dedicated barcode/scan input (autofocus, captures keyboard-wedge input, ends on Enter
-  or `<ENTER>` suffix) → calls the existing product search/buy-by-barcode path → adds to cart + clears field.
-- Backend: add `by-barcode` route (exact barcode match, tenant-scoped via `Product` L1 scope) returning
-  the minimal product payload; fall back to the existing search if needed.
-- Optionally a "click barcode to scan again" affordance; scanner beep/error flash on no-match.
+**Status: DONE — Full implementation (backend + frontend + tests).**
+- Backend: new `GET /pos/products/by-barcode/{barcode}` route (`api/routes/pos.php`);
+  `PosService::scanByBarcode()` strips scanner whitespace/newline, does an exact tenant/branch-scoped
+  barcode lookup (returns `PosProductResource` or empty), and `PosController::byBarcode()` returns
+  404 `Product not found` / 422 when empty.
+- Frontend: `posQuery.ts` gains `searchProductByBarcode` (+ `useLazySearchProductByBarcodeQuery`).
+  `PosPage.handleBarcodeSubmit` now does the exact scan lookup on Enter → adds to cart + clears +
+  refocuses; on miss fallbacks to the existing fuzzy search (exactly-1 match adds it), otherwise
+  "No product found" toast. Green ring flash on scan hit, red ring on miss (400ms).
+- Tests: `api/tests/Feature/POS/PosBarcodeTest.php` — exact resolve + resource shape, unknown → 404,
+  scanner newline/whitespace stripping, branch-isolated product → 404, blank → 422. **5/5 passing.**
+- Full suite: **108 passed / 2 failed** (the 2 pre-existing POS auth tests expecting 302).
 
-**Tests:** one route test (exact barcode, scoped); frontend manual.
 **API surface:** 1 small route.
 
 ---

@@ -21,6 +21,12 @@ export const posQuery = createApi({
         params: { q },
       }),
     }),
+    searchProductByBarcode: builder.query<any, string>({
+      query: (code) => ({
+        url: `/products/by-barcode/${encodeURIComponent(code.trim())}`,
+        method: 'GET',
+      }),
+    }),
     searchCustomers: builder.query<any, string>({
       query: (q) => ({
         url: `/customers/search`,
@@ -77,6 +83,7 @@ export const posQuery = createApi({
 
 export const {
   useLazySearchProductsQuery,
+  useLazySearchProductByBarcodeQuery,
   useLazySearchCustomersQuery,
   useValidateCartMutation,
   useCheckoutMutation,
