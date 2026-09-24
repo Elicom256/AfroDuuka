@@ -83,7 +83,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-106.25'>
+      <DialogContent className='sm:max-w-106.25 max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>Update the details for the product.</DialogDescription>
@@ -168,7 +168,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
+              <Select
+                value={formData.product_category_id}
+                onValueChange={(value) => handleChange('product_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
@@ -185,7 +188,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               <Label htmlFor='tax_category_id' className='text-right'>
                 Tax Category
               </Label>
-              <Select value={formData.tax_category_id} onValueChange={(value) => handleChange('tax_category_id', value)}>
+              <Select
+                value={formData.tax_category_id}
+                onValueChange={(value) => handleChange('tax_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='No tax (optional)' />
                 </SelectTrigger>

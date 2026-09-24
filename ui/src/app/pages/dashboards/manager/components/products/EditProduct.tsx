@@ -32,6 +32,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
 
   const [formData, setFormData] = useState({
     name: '',
+    barcode: '',
     selling_price: '',
     cost_price: '',
     quantity: '',
@@ -46,6 +47,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
     if (product) {
       setFormData({
         name: product.name || '',
+        barcode: product.barcode || '',
         selling_price: product.selling_price?.toString() || '',
         cost_price: product.cost_price?.toString() || '',
         quantity: product.quantity?.toString() || '',
@@ -78,7 +80,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-106.25'>
+      <DialogContent className='sm:max-w-106.25 max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>Update the details for the product.</DialogDescription>
@@ -109,7 +111,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 required
               />
             </div> */}
-            {/* <div className='grid grid-cols-4 items-center gap-4'>
+            <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='barcode' className='text-right'>
                 Barcode
               </Label>
@@ -119,7 +121,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 onChange={(e) => handleChange('barcode', e.target.value)}
                 className='col-span-3'
               />
-            </div> */}
+            </div>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='selling_price' className='text-right'>
                 Selling Price
@@ -163,7 +165,10 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
               <Label htmlFor='product_category_id' className='text-right'>
                 Category
               </Label>
-              <Select value={formData.product_category_id} onValueChange={(value) => handleChange('product_category_id', value)}>
+              <Select
+                value={formData.product_category_id}
+                onValueChange={(value) => handleChange('product_category_id', value)}
+              >
                 <SelectTrigger className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
@@ -185,7 +190,9 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                     type='button'
                     onClick={() => handleChange('emoji', emoji === formData.emoji ? '' : emoji)}
                     className={`text-2xl p-2 rounded-xl border transition-all ${
-                      formData.emoji === emoji ? 'border-primary bg-primary/10 scale-110' : 'border-border hover:border-primary/50'
+                      formData.emoji === emoji
+                        ? 'border-primary bg-primary/10 scale-110'
+                        : 'border-border hover:border-primary/50'
                     }`}
                   >
                     {emoji}
