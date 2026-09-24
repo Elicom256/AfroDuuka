@@ -14,9 +14,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus } from 'lucide-react';
+import { Plus, ImagePlus, Loader2 } from 'lucide-react';
 import { useProductCategoriesQuery } from '@/app/store/features/business/products/productsQuery';
 import { useTaxCategoriesQuery } from '@/app/store/features/business/tax/taxQuery';
+import { useUploadProductAttachmentMutation } from '@/app/store/features/branch/attachments/attachmentsQuery';
 import { toast } from 'sonner';
 
 interface AddProductProps {
@@ -25,10 +26,12 @@ interface AddProductProps {
 
 export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
   const [open, setOpen] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const { data: categoriesData } = useProductCategoriesQuery();
   const categories = categoriesData?.categories ?? [];
   const { data: taxCategoriesData } = useTaxCategoriesQuery();
   const taxCategories = (taxCategoriesData?.categories ?? []).filter((c: any) => c.is_active);
+  const [uploadImage, { isLoading: isUploadingImage }] = useUploadProductAttachmentMutation();
 
   const EMOJIS = ['📱', '💻', '🖥️', '🎧', '📷', '📺', '🎮', '⌚', '🏠', '📡', '🔌', '🖨️', '📞', '🔋', '💾', '🖱️'];
 
@@ -55,8 +58,18 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
         reorder_level: Number(formData.reorder_level),
       }).unwrap();
 
+      const productId = res?.product?.id;
+      if (productId && imageFile) {
+        try {
+          await uploadImage({ productId, file: imageFile }).unwrap();
+        } catch {
+          toast.warning('Product created but image upload failed');
+        }
+      }
+
       toast.success(res?.message || 'Product added successfully');
       setOpen(false);
+      setImageFile(null);
       setFormData({
         name: '',
         cost_price: '',
@@ -233,6 +246,40 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                     {emoji}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>Image</Label>
+              <div className='col-span-3 flex items-center gap-3'>
+                {imageFile ? (
+                  <img src={URL.createObjectURL(imageFile)} alt='preview' className='h-14 w-14 rounded-lg border object-cover' />
+                ) : null}
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => document.getElementById('product-image-input')?.click()}
+                  disabled={isUploadingImage}
+                >
+                  {isUploadingImage ? <Loader2 className='h-4 w-4 animate-spin' /> : <ImagePlus className='h-4 w-4' />}
+                  {imageFile ? 'Change image' : 'Upload image'}
+                </Button>
+                {imageFile ? (
+                  <Button type='button' variant='ghost' size='sm' onClick={() => setImageFile(null)}>
+                    Remove
+                  </Button>
+                ) : null}
+                <input
+                  id='product-image-input'
+                  type='file'
+                  accept='image/*'
+                  className='hidden'
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (file) setImageFile(file);
+                  }}
+                />
               </div>
             </div>
           </div>
