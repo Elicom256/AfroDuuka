@@ -2,13 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Models\Business;
 use App\Models\Role;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class RoleTableSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     /**
      * Run the database seeds.
      */
@@ -16,11 +18,7 @@ class RoleTableSeeder extends Seeder
     {
         //
         // Get business safely
-        $business = Business::where("email", "testbusinessone@gmail.com")->first();
-
-        if (!$business) {
-            throw new \Exception("Business not found");
-        }
+        $business = $this->fixtureBusiness();
 
         $roles = [ "admin", "manager", "editor", "staff", "worker", "supplier", "customer"];
         $systemroles = [ "superadmin", "siteadmin"];

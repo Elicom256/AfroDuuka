@@ -3,17 +3,20 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
+use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 use App\Models\BusinessBranch;
 
 class BusinessBranchSeeder extends Seeder
 {
+    use SeedsFixtureBusiness;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-                $business = Business::where("email", "testbusinessone@gmail.com")->first();
+        $business = $this->fixtureBusiness();
 
         $branches = [
             [
@@ -39,7 +42,10 @@ class BusinessBranchSeeder extends Seeder
         ];
 
         foreach ($branches as $branch) {
-            BusinessBranch::updateOrCreate(["name" => $branch['name']], [...$branch, "business_id" => $business->id]);
+            BusinessBranch::updateOrCreate(
+                ["business_id" => $business->id, "name" => $branch['name']],
+                [...$branch, "business_id" => $business->id]
+            );
         }
         $this->command->info("✅ Seeded " . count($branches) . " Branches Successfully!");
     }
