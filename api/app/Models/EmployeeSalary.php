@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\LogsActivity;
 
-class EmployeeSalary extends Model
+class EmployeeSalary extends BaseModel
 {
     use HasFactory, LogsActivity;
 
@@ -18,6 +17,8 @@ class EmployeeSalary extends Model
         'effective_date',
         'end_date',
         'status',
+        'business_id',
+        'business_branch_id',
     ];
 
     protected $casts = [

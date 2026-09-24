@@ -4,16 +4,16 @@ namespace App\Policies;
 
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Support\Tenant\EffectiveBranchScope;
 
 class ProductPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can view any products.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,15 @@ class ProductPolicy
      */
     public function view(User $user, Product $product): bool
     {
-        return false;
+        return $this->isWithinBranchSet($user, $product);
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the user can create products.
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class ProductPolicy
      */
     public function update(User $user, Product $product): bool
     {
-        return false;
+        return $this->isWithinBranchSet($user, $product);
     }
 
     /**
@@ -45,7 +45,7 @@ class ProductPolicy
      */
     public function delete(User $user, Product $product): bool
     {
-        return false;
+        return $this->isWithinBranchSet($user, $product);
     }
 
     /**
@@ -53,7 +53,7 @@ class ProductPolicy
      */
     public function restore(User $user, Product $product): bool
     {
-        return false;
+        return $this->isWithinBranchSet($user, $product);
     }
 
     /**
@@ -61,6 +61,17 @@ class ProductPolicy
      */
     public function forceDelete(User $user, Product $product): bool
     {
-        return false;
+        return $this->isWithinBranchSet($user, $product);
+    }
+
+    private function isWithinBranchSet(User $user, Product $product): bool
+    {
+        $resolved = EffectiveBranchScope::branchesFor($user);
+
+        if ($resolved === null) {
+            return true;
+        }
+
+        return in_array($product->business_branch_id, $resolved[1], true);
     }
 }
