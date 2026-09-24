@@ -18,8 +18,13 @@ class StoreSubscriptionRequest extends FormRequest
         $now = Carbon::now();
         $user = Auth::user();
 
-        $businessId = $this->input('business_id') ?? $user->business_id;
-        $role = $user->role->name ?? null;
+        if ($user->business_id) {
+            $businessId = $user->business_id;
+        } elseif (!$this->filled('business_id')) {
+            abort(422, 'business_id is required for superadmin subscriptions.');
+        } else {
+            $businessId = $this->input('business_id');
+        }
 
         $this->merge([
             'business_id'    => $businessId,

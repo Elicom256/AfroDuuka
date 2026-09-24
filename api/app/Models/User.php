@@ -9,11 +9,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Support\Tenant\EffectiveBranchScope;
 use App\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, LogsActivity;
+
+    public function scopeTenantVisible($query)
+    {
+        EffectiveBranchScope::apply($query);
+
+        return $query;
+    }
 
     protected $fillable = [
         'firstname',

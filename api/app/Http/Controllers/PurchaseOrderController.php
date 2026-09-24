@@ -14,9 +14,7 @@ class PurchaseOrderController extends Controller
 {
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        $orders = PurchaseOrder::where("business_branch_id", $user->business_branch_id)
-            ->with("items.product", "supplier")
+        $orders = PurchaseOrder::with("items.product", "supplier")
             ->orderByDesc("created_at")
             ->get();
 
@@ -43,8 +41,6 @@ class PurchaseOrderController extends Controller
             $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
 
             $order = PurchaseOrder::create([
-                "business_id" => $user->business_id,
-                "business_branch_id" => $user->business_branch_id,
                 "user_id" => $user->id,
                 "supplier_id" => $validated["supplier_id"],
                 "order_number" => $orderNumber,

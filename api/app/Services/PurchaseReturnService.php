@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItem;
@@ -25,10 +26,23 @@ class PurchaseReturnService
         $totalRefund = 0;
         $returnItems = [];
 
+        $firstPurchaseItem = PurchaseItem::whereHas('purchase')->with('product')->find($validated['items'][0]['purchase_item_id'] ?? null);
+        $purchase = $firstPurchaseItem ? Purchase::with('purchaseItems.product')->find($firstPurchaseItem->purchase_id) : null;
+
+        if (!$purchase) {
+            throw new Exception("Purchase not found.", 404);
+        }
+
+        $branchId = $validated['business_branch_id'] ?? $purchase->business_branch_id;
+
         foreach ($validated['items'] as $item) {
-            $purchaseItem = PurchaseItem::with('product')->find($item['purchase_item_id']);
+            $purchaseItem = PurchaseItem::whereHas('purchase')->with('product')->find($item['purchase_item_id']);
             if (!$purchaseItem) {
                 throw new Exception("Purchase item not found.", 404);
+            }
+
+            if ($purchaseItem->purchase_id !== $purchase->id) {
+                throw new Exception("Purchase item does not belong to this purchase.", 404);
             }
 
             $alreadyReturned = PurchaseReturnItem::where('purchase_item_id', $item['purchase_item_id'])
@@ -55,7 +69,7 @@ class PurchaseReturnService
         }
 
         $purchaseReturn = PurchaseReturn::create([
-            'business_branch_id' => $validated['business_branch_id'],
+            'business_branch_id' => $branchId,
             'supplier_id' => $validated['supplier_id'] ?? null,
             'reason' => $validated['reason'] ?? null,
             'notes' => $validated['notes'] ?? null,

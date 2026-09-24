@@ -6,7 +6,6 @@ use App\Http\Requests\StoreCashFlowRequest;
 use App\Http\Requests\UpdateCashFlowRequest;
 use App\Models\CashFlow;
 use App\Services\CashFlowService;
-use Illuminate\Support\Facades\Auth;
 
 class CashFlowController extends Controller
 {
@@ -20,9 +19,7 @@ class CashFlowController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        $cashFlow = CashFlow::where('business_id', $user->business_id)
-            ->with(['branch', 'createdBy'])
+        $cashFlow = CashFlow::with(['branch', 'createdBy'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -65,9 +62,7 @@ class CashFlowController extends Controller
             if (!in_array($period, $allowedPeriods)) {
                 $period = 'last_7_days'; // fallback
             }
-            $business_branch_id = Auth::user()->business_branch_id;
-            // $cFlow = CashFlow::where("business_branch_id", $business_branch_id)->get();
-            $cashFlow = $this->cashFlowService->analytics($business_branch_id, $period);
+            $cashFlow = $this->cashFlowService->analytics($period);
             return response()->json([
             "message" => "Fetched inventory analytics!",
             "data" => $cashFlow

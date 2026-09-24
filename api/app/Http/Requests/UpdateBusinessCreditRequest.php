@@ -16,17 +16,10 @@ class UpdateBusinessCreditRequest extends FormRequest
         // Only allow authenticated users
         return Auth::check();
     }
-    public function prepareForValidation(): void
-{
-    $this->merge([
-        'business_branch_id' => Auth::user()->business_branch_id,
-    ]);
-}
 
  public function rules(): array
 {
     return [
-        'business_branch_id' => 'required|exists:business_branches,id',
         'customer_id' => 'sometimes|exists:customers,id',
         'amount' => 'sometimes|numeric|min:0.01',
         'reference' => 'sometimes|nullable|string|max:50',
@@ -38,8 +31,6 @@ class UpdateBusinessCreditRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'business_branch_id.required' => 'Branch is required',
-            'business_branch_id.exists'   => 'Branch must exist',
             'customer_id.required'        => 'Customer is required',
             'customer_id.exists'          => 'Customer must exist',
             'amount.required'             => 'Amount is required',

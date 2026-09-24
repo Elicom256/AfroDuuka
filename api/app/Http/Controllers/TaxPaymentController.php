@@ -9,16 +9,12 @@ use App\Http\Resources\TaxPaymentResource;
 use App\Models\TaxPayment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class TaxPaymentController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $branchId = Auth::user()->business_branch_id;
-
-        $query = TaxPayment::with('taxCategory')
-            ->where('business_branch_id', $branchId);
+        $query = TaxPayment::with('taxCategory');
 
         if ($request->filled('tax_category_id')) {
             $query->where('tax_category_id', $request->integer('tax_category_id'));
@@ -52,8 +48,6 @@ class TaxPaymentController extends Controller
 
     public function show(TaxPayment $taxPayment): JsonResponse
     {
-        $this->assertOwnBranch($taxPayment);
-
         return response()->json([
             'message' => 'Tax payment fetched!',
             'payment' => new TaxPaymentResource($taxPayment->load('taxCategory')),
@@ -62,8 +56,6 @@ class TaxPaymentController extends Controller
 
     public function update(UpdateTaxPaymentRequest $request, TaxPayment $taxPayment): JsonResponse
     {
-        $this->assertOwnBranch($taxPayment);
-
         $taxPayment->update($request->validated());
 
         return response()->json([
@@ -74,8 +66,6 @@ class TaxPaymentController extends Controller
 
     public function destroy(TaxPayment $taxPayment): JsonResponse
     {
-        $this->assertOwnBranch($taxPayment);
-
         $taxPayment->delete();
 
         return response()->json([
@@ -85,9 +75,7 @@ class TaxPaymentController extends Controller
 
     public function analytics(TaxPaymentAnalyticsRequest $request): JsonResponse
     {
-        $branchId = Auth::user()->business_branch_id;
-
-        $query = TaxPayment::where('business_branch_id', $branchId);
+        $query = TaxPayment::query();
 
         if ($request->filled('tax_category_id')) {
             $query->where('tax_category_id', $request->integer('tax_category_id'));
@@ -160,12 +148,5 @@ class TaxPaymentController extends Controller
         }
 
         return [null, null];
-    }
-
-    private function assertOwnBranch(TaxPayment $taxPayment): void
-    {
-        if ($taxPayment->business_branch_id !== Auth::user()->business_branch_id) {
-            abort(404, 'Tax payment not found.');
-        }
     }
 }

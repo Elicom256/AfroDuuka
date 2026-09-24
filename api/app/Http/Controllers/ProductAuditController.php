@@ -9,7 +9,6 @@ use App\Services\ProductAuditService;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ProductAuditController extends Controller
 {
@@ -24,9 +23,7 @@ class ProductAuditController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $query = ProductAudit::with(['items.product', 'branch', 'performedBy', 'approvedBy'])
-            ->where('business_id', $user->business_id);
+        $query = ProductAudit::with(['items.product', 'branch', 'performedBy', 'approvedBy']);
 
         if ($request->filled('business_branch_id')) {
             $query->where('business_branch_id', $request->business_branch_id);
@@ -62,7 +59,7 @@ class ProductAuditController extends Controller
 
     public function store(StoreProductAuditRequest $request): JsonResponse
     {
-        $user = Auth::user();
+        $user = $request->user();
         $validated = $request->validated();
 
         $auditNumber = $this->auditService->generateAuditNumber($validated['business_branch_id']);
@@ -90,11 +87,6 @@ class ProductAuditController extends Controller
 
     public function show(ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $productAudit->load(['items.product', 'branch', 'performedBy', 'approvedBy']);
 
         return response()->json([
@@ -105,11 +97,6 @@ class ProductAuditController extends Controller
 
     public function update(UpdateProductAuditRequest $request, ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (!in_array($productAudit->status, ['draft', 'in_progress'])) {
             return response()->json(['message' => 'Only draft or in-progress audits can be edited'], 422);
         }
@@ -137,11 +124,6 @@ class ProductAuditController extends Controller
 
     public function destroy(ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (!in_array($productAudit->status, ['draft', 'cancelled'])) {
             return response()->json(['message' => 'Only draft or cancelled audits can be deleted'], 422);
         }
@@ -156,11 +138,6 @@ class ProductAuditController extends Controller
 
     public function approve(ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if ($productAudit->status !== 'completed') {
             return response()->json(['message' => 'Only completed audits can be approved'], 422);
         }
@@ -175,11 +152,6 @@ class ProductAuditController extends Controller
 
     public function cancel(ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (in_array($productAudit->status, ['approved', 'cancelled'])) {
             return response()->json(['message' => 'Audit cannot be cancelled'], 422);
         }
@@ -194,11 +166,6 @@ class ProductAuditController extends Controller
 
     public function report(ProductAudit $productAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($productAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $productAudit->load(['items.product', 'branch', 'performedBy', 'approvedBy']);
 
         return response()->json([

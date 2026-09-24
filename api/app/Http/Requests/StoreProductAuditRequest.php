@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,8 +15,15 @@ class StoreProductAuditRequest extends FormRequest
 
     public function rules(): array
     {
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
+
         return [
-            'business_branch_id' => ['required', 'exists:business_branches,id'],
+            'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
             'audit_date' => ['required', 'date'],
             'status' => ['nullable', 'in:draft,in_progress,completed'],
             'notes' => ['nullable', 'string', 'max:1000'],

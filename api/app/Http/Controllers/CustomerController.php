@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\CoreSettings\CustomersSettings;
 use App\Models\Customer;
 use App\Services\CustomerService;
-use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {

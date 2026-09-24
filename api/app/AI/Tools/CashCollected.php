@@ -33,7 +33,8 @@ class CashCollected extends Tool
     {
         $period = $parameters['period'] ?? 'last_30_days';
 
-        $query = SalePayment::where('paymentStatus', 'paid');
+        $query = SalePayment::where('paymentStatus', 'paid')
+            ->whereHas('sale');
 
         if ($period !== 'all') {
             $query->where('created_at', '>=', $this->dateFromPeriod($period));

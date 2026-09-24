@@ -14,9 +14,7 @@ class SaleOrderController extends Controller
 {
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        $orders = SaleOrder::where("business_branch_id", $user->business_branch_id)
-            ->with("items.product", "customer")
+        $orders = SaleOrder::with("items.product", "customer")
             ->orderByDesc("created_at")
             ->get();
 
@@ -43,8 +41,6 @@ class SaleOrderController extends Controller
             $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
 
             $order = SaleOrder::create([
-                "business_id" => $user->business_id,
-                "business_branch_id" => $user->business_branch_id,
                 "user_id" => $user->id,
                 "customer_id" => $validated["customer_id"] ?? null,
                 "order_number" => $orderNumber,

@@ -10,7 +10,6 @@ use App\Models\Worker;
 use App\Services\ActivityLogService;
 use App\Services\CashFlowService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class EmployeeRemunerationController extends Controller
 {
@@ -23,15 +22,9 @@ class EmployeeRemunerationController extends Controller
     }
     public function index(): JsonResponse
 {
-    $user = Auth::user();
-
     $query = EmployeeRemuneration::with([
         'worker.user.businessBranch',
-    ])
-    ->whereHas('worker.user', function ($query) use ($user) {
-        $query->where('business_branch_id', $user->business_branch_id)
-            ->where('business_id', $user->business_id);
-    });
+    ]);
 
     $totalPaid = (clone $query)
         ->where('status', 'paid')
@@ -60,7 +53,6 @@ class EmployeeRemunerationController extends Controller
 
     public function store(StoreEmployeeRemunerationRequest $request): JsonResponse
     {
-        $user = Auth::user();
         $validated = $request->validated();
 
         $worker = Worker::with('user')->findOrFail($validated['worker_id']);
@@ -91,12 +83,8 @@ class EmployeeRemunerationController extends Controller
 
     public function update(UpdateEmployeeRemunerationRequest $request, EmployeeRemuneration $employeeRemuneration): JsonResponse
     {
-        $user = Auth::user();
+        $user = $request->user();
         $validated = $request->validated();
-
-        if ($employeeRemuneration->business_id !== $user->business_id) {
-            abort(403, 'You are not authorized to update this remuneration');
-        }
 
         $employeeRemuneration->update($validated);
 
@@ -116,20 +104,15 @@ class EmployeeRemunerationController extends Controller
 
     public function destroy(EmployeeRemuneration $employeeRemuneration): JsonResponse
     {
-        $user = Auth::user();
-
-        if ($employeeRemuneration->business_id !== $user->business_id) {
-            abort(403, 'You are not authorized to delete this remuneration');
-        }
-
-        $employeeRemuneration->delete();
-
+        $request = request();
         ActivityLog::log(
-            $user,
+            $request->user(),
             'deleted_employee_remuneration',
             $employeeRemuneration,
             sprintf('Deleted remuneration record ID %s.', $employeeRemuneration->id)
         );
+
+        $employeeRemuneration->delete();
 
         return response()->json([
             'message' => 'Employee remuneration deleted successfully',

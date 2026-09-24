@@ -20,13 +20,7 @@ class AttendanceController extends Controller
      */
     public function index()
 {
-    $user = Auth::user();
-
-    $query = Attendance::with(['worker.user.businessBranch'])
-        ->whereHas('worker.user', function ($q) use ($user) {
-            $q->where('business_branch_id', $user->business_branch_id)
-              ->where('business_id', $user->business_id);
-        });
+    $query = Attendance::with(['worker.user.businessBranch']);
 
     // stats (global, not paginated)
     $presentCount = (clone $query)
@@ -55,9 +49,22 @@ class AttendanceController extends Controller
    public function store(StoreAttendanceRequest $request)
 {
     $user = Auth::user();
-    $branchId = $user->business_branch_id;
+    $workerIds = collect($request->validated()['attendances'])->pluck('worker_id');
+
+    // Scoped lookup: only workers the current user may touch (L1 on Worker).
+    $branchById = Worker::whereIn('id', $workerIds)->pluck('business_branch_id', 'id');
+
     $records = collect($request->validated()['attendances'])
-        ->map(function ($attendance) use ($branchId) {
+        ->map(function ($attendance) use ($user, $branchById) {
+            $workerId = $attendance['worker_id'];
+            $branchId = $branchById->get($workerId)
+                ?? $attendance['business_branch_id']
+                ?? $user->business_branch_id;
+
+            if (!$branchId) {
+                abort(422, "Worker {$workerId} is not accessible.");
+            }
+
             return [
                 ...$attendance,
                 'business_branch_id' => $branchId,
