@@ -26,6 +26,7 @@ interface Product {
   status: string | boolean;
   description: string;
   markup_percentage: number;
+  cover_url?: string;
   product_category?: { name: string };
   category_name?: string;
 }
@@ -125,7 +126,13 @@ export const ProductTable = () => {
                   {paginatedProducts.map((product: Product) => (
                     <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
                       <TableCell>{product.id}</TableCell>
-                      <TableCell className='text-xl'>{product.emoji || ''}</TableCell>
+                      <TableCell className='text-xl'>
+  <span>{product.cover_url ? (
+    <img src={product.cover_url} alt={product.name} className='h-10 w-10 rounded-lg object-cover' />
+  ) : (
+    product.emoji || ''
+  )}</span>
+</TableCell>
                       <TableCell className='font-medium'>{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>

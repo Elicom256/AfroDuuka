@@ -132,21 +132,31 @@ them from POS checkout / sale completion.**
 
 ---
 
-### B2. Product images & document attachments  — roadmap P0
+### B2. Product images & document attachments  — roadmap P0  ✅ DONE
 
 **Goal:** polymorphic attachments (product images, customer/supplier docs) with storage + UI upload.
 
-**Plan:**
-1. New polymorphic `Attachment` model + migration (`attachable_id/type`, `path`, `disk`, `mime`, `name`).
-2. Storage on local/private disk (production: object storage later). Image variants
-   (thumbnail) via file on upload or simple resize.
-3. Routes: upload + list/delete per attachable (tenant-scoped; authorize against the parent model).
-4. UI: product image upload/photo in Product form + image in product cards; customer/supplier doc
-   attachment slots on their detail pages.
-5. Migrate nothing existing; products keep optional image from attachment list (first image = cover).
+**Status: DONE — full implementation (backend + frontend + tests).**
+- New polymorphic `Attachment` model + `2026_09_24_174333_create_attachments_table` migration
+  (`attachable_type/id`, `disk`, `path`, `original_name`, `mime_type`, `size`, `kind`=image|document,
+  business/branch-scoped via `BaseModel`; index on `attachable_type+attachable_id`). `url` accessor via `Storage::url`.
+- Storage on the `public` disk (`storage/app/public`, `storage:link` created). PHP has **no GD/Imagick** in the
+  container, so no server-side thumbnail resize — originals are served full-size (browser scales in cards).
+- Routes: `POST|GET /products/{product}/attachments`, `DELETE /products/{product}/attachments/{attachment}`
+  (products, authorize via real `ProductPolicy`), plus customer/supplier doc equivalents under
+  `/admin/customers|suppliers/{id}/attachments` (follow existing no-policy controller pattern; relied on
+  branch-scoped route binding). `Product::attachments()` morphMany + `cover_url` accessor (in `$appends`,
+  first image = cover); `ProductController` index/show eager-load `attachments`.
+- Frontend: `attachmentsQuery.ts` (get/upload/delete product images); shared `ProductImageManager` component
+  (cover display, upload, gallery, delete) embedded in admin + manager product detail pages; cover thumbnails
+  in admin + manager `ProductTable` (emoji fallback); image picker in admin `AddProduct` (uploads after create).
+  Customer/supplier doc UI slots left for later (backend ready).
+- Tests: `tests/Feature/AttachmentTest.php` — upload + file exists + tenant fields, document kind, list, delete,
+  cross-branch 404 (branch-scoped binding), missing file 422, disallowed mime 422 + no row, customer docs,
+  `cover_url`+`attachments` in product show. **9/9 passing.**
+- Full suite: **117 passed / 2 failed** (the 2 pre-existing POS auth tests expecting 302).
 
-**Tests:** model + controller upload (fake storage), scoping + authz test.
-**API surface:** 1 new model + 3–4 routes.
+**API surface:** 1 new model + 9 routes (3 per parent).
 
 ---
 

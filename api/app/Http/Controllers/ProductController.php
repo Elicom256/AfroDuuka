@@ -21,7 +21,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(["productCategory", "taxCategory"])
+        $products = Product::with(["productCategory", "taxCategory", "attachments"])
             ->orderBy("id", "asc")
             ->get();
 
@@ -40,7 +40,7 @@ class ProductController extends Controller
 
     public function show(string $product)
     {
-        $product = Product::with(["productCategory", "taxCategory"])->findOrFail($product);
+        $product = Product::with(["productCategory", "taxCategory", "attachments"])->findOrFail($product);
         $this->authorize('view', $product);
 
         return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);

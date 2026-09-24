@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Traits\LogsActivity;
 
 class Customer extends BaseModel
@@ -29,6 +30,11 @@ class Customer extends BaseModel
     public function sales()
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 
     public function name(): string

@@ -22,6 +22,7 @@ interface Product {
   status: string;
   description: string;
   category: string;
+  cover_url?: string;
 }
 
 export const ProductTable = () => {
@@ -70,7 +71,14 @@ export const ProductTable = () => {
             <TableRow key={product.id}>
               <TableCell>{i + 1}</TableCell>
               {/* <TableCell>{product.category_id}</TableCell> */}
-              <TableCell>{product.name}</TableCell>
+              <TableCell>
+                <span className='flex items-center gap-2'>
+                  {product.cover_url ? (
+                    <img src={product.cover_url} alt={product.name} className='h-9 w-9 rounded-lg object-cover' />
+                  ) : null}
+                  {product.name}
+                </span>
+              </TableCell>
               <TableCell>{product.sku}</TableCell>
               <TableCell>{Number(product.selling_price)}</TableCell>
               <TableCell>{Number(product.cost_price)}</TableCell>
