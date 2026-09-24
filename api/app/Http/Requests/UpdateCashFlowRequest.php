@@ -25,9 +25,14 @@ class UpdateCashFlowRequest extends FormRequest
 
         $this->merge([
             'business_id' => $user->business_id,
-            'business_branch_id' => $user->business_branch_id,
             'updated_by' => $user->id,           // Optional: track who updated
         ]);
+
+        if ($user?->business_branch_id && ! $this->has('business_branch_id')) {
+            $this->merge([
+                'business_branch_id' => $user->business_branch_id,
+            ]);
+        }
     }
 
     /**
@@ -63,6 +68,7 @@ class UpdateCashFlowRequest extends FormRequest
             
             'description' => 'nullable|string|max:500',
             'category' => 'nullable|string|max:100',
+            'business_branch_id' => ['nullable', 'integer', 'exists:business_branches,id'],
             
             'payment_method' => [
                 'nullable', 
