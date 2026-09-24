@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Role;
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -26,13 +27,18 @@ class UpdateSupplierRequest extends FormRequest
 
         $this->merge([
             'business_id'        => $user->business_id,
-            'business_branch_id' => $user->business_branch_id,
             'status'             => $this->input('status', 'active'),
 
             'role_id' => Role::where('name', 'supplier')
                 ->where('business_id', $user->business_id)
                 ->value('id'),
         ]);
+
+        if ($user?->business_branch_id && ! $this->has('business_branch_id')) {
+            $this->merge([
+                'business_branch_id' => $user->business_branch_id,
+            ]);
+        }
     }
 
     /**
@@ -42,6 +48,13 @@ class UpdateSupplierRequest extends FormRequest
     {
         $supplier = $this->route('supplier');
         $userId = $supplier?->user_id;
+
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
 
         return [
 
@@ -92,7 +105,7 @@ class UpdateSupplierRequest extends FormRequest
 
             'status'             => 'required|in:active,inactive',
             'business_id'        => 'required|exists:businesses,id',
-            'business_branch_id' => 'required|exists:business_branches,id',
+            'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
             'role_id'            => 'required|exists:roles,id',
             'branch_powers'      => 'nullable|in:allowed,none',
 

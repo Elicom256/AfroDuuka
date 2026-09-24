@@ -23,10 +23,6 @@ class UpdateCustomerRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-{
-    dd($validator->errors());
-}
     public function rules(): array
     {
             $userId = $this->customer->user_id;
