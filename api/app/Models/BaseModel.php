@@ -41,22 +41,25 @@ class BaseModel extends Model
         });
 
         static::creating(function ($model) {
-            if (
-                static::tenantTableHasColumn('business_id')
-                && Auth::check()
-                && Auth::user()?->business_id
-                && ! isset($model->business_id)
-            ) {
-                $model->business_id = Auth::user()->business_id;
+            $user = Auth::user();
+
+            if (! $user) {
+                return;
             }
 
             if (
-                static::tenantTableHasColumn('business_branch_id')
-                && Auth::check()
-                && Auth::user()?->business_branch_id
+                static::tenantTableHasColumn('business_id')
+                && $user->business_id
+                && ! isset($model->business_id)
+            ) {
+                $model->business_id = $user->business_id;
+            }
+
+            if (static::tenantTableHasColumn('business_branch_id')
+                && $user->business_branch_id
                 && ! isset($model->business_branch_id)
             ) {
-                $model->business_branch_id = Auth::user()->business_branch_id;
+                $model->business_branch_id = $user->business_branch_id;
             }
         });
     }
