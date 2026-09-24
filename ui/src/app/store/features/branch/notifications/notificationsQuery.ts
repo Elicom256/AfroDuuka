@@ -21,6 +21,14 @@ export const notificationsApi = createApi({
   }),
   tagTypes: ['Notifications'],
   endpoints: (builder) => ({
+    getNotification: builder.query<any, string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['Notifications'],
+    }),
+
     getNotifications: builder.query<any, NotificationsFilter | void>({
       query: (filters) => {
         const params = new URLSearchParams();
@@ -78,6 +86,7 @@ export const notificationsApi = createApi({
 });
 
 export const {
+  useGetNotificationQuery,
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkAsReadMutation,

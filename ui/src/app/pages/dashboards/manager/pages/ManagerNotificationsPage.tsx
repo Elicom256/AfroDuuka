@@ -3,7 +3,6 @@ import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { ManagerPageShell, SectionCard } from './components/manager-page-shell';
 import { NotificationItem } from '../../admin/components/notifications/NotificationItem';
-import { notificationRouteForType } from '../../admin/components/notifications/notificationUtils';
 import {
   useDeleteNotificationMutation,
   useGetNotificationsQuery,
@@ -40,13 +39,7 @@ export const ManagerNotificationsPage = () => {
   };
 
   const handleOpen = (notification: any) => {
-    const route = notificationRouteForType(notification.type, 'manager');
-    if (route) {
-      navigate(route);
-      if (!notification.is_read) {
-        markAsRead(notification.id);
-      }
-    }
+    navigate(`/manager/notifications/${notification.id}`);
   };
 
   return (
@@ -67,15 +60,17 @@ export const ManagerNotificationsPage = () => {
           ) : notifications.length === 0 ? (
             <p className='text-sm text-muted-foreground'>No branch notifications available yet.</p>
           ) : (
-            notifications.slice(0, 6).map((notification: any) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onMarkAsRead={handleMarkAsRead}
-                onDelete={handleDelete}
-                onOpen={handleOpen}
-              />
-            ))
+            notifications
+              .slice(0, 6)
+              .map((notification: any) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onMarkAsRead={handleMarkAsRead}
+                  onDelete={handleDelete}
+                  onOpen={handleOpen}
+                />
+              ))
           )}
         </div>
       </ManagerPageShell>
