@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\LogsActivity;
 
-class Worker extends Model
+class Worker extends BaseModel
 {
     use LogsActivity;
 
@@ -21,6 +20,8 @@ class Worker extends Model
         'hire_date',
         'status',
         'remarks',
+        'business_id',
+        'business_branch_id',
     ];
 
     /**

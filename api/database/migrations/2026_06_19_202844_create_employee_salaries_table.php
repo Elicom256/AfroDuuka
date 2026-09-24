@@ -16,6 +16,8 @@ return new class extends Migration
             $table->date('effective_date');
             $table->date('end_date')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->foreignId('business_id')->nullable()->index()->constrained('businesses')->nullOnDelete();
+            $table->foreignId('business_branch_id')->nullable()->index()->constrained('business_branches')->nullOnDelete();
             $table->timestamps();
         });
     }

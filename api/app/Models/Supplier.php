@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\LogsActivity;
 
-class Supplier extends Model
+class Supplier extends BaseModel
 {
     use SoftDeletes, LogsActivity;
 
@@ -16,7 +15,9 @@ class Supplier extends Model
         'user_id', 
         'supplier_code', 
         'company_name',
-        'status'
+        'status',
+        'business_id',
+        'business_branch_id',
     ];
 
     public function user(): BelongsTo
