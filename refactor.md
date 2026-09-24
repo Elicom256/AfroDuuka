@@ -83,7 +83,7 @@ unread counts per module, and actions that jump the user to the relevant record.
 
 ---
 
-### A2. Barcode scanning at POS  — roadmap P1
+### A2. Barcode scanning at POS  — roadmap P1  ✅ DONE
 
 **Goal:** scan a product barcode (keyboard-wedge/HID USB scanner "types" the code) → row adds to cart.
 
@@ -92,14 +92,19 @@ unread counts per module, and actions that jump the user to the relevant record.
 - POS search endpoint matches name/SKU/barcode already and the POS search bar exists.
 - No dedicated scan input mapping the scanner into add-to-cart.
 
-**Changes (mostly frontend):**
-- POS frontend: dedicated barcode/scan input (autofocus, captures keyboard-wedge input, ends on Enter
-  or `<ENTER>` suffix) → calls the existing product search/buy-by-barcode path → adds to cart + clears field.
-- Backend: add `by-barcode` route (exact barcode match, tenant-scoped via `Product` L1 scope) returning
-  the minimal product payload; fall back to the existing search if needed.
-- Optionally a "click barcode to scan again" affordance; scanner beep/error flash on no-match.
+**Status: DONE — Full implementation (backend + frontend + tests).**
+- Backend: new `GET /pos/products/by-barcode/{barcode}` route (`api/routes/pos.php`);
+  `PosService::scanByBarcode()` strips scanner whitespace/newline, does an exact tenant/branch-scoped
+  barcode lookup (returns `PosProductResource` or empty), and `PosController::byBarcode()` returns
+  404 `Product not found` / 422 when empty.
+- Frontend: `posQuery.ts` gains `searchProductByBarcode` (+ `useLazySearchProductByBarcodeQuery`).
+  `PosPage.handleBarcodeSubmit` now does the exact scan lookup on Enter → adds to cart + clears +
+  refocuses; on miss fallbacks to the existing fuzzy search (exactly-1 match adds it), otherwise
+  "No product found" toast. Green ring flash on scan hit, red ring on miss (400ms).
+- Tests: `api/tests/Feature/POS/PosBarcodeTest.php` — exact resolve + resource shape, unknown → 404,
+  scanner newline/whitespace stripping, branch-isolated product → 404, blank → 422. **5/5 passing.**
+- Full suite: **108 passed / 2 failed** (the 2 pre-existing POS auth tests expecting 302).
 
-**Tests:** one route test (exact barcode, scoped); frontend manual.
 **API surface:** 1 small route.
 
 ---

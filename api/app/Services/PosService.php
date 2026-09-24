@@ -56,6 +56,22 @@ class PosService
         return PosProductResource::collection($products)->resolve();
     }
 
+    /**
+     * Resolve a product by an exact barcode scan (keyboard-wedge scanners send code + newline).
+     * Tenant/branch scoped via the Product model's global L1 scopes.
+     */
+    public function scanByBarcode(string $barcode): array
+    {
+        $code = trim(preg_replace('/[\r\n\t\s]+/u', '', $barcode));
+
+        $product = Product::with('productCategory')
+            ->where('barcode', $code)
+            ->whereIn('status', ['active', 'inactive'])
+            ->first();
+
+        return $product ? (new PosProductResource($product))->resolve() : [];
+    }
+
     public function searchCustomers(string $query, int $limit = 20): array
     {
         $user = Auth::user();

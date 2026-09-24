@@ -29,6 +29,21 @@ class PosController extends Controller
         }
     }
 
+    public function byBarcode(string $barcode): JsonResponse
+    {
+        if (trim($barcode) === '') {
+            return response()->json(['message' => 'Barcode is required'], 422);
+        }
+
+        $product = $this->posService->scanByBarcode($barcode);
+
+        if (empty($product)) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        return response()->json(['message' => 'Product found', 'data' => $product]);
+    }
+
     public function searchCustomers(PosCustomerSearchRequest $request): JsonResponse
     {
         try {
