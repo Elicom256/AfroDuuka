@@ -17,10 +17,9 @@ class ProductService
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
 
-    public function analytics(string $business_branch_id)
+    public function analytics()
     {
-        $products = Product::query()
-            ->where("business_branch_id", $business_branch_id);
+        $products = Product::query();
 
         $totalInventoryValue = (clone $products)
             ->selectRaw("SUM(quantity * cost_price) as total")
@@ -74,7 +73,6 @@ class ProductService
             ->get();
 
         $topProducts = Product::query()
-            ->where('business_branch_id', $business_branch_id)
             ->whereHas('saleItems')
             ->withSum('saleItems as total_revenue', 'subtotal')
             ->withSum('saleItems as total_quantity_sold', 'quantity')
