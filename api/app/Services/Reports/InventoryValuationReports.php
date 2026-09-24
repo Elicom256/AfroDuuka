@@ -10,8 +10,7 @@ class InventoryValuationReports
 {
     public function inventoryValuation(array $filters, User $user): array
     {
-        $baseQuery = Product::query()
-            ->where('business_branch_id', $user->business_branch_id);
+        $baseQuery = Product::query();
 
         $totalInventoryValue = (float) (clone $baseQuery)
             ->select(DB::raw('SUM(quantity * cost_price) as total_inventory_value'))

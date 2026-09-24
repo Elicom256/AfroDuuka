@@ -306,10 +306,15 @@ class PosService
         return $prefix . $date . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    public function holdSale(array $items, ?int $customerId, ?string $notes): Sale
+    public function holdSale(array $items, ?int $customerId, ?string $notes, ?int $businessBranchId = null): Sale
     {
         $user = Auth::user();
-        $branchId = $user->business_branch_id;
+        $branchId = $businessBranchId ?? $user->business_branch_id;
+
+        $resolved = EffectiveBranchScope::branchesFor($user);
+        if ($resolved !== null && $branchId !== null && ! in_array($branchId, $resolved[1], true)) {
+            throw new \Exception('The selected business branch is outside your scope.');
+        }
 
         return DB::transaction(function () use ($items, $customerId, $notes, $user, $branchId) {
             $productIds = collect($items)->pluck('product_id')->unique()->values()->all();
@@ -381,8 +386,7 @@ class PosService
     {
         $user = Auth::user();
 
-        return Sale::where('business_branch_id', $user->business_branch_id)
-            ->where('user_id', $user->id)
+        return Sale::where('user_id', $user->id)
             ->where('status', 'held')
             ->with('customer.user', 'saleItems.product')
             ->orderByDesc('created_at')
@@ -395,7 +399,6 @@ class PosService
         $user = Auth::user();
 
         return Sale::where('id', $id)
-            ->where('business_branch_id', $user->business_branch_id)
             ->where('user_id', $user->id)
             ->where('status', 'held')
             ->with('saleItems.product', 'customer.user')
@@ -407,7 +410,6 @@ class PosService
         $user = Auth::user();
 
         $sale = Sale::where('id', $id)
-            ->where('business_branch_id', $user->business_branch_id)
             ->where('user_id', $user->id)
             ->where('status', 'held')
             ->firstOrFail();
