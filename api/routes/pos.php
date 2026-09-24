@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products/search', [PosController::class, 'searchProducts']);
+    Route::get('/products/by-barcode/{barcode}', [PosController::class, 'byBarcode']);
     Route::get('/customers/search', [PosController::class, 'searchCustomers']);
 
     Route::post('/cart/validate', [PosController::class, 'validateCart']);
