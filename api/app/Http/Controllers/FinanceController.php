@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCashFlowRequest;
 use App\Models\CashFlow;
 use App\Services\FinanceService;
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,12 +18,29 @@ class FinanceController extends Controller
         $this->financeService = $financeService;
     }
 
+    private function resolveBranchId(?string $branchId, ?\App\Models\User $user): ?string
+    {
+        if (! $branchId) {
+            return null;
+        }
+
+        $resolved = EffectiveBranchScope::branchesFor($user);
+        if ($resolved !== null) {
+            [, $branchIds] = $resolved;
+            if (! in_array($branchId, $branchIds, true)) {
+                abort(403, 'Branch is not within your allowed scope');
+            }
+        }
+
+        return $branchId;
+    }
+
     public function dashboard()
     {
         try {
             $user = Auth::user();
-            $branchId = request()->query('branch_id');
-            $data = $this->financeService->dashboard($user->business_id, $branchId);
+            $branchId = $this->resolveBranchId(request()->query('branch_id'), $user);
+            $data = $this->financeService->dashboard($branchId);
 
             return response()->json([
                 'message' => 'Fetched finance dashboard',
@@ -39,9 +57,7 @@ class FinanceController extends Controller
     public function transactions(Request $request)
     {
         try {
-            $user = Auth::user();
-            $query = CashFlow::where('business_id', $user->business_id)
-                ->with(['branch', 'createdBy']);
+            $query = CashFlow::with(['branch', 'createdBy']);
 
             if ($request->filled('type')) {
                 $query->where('type', $request->type);
@@ -56,7 +72,8 @@ class FinanceController extends Controller
                 $query->whereDate('transaction_date', '<=', $request->date_to);
             }
             if ($request->filled('branch_id')) {
-                $query->where('business_branch_id', $request->branch_id);
+                $branchId = $this->resolveBranchId($request->branch_id, Auth::user());
+                $query->where('business_branch_id', $branchId);
             }
             if ($request->filled('search')) {
                 $search = $request->search;
@@ -84,9 +101,7 @@ class FinanceController extends Controller
     public function transaction($id)
     {
         try {
-            $user = Auth::user();
-            $cashFlow = CashFlow::where('business_id', $user->business_id)
-                ->with(['branch', 'createdBy', 'customer', 'supplier', 'sale', 'purchase'])
+            $cashFlow = CashFlow::with(['branch', 'createdBy', 'customer', 'supplier', 'sale', 'purchase'])
                 ->findOrFail($id);
 
             return response()->json([
@@ -124,10 +139,9 @@ class FinanceController extends Controller
     public function revenueReport(Request $request)
     {
         try {
-            $user = Auth::user();
+            $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->revenueReport(
-                $user->business_id,
-                $request->query('branch_id'),
+                $branchId,
                 $request->query('start_date', now()->startOfMonth()->toDateString()),
                 $request->query('end_date', now()->toDateString()),
                 $request->query('group_by', 'day')
@@ -148,10 +162,9 @@ class FinanceController extends Controller
     public function expenseReport(Request $request)
     {
         try {
-            $user = Auth::user();
+            $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->expenseReport(
-                $user->business_id,
-                $request->query('branch_id'),
+                $branchId,
                 $request->query('start_date', now()->startOfMonth()->toDateString()),
                 $request->query('end_date', now()->toDateString())
             );
@@ -171,10 +184,9 @@ class FinanceController extends Controller
     public function incomeSummary(Request $request)
     {
         try {
-            $user = Auth::user();
+            $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->incomeSummary(
-                $user->business_id,
-                $request->query('branch_id'),
+                $branchId,
                 $request->query('year', now()->format('Y'))
             );
 
@@ -193,8 +205,8 @@ class FinanceController extends Controller
     public function branchStatement($branchId)
     {
         try {
-            $user = Auth::user();
-            $data = $this->financeService->branchStatement($user->business_id, $branchId);
+            $branchId = $this->resolveBranchId($branchId, Auth::user());
+            $data = $this->financeService->branchStatement($branchId);
 
             return response()->json([
                 'message' => 'Fetched branch financial statement',
@@ -211,8 +223,7 @@ class FinanceController extends Controller
     public function businessStatement()
     {
         try {
-            $user = Auth::user();
-            $data = $this->financeService->businessStatement($user->business_id);
+            $data = $this->financeService->businessStatement();
 
             return response()->json([
                 'message' => 'Fetched business financial statement',
