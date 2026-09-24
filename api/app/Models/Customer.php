@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\LogsActivity;
 
-class Customer extends Model
+class Customer extends BaseModel
 {
     /** @use HasFactory<\Database\Factories\CustomerFactory> */
     use HasFactory, LogsActivity;
@@ -17,7 +16,9 @@ class Customer extends Model
         'customer_code', 
         'company_name',
         'status',
-        'remarks'
+        'remarks',
+        'business_id',
+        'business_branch_id',
     ];
 
     public function user(): BelongsTo

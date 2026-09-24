@@ -6,7 +6,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Services\ProductService;
-use Illuminate\Http\Request;
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -21,32 +21,35 @@ class ProductController extends Controller
 
     public function index()
     {
-        $branchId =  Auth::user()->business_branch_id;
-        $products = Product::where("business_branch_id", $branchId)
-                     ->with(["productCategory", "taxCategory"])
-                     ->orderBy("id", "asc")
-                     ->get();
+        $products = Product::with(["productCategory", "taxCategory"])
+            ->orderBy("id", "asc")
+            ->get();
+
         return response()->json(["message" => "Products fetched", "products" => $products], 200);
     }
 
     public function store(StoreProductRequest $request)
     {
+        $this->authorize('create', Product::class);
+
         $validated = $request->validated();
         $product = Product::create($validated);
+
         return response()->json(["message" => "Product Created Successfully!", "product" => $product], 201);
     }
 
     public function show(string $product)
     {
         $product = Product::with(["productCategory", "taxCategory"])->findOrFail($product);
+        $this->authorize('view', $product);
+
         return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);
     }
 
     public function inventoryAnalytics()
     {
         try {
-            $business_branch_id = Auth::user()->business_branch_id;
-            $inventory = $this->productService->analytics($business_branch_id);
+            $inventory = $this->productService->analytics();
             return response()->json([
                 "message" => "Fetch inventory analytics!",
                 "data" => $inventory
@@ -62,13 +65,11 @@ class ProductController extends Controller
     public function expiringAnalytics()
     {
         try {
-            $branchId = Auth::user()->business_branch_id;
             $now = now()->startOfDay();
             $dangerDate = (clone $now)->addDays(7);
             $expiryWindow = (clone $now)->addDays(30);
 
-            $query = Product::whereNotNull('expiry_date')
-                ->where('business_branch_id', $branchId);
+            $query = Product::whereNotNull('expiry_date');
 
             $expiredCount = (clone $query)->where('expiry_date', '<', $now)->count();
             $expiringCount = (clone $query)->whereBetween('expiry_date', [$now, $expiryWindow])->count();
@@ -93,7 +94,7 @@ class ProductController extends Controller
     public function restocking()
     {
         try {
-            $branchId = Auth::user()->business_branch_id;
+            $branchIds = EffectiveBranchScope::branchesFor(Auth::user())[1] ?? null;
             $thresholdDays = (int) request()->query('threshold', 14);
             $periodDays = 30;
 
@@ -101,9 +102,11 @@ class ProductController extends Controller
 
             $salesVelocity = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->where('sales.business_branch_id', $branchId)
-                ->where('sales.created_at', '>=', $lookbackDate)
                 ->whereNull('sales.deleted_at')
+                ->when($branchIds !== null, function ($query) use ($branchIds) {
+                    $query->whereIn('sales.business_branch_id', $branchIds);
+                })
+                ->where('sales.created_at', '>=', $lookbackDate)
                 ->select(
                     'sale_items.product_id',
                     DB::raw('SUM(sale_items.quantity) as total_sold'),
@@ -113,9 +116,7 @@ class ProductController extends Controller
                 ->get()
                 ->keyBy('product_id');
 
-            $products = Product::where('business_branch_id', $branchId)
-                ->with('productCategory')
-                ->get();
+            $products = Product::with('productCategory')->get();
 
             $predictions = $products->map(function ($product) use ($salesVelocity, $periodDays, $thresholdDays) {
                 $velocityData = $salesVelocity->get($product->id);
@@ -185,8 +186,11 @@ class ProductController extends Controller
         }
     }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, string $product)
     {
+        $product = Product::findOrFail($product);
+        $this->authorize('update', $product);
+
         $validated = $request->validated();
 
         // Pass change_reason to the model so PriceHistoryObserver can pick it up
@@ -198,8 +202,11 @@ class ProductController extends Controller
         return response()->json(["message" => "Product Updated Successfully!", "product" => $product], 201);
     }
 
-    public function destroy(Product $product)
+    public function destroy(string $product)
     {
+        $product = Product::findOrFail($product);
+        $this->authorize('delete', $product);
+
         $product->delete();
         return response()->json(["message" => "Product Deleted Successfully!", "product" => $product], 201);
     }

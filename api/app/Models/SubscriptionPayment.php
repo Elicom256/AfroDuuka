@@ -4,10 +4,9 @@ namespace App\Models;
 
 use App\Models\CoreSettings\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Traits\LogsActivity;
 
-class SubscriptionPayment extends Model
+class SubscriptionPayment extends BaseModel
 {
     use HasFactory, LogsActivity;
 
@@ -23,6 +22,8 @@ class SubscriptionPayment extends Model
         'verified_at',
         'rejection_reason',
         'notes',
+        'business_id',
+        'business_branch_id',
     ];
 
     protected function casts(): array

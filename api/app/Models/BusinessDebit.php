@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class BusinessDebit extends Model
+class BusinessDebit extends BaseModel
 {
     /** @use HasFactory<\Database\Factories\BusinessDebitFactory> */
     use HasFactory;

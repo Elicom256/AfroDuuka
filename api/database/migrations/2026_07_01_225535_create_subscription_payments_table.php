@@ -24,6 +24,8 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->text('notes')->nullable();
+            $table->foreignId('business_id')->nullable()->index()->constrained('businesses')->nullOnDelete();
+            $table->foreignId('business_branch_id')->nullable()->index()->constrained('business_branches')->nullOnDelete();
             $table->timestamps();
         });
     }
