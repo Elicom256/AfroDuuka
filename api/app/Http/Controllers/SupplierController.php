@@ -8,7 +8,6 @@ use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\Supplier;
 use App\Services\SupplierService;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
 {
@@ -22,7 +21,6 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        $business_id = Auth::user()->business_id;
         $suppliers = Supplier::with("user")->get();
         return response()->json(["message" => "Fetched suppliers", "suppliers" => $suppliers]);
     }

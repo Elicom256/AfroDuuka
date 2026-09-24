@@ -72,9 +72,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
         $roles = ['customer', 'supplier', 'admin'];
-        $users = User::whereHas('role', function ($q) use ($roles) {
+        $users = User::tenantVisible()
+            ->whereHas('role', function ($q) use ($roles) {
             $q->whereNotIn('name', $roles);
           })
         ->with(['business', 'role', "businessBranch"])
@@ -88,10 +88,8 @@ class UserController extends Controller
     // all branch workers
      public function workers()
     {
-        $user = Auth::user();
-        $users = User::where("business_id", $user->business_id)
-        ->where("business_branch_id", $user->business_branch_id)
-        ->whereHas('role', function ($q) {
+        $users = User::tenantVisible()
+            ->whereHas('role', function ($q) {
             $q->where('name', '!=', 'admin');
           })
         ->with(['business', 'role', "businessBranch"])
@@ -106,6 +104,7 @@ class UserController extends Controller
  //  branch worker
      public function worker(User $worker)
     {
+        abort_unless($worker->business_id === Auth::user()?->business_id, 404);
         $worker = $worker->load("role");
         return response()->json([
             'message' => 'Worker retrieved successfully',
@@ -173,6 +172,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        abort_unless($user->business_id === Auth::user()?->business_id, 404);
         $user = $this->userService->getUserById($user->id);
         return response()->json([
             'message' => 'Single User retrieved successfully!',
@@ -187,6 +187,7 @@ class UserController extends Controller
     {
         try {
             // $user = Auth::user();
+            abort_unless($user->business_id === Auth::user()?->business_id, 404);
             $validated = $request->validated();
             $user = $this->userService->updateUser($user,$validated);
             // $updated_user = $worker->update($validated);
@@ -208,6 +209,7 @@ class UserController extends Controller
     public function destroy(User $worker)
     {
         try {
+            abort_unless($worker->business_id === Auth::user()?->business_id, 404);
             $worker->delete();
             return response()->json([
                 'message' => 'User deleted successfully',

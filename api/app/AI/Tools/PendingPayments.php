@@ -31,7 +31,8 @@ class PendingPayments extends Tool
     {
         $status = $parameters['status'] ?? 'all';
 
-        $query = SalePayment::whereIn('paymentStatus', ['pending', 'partial']);
+        $query = SalePayment::whereIn('paymentStatus', ['pending', 'partial'])
+            ->whereHas('sale');
 
         if ($status !== 'all' && in_array($status, ['pending', 'partial'])) {
             $query->where('paymentStatus', $status);

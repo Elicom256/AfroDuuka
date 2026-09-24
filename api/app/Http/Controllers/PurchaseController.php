@@ -6,7 +6,6 @@ use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
-use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -20,20 +19,9 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        if($user->role !== "admin"){
-            $purchases = Purchase::with("supplier", "purchaseItems")
-                        ->where("business_branch_id", $user->business_branch_id)
-                        ->orderByDesc("created_at")
-                        ->get();
-        }else{
-            $purchases = Purchase::with("supplier", "purchaseItems", "businessBranch")
-                         ->where("businessBranch", function($q) use($user){
-                             $q->where("business_id", $user->business_id);
-                         })
-                         ->orderByDesc("created_at")
-                         ->get();
-        }
+        $purchases = Purchase::with("supplier", "purchaseItems", "businessBranch")
+                    ->orderByDesc("created_at")
+                    ->get();
 
         return response()->json(["message" => "Purchases fetched", "purchases" => $purchases]);
     }
@@ -54,9 +42,7 @@ class PurchaseController extends Controller
     public function show(string $purchase)
     {
         $product = Purchase::with("supplier", "purchaseItems.product")
-                  ->where("id", $purchase)
-                  ->orderByDesc("created_at")
-                  ->first();
+                  ->findOrFail($purchase);
         return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
     }
 

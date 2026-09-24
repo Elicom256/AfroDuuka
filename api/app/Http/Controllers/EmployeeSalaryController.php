@@ -8,7 +8,6 @@ use App\Models\EmployeeSalary;
 use App\Models\Worker;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class EmployeeSalaryController extends Controller
 {
@@ -21,22 +20,13 @@ class EmployeeSalaryController extends Controller
 
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-
         $salaries = EmployeeSalary::with(['worker.user.businessBranch'])
-            ->whereHas('worker.user', function ($query) use ($user) {
-                $query->where('business_id', $user->business_id);
-            })
             ->orderByDesc('effective_date')
             ->paginate(10);
 
-        $totalMonthly = EmployeeSalary::whereHas('worker.user', function ($query) use ($user) {
-            $query->where('business_id', $user->business_id);
-        })->where('status', 'active')->sum('amount');
+        $totalMonthly = EmployeeSalary::where('status', 'active')->sum('amount');
 
-        $activeCount = EmployeeSalary::whereHas('worker.user', function ($query) use ($user) {
-            $query->where('business_id', $user->business_id);
-        })->where('status', 'active')->count();
+        $activeCount = EmployeeSalary::where('status', 'active')->count();
 
         return response()->json([
             'message' => 'Fetched employee salaries',
@@ -48,13 +38,9 @@ class EmployeeSalaryController extends Controller
 
     public function store(StoreEmployeeSalaryRequest $request): JsonResponse
     {
-        $user = Auth::user();
         $validated = $request->validated();
 
         $worker = Worker::with('user')->findOrFail($validated['worker_id']);
-        if ($worker->user->business_id !== $user->business_id) {
-            abort(403, 'Worker does not belong to your business');
-        }
 
         $salary = EmployeeSalary::create($validated);
         $this->activity_log->activity(
@@ -80,12 +66,6 @@ class EmployeeSalaryController extends Controller
 
     public function update(UpdateEmployeeSalaryRequest $request, EmployeeSalary $employeeSalary): JsonResponse
     {
-        $user = Auth::user();
-
-        if ($employeeSalary->worker->user->business_id !== $user->business_id) {
-            abort(403, 'You are not authorized to update this salary');
-        }
-
         $employeeSalary->update($request->validated());
 
         $this->activity_log->activity(
@@ -101,12 +81,6 @@ class EmployeeSalaryController extends Controller
 
     public function destroy(EmployeeSalary $employeeSalary): JsonResponse
     {
-        $user = Auth::user();
-
-        if ($employeeSalary->worker->user->business_id !== $user->business_id) {
-            abort(403, 'You are not authorized to delete this salary');
-        }
-
         $employeeSalary->delete();
 
         $this->activity_log->activity(

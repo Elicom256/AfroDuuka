@@ -5,18 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTaxRateRequest;
 use App\Http\Requests\UpdateTaxRateRequest;
 use App\Http\Resources\TaxRateResource;
+use App\Models\TaxCategory;
 use App\Models\TaxRate;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class TaxRateController extends Controller
 {
     public function index(): JsonResponse
     {
-        $branchId = Auth::user()->business_branch_id;
-
         $rates = TaxRate::with('taxCategory')
-            ->whereHas('taxCategory', fn ($q) => $q->where('business_branch_id', $branchId))
+            ->whereHas('taxCategory')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -38,7 +36,7 @@ class TaxRateController extends Controller
 
     public function show(TaxRate $taxRate): JsonResponse
     {
-        $this->assertOwnBranch($taxRate);
+        $this->assertOwnsCategory($taxRate);
 
         return response()->json([
             'message' => 'Tax rate fetched!',
@@ -48,7 +46,7 @@ class TaxRateController extends Controller
 
     public function update(UpdateTaxRateRequest $request, TaxRate $taxRate): JsonResponse
     {
-        $this->assertOwnBranch($taxRate);
+        $this->assertOwnsCategory($taxRate);
 
         $taxRate->update($request->validated());
 
@@ -60,7 +58,7 @@ class TaxRateController extends Controller
 
     public function destroy(TaxRate $taxRate): JsonResponse
     {
-        $this->assertOwnBranch($taxRate);
+        $this->assertOwnsCategory($taxRate);
 
         $taxRate->delete();
 
@@ -69,14 +67,9 @@ class TaxRateController extends Controller
         ], 200);
     }
 
-    private function assertOwnBranch(TaxRate $taxRate): void
+    private function assertOwnsCategory(TaxRate $taxRate): void
     {
-        $taxRate->loadMissing('taxCategory');
-
-        if (
-            !$taxRate->taxCategory
-            || $taxRate->taxCategory->business_branch_id !== Auth::user()->business_branch_id
-        ) {
+        if (!TaxCategory::whereKey($taxRate->tax_category_id)->exists()) {
             abort(404, 'Tax rate not found.');
         }
     }

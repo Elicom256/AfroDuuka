@@ -5,15 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Promotion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PromotionController extends Controller
 {
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        $promotions = Promotion::where('business_branch_id', $user->business_branch_id)
-            ->orderByDesc('created_at')
+        $promotions = Promotion::orderByDesc('created_at')
             ->get();
 
         return response()->json(['message' => 'Promotions fetched', 'data' => $promotions]);
@@ -21,8 +18,6 @@ class PromotionController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $user = Auth::user();
-
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -35,8 +30,6 @@ class PromotionController extends Controller
         ]);
 
         $promotion = Promotion::create([
-            'business_id' => $user->business_id,
-            'business_branch_id' => $user->business_branch_id,
             ...$validated,
         ]);
 

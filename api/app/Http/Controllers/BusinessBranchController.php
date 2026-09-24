@@ -26,9 +26,8 @@ class BusinessBranchController extends Controller
      */
     public function salesAndPurchases()
     {
-        $business_branch_id = Auth::user()->business_branch_id;
-        $totalSales = Sale::where("business_branch_id", $business_branch_id)->sum("total_amount");
-        $totalPurchases = Purchase::where("business_branch_id", $business_branch_id)->sum("total_amount");
+        $totalSales = Sale::sum("total_amount");
+        $totalPurchases = Purchase::sum("total_amount");
         return response()->json([
             "message" => "Fetched new changes",
             "totalSales" => $totalSales,

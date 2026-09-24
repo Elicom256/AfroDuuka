@@ -8,16 +8,12 @@ use App\Http\Resources\TaxCategoryResource;
 use App\Models\Product;
 use App\Models\TaxCategory;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class TaxCategoryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $branchId = Auth::user()->business_branch_id;
-
         $categories = TaxCategory::with('taxRates')
-            ->where('business_branch_id', $branchId)
             ->orderBy('id', 'asc')
             ->get();
 
@@ -32,7 +28,6 @@ class TaxCategoryController extends Controller
         $validated = $request->validated();
         $category = TaxCategory::create([
             ...$validated,
-            'business_branch_id' => Auth::user()->business_branch_id,
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
@@ -44,8 +39,6 @@ class TaxCategoryController extends Controller
 
     public function show(TaxCategory $taxCategory): JsonResponse
     {
-        $this->assertOwnBranch($taxCategory);
-
         return response()->json([
             'message' => 'Tax category fetched!',
             'category' => new TaxCategoryResource($taxCategory->load('taxRates')),
@@ -54,8 +47,6 @@ class TaxCategoryController extends Controller
 
     public function update(UpdateTaxCategoryRequest $request, TaxCategory $taxCategory): JsonResponse
     {
-        $this->assertOwnBranch($taxCategory);
-
         $taxCategory->update($request->validated());
 
         return response()->json([
@@ -66,8 +57,6 @@ class TaxCategoryController extends Controller
 
     public function destroy(TaxCategory $taxCategory): JsonResponse
     {
-        $this->assertOwnBranch($taxCategory);
-
         $inUse = Product::where('tax_category_id', $taxCategory->id)->exists()
             || $taxCategory->taxPayments()->exists();
 
@@ -82,12 +71,5 @@ class TaxCategoryController extends Controller
         return response()->json([
             'message' => "Tax category with id {$taxCategory->id} deleted successfully!",
         ], 200);
-    }
-
-    private function assertOwnBranch(TaxCategory $taxCategory): void
-    {
-        if ($taxCategory->business_branch_id !== Auth::user()->business_branch_id) {
-            abort(404, 'Tax category not found.');
-        }
     }
 }

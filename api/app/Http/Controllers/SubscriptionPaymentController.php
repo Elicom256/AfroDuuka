@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSubscriptionPaymentRequest;
 use App\Http\Requests\UpdateSubscriptionPaymentRequest;
 use App\Models\CoreSettings\PaymentMethod;
+use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,6 +24,13 @@ class SubscriptionPaymentController extends Controller
         // Default payment_status to pending when not provided
         if (!isset($validated['payment_status'])) {
             $validated['payment_status'] = 'pending';
+        }
+
+        $subscription = Subscription::findOrFail($validated['subscription_id']);
+
+        $user = Auth::user();
+        if ($user->business_id && $subscription->business_id !== $user->business_id) {
+            abort(403, 'Cannot record payment for another business.');
         }
 
         $paymentMethod = PaymentMethod::findOrFail($validated['payment_method_id']);

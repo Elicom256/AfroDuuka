@@ -18,20 +18,9 @@ class PurchaseReturnController extends Controller
 
     public function index()
     {
-        $user = Auth::user();
-        if ($user->role !== 'admin') {
-            $purchaseReturns = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
-                ->where('business_branch_id', $user->business_branch_id)
-                ->orderByDesc('created_at')
-                ->get();
-        } else {
-            $purchaseReturns = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
-                ->whereHas('businessBranch', function ($q) use ($user) {
-                    $q->where('business_id', $user->business_id);
-                })
-                ->orderByDesc('created_at')
-                ->get();
-        }
+        $purchaseReturns = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
+            ->orderByDesc('created_at')
+            ->get();
 
         return response()->json(['message' => 'All purchase returns fetched', 'purchase_returns' => $purchaseReturns]);
     }

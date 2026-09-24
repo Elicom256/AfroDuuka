@@ -9,7 +9,6 @@ use App\Services\FinancialAuditService;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FinancialAuditController extends Controller
 {
@@ -24,9 +23,7 @@ class FinancialAuditController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $query = FinancialAudit::with(['branch', 'performedBy', 'approvedBy'])
-            ->where('business_id', $user->business_id);
+        $query = FinancialAudit::with(['branch', 'performedBy', 'approvedBy']);
 
         if ($request->filled('business_branch_id')) {
             $query->where('business_branch_id', $request->business_branch_id);
@@ -62,7 +59,7 @@ class FinancialAuditController extends Controller
 
     public function store(StoreFinancialAuditRequest $request): JsonResponse
     {
-        $user = Auth::user();
+        $user = $request->user();
         $validated = $request->validated();
 
         $auditNumber = $this->auditService->generateAuditNumber($validated['business_branch_id']);
@@ -92,11 +89,6 @@ class FinancialAuditController extends Controller
 
     public function show(FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $financialAudit->load(['branch', 'performedBy', 'approvedBy']);
 
         return response()->json([
@@ -107,11 +99,6 @@ class FinancialAuditController extends Controller
 
     public function update(UpdateFinancialAuditRequest $request, FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (!in_array($financialAudit->status, ['draft', 'in_progress'])) {
             return response()->json(['message' => 'Only draft or in-progress audits can be edited'], 422);
         }
@@ -136,11 +123,6 @@ class FinancialAuditController extends Controller
 
     public function destroy(FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (!in_array($financialAudit->status, ['draft', 'cancelled'])) {
             return response()->json(['message' => 'Only draft or cancelled audits can be deleted'], 422);
         }
@@ -154,11 +136,6 @@ class FinancialAuditController extends Controller
 
     public function approve(FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if ($financialAudit->status !== 'completed') {
             return response()->json(['message' => 'Only completed audits can be approved'], 422);
         }
@@ -173,11 +150,6 @@ class FinancialAuditController extends Controller
 
     public function cancel(FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         if (in_array($financialAudit->status, ['approved', 'cancelled'])) {
             return response()->json(['message' => 'Audit cannot be cancelled'], 422);
         }
@@ -192,11 +164,6 @@ class FinancialAuditController extends Controller
 
     public function report(FinancialAudit $financialAudit): JsonResponse
     {
-        $user = Auth::user();
-        if ($financialAudit->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $financialAudit->load(['branch', 'performedBy', 'approvedBy']);
 
         return response()->json([

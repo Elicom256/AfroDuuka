@@ -28,6 +28,7 @@ class PriceHistoryService
     public function getProductTimeline(int $productId, int $perPage = 15): LengthAwarePaginator
     {
         return PriceHistory::with('changedByUser')
+            ->whereHas('product')
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -38,7 +39,7 @@ class PriceHistoryService
      */
     public function getLatestChanges(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = PriceHistory::with('product')->orderBy('created_at', 'desc');
+        $query = PriceHistory::with('product')->whereHas('product')->orderBy('created_at', 'desc');
 
         // Filter by specific product
         if (!empty($filters['product_id'])) {
@@ -66,7 +67,7 @@ class PriceHistoryService
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
 
         // Get daily count of price changes and average change amounts
-        $rawTrend = PriceHistory::whereBetween('created_at', [$dates['start'], $dates['end']])
+        $rawTrend = PriceHistory::whereHas('product')->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->selectRaw("DATE_FORMAT(created_at, '%b %d') as date")
             ->selectRaw("COUNT(*) as count")
             ->selectRaw("COALESCE(AVG(new_cost_price - old_cost_price), 0) as avg_cost_change")
@@ -94,10 +95,10 @@ class PriceHistoryService
         }
 
         // Aggregate totals
-        $totalChanges = PriceHistory::whereBetween('created_at', [$dates['start'], $dates['end']])->count();
+        $totalChanges = PriceHistory::whereHas('product')->whereBetween('created_at', [$dates['start'], $dates['end']])->count();
 
         // Most-changed product (top 5)
-        $mostChanged = PriceHistory::whereBetween('created_at', [$dates['start'], $dates['end']])
+        $mostChanged = PriceHistory::whereHas('product')->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->selectRaw('product_id')
             ->selectRaw('COUNT(*) as changes')
             ->groupBy('product_id')
