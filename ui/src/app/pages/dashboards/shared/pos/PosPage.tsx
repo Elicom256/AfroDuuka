@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   useLazySearchProductsQuery,
+  useLazySearchProductByBarcodeQuery,
   useLazySearchCustomersQuery,
   useCheckoutMutation,
   useHoldSaleMutation,
@@ -66,6 +67,7 @@ export const PosPage = () => {
   const [heldSaleId, setHeldSaleId] = useState<number | null>(null);
 
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchProductsQuery();
+  const [triggerBarcodeLookup] = useLazySearchProductByBarcodeQuery();
   const [triggerCustomerSearch] = useLazySearchCustomersQuery();
   const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation();
   const [holdSale] = useHoldSaleMutation();
@@ -74,6 +76,8 @@ export const PosPage = () => {
 
   const searchRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<any>(null);
+  const scanFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [scanState, setScanState] = useState<'idle' | 'success' | 'error'>('idle');
 
   const heldSales = heldSalesData?.data || [];
 
@@ -93,21 +97,11 @@ export const PosPage = () => {
     [triggerSearch],
   );
 
-  const handleBarcodeSubmit = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && searchQuery.trim()) {
-        e.preventDefault();
-        triggerSearch(searchQuery).then((res) => {
-          const products = res.data?.data || [];
-          if (products.length === 1) {
-            addToCart(products[0]);
-            setSearchQuery('');
-          }
-        });
-      }
-    },
-    [searchQuery, triggerSearch],
-  );
+  const flashScan = useCallback((state: 'success' | 'error') => {
+    setScanState(state);
+    if (scanFlashRef.current) clearTimeout(scanFlashRef.current);
+    scanFlashRef.current = setTimeout(() => setScanState('idle'), 400);
+  }, []);
 
   const addToCart = useCallback((product: any) => {
     setCart((prev) => {
@@ -135,7 +129,45 @@ export const PosPage = () => {
       ];
     });
     setSearchQuery('');
+    searchRef.current?.focus();
   }, []);
+
+  const handleBarcodeSubmit = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      const raw = searchQuery.trim();
+      if (!raw) return;
+      e.preventDefault();
+
+      const code = raw.replace(/[\s]+/g, '');
+      const fallbackToSearch = (message: string) => {
+        triggerSearch(code).then((res) => {
+          const products = res.data?.data || [];
+          if (products.length === 1) {
+            addToCart(products[0]);
+            flashScan('success');
+          } else {
+            if (message) toast.error(message);
+            flashScan('error');
+          }
+        });
+      };
+
+      triggerBarcodeLookup(code)
+        .then((res) => {
+          if (res.data?.data) {
+            addToCart(res.data.data);
+            flashScan('success');
+          } else {
+            fallbackToSearch(`No product found for ${code}`);
+          }
+        })
+        .catch(() => {
+          fallbackToSearch(`No product found for ${code}`);
+        });
+    },
+    [searchQuery, triggerSearch, triggerBarcodeLookup, addToCart, flashScan],
+  );
 
   const updateQty = (productId: number, delta: number) => {
     setCart((prev) =>
@@ -386,8 +418,14 @@ export const PosPage = () => {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 onKeyDown={handleBarcodeSubmit}
-                placeholder='Search by barcode, SKU, or product name...'
-                className='pl-10 h-10 text-base'
+                placeholder='Scan barcode, SKU, or product name...'
+                className={`pl-10 h-10 text-base transition-all ${
+                  scanState === 'success'
+                    ? 'ring-2 ring-green-500 border-green-500'
+                    : scanState === 'error'
+                      ? 'ring-2 ring-red-500 border-red-500'
+                      : ''
+                }`}
               />
             </div>
             {/* Search results */}

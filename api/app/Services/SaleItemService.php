@@ -67,7 +67,8 @@ class SaleItemService
                         $user,
                         $product->name ?? $product->id,
                         $product->quantity,
-                        $product->reorder_level
+                        $product->reorder_level,
+                        $product->id
                     );
                 }
 
@@ -124,7 +125,7 @@ class SaleItemService
                         Customer::with("user")->where("id", $validated["customer_id"])->first()?->user : null;
             $customerName = $customer ? $customer->firstname . " " . $customer->lastname : "unknown";
             $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, $validated);
-            $notificationService->newSaleRecorded($user, number_format($totalAmount), $customerName);
+            $notificationService->newSaleRecorded($user, number_format($totalAmount), $customerName, $sale->id);
 
             $receiptService = app(ReceiptService::class);
             $paymentMethodName = $method ?? 'cash';

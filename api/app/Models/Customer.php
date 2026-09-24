@@ -31,5 +31,10 @@ class Customer extends BaseModel
         return $this->hasMany(Sale::class);
     }
 
+    public function name(): string
+    {
+        return $this->company_name ?: ($this->user ? trim($this->user->firstname . ' ' . $this->user->lastname) : 'Customer');
+    }
+
 
 }
