@@ -31,10 +31,8 @@ class SaleController extends Controller
      */
     public function store(StoreSaleRequest $request)
     {
-        // dd($request);
         $business_branch_id = Auth::user()->business_branch_id;
         $validated = $request->validated();
-        // dd($validated);
         $sale = $this->saleItemService->handleSaveSaleItem($validated, $business_branch_id);
         return response()->json([ 'message' => 'Sale completed successfully!', 'sale' => $sale ], 200);
     }

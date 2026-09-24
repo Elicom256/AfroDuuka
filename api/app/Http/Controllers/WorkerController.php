@@ -21,7 +21,6 @@ class WorkerController extends Controller
     public function index()
     {
         // $business_id = Auth::user()->business_id;
-        // dd("Elicom");
         $workers = Worker::with(["user.role", "user.businessBranch", "attendances"])
                   ->whereHas("user.role", function($q){
                     $q->where("name", "!=", "admin");
@@ -39,7 +38,6 @@ class WorkerController extends Controller
      */
     public function store(StoreWorkerRequest $request)
     {
-        // dd($request->all());
         $validated = $request->validated();
         $worker = $this->workerService->addWorker($validated);
         return response()->json(["message" => "Added Worker", "worker" => $worker]);
@@ -58,10 +56,8 @@ class WorkerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateWorkerRequest $request, Worker $worker)
+public function update(UpdateWorkerRequest $request, Worker $worker)
     {
-                // dd($request->all());
-
         $validated = $request->validated();
         $worker = $this->workerService->updateWorker($worker, $validated);
         return response()->json(["message" => "Updated Worker", "worker" => $worker]);
