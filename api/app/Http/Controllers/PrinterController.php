@@ -13,7 +13,7 @@ class PrinterController extends Controller
 {
     public function index()
     {
-        $printers = Printer::where('business_id', auth()->user()->business_id)->get();
+        $printers = Printer::all();
         return response()->json(['message' => 'Fetched printers', 'data' => $printers]);
     }
 

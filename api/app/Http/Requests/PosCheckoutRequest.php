@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -20,18 +21,22 @@ class PosCheckoutRequest extends FormRequest
         $defaultCurrency = $business?->country?->currency_code ?? 'UGX';
 
         $this->merge([
-            'business_branch_id' => $user->business_branch_id,
-            'business_id'        => $user->business_id,
-            'user_id'            => $user->id,
+            'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
             'currency'           => $this->input('currency', $defaultCurrency),
         ]);
     }
 
     public function rules(): array
     {
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
+
         return [
-            'business_branch_id' => 'required|exists:business_branches,id',
-            'business_id'        => 'required|exists:businesses,id',
+            'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
 
             'customer_id' => 'nullable|exists:customers,id',
 

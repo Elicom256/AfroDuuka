@@ -10,8 +10,7 @@ class StockSummaryReports
 {
     public function stockSummary(array $filters, User $user, int $perPage = 15): array
     {
-        $baseQuery = Product::query()
-            ->where('business_branch_id', $user->business_branch_id);
+        $baseQuery = Product::query();
 
         $totalProducts = (int) $baseQuery->count();
         $totalStockQuantity = (float) $baseQuery->sum('quantity');
@@ -20,7 +19,6 @@ class StockSummaryReports
         $inactiveProducts = (int) $baseQuery->where('status', 'inactive')->count();
 
         $products = Product::query()
-            ->where('business_branch_id', $user->business_branch_id)
             ->select(['id', 'name', 'quantity', 'cost_price', 'selling_price', 'reorder_level', 'status'])
             ->paginate($perPage)
             ->toArray();

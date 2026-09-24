@@ -6,7 +6,9 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Supplier;
+use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseService
@@ -20,14 +22,24 @@ class PurchaseService
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
 
-    public function savePurchase($validated)
+    public function savePurchase($validated, ?string $business_branch_id = null)
     {
         $notificationService = app(NotificationService::class);
         $user = Auth::user();
+
+        $branchId = $validated['business_branch_id'] ?? $business_branch_id ?? $user?->business_branch_id;
+        $resolved = $user ? EffectiveBranchScope::branchesFor($user) : null;
+        if ($branchId && $resolved !== null) {
+            [, $branchIds] = $resolved;
+            if (! in_array($branchId, $branchIds, true)) {
+                throw new Exception("Branch is not within your allowed scope", 403);
+            }
+        }
+
         $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
         $purchase = Purchase::create([
             "supplier_id" => $validated["supplier_id"],
-            "business_branch_id" => $validated["business_branch_id"],
+            "business_branch_id" => $branchId,
             "total_amount" => $total_amount,
             "note" => $validated["note"] ?? null
         ]);

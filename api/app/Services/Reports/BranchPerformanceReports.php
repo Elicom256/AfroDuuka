@@ -32,7 +32,6 @@ class BranchPerformanceReports
                 DB::raw("COUNT(CASE WHEN cash_flows.type = 'sale' OR cash_flows.category = 'product_sales' THEN 1 END) as transaction_count"),
             ])
             ->join('business_branches', 'business_branches.id', '=', 'cash_flows.business_branch_id')
-            ->where('cash_flows.business_id', $user->business_id)
             ->where('cash_flows.status', 'completed')
             ->whereBetween('cash_flows.transaction_date', [$startDate, $endDate])
             ->groupBy('cash_flows.business_branch_id', 'business_branches.name')
@@ -40,7 +39,6 @@ class BranchPerformanceReports
             ->get();
 
         $companyTotals = CashFlow::query()
-            ->where('business_id', $user->business_id)
             ->where('status', 'completed')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->select([
