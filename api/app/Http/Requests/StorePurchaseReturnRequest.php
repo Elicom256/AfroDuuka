@@ -12,17 +12,9 @@ class StorePurchaseReturnRequest extends FormRequest
         return Auth::check();
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'business_branch_id' => Auth::user()->business_branch_id,
-        ]);
-    }
-
     public function rules(): array
     {
         return [
-            'business_branch_id' => 'required|exists:business_branches,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'reason' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:2000',

@@ -11,9 +11,7 @@ class CouponController extends Controller
 {
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        $coupons = Coupon::where('business_branch_id', $user->business_branch_id)
-            ->orderByDesc('created_at')
+        $coupons = Coupon::orderByDesc('created_at')
             ->get();
 
         return response()->json(['message' => 'Coupons fetched', 'data' => $coupons]);
@@ -40,8 +38,6 @@ class CouponController extends Controller
         $code = $prefix . str_pad($couponCount + 1, 3, '0', STR_PAD_LEFT);
 
         $coupon = Coupon::create([
-            'business_id' => $user->business_id,
-            'business_branch_id' => $user->business_branch_id,
             'code' => $code,
             ...$validated,
         ]);

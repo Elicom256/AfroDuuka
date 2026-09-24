@@ -10,7 +10,6 @@ use App\Services\ActivityLogService;
 use App\Services\CashFlowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
@@ -25,9 +24,7 @@ class ExpenseController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $query = Expense::with(['category', 'businessBranch', 'createdBy'])
-            ->where('business_id', $user->business_id);
+        $query = Expense::with(['category', 'businessBranch', 'createdBy']);
 
         if ($request->filled('expense_category_id')) {
             $query->where('expense_category_id', $request->expense_category_id);
@@ -70,7 +67,6 @@ class ExpenseController extends Controller
 
     public function store(StoreExpenseRequest $request): JsonResponse
     {
-        $user = Auth::user();
         $validated = $request->validated();
 
         $expense = Expense::create($validated);
@@ -90,11 +86,6 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense): JsonResponse
     {
-        $user = Auth::user();
-        if ($expense->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expense->load(['category', 'businessBranch', 'createdBy']);
 
         return response()->json([
@@ -105,15 +96,10 @@ class ExpenseController extends Controller
 
     public function update(UpdateExpenseRequest $request, Expense $expense): JsonResponse
     {
-        $user = Auth::user();
-        if ($expense->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expense->update($request->validated());
 
         ActivityLog::log(
-            $user,
+            $request->user(),
             'updated_expense',
             $expense,
             "Updated expense ID {$expense->id}",
@@ -128,15 +114,10 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense): JsonResponse
     {
-        $user = Auth::user();
-        if ($expense->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expense->delete();
 
         ActivityLog::log(
-            $user,
+            $request->user(),
             'deleted_expense',
             $expense,
             "Deleted expense ID {$expense->id}"
@@ -149,15 +130,10 @@ class ExpenseController extends Controller
 
     public function approve(Expense $expense): JsonResponse
     {
-        $user = Auth::user();
-        if ($expense->business_id !== $user->business_id) {
-            abort(403, 'Unauthorized');
-        }
-
         $expense->update(['status' => 'approved']);
 
         ActivityLog::log(
-            $user,
+            $request->user(),
             'approved_expense',
             $expense,
             "Approved expense ID {$expense->id}"
@@ -171,7 +147,6 @@ class ExpenseController extends Controller
 
     public function monthlySummary(Request $request): JsonResponse
     {
-        $user = Auth::user();
         $year = $request->input('year', now()->year);
 
         $expenses = Expense::selectRaw("
@@ -179,7 +154,6 @@ class ExpenseController extends Controller
                 SUM(amount) as total,
                 COUNT(*) as count
             ")
-            ->where('business_id', $user->business_id)
             ->whereYear('payment_date', $year)
             ->groupBy('month')
             ->orderBy('month')
@@ -193,7 +167,6 @@ class ExpenseController extends Controller
 
     public function totalsByCategory(Request $request): JsonResponse
     {
-        $user = Auth::user();
         $year = $request->input('year', now()->year);
 
         $totals = Expense::selectRaw("
@@ -202,7 +175,6 @@ class ExpenseController extends Controller
                 COUNT(*) as count
             ")
             ->with('category')
-            ->where('business_id', $user->business_id)
             ->whereYear('payment_date', $year)
             ->groupBy('expense_category_id')
             ->orderByDesc('total')

@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateWorkerRequest;
 use App\Models\User;
 use App\Models\Worker;
 use App\Services\WorkerService;
-use Illuminate\Support\Facades\Auth;
 
 class WorkerController extends Controller
 {

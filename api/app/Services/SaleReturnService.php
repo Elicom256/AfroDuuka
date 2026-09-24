@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Receipt;
+use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
@@ -21,15 +22,28 @@ class SaleReturnService
         $this->inventoryService = $inventoryService;
     }
 
-    public function handleCreateSaleReturn(array $validated, string $business_branch_id)
+    public function handleCreateSaleReturn(array $validated, ?string $business_branch_id = null)
     {
         $totalRefund = 0;
         $returnItems = [];
 
+        $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($validated['items'][0]['sale_item_id'] ?? null);
+        $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
+
+        if (!$sale) {
+            throw new Exception("Sale not found.", 404);
+        }
+
+        $branchId = $business_branch_id ?: $sale->business_branch_id;
+
         foreach ($validated['items'] as $item) {
-            $saleItem = SaleItem::with('product')->find($item['sale_item_id']);
+            $saleItem = SaleItem::whereHas('sale')->with('product')->find($item['sale_item_id']);
             if (!$saleItem) {
                 throw new Exception("Sale item not found.", 404);
+            }
+
+            if ($saleItem->sale_id !== $sale->id) {
+                throw new Exception("Sale item does not belong to this sale.", 404);
             }
 
             $alreadyReturned = SaleReturnItem::where('sale_item_id', $item['sale_item_id'])
@@ -56,7 +70,7 @@ class SaleReturnService
         }
 
         $saleReturn = SaleReturn::create([
-            'business_branch_id' => $business_branch_id,
+            'business_branch_id' => $branchId,
             'reason' => $validated['reason'] ?? null,
             'notes' => $validated['notes'] ?? null,
             'refund_amount' => $totalRefund,
@@ -86,12 +100,9 @@ class SaleReturnService
 
         $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
 
-        $firstSaleItem = SaleItem::find($validated['items'][0]['sale_item_id']);
-        if ($firstSaleItem) {
-            Receipt::where('sale_id', $firstSaleItem->sale_id)
-                ->where('status', 'completed')
-                ->update(['status' => 'refunded']);
-        }
+        Receipt::where('sale_id', $sale->id)
+            ->where('status', 'completed')
+            ->update(['status' => 'refunded']);
 
         return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
     }
