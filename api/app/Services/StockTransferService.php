@@ -49,16 +49,12 @@ class StockTransferService
                 $sourceProduct = Product::where('business_branch_id', $transfer->from_branch_id)
                     ->where('id', $item->product_id)
                     ->firstOrFail();
-                $destProduct = Product::where('business_branch_id', $transfer->to_branch_id)
-                    ->where('product_category_id', $sourceProduct->product_category_id)
-                    ->firstOrFail();
 
                 if ($sourceProduct->quantity < $item->quantity_expected) {
                     throw new \Exception("Insufficient stock for product: {$sourceProduct->name}");
                 }
-                if (!$destProduct) {
-                    throw new \Exception("Product does not exist on receiver branch");
-                }
+
+                $destProduct = $this->resolveDestinationProduct($sourceProduct, $transfer->to_branch_id);
 
                 $sourceProduct->decrement('quantity', $item->quantity_expected);
                 $destProduct->increment('quantity', $item->quantity_expected);
@@ -101,18 +97,7 @@ class StockTransferService
             foreach ($transfer->items as $item) {
                 $receivedQty = $receivedItems[$item->id] ?? $item->quantity_expected;
 
-                $destProduct = Product::firstOrCreate(
-                    [
-                        'business_branch_id' => $transfer->to_branch_id,
-                        'product_category_id' => $item->product->product_category_id,
-                    ],
-                    [
-                        'name' => $item->product->name,
-                        'cost_price' => $item->product->cost_price,
-                        'selling_price' => $item->product->selling_price,
-                        'quantity' => 0,
-                    ]
-                );
+                $destProduct = $this->resolveDestinationProduct($item->product, $transfer->to_branch_id);
 
                 $destProduct->increment('quantity', $receivedQty);
 
@@ -157,5 +142,47 @@ class StockTransferService
         $transfer->update(['status' => 'cancelled']);
 
         return $transfer->fresh();
+    }
+
+    /**
+     * Find (or create) the product on the destination branch that corresponds
+     * to the source product. Products are stored per-branch, so a transfer must
+     * match by product identity (sku -> barcode -> name) instead of category,
+     * which could redirect stock to an unrelated product of the same category.
+     */
+    private function resolveDestinationProduct(Product $sourceProduct, int $toBranchId): Product
+    {
+        $base = Product::where('business_branch_id', $toBranchId);
+
+        $match = null;
+        if ($sourceProduct->sku) {
+            $match = (clone $base)->where('sku', $sourceProduct->sku)->first();
+        }
+        if (! $match && $sourceProduct->barcode) {
+            $match = (clone $base)->where('barcode', $sourceProduct->barcode)->first();
+        }
+        if (! $match) {
+            $match = (clone $base)->where('name', $sourceProduct->name)->first();
+        }
+
+        if ($match) {
+            return $match;
+        }
+
+        return Product::create([
+            'business_branch_id' => $toBranchId,
+            'product_category_id' => $sourceProduct->product_category_id,
+            'tax_category_id' => $sourceProduct->tax_category_id,
+            'name' => $sourceProduct->name,
+            'sku' => $sourceProduct->sku,
+            'barcode' => $sourceProduct->barcode,
+            'quantity' => 0,
+            'cost_price' => $sourceProduct->cost_price,
+            'selling_price' => $sourceProduct->selling_price,
+            'is_tax_inclusive' => $sourceProduct->is_tax_inclusive,
+            'reorder_level' => $sourceProduct->reorder_level,
+            'description' => $sourceProduct->description,
+            'status' => $sourceProduct->status,
+        ]);
     }
 }

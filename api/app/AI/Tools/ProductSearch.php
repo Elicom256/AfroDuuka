@@ -40,7 +40,7 @@ class ProductSearch extends Tool
               ->orWhere('sku', 'ilike', "%{$query}%")
               ->orWhere('barcode', 'ilike', "%{$query}%");
         })
-            ->with('category')
+            ->with('productCategory')
             ->limit(20)
             ->get()
             ->map(fn ($p) => [
@@ -48,7 +48,7 @@ class ProductSearch extends Tool
                 'name' => $p->name,
                 'sku' => $p->sku,
                 'barcode' => $p->barcode,
-                'category' => $p->category?->name,
+                'category' => $p->productCategory?->name,
                 'status' => $p->status,
             ]);
 

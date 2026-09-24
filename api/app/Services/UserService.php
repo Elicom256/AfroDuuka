@@ -43,13 +43,11 @@ class UserService
     public function signupUser(array $data)
     {
         $admin = Auth::user();
-        // dd($admin);
             $user = User::create([
-            // 'name' => $data['name'],
             'email' => $data['email'],
-            "firstname" => $data["firstname"],
-            "lastname" => $data["lastname"],
-            'username' => "@" . $data['name'],
+            "firstname" => $data["firstname"] ?? $data["name"] ?? null,
+            "lastname" => $data["lastname"] ?? null,
+            'username' => "@" . ($data['name'] ?? $data['firstname'] ?? $data['email']),
             'phone' => $data['phone'],
             'password' => Hash::make("password"),
             'business_id' => $admin->business_id,
@@ -67,10 +65,11 @@ class UserService
     // create account for admin
     public function createAccount(array $data){
         return User::create([
-            'name' => $data['name'],
+            "firstname" => $data['firstname'] ?? $data['name'] ?? null,
+            "lastname" => $data['lastname'] ?? null,
             'email' => $data['email'],
-            'username' => "@" . $data['name'],
-            'phone' => $data['phone'],
+            'username' => "@" . ($data['name'] ?? $data['username'] ?? $data['email']),
+            'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password'] ?? "password"),
             // 'business_id' => $data['business_id'] ?? null,
             // 'role_id' => $adminRoleId,
@@ -95,17 +94,18 @@ class UserService
     public function updateUser(User $user, array $validated)
     {
        $user->update([
-            // 'name' => $validated['name'] ?? $user->name,
             'email' => $validated['email'] ?? $user->email,
-            'username' => "@" . $validated['username'] ?? $user->username,
+            'username' => $validated['username'] ?? $user->username,
             'role_id' => $validated['role_id'] ?? $user->role_id,
         ]);
         $worker = Worker::where("user_id", $user?->id)->first();
-        $worker->update([
-            "firstname" => $validated["firstname"] ?? $worker->firstname ,
-            "lastname" => $validated["lastname"] ?? $worker->lastname,
-            "nin" => $validated["nin"] ?? $worker->nin
+        if ($worker) {
+            $worker->update([
+                "firstname" => $validated["firstname"] ?? $worker->firstname ,
+                "lastname" => $validated["lastname"] ?? $worker->lastname,
+                "nin" => $validated["nin"] ?? $worker->nin
             ]);
+        }
             
         return $user->load('business', 'role');
     }
