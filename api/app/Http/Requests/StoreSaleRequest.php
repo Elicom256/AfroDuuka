@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -26,8 +27,7 @@ class StoreSaleRequest extends FormRequest
         $defaultCurrency = $business?->country?->currency_code;
 
         $this->merge([
-            'business_branch_id' => $user->business_branch_id,
-            'business_id'        => $user->business_id,
+            'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
             'user_id'        => $user->id,
             'status'             => $this->input('status', 'completed'),
             'paymentStatus'      => $this->input('paymentStatus', 'paid'),
@@ -41,9 +41,15 @@ class StoreSaleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $branchWithinSet = function ($attribute, $value, $fail) {
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
+                $fail('The selected business branch is outside your scope.');
+            }
+        };
+
         return [
-            'business_branch_id' => 'required|exists:business_branches,id',
-            'business_id'        => 'required|exists:businesses,id',
+            'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
             'user_id'        => 'required|exists:users,id',
 
             // Customer (nullable - walk-in allowed)
