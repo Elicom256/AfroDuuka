@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductCategoryController;
@@ -21,6 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
      // ========== Metrics after wildcard (needs {product}) ==========
     Route::get("/{product}/metrics", [ProductController::class, "productMetrics"]);
     Route::get("/{product}/price-history", [\App\Http\Controllers\PriceHistoryController::class, "productTimeline"]);
+    Route::post("/{product}/attachments", [AttachmentController::class, "storeProduct"]);
+    Route::get("/{product}/attachments", [AttachmentController::class, "indexProduct"]);
+    Route::delete("/{product}/attachments/{attachment}", [AttachmentController::class, "destroyProduct"]);
     Route::get('/{product}', [ProductController::class, 'show']);
     Route::match(['put', 'patch'], '/{product}', [ProductController::class, 'update']);
     Route::delete('/{product}', [ProductController::class, 'destroy']);

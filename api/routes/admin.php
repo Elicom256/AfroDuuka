@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\BusinessBranchController;
 use App\Http\Controllers\BusinessCategoryController;
 use App\Http\Controllers\BusinessController;
@@ -34,8 +35,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource("workers", WorkerController::class);
      // ============== suppliers ===================
      Route::apiResource("suppliers", SupplierController::class);
+     Route::post("suppliers/{supplier}/attachments", [AttachmentController::class, "storeSupplier"]);
+     Route::get("suppliers/{supplier}/attachments", [AttachmentController::class, "indexSupplier"]);
+     Route::delete("suppliers/{supplier}/attachments/{attachment}", [AttachmentController::class, "destroySupplier"]);
      // ============== customers ===================
      Route::apiResource("customers", CustomerController::class);
+     Route::post("customers/{customer}/attachments", [AttachmentController::class, "storeCustomer"]);
+     Route::get("customers/{customer}/attachments", [AttachmentController::class, "indexCustomer"]);
+     Route::delete("customers/{customer}/attachments/{attachment}", [AttachmentController::class, "destroyCustomer"]);
      // ============== attendances ===================
      Route::apiResource("attendances", AttendanceController::class);
       // ============== employee remuneration ===================

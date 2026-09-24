@@ -5,6 +5,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
+import { ProductImageManager } from '@/app/components/ProductImageManager';
 import { ArrowLeftCircle } from 'lucide-react';
 import { useProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
@@ -38,17 +39,21 @@ export const Product = () => {
         <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardAction>
-            <Badge variant={product.status === true ? 'default' : 'secondary'}>
-              {product.status}
-            </Badge>
-          </CardAction>
-          <CardTitle>{product.name}</CardTitle>
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-3'>
+        <div className='md:col-span-1'>
+          <ProductImageManager productId={product.id} />
+        </div>
+        <div className='md:col-span-2'>
+          <Card>
+            <CardHeader>
+              <CardAction>
+                <Badge variant={product.status === true ? 'default' : 'secondary'}>
+                  {product.status}
+                </Badge>
+              </CardAction>
+              <CardTitle>{product.name}</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4'><div className='grid grid-cols-2 gap-4'>
 
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>SKU</label>
@@ -59,7 +64,7 @@ export const Product = () => {
               <label className='text-sm font-medium text-gray-500'>Barcode</label>
               <p className=''>{product.barcode || 'N/A'}</p>
             </div>
-            
+
             <div className='flex items-center gap-2'>
               <label className='text-sm font-medium text-gray-500'>Selling Price</label>
               <p className=''>{currency} {product.selling_price}</p>
@@ -91,6 +96,8 @@ export const Product = () => {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
 
       <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product}  />
     </div>

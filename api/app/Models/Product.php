@@ -6,6 +6,8 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends BaseModel
 {
@@ -47,6 +49,7 @@ class Product extends BaseModel
 
     protected $appends = [
         'markup_percentage',
+        'cover_url',
     ];
 
     /**
@@ -69,6 +72,22 @@ class Product extends BaseModel
     public function productCategory(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    /**
+     * URL of the first image attachment (used as the product cover),
+     * or null when the product has no image yet.
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        $cover = $this->attachments->firstWhere('kind', 'image');
+
+        return $cover ? Storage::disk($cover->disk ?: 'public')->url($cover->path) : null;
     }
 
     public function businessBranch(): BelongsTo
