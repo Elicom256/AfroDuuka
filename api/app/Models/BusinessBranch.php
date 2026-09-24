@@ -16,7 +16,7 @@ class BusinessBranch extends BaseModel
         return $this->belongsTo(Business::class);
     }
     public function users(){
-        $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class);
     }
     public function purchases(){
         $this->hasMany(Purchase::class);
