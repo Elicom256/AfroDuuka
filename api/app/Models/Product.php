@@ -100,6 +100,21 @@ class Product extends BaseModel
         return $this->belongsTo(TaxCategory::class);
     }
 
+    /**
+     * Quantity that can still be sold/allocated: on-hand minus what is already
+     * reserved on non-cancelled sale orders (proposal.md step 2 allocation).
+     */
+    public function availableQuantity(): int
+    {
+        $reserved = SaleOrderItem::query()
+            ->join('sale_orders', 'sale_orders.id', '=', 'sale_order_items.sale_order_id')
+            ->where('sale_order_items.product_id', $this->getKey())
+            ->where('sale_orders.status', '!=', 'cancelled')
+            ->sum('sale_order_items.allocated_qty');
+
+        return max(0, (int) $this->quantity - (int) $reserved);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Accessors

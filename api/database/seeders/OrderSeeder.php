@@ -36,7 +36,7 @@ class OrderSeeder extends Seeder
 
         $orders = [
             [
-                "status" => "delivered",
+                "status" => "approved",
                 "notes" => "Customer collected in person",
                 "items" => [
                     ["product_index" => 0, "quantity" => 2],
@@ -44,8 +44,8 @@ class OrderSeeder extends Seeder
                 ],
             ],
             [
-                "status" => "processing",
-                "notes" => "Payment confirmed, preparing shipment",
+                "status" => "pending",
+                "notes" => "Awaiting approval",
                 "items" => [
                     ["product_index" => 2, "quantity" => 1],
                 ],
@@ -67,8 +67,8 @@ class OrderSeeder extends Seeder
                 ],
             ],
             [
-                "status" => "shipped",
-                "notes" => "Dispatched via courier",
+                "status" => "approved",
+                "notes" => "Approved, awaiting dispatch",
                 "items" => [
                     ["product_index" => 5, "quantity" => 1],
                     ["product_index" => 6, "quantity" => 1],
@@ -117,7 +117,7 @@ class OrderSeeder extends Seeder
 
             foreach ($items as $item) {
                 SaleOrderItem::create([
-                    "order_id" => $order->id,
+                    "sale_order_id" => $order->id,
                     ...$item,
                 ]);
             }
