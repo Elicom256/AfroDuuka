@@ -13,6 +13,7 @@ import { ManagerSuppliersPage } from '../pages/dashboards/manager/pages/ManagerS
 import { ManagerReportsPage } from '../pages/dashboards/manager/pages/ManagerReportsPage';
 import { ManagerFinancesPage } from '../pages/dashboards/manager/pages/ManagerFinancesPage';
 import { ManagerNotificationsPage } from '../pages/dashboards/manager/pages/ManagerNotificationsPage';
+import { NotificationDetailPage } from '../pages/dashboards/shared/notifications/NotificationDetailPage';
 import { ManagerMessagesPage } from '../pages/dashboards/manager/pages/ManagerMessagesPage';
 import { ManagerPromotionsPage } from '../pages/dashboards/manager/pages/ManagerPromotionsPage';
 import { ManagerOrdersPage } from '../pages/dashboards/manager/pages/ManagerOrdersPage';
@@ -34,10 +35,10 @@ import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
 
 export const ManagerRoutes = () => {
-  const {  isLoading } = useLoggedinUserQuery();
-      if (isLoading) {
-        return <PageLoadingState />;
-      }
+  const { isLoading } = useLoggedinUserQuery();
+  if (isLoading) {
+    return <PageLoadingState />;
+  }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
@@ -67,6 +68,7 @@ export const ManagerRoutes = () => {
         <Route path='finances' element={<ManagerFinancesPage />} />
         <Route path='finance' element={<ManagerFinancesPage />} />
         <Route path='notifications' element={<ManagerNotificationsPage />} />
+        <Route path='notifications/:id' element={<NotificationDetailPage scope='manager' />} />
         <Route path='messages' element={<ManagerMessagesPage />} />
         <Route path='orders' element={<ManagerOrdersPage />} />
         <Route path='quotations' element={<QuotationsPage />} />

@@ -52,6 +52,21 @@ class NotificationController extends Controller
     }
 
     /**
+     * Get a single notification for the authenticated user
+     */
+    public function show(Notification $notification): JsonResponse
+    {
+        if ($notification->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json([
+            'message' => 'Notification fetched successfully',
+            'notification' => $notification,
+        ]);
+    }
+
+    /**
      * Mark a single notification as read
      */
     public function markAsRead(Notification $notification): JsonResponse

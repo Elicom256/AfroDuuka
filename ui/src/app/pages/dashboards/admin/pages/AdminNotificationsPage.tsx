@@ -16,7 +16,7 @@ import {
 } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { NotificationItem } from '../components/notifications/NotificationItem';
 import { StatsCard } from '../components/notifications/StatsCard';
-import { notificationRouteForType, notificationTypeLabel } from '../components/notifications/notificationUtils';
+import { notificationTypeLabel } from '../components/notifications/notificationUtils';
 
 const FILTER_OPTIONS = [
   { type: '', label: 'All' },
@@ -85,13 +85,7 @@ export const AdminNotificationsPage = () => {
   };
 
   const handleOpen = (notification: any) => {
-    const route = notificationRouteForType(notification.type, 'admin');
-    if (route) {
-      navigate(route);
-      if (!notification.is_read) {
-        markAsRead(notification.id);
-      }
-    }
+    navigate(`/admin/notifications/${notification.id}`);
   };
 
   return (
@@ -137,14 +131,18 @@ export const AdminNotificationsPage = () => {
                     type='button'
                     onClick={() => setTypeFilter(opt.type)}
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:bg-muted/60'
+                      isActive
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-background hover:bg-muted/60'
                     }`}
                   >
                     {opt.label}
                     {count > 0 && (
                       <span
                         className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${
-                          isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-destructive text-destructive-foreground'
+                          isActive
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-destructive text-destructive-foreground'
                         }`}
                       >
                         {count}
@@ -164,7 +162,9 @@ export const AdminNotificationsPage = () => {
             <p className='text-center py-12 text-red-500'>Failed to load notifications</p>
           ) : notifications.length === 0 ? (
             <div className='text-center py-16 text-muted-foreground'>
-              {typeFilter ? `No ${notificationTypeLabel(typeFilter).toLowerCase()} notifications yet.` : "No notifications yet. You're all caught up!"}
+              {typeFilter
+                ? `No ${notificationTypeLabel(typeFilter).toLowerCase()} notifications yet.`
+                : "No notifications yet. You're all caught up!"}
             </div>
           ) : (
             notifications.map((notification: any) => (
