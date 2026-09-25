@@ -27,6 +27,7 @@ class WhatsAppConfig extends BaseModel
         'provider',
         'business_phone',
         'phone_number_id',
+        'whatsapp_business_account_id',
         'access_token',
         'webhook_verify_token',
         'is_active',
