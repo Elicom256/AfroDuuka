@@ -449,11 +449,18 @@ scope: **B** business / **Br** branch
 | 8 | Free trial ended | E + W | B | `trial_ended` | `trial_ends_at < now` **and** no active sub | `trial:ended:sub-{id}:{trial_ends_at}` |
 | 9 | Monthly performance report | **E (PDF)** + W one-liner | B | `monthly_report_ready` | 1st of month, prev. completed month | `report:monthly:business-{id}:{YYYY-MM}` |
 | 10 | Quotation sent | E (PDF) | B→customer | — | `QuotationController::send` | `quotation:sent:quotation-{id}:v{version}` |
-| 11 | Sale receipt | E (PDF) | B→customer | — | `SaleService` commit, when customer has email | `sale:receipt:sale-{id}` |
+| 11 | Sale receipt — **deferred**, see §11.7 | E (PDF) | B→customer | — | `SaleService` commit, when customer has email | `sale:receipt:sale-{id}` |
 | 12 | New purchase order | W | Br | `purchase_order_created` | `PurchaseOrderService` commit | `order:purchase:branch-{id}:po-{id}` |
 | 13 | New sale order | W | Br | `sale_order_created` | `SaleOrderService` commit | `order:sale:branch-{id}:so-{id}` |
 | 14 | Low stock | W | Br | `low_stock_alert` | **transition** below `reorder_level`, top-N batched | `inventory:low_stock:product-{id}:episode-{n}` |
 | 15 | Out of stock | W | Br | `out_of_stock_alert` | **transition** to 0 (suppresses #14) | `inventory:out_of_stock:product-{id}:episode-{n}` |
+
+**14 live, 1 deferred.** #11 (sale receipt) is held per §11.7, so
+`config/notifications.php` carries **14** catalogue entries and `TemplateProvisioner`
+creates 13 WhatsApp templates — #10 is email-only. Row numbers are kept stable rather
+than renumbered, because §§5.5, 6.1 and 10 all cross-reference them by number
+(`#14`/`#15` for the inventory pair, `#2`–`#7` for the mandatory subscription set).
+Count numbers from the table, not from the number of rows.
 
 **Deliberately excluded** — these would be volume without meaning, and they are what
 destroys a Meta quality score:
@@ -468,12 +475,15 @@ destroys a Meta quality score:
 - ❌ **Password resets / login alerts** — email only, and Laravel already ships this.
 - ❌ **Marketing / promotional blasts** — separate opt-in list, separate consent, and
   `MARKETING` category billing. Explicitly out of MVP.
-- ⚠️ **`daily_sales_summary`** — already seeded as a template
-  (`WhatsAppService.php:41-86`) and contradicts this intent. **Recommend deleting it.**
-- ⚠️ **`payment_reminder`** — also already seeded. Overdue-payment chasing *is*
-  arguably relevant, but it belongs to **#3 (dunning)** and should ship with it,
-  reusing the overdue logic already in `CheckNotificationsJob.php:121`.
-  **Recommend deferring it there.**
+- ✅ **`daily_sales_summary`** — **resolved, no action needed.** This was flagged here as
+  "already seeded as a template" and needed deleting. That was wrong: it was never a
+  seeded template, and `WhatsAppService.php:41-86` no longer seeds anything at all. It
+  appears nowhere in the codebase. Nothing to delete.
+- ✅ **`payment_reminder`** — **resolved, no action needed.** This one *was* a seeded
+  template, and the recommendation to delete it has been carried out: the old hand-written
+  seeding in `WhatsAppService` was replaced by `TemplateProvisioner`, which derives every
+  template from `config('notifications.catalogue')`. `payment_reminder` is not in the
+  catalogue, so it is no longer provisioned. Deferred to **#3 (dunning)** as planned.
 
 **What makes this "relevant":** every row is a *state change the recipient did not
 initiate and would otherwise not notice*, and each is deduplicated to once per real
@@ -580,7 +590,7 @@ unsubscribe · SES config completion.
 messages, E.164 normalisation) · webhook controller + status reconciliation ·
 `duukaflow:whatsapp:*` commands · throttle rails.
 
-**Stage 4 — Catalogue wiring** All 15 notifications · product alert-state machine ·
+**Stage 4 — Catalogue wiring** All 14 live notifications (#11 deferred) · product alert-state machine ·
 subscription lifecycle · monthly report job · quotation send · sale receipt.
 
 **Stage 5 — Tests** §10.
@@ -603,7 +613,7 @@ template editor (body wording only) · SES bounce dashboard.
 | Retry | Job fails then succeeds → 1 row, `attempt_count=2`, one provider call per attempt. |
 | Ambiguous timeout | Row stuck `sending` → **no** auto-resend; webhook then flips it. |
 | Provider | `MetaWhatsAppProvider` hits the right URL/body/headers (HTTP fake); 4xx → `failed` with code; 429 → backoff. |
-| Templates | Each of the 15 renders with a full variable set; unapproved template → suppressed. |
+| Templates | Each of the 14 live notifications renders with a full variable set; unapproved template → suppressed. |
 | Recipients | Branch recipient preferred over business; no recipient → logged, not thrown; bad phone → skipped. |
 | Preferences | Inventory opt-out suppresses #14/#15 only; subscription opt-out **cannot** suppress #2–#7. |
 | Inventory | `10→4` (thr 5) fires once; re-check at 4 silent; `4→12` rearms; `→0` fires out-of-stock and **not** low-stock. |
@@ -639,9 +649,10 @@ Tenant-scoping test is mandatory on **every** one of these — `industry-feature
    Recommend `UTILITY` (cheap tier, far higher limits). Confirm.
 6. **Per-branch or consolidated monthly report?**
    Recommend consolidated business + per-branch table inside the PDF (§6.1).
-7. **Is #11 (sale receipt by email) in scope now?**
-   It's a customer-facing email and arguably #1's territory, not #2's. Recommend
-   **defer** unless you want it as a Quotation companion.
+7. **Is #11 (sale receipt by email) in scope now?** — **deferred, answered.**
+   It's a customer-facing email and arguably #1's territory, not #2's. Deferred rather
+   than built as a Quotation companion. The catalogue row is retained and marked so the
+   numbering still resolves; it is not in `config/notifications.php`.
 8. **AWS auth: static keys or IAM role?**
    `.env.prod` is written for static keys with `AWS_USE_IAM_ROLE=false` as the
    documented switch. If prod runs on ECS/EC2 with an instance profile, drop the keys
