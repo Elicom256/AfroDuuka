@@ -216,3 +216,71 @@ Smaller corrections:
   WhatsApp" indistinguishable from "opted out".
 - Suppression rows use a `:suppressed:{reason}` key suffix, so "no recipient" and
   "opted out" for the same event are both recorded instead of one masking the other.
+
+### Dev database (inventory) — reconciled, 2026_09_26
+
+The user confirmed all data here is disposable test data. Ran `migrate:fresh --seed`
+rather than hand-written ALTERs, because `migrate:fresh` is the only way to *prove*
+the folded migrations produce a working schema — the ALTER path can only ever prove the
+ALTERs applied, and would have left the dev schema permanently out of step with the
+migration files.
+
+Two things worth recording from the verification:
+
+- `products` is the branch-product table (`2026_01_01_000007` creates `products`, not
+  `business_branch_products`). The migration filename is misleading; the table is
+  `products` with a non-null `business_branch_id`.
+- The legacy log table is `whats_app_message_logs`, not `whatsapp_message_logs`. The
+  backfill migration already guards on the correct name, so it is a no-op on a fresh
+  database — which is right, but means the backfill path itself is currently only
+  exercised by tests.
+
+Columns confirmed present after the fresh migrate: `businesses.timezone`,
+`products.alert_state`, `products.alert_episode`, `whats_app_configs.access_token`,
+`whats_app_configs.whatsapp_business_account_id`, `whats_app_templates.last_synced_at`.
+
+### Stage 1 chunk 7 (Meta template approval sync) — findings
+
+Added `duukaflow:whatsapp:sync-templates` (daily 06:30, `withoutOverlapping`),
+`TemplateSyncService`, `MetaWhatsAppProvider::listTemplates()`, and 15 tests.
+
+**The command is the switch that turns real WhatsApp sending on.** Until it runs for a
+business, every template is PENDING and `TemplateResolver` suppresses every WhatsApp
+notification, so this is load-bearing, not a convenience.
+
+Design points that were forced by the failure modes rather than chosen up front:
+
+- **A failed read must change nothing.** Meta returns an empty template list both for
+  "you have no templates" and for "I could not be reached", and the two are not
+  distinguishable from the response. Since `template_status` is the gate on sending,
+  treating the second case as the first revokes approval from templates that are
+  perfectly approved, and the business silently stops receiving messages. So an empty
+  result reports `ok => false`, writes nothing, and makes the command exit non-zero so
+  a scheduled run is visible.
+- **No "mark the rest rejected" pass.** A business may have templates registered at
+  Meta that are not in our catalogue; sweeping them would revoke approvals we never
+  owned. Only templates actually matched to a remote entry are written.
+- **Matching is dotted-vs-underscored.** Our types are `registration.welcome`, Meta's
+  names are `registration_welcome`. Matching on the literal string would leave every
+  template PENDING forever with no way for the owner to distinguish that from a genuine
+  Meta rejection. Language is part of the match, because a business with `en_UK` and
+  `en_US` variants is a normal Meta setup and approving the wrong locale is a real
+  failure. A locale mismatch is only used as a last-resort fallback.
+- **`LIMITED` and `DISABLED` are recorded as REJECTED.** Meta sends `LIMITED` when
+  template quality falls below a threshold, and it will not accept the template. Keeping
+  those as usable would fail every send against a template we believed was fine.
+- **An unrecognised status leaves the row untouched** rather than being read as a
+  rejection, so a status Meta adds later does not silently disable a business.
+- `body` and `variables` are never written by the sync. The owner edits those, and Meta
+  does not return them anyway.
+
+One real bug caught immediately: `WhatsAppProviderFactory::for()` builds the provider's
+config array field by field, and did not pass `whatsapp_business_account_id`. Every
+`listTemplates()` call therefore returned `[]` and the sync silently did nothing — it
+would have looked like "Meta has no templates" rather than "we never asked". Worth
+noting because the failure is invisible: no error, no warning, just templates that never
+become APPROVED.
+
+Still not done here: `MetaWhatsAppProvider::sendMessage()` remains a stub. The Graph
+call for template listing is real because that read *is* the feature; sending is stage 3
+and its ambiguity/webhook handling should not be half-built here.
