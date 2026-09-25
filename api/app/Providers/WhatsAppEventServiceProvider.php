@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Events\WhatsAppNotificationEvents;
 use App\Listeners\WhatsApp\BusinessRegisteredListener;
 use App\Listeners\WhatsApp\SubscriptionCreatedListener;
 use App\Listeners\WhatsApp\SubscriptionPlanChangedListener;
@@ -48,9 +49,4 @@ class WhatsAppEventServiceProvider extends ServiceProvider
             SaleOrderCreatedListener::class,
         ],
     ];
-
-    public function boot(): void
-    {
-        $this->registerListeners($this->listen);
-    }
 }

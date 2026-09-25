@@ -25,18 +25,14 @@ class StoreWhatsAppConfigRequest extends FormRequest
                 'provider' => 'demo',
             ]);
         }
-
-        if (! $this->has('business_id')) {
-            $this->merge([
-                'business_id' => Auth::user()?->business_id,
-            ]);
-        }
     }
 
     public function rules(): array
     {
         return [
-            'business_id' => ['nullable', 'exists:businesses,id'],
+            // business_id is deliberately not accepted from the client. It is derived
+            // from the authenticated user in the controller, so a tenant cannot create
+            // a configuration against another business.
             'provider' => ['nullable', 'string', 'in:demo,meta,wati,360dialog'],
             'business_phone' => ['required', 'string'],
             'phone_number_id' => ['nullable', 'string'],
