@@ -25,7 +25,15 @@ return [
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        // Required for temporary/STS credentials. The Laravel SES transport reads it
+        // from this key; without it an instance profile or a short-lived token pair
+        // fails with an opaque auth error rather than an obvious missing-token one.
+        'token' => env('AWS_SESSION_TOKEN'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        // When true, no static credentials are sent at all and the SDK resolves them
+        // from the instance/task role. This is the correct setting in real production;
+        // static keys in .env are a fallback for local and short-lived environments.
+        'use_iam_role' => (bool) env('AWS_USE_IAM_ROLE', false),
     ],
 
     'gemini' => [

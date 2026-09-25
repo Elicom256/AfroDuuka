@@ -56,15 +56,17 @@ class PreferenceResolver
     }
 
     /**
-     * Billing and security categories are not suppressible. Kept as a method so the
-     * definition sits next to the check that depends on it.
+     * Non-suppressible categories, delegated to the catalogue.
+     *
+     * Deliberately not a hardcoded list: an earlier version read
+     * config('notifications.email.transactional_categories'), which was copied from
+     * the brief and had drifted from the catalogue's own mandatory flags. The drift was
+     * not cosmetic — the system and order categories were mandatory to the dispatcher
+     * and not to this check, so a mandatory notification could be dropped here as
+     * opted-out. The config key has been removed rather than left as a trap.
      */
     public function isMandatory(string $category): bool
     {
-        return in_array(
-            $category,
-            config('notifications.email.transactional_categories', []),
-            true
-        );
+        return $this->catalogue->isMandatoryCategory($category);
     }
 }
