@@ -216,7 +216,21 @@ return [
 
     'email' => [
         'preference_checked' => (bool) env('EMAIL_PREFERENCE_CHECKED', true),
-        'transactional_categories' => ['subscription', 'payment', 'security'],
+
+        // NOTE: there is deliberately no 'transactional_categories' list here.
+        // Non-suppressible categories are derived from the catalogue's per-entry
+        // `mandatory` flags (NotificationCatalogue::mandatoryCategories()), because a
+        // hand-maintained copy of that list drifted and the two disagreed.
+
+        'from_address' => env('MAIL_FROM_ADDRESS', 'notifications@duukaflow.com'),
+        'from_name' => env('MAIL_FROM_NAME', config('app.name')),
+        'reply_to' => env('MAIL_REPLY_TO_ADDRESS'),
+
+        // SES is in sandbox until production access is granted, and in sandbox it only
+        // delivers to verified addresses. Recorded on the delivery when a send is
+        // rejected for that reason, so the log distinguishes "unverified" from
+        // "malformed".
+        'sandbox' => (bool) env('MAIL_SES_SANDBOX', false),
     ],
 
     /*
