@@ -6,6 +6,7 @@ use App\Contracts\Notifications\ChannelResult;
 use App\Contracts\Notifications\NotificationChannel;
 use App\Mail\NotificationMail;
 use App\Models\NotificationDelivery;
+use App\Services\Ses\NotificationMessageId;
 use Illuminate\Contracts\Mail\Factory as MailFactory;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Exception\TransportException;
@@ -95,7 +96,9 @@ class SesMailChannel implements NotificationChannel
             return ChannelResult::rejected('not_accepted', 'The mail transport declined the message.');
         }
 
-        return ChannelResult::accepted('ses-'.($delivery->provider_message_id ?? $delivery->id));
+        // The Message-ID, not a synthetic value: it is what SES will echo on the
+        // bounce, and the delivery row is what a later suppression is applied to.
+        return ChannelResult::accepted(NotificationMessageId::forDelivery($delivery));
     }
 
     /**

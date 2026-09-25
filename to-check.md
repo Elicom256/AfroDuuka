@@ -403,3 +403,69 @@ Not done here, still open:
   Skipped: both types render correctly as HTML now, and the PDF path should be built with
   the reporting data it depends on rather than against an empty payload.
 - `MetaWhatsAppProvider::sendMessage()` is still a stub (stage 3).
+
+### Stage 2 chunk 2 (SES bounce / complaint suppression) — findings
+
+Added `POST /api/webhooks/ses` (SNS), `SnsSignatureVerifier`, `SesEventApplier`,
+`ProcessSesSuppressionsJob` (every 15 min), a deterministic `Message-ID`, and
+`notification_recipients.deactivated_reason` / `deactivated_at`. 13 tests.
+
+**The correlation key is the whole design, and the plan did not specify it.** SES reports
+a bounce against `mail.messageId` — the Message-ID header of the message we sent — and
+echoes no id of ours. The obvious implementation, matching on recipient address and a time
+window, is a guess: it attaches a bounce to whichever delivery happened to be most recent,
+which both suppresses a good address and leaves the actually-broken one deliverable. So
+`NotificationMail` stamps `notification-{delivery_id}@{from_domain}` as its Message-ID, the
+channel returns that as the `providerMessageId`, and the webhook parses it back. An
+unrecognisable id is logged and dropped, never guessed.
+
+**Two bugs, one of them in the verifier itself:**
+
+1. **`publicKey()` was typed `?string` but `openssl_pkey_get_public` returns an
+   `OpenSSLAsymmetricKey`.** A `TypeError` on every call, so every webhook would have
+   500'd and no bounce would ever have been recorded. Found by the first test run; the
+   signature path had never been executed before.
+2. **Soft bounces would have suppressed real customers.** `Transient` and
+   `MailboxFull` are temporary conditions. Only `Permanent` deactivates a recipient now.
+
+**A late event must not undo a suppression.** Webmail clients fetch cached copies for days,
+so an `Opened` can legitimately arrive hours after a hard bounce. Treating that as proof
+of delivery would resurrect a row the bounce had already settled, and the address would
+go back into rotation. Events that would move a `failed`/`suppressed` delivery are ignored.
+
+**On the signature check.** The endpoint is unauthenticated by necessity, and it can
+deactivate a customer's notifications and unsubscribe their address — so the request is
+authorised by the RSA signature over the body, verified before the payload is interpreted.
+The `SigningCertURL` is attacker-controlled, so following it as-is is an SSRF primitive
+that would let the attacker supply both the key and the signature that "verifies" against
+it; it is restricted to HTTPS + an `*.amazonaws.com` host, checked on the parsed host so
+`https://sns.us-east-1.amazonaws.com.evil.test/` does not pass. Tests sign with a real
+generated keypair and assert forged, missing, tampered-body and foreign-key signatures are
+all rejected — a test that mocked the verifier would pass while it was completely broken.
+
+**Deviation from §5.6, deliberate:** the plan puts bounce application in
+`ProcessSesSuppressionsJob` on a 15-minute cadence. Events are applied **synchronously in
+the webhook** instead. Queueing them only adds latency to a suppression, during which the
+address keeps receiving mail — and the job name is now a misnomer for the primary path.
+The job is retained for the backstop it is genuinely good at: a send that timed out is
+left in `sending` for SES to confirm, and when SES never does, that row would sit in-flight
+forever — never counted as failed, so the attempt budget never advances, and invisible in
+the delivery log. It settles those after a 60-minute grace period, and reports suppression
+counts so a silent address failure surfaces before a customer does. It deliberately does
+**not** retry them, since not double-delivering is the reason they were parked.
+
+**Operational setup still required** (not code):
+
+- Create an SNS topic with an **HTTPS** subscription to `/api/webhooks/ses`. The first
+  delivery is a `SubscriptionConfirmation`; the controller visits the `SubscribeURL`, so
+  the endpoint starts receiving events without manual confirmation. Until this is done the
+  endpoint is never called at all.
+- Enable SES **event publishing** for bounces, complaints and deliveries. Nothing works
+  without it.
+- Put the route behind no global api auth middleware. It is deliberately outside every
+  prefix group, and a 401 there is indistinguishable from a webhook that was never wired.
+
+---
+
+*Remaining work is tracked in [`undone.md`](undone.md). This file stays the record of
+what was decided and why; `undone.md` is what to work from next.*
