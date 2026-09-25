@@ -3,7 +3,6 @@
 namespace App\Services\WhatsApp;
 
 use App\Jobs\ProcessWhatsAppNotificationJob;
-use App\Jobs\SendWhatsAppNotificationJob;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
 use App\Models\WhatsAppTemplate;
@@ -55,14 +54,6 @@ class WhatsAppService
                 'locale' => 'en',
                 'body' => 'Stock alert for *{{product_name}}*: only {{current_stock}} units left.',
                 'variables' => ['product_name', 'current_stock'],
-                'status' => 'approved',
-            ],
-            [
-                'name' => 'daily_sales_summary',
-                'category' => 'daily_summary',
-                'locale' => 'en',
-                'body' => 'Daily summary: sales {{sales_amount}} and profit {{profit_amount}}.',
-                'variables' => ['sales_amount', 'profit_amount'],
                 'status' => 'approved',
             ],
             [

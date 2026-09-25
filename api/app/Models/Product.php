@@ -13,6 +13,18 @@ class Product extends BaseModel
 {
     use HasFactory, LogsActivity;
 
+    /**
+     * Stock alert state, so a re-check at an unchanged quantity stays silent.
+     * products.business_branch_id is NOT NULL, so this state is inherently per-branch.
+     */
+    public const ALERT_OK = 'ok';
+
+    public const ALERT_LOW_STOCK_FIRED = 'low_stock_fired';
+
+    public const ALERT_OUT_OF_STOCK_FIRED = 'out_of_stock_fired';
+
+    public const ALERT_SUPPRESSED = 'suppressed';
+
     protected $fillable = [
         'business_branch_id',
         'product_category_id',
@@ -35,6 +47,8 @@ class Product extends BaseModel
         'status',
         'last_sold_at',
         'expiry_date',
+        'alert_state',
+        'alert_episode',
     ];
 
     protected $casts = [
@@ -45,6 +59,7 @@ class Product extends BaseModel
 
         'cost_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
+        'alert_episode' => 'integer',
     ];
 
     protected $appends = [

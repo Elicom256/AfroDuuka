@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\WhatsApp\WhatsAppNotificationService;
 use Illuminate\Support\Facades\Request;
 
 class BusinessService
@@ -14,6 +15,22 @@ class BusinessService
     public function __construct()
     {
         //
+    }
+
+    /**
+     * businesses.country_id is NOT NULL but the registration form does not collect a
+     * country, so it has to be resolved here or business creation fails outright.
+     * Uganda is the primary market (it is also the +256 default used across the
+     * codebase); fall back to the first seeded country if Uganda is absent.
+     */
+    private function resolveDefaultCountryId(): ?int
+    {
+        return Country::query()
+            ->where('iso_alpha2', 'UG')
+            ->orWhere('name', 'Uganda')
+            ->orderBy('id')
+            ->value('id')
+            ?? Country::query()->orderBy('id')->value('id');
     }
 
     public function create(array $data, User $user): Business
@@ -25,6 +42,7 @@ class BusinessService
             'phone' => $user->phone,
             'address' => $data['address'],
             'business_category_id' => $data['business_category_id'],
+            'country_id' => $data['country_id'] ?? $this->resolveDefaultCountryId(),
         ]);
 
         // Dispatch business registration event
@@ -55,17 +73,6 @@ class BusinessService
         ]);
         BusinessBranch::create([
             "business_id" => $business->id, 
-        ]);
-
-        (new WhatsAppNotificationService())->queueBusinessNotification([
-            'business_id' => $business->id,
-            'type' => 'registration',
-            'template_key' => 'registration.welcome',
-            'recipient_phone' => $user->phone ?? $business->phone,
-            'template_data' => [
-                'business_name' => $business->name,
-                'phone' => $user->phone ?? $business->phone,
-            ],
         ]);
 
         // ======================= set starter plan ================= to create a plan based on what the user picked

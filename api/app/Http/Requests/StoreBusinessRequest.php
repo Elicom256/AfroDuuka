@@ -34,6 +34,9 @@ class StoreBusinessRequest extends FormRequest
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|min:1|max:255',
             'business_category_id' => 'required|exists:business_categories,id',
+            // Optional: the registration form does not collect a country, so the
+            // service resolves a default when this is absent.
+            'country_id' => 'nullable|exists:countries,id',
         ];
     }
 }
