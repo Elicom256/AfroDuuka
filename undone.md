@@ -20,6 +20,7 @@ filesystem and log.
 |---|---|
 | `tests/Feature/WhatsApp/` | ✅ 167 tests, 531 assertions |
 | Full suite | 312 tests, 962 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
 
@@ -120,10 +121,14 @@ These block real-world behaviour and cannot be done from the repo.
   and it blocks the monthly report job.
 - **#6 Per-branch or consolidated monthly report.** Recommend consolidated business
   with a per-branch table inside the PDF.
-- **#4/#7 Catalogue scope.** `daily_sales_summary` and `payment_reminder` deferred;
-  sale-receipt email deferred. The catalogue shipped **14** entries, but §4 of the plan
-  still says "All 15" and §6.1 numbers from 15 — the plan's own count is stale and worth
-  reconciling so the discrepancy is not rediscovered later.
+- ~~**#4/#7 Catalogue scope.**~~ ✅ **Resolved.** `daily_sales_summary` and
+  `payment_reminder` deferred, sale-receipt email deferred. The plan said the first two
+  were "already seeded as templates" and needed deleting — that was wrong on both counts.
+  `daily_sales_summary` was never a template at all and appears nowhere in the codebase;
+  `payment_reminder` genuinely was, and replacing the old hand-written seeding with
+  `TemplateProvisioner` already removed it. Plan §6 now says **14 live, 1 deferred**
+  (#11 sale receipt, row kept for stable numbering) and the "All 15" references in §9 and
+  §10 are corrected. Nothing left to do.
 - **Mandatory categories do not match plan §5.4.** The brief says `subscription`,
   `payment`, `security`. The catalogue has **no `security` category** and marks `order`
   mandatory instead. The code now derives mandatory from the catalogue, so it is
