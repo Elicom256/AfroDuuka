@@ -45,6 +45,8 @@ class NotificationRecipient extends BaseModel
         'categories',
         'is_active',
         'verified_at',
+        'deactivated_reason',
+        'deactivated_at',
     ];
 
     protected function casts(): array

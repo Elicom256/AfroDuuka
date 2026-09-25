@@ -231,6 +231,11 @@ return [
         // rejected for that reason, so the log distinguishes "unverified" from
         // "malformed".
         'sandbox' => (bool) env('MAIL_SES_SANDBOX', false),
+
+        // Domain for the Message-ID header we stamp on every notification email.
+        // Bounces come back keyed only on that header, so it has to encode the delivery
+        // id. Left null it is derived from from_address, which keeps the two in step.
+        'message_id_domain' => env('MAIL_MESSAGE_ID_DOMAIN'),
     ],
 
     /*
@@ -248,5 +253,14 @@ return [
         'max_attempts' => (int) env('WHATSAPP_MAX_ATTEMPTS', 3),
         'backoff' => array_map('intval', explode(',', (string) env('WHATSAPP_RETRY_BACKOFF', '30,300,1800'))),
     ],
+
+    /*
+    | How long a delivery may sit in `sending` before SES is treated as never having
+    | confirmed it. A send that timed out is left in `sending` on purpose, because the
+    | message may have landed and re-sending it would double-deliver. The webhook
+    | normally settles it either way. This is the backstop for when it does not, so
+    | those rows do not accumulate as permanently in-flight.
+    */
+    'unconfirmed_grace_minutes' => (int) env('NOTIFICATIONS_UNCONFIRMED_GRACE_MINUTES', 60),
 
 ];

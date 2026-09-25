@@ -37,6 +37,13 @@ return new class extends Migration
             // An unverified recipient is treated as absent, and the attempt is logged.
             $table->timestamp('verified_at')->nullable();
 
+            // Why this row stopped being deliverable, when it did. Deactivated and
+            // inactive look identical without this, and a provider hard-bounce is not
+            // the same thing as an owner removing a colleague — one should never be
+            // re-enabled on a manual pass, the other is often a data-entry slip.
+            $table->string('deactivated_reason')->nullable();
+            $table->timestamp('deactivated_at')->nullable();
+
             $table->timestamps();
 
             $table->index(['business_id', 'channel']);
