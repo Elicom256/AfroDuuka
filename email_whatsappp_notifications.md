@@ -4,7 +4,9 @@
 `whatsapp.md` (requirements + audit brief) · `whatsapp_plan.md` (audit, Aug 2026) ·
 `whatsapp_implementation.md` (Phase 1 blueprint) · `refactor.md` §3.3 (`dedupe_key`)
 
-**Status:** plan only — no code written yet beyond `.env.prod` SES/WhatsApp config.
+**Status:** Stages 0–1 and Stage 2 chunks 1–2 are built and tested. This document is the
+spec; **[`undone.md`](undone.md) is the working checklist and is where to resume** — it
+tracks what is left, marks finished stages, and links the reasoning in `to-check.md`.
 
 **North star:** *"most relevant and meaningful notifications."* Every row in the
 catalogue below had to justify its own existence. Volume is the enemy here, not
@@ -558,6 +560,10 @@ Delete: `SendWhatsAppNotificationJob` (never dispatched, **dead**) ·
 
 ## 9. Implementation sequence
 
+> **Progress:** Stage 0 ✅ · Stage 1 ✅ · Stage 2 chunks 1–2 ✅ · remainder ⬜
+> See [`undone.md`](undone.md) for the current starting point, and `to-check.md` for
+> deviations from the stages below that were deliberate.
+
 **Stage 0 — Unbreak** *(must be first; nothing else is testable until it lands)*
 Fix B1, B2, B3, B4, B11, B12, B6, B7, B8. Delete the dead jobs and `Console/Kernel`.
 *This alone restores business registration, the event pipeline, and the monthly
@@ -643,5 +649,5 @@ Tenant-scoping test is mandatory on **every** one of these — `industry-feature
 
 ---
 
-*Plan written 2026-09-25. No code changed except `.env.prod` (SES + WhatsApp config).
-Stages 0–1 are ready to start on approval.*
+*Plan written 2026-09-25. Stages 0–1 and Stage 2 chunks 1–2 implemented — resume from
+[`undone.md`](undone.md); deviations and bugs found are recorded in `to-check.md`.*

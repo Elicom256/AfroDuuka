@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Mail\Concerns\HasUnsubscribeHeaders;
 use App\Models\NotificationDelivery;
+use App\Services\Ses\NotificationMessageId;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -60,6 +61,15 @@ class NotificationMail extends Mailable
                 config('notifications.email.reply_to'),
                 fn ($m) => $m->replyTo(config('notifications.email.reply_to'))
             )
+            ->withSymfonyMessage(function ($message) {
+                // The correlation key for bounces and complaints. Without it SES has
+                // nothing to report against but the recipient address, and a bounce
+                // could not be attributed to the delivery that caused it.
+                $message->getHeaders()->addIdHeader(
+                    'Message-ID',
+                    NotificationMessageId::forDelivery($this->delivery)
+                );
+            })
             ->view('mail.notification', [
                 'type' => $this->type,
                 'headline' => $this->headline(),
