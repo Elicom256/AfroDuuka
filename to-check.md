@@ -113,3 +113,24 @@ Verified against `inventory_test` before starting, so none are regressions:
   new notification tables. I have not touched it. Either `migrate:fresh` the dev database
   or let me apply the additive `ALTER TABLE`s for you. No duplicate
   `whats_app_configs.business_id` rows exist, so the unique index will apply cleanly.
+
+### Stage 1 chunk 4 (config, channel contract, renderer) — findings
+
+- **The seeded `whats_app_templates` rows cannot dispatch as they stand.**
+  `WhatsAppService::ensureTemplatesForBusiness()` seeds `low_stock_alert` and
+  `payment_reminder` with `'status' => 'approved'` (lowercase, our own wording-status
+  column) and no `provider_name`, `language_code` or `template_status`. But approval is
+  now read from `template_status === 'APPROVED'`, mirroring Meta. So every existing
+  template row reads as not approved and **every WhatsApp notification would be
+  suppressed as `template_not_approved`** until those rows are backfilled from Meta's
+  `GET /{waba-id}/message_templates`. The two seeded names are also the old shape and do
+  not match the new catalogue keys (`inventory.low_stock` rather than `low_stock_alert`).
+  This is expected — the rows are placeholders, not real Meta approvals — but it means
+  template seeding has to be rewritten to the catalogue's `meta` names before the
+  dispatcher is useful, and that is the next piece of work rather than a surprise later.
+- **Two existing callers still use the lenient renderer.** `ProcessWhatsAppNotificationJob`
+  and `GenerateMonthlyBusinessReportJob` call `WhatsAppTemplateService::render()`, which
+  is now a documented back-compat wrapper that cannot enforce declared variable order,
+  because it is handed a data array with no declared order. Both are scheduled/queued
+  paths that will be replaced by the dispatcher, so this is temporary and safe, but
+  neither should be treated as correct rendering until it is.
