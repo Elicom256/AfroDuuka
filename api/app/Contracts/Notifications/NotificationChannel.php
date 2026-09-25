@@ -21,16 +21,21 @@ interface NotificationChannel
     public function name(): string;
 
     /**
-     * Whether this transport is usable right now, e.g. SES configured, WhatsApp
-     * phone verified. A false here suppresses the send with a reason rather than
+     * Whether this transport is usable for this delivery, e.g. SES configured, WhatsApp
+     * config active. A false here suppresses the send with a reason rather than
      * throwing, because "we cannot send this right now" is not an error.
+     *
+     * Takes the delivery rather than reading ambient state on purpose. A transport
+     * needs to know which tenant it is sending for, and inside a queued job the tenant
+     * is not in BusinessContext — it is on the row. Reading request() or Auth here
+     * would work in a web request and quietly do nothing in a worker.
      */
-    public function isAvailable(): bool;
+    public function isAvailable(NotificationDelivery $delivery): bool;
 
     /**
      * Why the channel is unavailable, for the delivery log's suppressed_reason.
      */
-    public function unavailableReason(): ?string;
+    public function unavailableReason(NotificationDelivery $delivery): ?string;
 
     /**
      * Hand the message to the provider.
