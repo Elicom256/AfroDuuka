@@ -46,6 +46,28 @@ services:
     networks:
       - app
 
+  # ---------------------------------------------
+  #  Queue worker (replaces the old schedule:queue:work anti-pattern)
+  # ---------------------------------------------
+  queue-worker:
+    image: inventory-backend-dev
+    working_dir: /app
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/app
+    command: php artisan queue:work --tries=3 --sleep=3 --max-time=3600
+    depends_on:
+      backend:
+        condition: service_healthy
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
   #  ---------------------------------------------------------------
   #  Postgres service
   #  ---------------------------------------------------------------

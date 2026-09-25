@@ -4,6 +4,7 @@ namespace App\Support\Tenant;
 
 use App\Models\BusinessBranch;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\Auth;
 
 class EffectiveBranchScope
@@ -17,7 +18,7 @@ class EffectiveBranchScope
      *   3. otherwise                      -> [business_branch_id]
      *
      * @return array{0:int|null,1:int[]} [via_business_id, branch_ids]
-     *         via_business_id is null when the resolution is per-branch
+     *                                   via_business_id is null when the resolution is per-branch
      */
     public static function branchesFor(?User $user): ?array
     {
@@ -37,29 +38,62 @@ class EffectiveBranchScope
     }
 
     /**
-     * Apply the effective branch constraint to a query builder for the current user.
+     * Apply the effective branch constraint to a query builder.
+     *
+     * Falls back to BusinessContext when there is no authenticated user. Without this,
+     * every queued and scheduled job would read branch rows unfiltered — and because
+     * most branch-scoped tables (products included) carry no business_id column, that
+     * meant reading across every tenant, not merely every branch.
      */
-    public static function apply(\Illuminate\Database\Eloquent\Builder $builder): void
+    public static function apply(EloquentBuilder $builder): void
     {
-        if (! Auth::check()) {
-            return;
+        if (Auth::check()) {
+            $resolved = static::branchesFor(Auth::user());
+
+            // unrestricted (system role)
+            if ($resolved === null) {
+                return;
+            }
+
+            [$viaBusiness, $branchIds] = $resolved;
+        } else {
+            $context = app(BusinessContext::class);
+
+            // No authenticated user and no tenant context: there is nothing to scope by.
+            // Callers that need scoping in a job must run inside BusinessContext::run().
+            if (! $context->hasBusiness()) {
+                return;
+            }
+
+            if ($context->branchId() !== null) {
+                $branchIds = [$context->branchId()];
+            } else {
+                $branchIds = BusinessBranch::where('business_id', $context->businessId())
+                    ->pluck('id')
+                    ->all();
+            }
         }
 
-        $resolved = static::branchesFor(Auth::user());
+        // A NULL business_branch_id marks a business-level row: a business-wide
+        // notification, an owner-level recipient, a delivery not tied to a branch.
+        // It belongs to the business and not to any competing branch, so it stays
+        // visible to every branch of that business.
+        //
+        // This is not cosmetic. `whereIn('business_branch_id', [...])` never matches
+        // NULL, so without the orWhereNull a business that stores its notifications
+        // business-wide sees none of them — the tenant's own delivery history looks
+        // empty while a neighbouring tenant's does not. The same applies to a
+        // business with zero branches: it still owns its business-level rows, so a
+        // blanket `1 = 0` is wrong there too and the restriction has to be applied
+        // to branch rows only.
+        //
+        // Grouped so it still ANDs with the business scope rather than widening it.
+        $builder->where(function ($query) use ($branchIds) {
+            $query->whereNull('business_branch_id');
 
-        // unrestricted (system role)
-        if ($resolved === null) {
-            return;
-        }
-
-        [$viaBusiness, $branchIds] = $resolved;
-
-        if (blank($branchIds)) {
-            // core admin with zero branches -> nothing visible
-            $builder->whereRaw('1 = 0');
-            return;
-        }
-
-        $builder->whereIn('business_branch_id', $branchIds);
+            if (filled($branchIds)) {
+                $query->orWhereIn('business_branch_id', $branchIds);
+            }
+        });
     }
 }

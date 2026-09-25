@@ -8,7 +8,8 @@ use App\Models\Sale;
 use App\Models\Expense;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
-use App\Services\WhatsApp\WhatsAppNotificationService;
+use App\Models\WhatsAppTemplate;
+use App\Services\WhatsApp\WhatsAppTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -71,13 +72,16 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
 
             $templateKey = 'report.monthly';
             $template = WhatsAppTemplate::where('business_id', $businessId)
-                ->where('category', 'report')
+                ->where('name', $templateKey)
                 ->where('status', 'approved')
                 ->latest('created_at')
                 ->first();
 
-            $templateString = $template?->body ?? 'Monthly Report: Sales {{total_sales}}, Purchases {{total_purchases}}, Profit/Loss {{profit_loss}}';
-            $templateData = $template?->variables ?? [
+            $templateString = $template?->body ?? 'Hello {{business_name}}, your {{month_name}} performance report is ready. Open DuukaFlow to view the full figures.';
+
+            // A template's `variables` column holds the variable names it expects,
+            // not values, so it must never be used as the render data.
+            $templateData = [
                 'business_name' => $business->name,
                 'month_name' => Carbon::now()->subMonth()->monthName,
                 'total_sales' => is_numeric($totalSales) ? number_format($totalSales, 2) : '0.00',

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Tenant\BusinessContext;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -25,12 +26,18 @@ class BaseModel extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('business', function ($builder) {
-            if (
-                static::tenantTableHasColumn('business_id')
-                && Auth::check()
-                && Auth::user()?->business_id
-            ) {
-                $builder->where('business_id', Auth::user()->business_id);
+            if (! static::tenantTableHasColumn('business_id')) {
+                return;
+            }
+
+            // Fall back to BusinessContext when there is no authenticated user.
+            // Previously this scope was gated on Auth::check() alone, so every queued
+            // and scheduled job read across all tenants.
+            $businessId = app(BusinessContext::class)->businessId()
+                ?? (Auth::check() ? Auth::user()?->business_id : null);
+
+            if ($businessId !== null) {
+                $builder->where('business_id', $businessId);
             }
         });
 
@@ -43,23 +50,25 @@ class BaseModel extends Model
         static::creating(function ($model) {
             $user = Auth::user();
 
-            if (! $user) {
-                return;
-            }
+            // The context wins over the authenticated user so a job can create rows for
+            // an explicit tenant even when a session happens to be present.
+            $businessId = app(BusinessContext::class)->businessId() ?? $user?->business_id;
+            $branchId = app(BusinessContext::class)->branchId() ?? $user?->business_branch_id;
 
             if (
                 static::tenantTableHasColumn('business_id')
-                && $user->business_id
+                && $businessId
                 && ! isset($model->business_id)
             ) {
-                $model->business_id = $user->business_id;
+                $model->business_id = $businessId;
             }
 
-            if (static::tenantTableHasColumn('business_branch_id')
-                && $user->business_branch_id
+            if (
+                static::tenantTableHasColumn('business_branch_id')
+                && $branchId
                 && ! isset($model->business_branch_id)
             ) {
-                $model->business_branch_id = $user->business_branch_id;
+                $model->business_branch_id = $branchId;
             }
         });
     }

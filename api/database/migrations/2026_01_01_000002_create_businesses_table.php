@@ -12,6 +12,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId("business_category_id")->constrained()->cascadeOnDelete();
             $table->foreignId("country_id")->constrained()->cascadeOnDelete();
+            // IANA name. Laravel's Schedule carries a single timezone, so the schedule
+            // fires once and each job decides per business whether "07:00 local" has
+            // arrived. Without this, 07:00 means 07:00 UTC and a Kampala business gets
+            // its monthly report at 10:00.
+            $table->string('timezone')->default('Africa/Kampala');
             $table->string('name');
             $table->string('email')->nullable()->unique();
             $table->string('phone')->nullable()->unique();
