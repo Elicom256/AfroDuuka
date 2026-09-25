@@ -9,6 +9,18 @@ Route::get("/up", function () {
     ]);
 });
 
+// SES event publishing, delivered by SNS.
+//
+// Intentionally public and outside every prefix group below: SNS is a server with no
+// session and no tenant, so auth or branch scoping here would reject every genuine
+// event. Authorisation is the RSA signature over the body, verified in the controller.
+//
+// Do not add this to a group, and do not add global auth middleware to api.php without
+// carving this route out — an SNS signature is not a bearer token, and a webhook that
+// 401s is indistinguishable from one that was never wired up.
+Route::post("webhooks/ses", \App\Http\Controllers\Webhooks\SesWebhookController::class)
+    ->name("webhooks.ses");
+
 Route::prefix("users")->group(function () {
     require __DIR__."/users.php";
 });
