@@ -68,7 +68,14 @@ return new class extends Migration
             // The dedupe mechanism itself. A reservation that collides here is silently
             // dropped, which makes duplicate suppression race-proof rather than
             // dependent on a check-then-send SELECT.
-            $table->string('dedupe_key')->unique();
+            //
+            // Uniqueness is on (dedupe_key, channel), not on dedupe_key alone. Eight of
+            // the catalogue notifications are "E + W" and therefore produce two delivery
+            // rows for one event, so a unique key on its own would let whichever channel
+            // reserved first suppress the other every single time. The key stays the
+            // event's identity exactly as documented; the channel is the transport, and
+            // is part of what makes a delivery unique rather than bolted onto the key.
+            $table->string('dedupe_key');
 
             // Kept so a send rejected by Meta can be diagnosed without guessing which
             // approved template was actually used.
@@ -89,6 +96,7 @@ return new class extends Migration
             $table->index(['business_id', 'created_at']);
             $table->index(['channel', 'status']);
             $table->index(['business_id', 'type']);
+            $table->unique(['dedupe_key', 'channel']);
         });
     }
 

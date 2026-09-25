@@ -165,3 +165,54 @@ Verified against `inventory_test` before starting, so none are regressions:
   as a constant. A test asserts every seeded body's placeholders match its declared
   `variables` exactly, and that each one renders clean, so wording cannot drift out of
   sync with its positional contract.
+
+### Stage 1 chunk 6 (dispatcher + resolvers) — findings
+
+Three real bugs, all found by tests rather than review.
+
+1. **A duplicate notification aborted the whole database transaction.** The first
+   dedupe implementation inserted and caught `UniqueConstraintViolationException`, which
+   is the textbook approach and is **wrong on Postgres**: a constraint violation aborts
+   the transaction, not just the statement, so every later query in that transaction
+   fails with `25P02 current transaction is aborted`. Catching the exception does not
+   recover the transaction. Since the dispatcher is designed to be called from listeners
+   and `afterCommit` hooks — i.e. inside a business transaction — a duplicate event
+   would have taken down the business operation that triggered it, not just the
+   notification. Replaced with `INSERT ... ON CONFLICT DO NOTHING`
+   (`DB::table()->insertOrIgnore()`), which is race-proof and leaves the transaction
+   intact.
+
+2. **`unique(dedupe_key)` is incompatible with the catalogue, as written in the plan.**
+   §5.2 specifies keys like `registration:welcome:business-7` with no channel segment,
+   and §5.1 specifies `dedupe_key` as globally `->unique()`. But eight of the fourteen
+   notifications are "E + W", so one event legitimately produces **two** delivery rows
+   against one key. The first channel to reserve always won and the other was silently
+   dropped — email would never have been sent for any dual-channel notification.
+   Changed the index to `unique(dedupe_key, channel)`. The key strings stay exactly as
+   documented; the channel is part of what makes a *delivery* unique rather than being
+   bolted onto the event identity. **This is a deviation from the plan's §5.1 and worth
+   your sign-off.**
+
+3. **A channel had no way to know its tenant inside a queued job.**
+   `NotificationChannel::isAvailable()` took no arguments, so the WhatsApp channel was
+   reaching for `request()->user()` and `BusinessContext` to find the business. In a
+   worker both are null, so every queued send suppressed itself as "no recipient" —
+   and, worse, the fix that would have made it "work" is to read ambient state that
+   is empty exactly when it matters. Changed the interface to
+   `isAvailable(NotificationDelivery $delivery)` / `unavailableReason(NotificationDelivery $delivery)`
+   and the channel now resolves its config from `$delivery->business_id`, which is on
+   the row and therefore correct in a request, a worker and a console alike.
+
+Smaller corrections:
+- `RecipientResolver` now implements the plan's **branch-then-business** fallback for
+  stored recipients. It previously only looked at the exact scope, so a branch alert
+  from a business whose only recipient was business-level skipped that recipient and
+  fell through to the raw business phone number — bypassing the owner's stored opt-outs.
+  `NotificationDispatcher::storedRecipientFor()` follows the same chain, or the address
+  would resolve via a business-level recipient whose preferences then went unchecked.
+- A missing `whats_app_configs` row is **not** treated as "cannot send". The channel
+  resolves through `WhatsAppService::getConfigForBusiness()`, which has always
+  auto-created a demo config. Treating it as unavailable made "never configured
+  WhatsApp" indistinguishable from "opted out".
+- Suppression rows use a `:suppressed:{reason}` key suffix, so "no recipient" and
+  "opted out" for the same event are both recorded instead of one masking the other.
