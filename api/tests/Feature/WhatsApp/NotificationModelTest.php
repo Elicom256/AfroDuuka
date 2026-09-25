@@ -182,6 +182,31 @@ class NotificationModelTest extends TestCase
         $this->assertNotNull($delivery->fresh()->suppressed_at);
     }
 
+    public function test_the_same_event_may_reserve_once_per_channel(): void
+    {
+        // Eight catalogue notifications are E + W, so one event legitimately produces
+        // two delivery rows. A unique index on dedupe_key alone would suppress one.
+        [$business] = $this->businessWithBranch();
+
+        $shared = [
+            'business_id' => $business->id,
+            'category' => 'system',
+            'type' => 'registration.welcome',
+            'template_key' => 'registration.welcome',
+            'dedupe_key' => 'registration:welcome:business-1',
+        ];
+
+        $email = NotificationDelivery::create([...$shared, 'channel' => 'email']);
+        $whatsapp = NotificationDelivery::create([...$shared, 'channel' => 'whatsapp']);
+
+        $this->assertNotSame($email->id, $whatsapp->id);
+        $this->assertSame(2, NotificationDelivery::withoutGlobalScopes()->count());
+
+        $this->expectException(UniqueConstraintViolationException::class);
+
+        NotificationDelivery::create([...$shared, 'channel' => 'email']);
+    }
+
     public function test_the_dedupe_key_rejects_a_second_identical_send(): void
     {
         [$business] = $this->businessWithBranch();
