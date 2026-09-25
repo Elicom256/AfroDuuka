@@ -6,6 +6,7 @@ use App\Jobs\ProcessWhatsAppNotificationJob;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
 use App\Models\WhatsAppTemplate;
+use App\Services\Notifications\TemplateProvisioner;
 use Illuminate\Support\Facades\Auth;
 
 class WhatsAppService
@@ -37,43 +38,30 @@ class WhatsAppService
         ]);
     }
 
+    /**
+     * Give the business its catalogue template rows, creating any that are missing.
+     *
+     * The old implementation seeded two hand-written rows, low_stock_alert and
+     * payment_reminder, under the pre-catalogue naming with no Meta template identity.
+     * Nothing dispatched against them and nothing resolved them, because the dispatcher
+     * matches on the notification type. Wording now comes from
+     * App\Services\Notifications\TemplateProvisioner, which derives the mapping from
+     * config('notifications.catalogue') so the two cannot drift.
+     */
     public function ensureTemplatesForBusiness(?int $businessId = null): array
     {
-        $businessId = $businessId ?? Auth::user()?->business_id;
+        $businessId ??= Auth::user()?->business_id;
 
-        $templates = WhatsAppTemplate::where('business_id', $businessId)->get();
-
-        if ($templates->isNotEmpty()) {
-            return $templates->toArray();
+        if ($businessId === null) {
+            return [];
         }
 
-        $defaults = [
-            [
-                'name' => 'low_stock_alert',
-                'category' => 'low_stock',
-                'locale' => 'en',
-                'body' => 'Stock alert for *{{product_name}}*: only {{current_stock}} units left.',
-                'variables' => ['product_name', 'current_stock'],
-                'status' => 'approved',
-            ],
-            [
-                'name' => 'payment_reminder',
-                'category' => 'payment',
-                'locale' => 'en',
-                'body' => 'Hi {{customer_name}}, your payment of {{amount}} is due today.',
-                'variables' => ['customer_name', 'amount'],
-                'status' => 'approved',
-            ],
-        ];
+        app(TemplateProvisioner::class)->ensureForBusiness($businessId);
 
-        foreach ($defaults as $template) {
-            WhatsAppTemplate::create([
-                'business_id' => $businessId,
-                ...$template,
-            ]);
-        }
-
-        return WhatsAppTemplate::where('business_id', $businessId)->get()->toArray();
+        return WhatsAppTemplate::where('business_id', $businessId)
+            ->orderBy('name')
+            ->get()
+            ->toArray();
     }
 
     /**
@@ -83,7 +71,7 @@ class WhatsAppService
     {
         $config ??= $this->getConfigForBusiness();
 
-        $notification = (new WhatsAppNotificationService())->buildPayload([
+        $notification = (new WhatsAppNotificationService)->buildPayload([
             'business_id' => $config->business_id,
             'branch_id' => null,
             'type' => 'demo_test',
@@ -124,7 +112,7 @@ class WhatsAppService
             ],
         ];
 
-        $notification = (new WhatsAppNotificationService())->buildPayload($payload);
+        $notification = (new WhatsAppNotificationService)->buildPayload($payload);
         $provider = WhatsAppProviderFactory::create([
             'provider' => $config->provider,
             'business_phone' => $config->business_phone,
