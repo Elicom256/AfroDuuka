@@ -134,3 +134,34 @@ Verified against `inventory_test` before starting, so none are regressions:
   because it is handed a data array with no declared order. Both are scheduled/queued
   paths that will be replaced by the dispatcher, so this is temporary and safe, but
   neither should be treated as correct rendering until it is.
+
+### Stage 1 chunk 5 (template provisioning) — findings
+
+- Template rows are now provisioned from `config('notifications.catalogue')` by
+  `App\Services\Notifications\TemplateProvisioner`, seeded per business by
+  `Database\Seeders\WhatsAppTemplateSeeder`. 13 WhatsApp rows per business; the
+  email-only `quotation.sent` correctly gets none.
+- `WhatsAppTemplate.name` is now the **notification type** (`inventory.low_stock`), and
+  the Meta name moved to `provider_name` (`low_stock_alert`). Anything still matching
+  templates on the old name or on `category` will silently stop resolving. I replaced
+  `WhatsAppService::ensureTemplatesForBusiness()`, which is the only caller, but this is
+  worth a grep before anything else touches template lookup.
+- **Re-provisioning deliberately does not touch `template_status`, `body` or
+  `variables`.** `template_status` mirrors Meta and is only written by the sync command
+  (still to come — `duukaflow:whatsapp:sync-templates`); the body and its ordered
+  `variables` are owner-editable, so a re-run must not revert their wording. Only a
+  *null* `provider_name` / `language_code` is backfilled, because a wrong non-null value
+  there is how a send starts failing on a parameter mismatch.
+- **Seeded rows are `PENDING`, never `APPROVED`.** Nothing is approved until Meta says
+  so, and fabricating an approval would disable the only guard that stops us sending
+  against an unapproved template. Consequence: with a real Meta provider, every
+  notification is suppressed as `template_not_approved` until the sync command runs.
+  A test asserts the seeder can never produce an approved row.
+- `pruneOrphans()` deletes only rows with a **null `provider_name`** that match no
+  catalogue type — i.e. the old hand-written `low_stock_alert` / `payment_reminder`
+  seeds, which could never be dispatched. A row carrying a real Meta template is never
+  deleted even if the catalogue moves on, since history may reference it.
+- The `{{token}}` bodies and their ordered `variables` live in `TemplateProvisioner`
+  as a constant. A test asserts every seeded body's placeholders match its declared
+  `variables` exactly, and that each one renders clean, so wording cannot drift out of
+  sync with its positional contract.
