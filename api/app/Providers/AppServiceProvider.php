@@ -4,6 +4,11 @@ namespace App\Providers;
 
 use App\Models\Product;
 use App\Observers\PriceHistoryObserver;
+use App\Support\Tenant\BusinessContext;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +18,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // A single instance for the whole request or job, so a context set deep inside
+        // a job is visible to every model query that follows.
+        $this->app->singleton(BusinessContext::class, fn () => new BusinessContext);
     }
 
     /**
@@ -23,5 +30,22 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register observer to auto-record price changes on products
         Product::observe(PriceHistoryObserver::class);
+
+        $this->clearBusinessContextBetweenJobs();
+    }
+
+    /**
+     * A queue worker is a long-lived process handling many businesses in sequence. If a
+     * job sets a tenant context and then throws before its finally block runs, the next
+     * job would inherit it and write to the wrong business. Clearing on both the
+     * processed and the failed path makes that leak impossible.
+     */
+    protected function clearBusinessContextBetweenJobs(): void
+    {
+        foreach ([JobProcessing::class, JobProcessed::class, JobExceptionOccurred::class] as $event) {
+            Event::listen($event, function () {
+                $this->app->make(BusinessContext::class)->clear();
+            });
+        }
     }
 }

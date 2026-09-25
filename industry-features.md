@@ -7,7 +7,7 @@ and dependencies so value stays visible while you march through.
 | # | Feature | Priority | Weight | Roadmap / refactor |
 |---|---------|----------|--------|--------------------|
 | 1 | Quotations / proforma invoices | P0 | Medium | §4 `C1` ✅ DONE (2026-09-24) |
-| 2 | Customer communication (email/SMS/WhatsApp) | P0 | Medium | §4 `C3` |
+| 2 | Customer communication (email and WhatsApp) | P0 | Medium | §4 `C3` |
 | 3 | Automated payment / billing (self-renew) | P1 | Heavy-medium | §4 `C2` |
 | 4 | Finance as single source of truth | P2 | Heavy | §4 `D1` |
 | 5 | Real payment collection (mobile money / card) | P0 | Heavy | §4 `D2` |

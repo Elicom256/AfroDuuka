@@ -73,14 +73,20 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
         ]);
 
         $templateKey = $normalized['template_key'] ?? 'general';
+
+        // Match the full template_key against the template name. Matching on a
+        // suffix or on `category` mis-routes: subscription.created,
+        // order.purchase.created and order.sale.created all end in "created".
         $template = WhatsAppTemplate::where('business_id', $businessId)
-            ->where('category', $templateKey)
+            ->where('name', $templateKey)
             ->where('status', 'approved')
             ->latest('created_at')
             ->first();
 
+        // A template's `variables` column holds the variable *names* it expects,
+        // not values, so it must never be used as the render data.
         $templateString = $template?->body ?? ($config->message_template ?? 'Hello {{business_name}}, this is a DuukaFlow WhatsApp alert.');
-        $templateData = $template?->variables ?? ($normalized['template_data'] ?? []);
+        $templateData = $normalized['template_data'] ?? [];
         $message = $templateService->render($templateString, $templateData);
 
         $result = $provider->sendMessage([
