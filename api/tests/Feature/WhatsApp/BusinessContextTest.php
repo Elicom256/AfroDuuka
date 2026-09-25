@@ -7,7 +7,9 @@ use App\Models\BusinessBranch;
 use App\Models\Product;
 use App\Models\Role;
 use App\Support\Tenant\BusinessContext;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Queue\Events\JobProcessing;
 use Tests\TestCase;
 
 /**
@@ -211,7 +213,7 @@ class BusinessContextTest extends TestCase
         $context = app(BusinessContext::class);
         $context->set(4242);
 
-        event(new \Illuminate\Queue\Events\JobProcessing('sync', $this->createStub(\Illuminate\Contracts\Queue\Job::class)));
+        event(new JobProcessing('sync', $this->createStub(Job::class)));
 
         $this->assertNull($context->businessId());
     }

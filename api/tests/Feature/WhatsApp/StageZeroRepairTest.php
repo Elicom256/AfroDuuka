@@ -3,15 +3,26 @@
 namespace Tests\Feature\WhatsApp;
 
 use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
+use App\Events\WhatsAppNotificationEvents\FreeTrialExpired;
+use App\Events\WhatsAppNotificationEvents\LowStockAlert;
+use App\Events\WhatsAppNotificationEvents\OutOfStockAlert;
+use App\Events\WhatsAppNotificationEvents\PaymentFailed;
+use App\Events\WhatsAppNotificationEvents\PurchaseOrderCreated;
+use App\Events\WhatsAppNotificationEvents\SaleOrderCreated;
+use App\Events\WhatsAppNotificationEvents\SubscriptionCreated;
+use App\Events\WhatsAppNotificationEvents\SubscriptionExpired;
+use App\Events\WhatsAppNotificationEvents\SubscriptionPlanChanged;
+use App\Jobs\ProcessWhatsAppNotificationJob;
 use App\Models\Business;
-use App\Models\BusinessBranch;
 use App\Models\BusinessCategory;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\WhatsAppConfig;
-use App\Models\WhatsAppMessageLog;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Laravel\Sanctum\Sanctum;
@@ -142,16 +153,16 @@ class StageZeroRepairTest extends TestCase
     public function test_every_whatsapp_event_has_a_registered_listener(): void
     {
         $events = [
-            \App\Events\WhatsAppNotificationEvents\BusinessRegistered::class,
-            \App\Events\WhatsAppNotificationEvents\SubscriptionCreated::class,
-            \App\Events\WhatsAppNotificationEvents\SubscriptionPlanChanged::class,
-            \App\Events\WhatsAppNotificationEvents\FreeTrialExpired::class,
-            \App\Events\WhatsAppNotificationEvents\PaymentFailed::class,
-            \App\Events\WhatsAppNotificationEvents\SubscriptionExpired::class,
-            \App\Events\WhatsAppNotificationEvents\LowStockAlert::class,
-            \App\Events\WhatsAppNotificationEvents\OutOfStockAlert::class,
-            \App\Events\WhatsAppNotificationEvents\PurchaseOrderCreated::class,
-            \App\Events\WhatsAppNotificationEvents\SaleOrderCreated::class,
+            BusinessRegistered::class,
+            SubscriptionCreated::class,
+            SubscriptionPlanChanged::class,
+            FreeTrialExpired::class,
+            PaymentFailed::class,
+            SubscriptionExpired::class,
+            LowStockAlert::class,
+            OutOfStockAlert::class,
+            PurchaseOrderCreated::class,
+            SaleOrderCreated::class,
         ];
 
         foreach ($events as $event) {
@@ -174,7 +185,7 @@ class StageZeroRepairTest extends TestCase
         // The welcome message must travel the event -> listener path exactly once.
         // BusinessService used to also call the notification service directly, which
         // risked a double send because the two payloads only matched by luck.
-        Queue::assertPushed(\App\Jobs\ProcessWhatsAppNotificationJob::class, 1);
+        Queue::assertPushed(ProcessWhatsAppNotificationJob::class, 1);
     }
 
     // ---------------------------------------------------------------- B8
@@ -326,12 +337,12 @@ class StageZeroRepairTest extends TestCase
             'access_token' => 'plaintext-should-not-persist',
         ]);
 
-        $raw = \Illuminate\Support\Facades\DB::table('whats_app_configs')
+        $raw = DB::table('whats_app_configs')
             ->where('business_id', $business->id)
             ->value('access_token');
 
         $this->assertNotSame('plaintext-should-not-persist', $raw);
-        $this->assertSame('plaintext-should-not-persist', \Illuminate\Support\Facades\Crypt::decryptString($raw));
+        $this->assertSame('plaintext-should-not-persist', Crypt::decryptString($raw));
     }
 
     public function test_test_message_rejects_a_non_e164_recipient(): void
@@ -353,7 +364,7 @@ class StageZeroRepairTest extends TestCase
 
         WhatsAppConfig::create(['business_id' => $business->id, 'business_phone' => '+256700000001']);
 
-        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
 
         WhatsAppConfig::create(['business_id' => $business->id, 'business_phone' => '+256700000002']);
     }
