@@ -23,6 +23,7 @@ class WhatsAppProviderFactory
             'provider' => $config->provider,
             'business_phone' => $config->business_phone,
             'phone_number_id' => $config->phone_number_id,
+            'whatsapp_business_account_id' => $config->whatsapp_business_account_id,
             'access_token' => $config->access_token,
         ]);
     }

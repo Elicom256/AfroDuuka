@@ -22,3 +22,11 @@ Schedule::job(new GenerateMonthlyBusinessReportJob())->monthlyOn(1, '08:00')->wi
 
 // ============== Schedule commands ====================
 Schedule::command("inspire")->hourly();
+
+// Meta approval can be granted, revoked or limited at any time, and a template we
+// believe is APPROVED is the gate for every WhatsApp send. Daily is a compromise:
+// the only real cost of a stale status is sending against a revoked template, which
+// Meta rejects, and the retries are already capped.
+Schedule::command('duukaflow:whatsapp:sync-templates')
+    ->dailyAt('06:30')
+    ->withoutOverlapping();
