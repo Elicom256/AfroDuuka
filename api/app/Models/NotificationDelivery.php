@@ -84,6 +84,22 @@ class NotificationDelivery extends BaseModel
         ];
     }
 
+    /**
+     * The values this delivery was built from.
+     *
+     * The dispatcher stores the rendered {{token}} parameters for WhatsApp and the raw
+     * values for email, in the same column, because a delivery row is a record of what
+     * was attempted rather than a render. The email channel reads this to build its
+     * Mailable; the WhatsApp channel does not need it because the message body is
+     * already rendered by the time it is queued.
+     *
+     * @return array<string, mixed>
+     */
+    public function values(): array
+    {
+        return $this->payload ?? [];
+    }
+
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);

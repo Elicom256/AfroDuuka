@@ -4,6 +4,7 @@ namespace App\Services\Notifications;
 
 use App\Contracts\Notifications\NotificationChannel;
 use App\Notifications\Channels\LogMailChannel;
+use App\Notifications\Channels\SesMailChannel;
 use App\Notifications\Channels\WhatsAppChannel;
 use Illuminate\Contracts\Container\Container;
 
@@ -16,10 +17,18 @@ use Illuminate\Contracts\Container\Container;
  */
 class ChannelRegistry
 {
+    /**
+     * Transport per channel name.
+     *
+     * email resolves to SesMailChannel, which hands the message to whatever
+     * MAIL_MAILER is configured — so `log` and `array` still work locally and in tests
+     * with no SES credentials at all. LogMailChannel stays registered and reachable by
+     * name for the case where a test wants to assert that nothing was actually sent.
+     */
     /** @var array<string, class-string<NotificationChannel>> */
     private const DEFAULTS = [
         'whatsapp' => WhatsAppChannel::class,
-        'email' => LogMailChannel::class,
+        'email' => SesMailChannel::class,
     ];
 
     /** @var array<string, NotificationChannel> */

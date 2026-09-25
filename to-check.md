@@ -284,3 +284,122 @@ become APPROVED.
 Still not done here: `MetaWhatsAppProvider::sendMessage()` remains a stub. The Graph
 call for template listing is real because that read *is* the feature; sending is stage 3
 and its ambiguity/webhook handling should not be half-built here.
+
+### Stage 1 chunk 8 (recipient provisioning) — findings
+
+Added `RecipientProvisioner`, wired into `BusinessService::create()`,
+`duukaflow:notifications:backfill-recipients` for existing businesses, and 18 tests.
+
+- **Addresses are normalised on write.** Without it, "0772 123456" and "+256772123456"
+  become two recipient rows for one person, and they diverge the moment the owner
+  retypes their number. It is also what makes the unique index mean anything.
+- **An unnormalisable address skips that channel and does not stop the other.** A
+  business registered with a bad phone still gets email. The row is *absent*, never
+  filled with a guess, which is the plan's "never guess a number" rule.
+- **A changed phone deactivates the old row rather than updating it.** The unique index
+  includes the address, so a new number is a new row anyway; rewriting in place would
+  attribute the old number's delivery history to the new one. Scoped to
+  `label = owner` so a manager the business added deliberately is not deactivated.
+- Re-running creates nothing new, so a retried registration request cannot violate the
+  unique index.
+- A failure to provision is logged, not thrown. Registration is the user's first
+  interaction with the product; failing to create them a business over a preference row
+  is a bad trade, and the rows can be created later without data loss.
+
+**Bug: a test that asserted nothing.** The provisioner seeded
+`categories = config('notifications.email.mandatory_categories')` — a key that does not
+exist — and the test asserting it compared the same non-existent key against itself. Both
+sides were null, the test passed, and the column was being written empty. Caught only
+by inspecting the actual row in the dev database, not by any test. The test now spells
+out the expected array literally, and a second test pins the set against the catalogue's
+own per-entry flags so the two cannot drift.
+
+**Consequence worth a decision: a fresh business receives no inventory or report mail.**
+Per the plan, `categories` is seeded to the mandatory set only, and every other category
+is opt-in. That is the right default in principle — nobody asked for stock alerts on day
+one — but it means a brand new business gets no low-stock alerts and no monthly report
+until someone adds those categories. If that is not wanted, the fix is a config flag
+naming the categories a new recipient starts subscribed to, defaulting to the mandatory
+set as now.
+
+**Deviation from the brief: the mandatory category set is not the one §5.4 describes.**
+The brief names `subscription`, `payment`, `security`. The catalogue's per-entry
+`mandatory` flags actually cover `system`, `subscription`, `payment`, `order`. I derived
+the seed from the catalogue rather than hardcoding the brief's three, so the seed can
+never contain a category the dispatcher would refuse to send. But the discrepancy is
+real and has two consequences:
+
+- There is no `security` category in the catalogue at all.
+- `order` is non-suppressible, so a business **cannot opt out** of purchase and sale
+  order notifications. That may be intended, and order mail is arguably billing-like,
+  but it is not what the brief says and it is a policy the user may want to revisit.
+
+### Stage 2 chunk 1 (email over SES) — findings
+
+`aws/aws-sdk-php@3.398.1` confirmed installed. Added the `ses-v2` mailer, SES
+services config, a parameterised `NotificationMail` + blade, `SesMailChannel`, the
+one-click unsubscribe endpoint, and 16 tests that assert against the message SES would
+actually receive.
+
+**Deviations from §5.6, both deliberate:**
+
+- **One Mailable, not five.** The plan lists `BusinessWelcomeMail`, `SubscriptionMail`,
+  `MonthlyPerformanceReportMail`, `QuotationMail`, `SaleReceiptMail`. A class + view +
+  factory entry per notification means a new catalogue type needs three files changed in
+  three places before it can send its first email, and the odds of all three being
+  updated are the odds of the notification silently never sending. `NotificationMail` is
+  parameterised by type instead. `SubscriptionMail`'s "one class, one blade, six
+  states" was already the plan's own stated approach, so this extends it rather than
+  contradicting it.
+- **No `SendEmailNotificationJob`.** The plan lists one; `SendNotificationJob` already
+  does that job for both channels, and a second email-specific job would duplicate the
+  status machine, the attempt budget and the ambiguity handling. The *reason* the plan
+  wanted a separate job — avoiding the `App\Models\Notification` shadow of
+  `Illuminate\Notifications\Notification` — is real, and is avoided by using Mailables.
+
+- The mail is sent synchronously from inside `SendNotificationJob` rather than queued
+  again. Double-queueing would put a second invisible retry in the system with no dedupe
+  key, so an ambiguous failure could be retried by the queue *and* by our own attempt
+  budget, and the customer would get the email twice.
+
+**Three real bugs found:**
+
+1. **`isMandatory()` and the dispatcher disagreed, so mandatory mail could be
+   suppressed.** `PreferenceResolver` read `config('notifications.email.transactional_categories')`
+   — copied from the brief — while the dispatcher read the catalogue's per-entry
+   `mandatory` flags. For the `system` and `order` categories the two answers differed,
+   so a mandatory notification could be dropped as `opted_out` by the very check that is
+   supposed to never suppress anything. The config list is deleted rather than left as a
+   trap; mandatory is now derived from the catalogue in one place.
+
+2. **One-click unsubscribe muted everything, not one category.** The endpoint set
+   `unsubscribed_at`, and `isSubscribedTo()` reads a set timestamp as "opted out of all
+   of it" — so clicking unsubscribe on a monthly report also silenced every other
+   preference-checked notification. Mandatory categories were unaffected (the resolver
+   bypasses preferences for them), which is the only reason this was not worse. The
+   endpoint now removes the single category from the allow-list and only sets
+   `unsubscribed_at` when the list empties.
+
+3. **The first opt-out was unrepresentable.** `categories = []` means "everything
+   allowed", so there was no way to record "not reports" against it. The endpoint now
+   materialises the full set of optional categories and removes one, which is why
+   `NotificationCatalogue::optionalCategories()` exists.
+
+**On testing the email layer:** `Mail::fake()` was the wrong tool. It records the
+Mailable object without building it, so `List-Unsubscribe` — the entire compliance point
+of this layer — was not observable through it at all, and the first version of these
+tests could not have caught bug 2. They now run through the `array` mailer and assert on
+the real `Symfony\Component\Mime\Email`: real headers, real rendered body.
+
+Not done here, still open:
+
+- **SES bounce/complaint handling** (`POST /api/webhooks/ses` → `ProcessSesSuppressionsJob`,
+  every fifteen minutes). §5.6 defers it to phase 6, so nothing is wired. Until it is,
+  a hard-bounced address stays deliverable and we keep hitting the bounce.
+- **Sandbox handling.** `MAIL_SES_SANDBOX` is read into config and recorded, but SES
+  reports an unverified-recipient rejection as a normal send failure; distinguishing it
+  needs the rejection reason parsed, which is part of the webhook work.
+- **PDF attachments.** §5.6 attaches a PDF to the monthly report and the quotation.
+  Skipped: both types render correctly as HTML now, and the PDF path should be built with
+  the reporting data it depends on rather than against an empty payload.
+- `MetaWhatsAppProvider::sendMessage()` is still a stub (stage 3).
