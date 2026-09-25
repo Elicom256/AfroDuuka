@@ -18,6 +18,11 @@ return new class extends Migration
             $table->string('provider')->default('demo');
             $table->string('business_phone')->default('+256731794401');
             $table->string('phone_number_id')->nullable();
+            // The WhatsApp Business Account id. Every Graph call except sending and
+            // webhooks is scoped to the WABA, not the phone number, so template
+            // management and status lookups need it. Nullable because a business on the
+            // demo provider has none and must not be made to supply one.
+            $table->string('whatsapp_business_account_id')->nullable();
             $table->text('access_token')->nullable();
             $table->string('webhook_verify_token')->nullable();
             $table->boolean('is_active')->default(true);
@@ -57,6 +62,9 @@ return new class extends Migration
             // NAMED | POSITIONAL. Must match the approved template exactly, along with
             // the number of {{n}} placeholders, or sends fail on a parameter mismatch.
             $table->string('parameter_format')->default('NAMED');
+            // When Meta last confirmed this template's approval status. Null means we
+            // have never reached Meta for it, which is different from "Meta said no".
+            $table->timestamp('last_synced_at')->nullable();
             // Transactional: not user-editable and not opt-out-able.
             $table->boolean('is_mandatory')->default(false);
 

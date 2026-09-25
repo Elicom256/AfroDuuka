@@ -23,6 +23,15 @@ class DemoWhatsAppProvider implements WhatsAppProviderInterface
         return ! empty($config['business_phone']) || ! empty($config['access_token']) || ! empty($config['phone_number_id']);
     }
 
+    /**
+     * The demo provider has no remote template registry, and demo sends bypass the
+     * approval gate entirely, so there is nothing to sync.
+     */
+    public function listTemplates(): array
+    {
+        return [];
+    }
+
     public function sendMessage(array $payload): array
     {
         $message = (string) ($payload['message'] ?? 'Demo WhatsApp message');
@@ -34,7 +43,7 @@ class DemoWhatsAppProvider implements WhatsAppProviderInterface
             'message' => $message,
             'recipient' => $recipient,
             'mode' => 'demo',
-            'provider_message_id' => 'demo-' . md5($recipient . ':' . $message . ':' . now()->timestamp),
+            'provider_message_id' => 'demo-'.md5($recipient.':'.$message.':'.now()->timestamp),
             'status' => 'sent',
             'warning' => 'Demo delivery only. No paid WhatsApp API configured yet.',
         ];
