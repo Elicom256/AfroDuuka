@@ -53,6 +53,35 @@ return [
             'transport' => 'ses',
         ],
 
+        /*
+        |----------------------------------------------------------------------
+        | Amazon SES v2
+        |----------------------------------------------------------------------
+        |
+        | ses-v2 (SesV2Client) rather than the legacy ses (SesClient). The v2 API is
+        | the one with configuration sets, suppression lists and message tags, which
+        | are what bounce handling and per-business batching depend on.
+        |
+        | The three options below are read straight off .env.prod. An empty
+        | configuration set or suppression list is a genuine "not set" to SES, so the
+        | env() defaults are null rather than empty strings — a blank string here is
+        | sent as a real, invalid value.
+        |
+        */
+
+        'ses-v2' => [
+            'transport' => 'ses-v2',
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'token' => env('AWS_SESSION_TOKEN'),
+            'use_iam_role' => (bool) env('AWS_USE_IAM_ROLE', false),
+            'options' => [
+                'configuration_set_name' => env('MAIL_SES_CONFIGURATION_SET') ?: null,
+                'suppression_list' => env('MAIL_SES_SUPPRESSION_LIST_NAME') ?: null,
+            ],
+        ],
+
         'postmark' => [
             'transport' => 'postmark',
             // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),

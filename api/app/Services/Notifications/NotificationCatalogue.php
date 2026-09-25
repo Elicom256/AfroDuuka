@@ -57,6 +57,76 @@ class NotificationCatalogue
     }
 
     /**
+     * The categories that cannot be opted out of.
+     *
+     * Derived from the catalogue rather than hardcoded, because the two drift: the
+     * brief names three categories while the catalogue marks a different set, and a
+     * hardcoded list would quietly disagree with the per-entry `mandatory` flags that
+     * the dispatcher actually enforces. Deriving it means the seed a new recipient
+     * starts with can never be a category set the dispatcher would then refuse to send.
+     *
+     * @return array<int, string>
+     */
+    public function mandatoryCategories(): array
+    {
+        $categories = [];
+
+        foreach ($this->all() as $entry) {
+            if (! empty($entry['mandatory'])) {
+                $categories[$entry['category']] = true;
+            }
+        }
+
+        $names = array_keys($categories);
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * Whether a category is non-suppressible, read off the same per-entry flags the
+     * dispatcher uses.
+     *
+     * This exists so that "is this mandatory?" has exactly one answer in the codebase.
+     * It previously also consulted a hardcoded transactional list in config, and the
+     * two disagreed for the system and order categories — which meant a mandatory
+     * notification could be suppressed as opted-out by the preference check that was
+     * supposed to be the thing that never suppresses it.
+     */
+    public function isMandatoryCategory(string $category): bool
+    {
+        return in_array($category, $this->mandatoryCategories(), true);
+    }
+
+    /**
+     * Categories that are preference-checked, i.e. the ones a recipient can opt out of.
+     *
+     * Needed whenever an opt-out has to be written as an explicit allow-list: an empty
+     * `categories` column means "everything is allowed", so recording "unsubscribed from
+     * reports" against a row that is still empty is not a state the column can express.
+     * Materialising the full set of optional categories and removing one from it is.
+     *
+     * @return array<int, string>
+     */
+    public function optionalCategories(): array
+    {
+        $categories = [];
+
+        foreach ($this->all() as $entry) {
+            $category = $entry['category'];
+
+            if (! $this->isMandatoryCategory($category)) {
+                $categories[$category] = true;
+            }
+        }
+
+        $names = array_keys($categories);
+        sort($names);
+
+        return $names;
+    }
+
+    /**
      * @return array<int, string>
      */
     public function channelsFor(string $type): array
