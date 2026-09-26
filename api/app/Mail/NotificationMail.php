@@ -4,6 +4,8 @@ namespace App\Mail;
 
 use App\Mail\Concerns\HasUnsubscribeHeaders;
 use App\Models\NotificationDelivery;
+use App\Services\Notifications\AttachmentRegistry;
+use App\Services\Notifications\NotificationCatalogue;
 use App\Services\Ses\NotificationMessageId;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -79,7 +81,41 @@ class NotificationMail extends Mailable
                 'actionLabel' => $this->actionLabel(),
             ]);
 
+        foreach ($this->attachmentFiles() as $attachment) {
+            $mail->attachData(
+                $attachment['content'],
+                $attachment['filename'],
+                ['mime' => $attachment['mime']]
+            );
+        }
+
         return $this->applyUnsubscribeHeaders($mail);
+    }
+
+    /**
+     * Files the catalogue declares for this type, built from the delivery's payload.
+     *
+     * Attachments hang off the catalogue entry rather than a Mailable subclass per
+     * document, for the reason the class docblock gives: a notification the product
+     * adds would otherwise need a new class before it could send a file.
+     *
+     * The registry swallows a builder that throws, so this returns fewer files than
+     * were asked for rather than failing the send. An email whose body already
+     * summarises the report is worth more to the customer than no email at all.
+     *
+     * Not named `attachments()`: Illuminate\Mail\Mailable declares that privately for
+     * its own envelope de-duplication, and shadowing it makes Laravel's internal call
+     * land here instead. `buildAttachments()` is taken by the parent for the same
+     * reason.
+     *
+     * @return array<int, array{filename: string, content: string, mime: string}>
+     */
+    private function attachmentFiles(): array
+    {
+        return app(AttachmentRegistry::class)->buildFor(
+            $this->delivery,
+            app(NotificationCatalogue::class)->attachmentsFor($this->type)
+        );
     }
 
     private function applyUnsubscribeHeaders($mail): static
