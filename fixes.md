@@ -89,7 +89,7 @@ Acceptance criteria:
 - Stock only increases after valid receipt or validation.
 - Supplier and stock data remain traceable.
 
-### 1.4 Damaged/lost/expired stock handling
+### 1.4 Damaged/lost/expired stock handling ✅
 
 Bug: inventory loss is not formally tracked, leading to inaccurate stock counts.
 
