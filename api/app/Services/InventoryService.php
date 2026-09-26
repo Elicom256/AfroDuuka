@@ -11,14 +11,22 @@ class InventoryService
     /**
      * Increase stock (PURCHASES)
      */
-    public function stockIn(Product $product, int $quantity, ?string $referenceType = null, ?int $referenceId = null)
+    public function stockIn(Product $product, int $quantity, ?string $referenceType = null, ?int $referenceId = null, ?string $movementKey = null)
     {
-        DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId) {
+        DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId, $movementKey) {
+            $lockedProduct = Product::whereKey($product->getKey())->lockForUpdate()->firstOrFail();
+            $resolvedMovementKey = $movementKey ?? md5($product->id . ':' . $referenceType . ':' . $referenceId . ':' . $quantity . ':' . now()->timestamp);
 
-            $product->increment('quantity', $quantity);
+            $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
+            if ($existing) {
+                return $existing;
+            }
 
-            StockMovement::create([
-                'product_id' => $product->id,
+            $lockedProduct->increment('quantity', $quantity);
+
+            return StockMovement::create([
+                'product_id' => $lockedProduct->id,
+                'movement_key' => $resolvedMovementKey,
                 'type' => 'in',
                 'quantity' => $quantity,
                 'reference_type' => $referenceType,
@@ -30,12 +38,19 @@ class InventoryService
     /**
      * Decrease stock (SALES)
      */
-    public function stockOut(Product $product, int $quantity, ?string $referenceType = null, ?int $referenceId = null)
+    public function stockOut(Product $product, int $quantity, ?string $referenceType = null, ?int $referenceId = null, ?string $movementKey = null)
     {
-        DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId) {
+        DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId, $movementKey) {
             $lockedProduct = Product::whereKey($product->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $resolvedMovementKey = $movementKey ?? md5($product->id . ':' . $referenceType . ':' . $referenceId . ':' . $quantity . ':' . now()->timestamp);
+
+            $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
+            if ($existing) {
+                return $existing;
+            }
 
             // prevent negative stock
             if ($lockedProduct->quantity < $quantity) {
@@ -44,8 +59,9 @@ class InventoryService
 
             $lockedProduct->decrement('quantity', $quantity);
 
-            StockMovement::create([
+            return StockMovement::create([
                 'product_id' => $lockedProduct->id,
+                'movement_key' => $resolvedMovementKey,
                 'type' => 'out',
                 'quantity' => $quantity,
                 'reference_type' => $referenceType,
@@ -57,14 +73,22 @@ class InventoryService
     /**
      * Manual adjustment (admin fix)
      */
-        public function adjust(Product $product, int $quantity, ?string $notes = null)
-        {
-            DB::transaction(function () use ($product, $quantity, $notes) {
+        public function adjust(Product $product, int $quantity, ?string $notes = null, ?string $movementKey = null)
+    {
+        DB::transaction(function () use ($product, $quantity, $notes, $movementKey) {
+            $lockedProduct = Product::whereKey($product->getKey())->lockForUpdate()->firstOrFail();
+            $resolvedMovementKey = $movementKey ?? md5($product->id . ':adjustment:' . $notes . ':' . $quantity . ':' . now()->timestamp);
 
-            $product->increment('quantity', $quantity);
+            $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
+            if ($existing) {
+                return $existing;
+            }
 
-            StockMovement::create([
-                'product_id' => $product->id,
+            $lockedProduct->increment('quantity', $quantity);
+
+            return StockMovement::create([
+                'product_id' => $lockedProduct->id,
+                'movement_key' => $resolvedMovementKey,
                 'type' => 'adjustment',
                 'quantity' => $quantity,
                 'notes' => $notes,
