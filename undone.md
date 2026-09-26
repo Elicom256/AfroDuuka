@@ -5,49 +5,26 @@
 spec; this file is what is actually left to build. Finished items are kept and marked
 ✅ so progress is visible at a glance rather than inferred from a git log.
 
-Last updated: end of Stage 2 chunk 2.
+Last updated: end of Stage 2 chunk 3.
 
 ---
 
 ## Where we are
 
-Stage 0, Stage 1 and the first two chunks of Stage 2 are done and green. The next
-chunk is **Stage 2 chunk 3 (PDF attachments)**, then Stage 3, which is the first
-genuinely new thing since chunk 2 — a real HTTP call to Meta instead of the
-filesystem and log.
+Stage 0, Stage 1, the first two chunks of Stage 2, and **Stage 2 chunk 3 (PDF
+attachments)** are done and green. The next chunk is **Stage 3**, which is the first
+genuinely new thing since chunk 2 — a real HTTP call to Meta instead of the filesystem
+and log.
 
 | Suite | Result |
 |---|---|
-| `tests/Feature/WhatsApp/` | ✅ 167 tests, 531 assertions |
-| Full suite | 312 tests, 962 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| `tests/Feature/WhatsApp/` | ✅ 182 tests, 589 assertions |
+| Full suite | 327 tests, 1020 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
 
 ## Start here tomorrow
-
-### ⬜ Stage 2 · chunk 3 — PDF attachments
-
-§5.6 and the §10 Email row both require a PDF on the monthly performance report and
-the quotation email. Both currently render correctly as HTML with no attachment.
-
-Judgement call already made: build this against **real** report and quotation data
-rather than an empty payload, because the PDF layout is where a wrong column or a
-missing total actually shows up.
-
-- Decide the generator. The plan does not name one. `barryvdh/laravel-dompdf` is the
-  obvious default; nothing in the repo has a PDF dependency yet.
-- Attach to `report.monthly` and `quotation.sent` only. Not to transactional mail.
-- `NotificationMail` already parameterises by type, so attachments should hang off the
-  catalogue entry rather than a new subclass — the same reasoning that produced one
-  Mailable instead of five.
-- Test that the built MIME message really carries a `application/pdf` part, in the same
-  spirit as the unsubscribe-header tests: assert on the message SES would receive, not
-  on a `Mail::fake()` record.
-
----
-
-## Remaining, in order
 
 ### ⬜ Stage 3 — WhatsApp (real Meta)
 
@@ -64,6 +41,43 @@ missing total actually shows up.
 - Confirm Cloud API version. Plan says v26.0; the listing path was written against
   v21.0. **Do not mix versions in the same provider** — settle on one.
 
+### ✅ Stage 2 · chunk 3 — PDF attachments (done)
+
+`report.monthly` and `quotation.sent` now attach a real PDF. Generator was **not** an
+open question — `barryvdh/laravel-dompdf` was already installed and already used by
+`QuotationController::pdf()` and `ReceiptController::pdf()`; the earlier note claiming
+otherwise was wrong. The quotation attachment reuses `pdfs.quotation` rather than a
+second template, so the emailed and downloaded documents cannot drift.
+
+Built: `AttachmentBuilder` contract, `AttachmentRegistry` (mirrors `ChannelRegistry`),
+`QuotationPdf`, `MonthlyReportPdf`, `MonthlyReport` value object,
+`pdfs.monthly-report`, an `attachments` key on the two catalogue entries, and
+`NotificationMail::attachmentFiles()`. 15 tests in
+`tests/Feature/WhatsApp/NotificationAttachmentTest.php`, asserting on the built MIME
+message rather than a `Mail::fake()` record.
+
+Three things about it worth knowing before changing it:
+
+- **A PDF failure never fails the email.** `AttachmentRegistry::buildFor()` catches and
+  logs; the mail goes out with its body. A Blade typo in a view must not cost the
+  customer the notification.
+- **The report is rendered purely from the delivery's stored payload**, never re-queried,
+  so the PDF cannot describe a different month from the body beside it. The payload key
+  contract is documented on `MonthlyReport` and pinned by a test — the Stage 4 trigger
+  has to match it exactly.
+- **The method is `attachmentFiles()`, not `attachments()`.** `Illuminate\Mail\Mailable`
+  declares `attachments()` privately for its own envelope de-duplication; shadowing it
+  makes Laravel's internal call land on ours. This cost 14 tests and one confusing
+  "undefined method" before it was found.
+
+**Not verified end to end**, and this is the loose end: nothing dispatches
+`report.monthly` or `quotation.sent` yet, so no PDF has been through a real send. That
+is Stage 4 work, not a defect in this chunk.
+
+---
+
+## Remaining, in order
+
 ### ⬜ Stage 4 — Catalogue wiring
 
 The 14 notifications are defined, provisioned and testable. None are wired to the
@@ -76,8 +90,31 @@ events that should fire them.
 - Subscription lifecycle job — expiry once per `ends_at`, reminder buckets 0,2,4,6,8,
   no bucket twice, silent resume on resubscribe.
 - Monthly report job — previous completed month, per-business timezone, deduped per
-  `YYYY-MM`.
+  `YYYY-MM`. **See the hazard below before writing it.**
 - Quotation send.
+
+#### ⚠️ Three scheduled jobs bypass the whole pipeline
+
+`routes/console.php` still schedules three jobs that predate Stage 0 and share none of
+its machinery — no catalogue, no `notification_deliveries`, no preferences, no
+`RecipientResolver`:
+
+- `GenerateMonthlyBusinessReportJob` — monthly, and the reason `report.monthly` has no
+  email today. WhatsApp-only, so the chunk-3 PDF cannot ship until this is replaced.
+- `ProcessSubscriptionLifecycleWhatsAppJob` — daily 07:00.
+- `CheckNotificationsJob` — every six hours.
+
+`GenerateMonthlyBusinessReportJob` also hardcodes a fallback recipient,
+`'+256731794401'` (`app/Jobs/GenerateMonthlyBusinessReportJob.php:69`), so a business
+with no phone on file has its monthly report sent to a hardcoded number. It sends
+synchronously inside `foreach (Business::all())`, against §2.2 of
+`whatsapp_implementation.md`.
+
+**Wiring the catalogue triggers without retiring these sends customers two monthly
+reports.** Decide what happens to them as part of Stage 4, not after. `StageZeroRepair
+Test` covers the legacy `ProcessWhatsAppNotificationJob` path, so deletion is not
+automatic.
+
 
 ### ⬜ Stage 5 — Tests
 
@@ -165,7 +202,7 @@ DB_HOST=127.0.0.1 DB_DATABASE=inventory_test ./vendor/bin/phpunit
 - The `mysqli.so` startup warning on every PHP command is a broken local extension and
   is harmless here.
 
-## Two traps worth remembering
+## Three traps worth remembering
 
 - **Never run `pint` unscoped.** Pointed at `app/` and `routes/` it reformatted **322**
   unrelated files. Everything was reverted; only the intended files were kept. Always
@@ -173,6 +210,11 @@ DB_HOST=127.0.0.1 DB_DATABASE=inventory_test ./vendor/bin/phpunit
 - **`notification_recipients` is scoped by the global branch scope.** `->first()` in a
   test is ambiguous and silently returns the wrong tenant's row. Query by
   `business_id` + `address`, or `->sole()` on a known filter.
+- **Do not name a Mailable helper `attachments()`.** `Illuminate\Mail\Mailable` declares
+  that method *privately* for its own envelope de-duplication. Redeclaring it looks
+  legal, compiles, and passes reflection — then every email in the suite fails with
+  `Call to undefined method`, because Laravel's internal call is landing on your method.
+  `buildAttachments()` is taken by the parent too. The helper is `attachmentFiles()`.
 
 ## Where the reasoning is written up
 

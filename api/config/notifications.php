@@ -46,6 +46,11 @@ return [
     | dedupe    Shape of the deterministic key, with {placeholders} filled from
     |           $identity. Must contain no timestamp: two events that should each
     |           notify have to differ by something other than when they fired.
+    | attachments
+    |           Names from AttachmentRegistry::available(), attached to the
+    |           email. Optional, and email-only: a builder reads the delivery's
+    |           stored payload, and WhatsApp has no attachment. Absent or empty
+    |           means a plain email.
     |
     */
 
@@ -139,6 +144,7 @@ return [
             'scope' => 'business',
             'meta' => 'monthly_report_ready',
             'dedupe' => 'report:monthly:business-{business_id}:{period}',
+            'attachments' => ['monthly_report_pdf'],
         ],
 
         'quotation.sent' => [
@@ -149,6 +155,7 @@ return [
             'scope' => 'business',
             'meta' => null,
             'dedupe' => 'quotation:sent:quotation-{quotation_id}:v{version}',
+            'attachments' => ['quotation_pdf'],
         ],
 
         'order.purchase' => [
