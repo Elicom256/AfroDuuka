@@ -94,16 +94,33 @@ class WhatsAppChannel implements NotificationChannel
             $code = (string) ($response['code'] ?? 'provider_error');
             $message = is_array($error) ? json_encode($error) : (string) $error;
 
-            // A timeout tells us nothing about whether it landed, so it is ambiguous
-            // rather than a failure. Retrying it is how a customer gets it twice.
-            if (in_array($code, ['timeout', 'curl_timeout', 'connection_error'], true)) {
-                return ChannelResult::ambiguous($message, $response);
+            // Codes where the request may or may not have landed. A timeout tells us
+            // nothing about whether it was delivered, so it is ambiguous rather than a
+            // failure: retrying it is how a customer gets it twice. `unreadable_response`
+            // belongs here for the same reason — Meta answered 2xx, so it probably took
+            // the message, but the reply could not be parsed and there is no id to
+            // reconcile on. Calling it a failure would invite a resend of a message that
+            // probably went out.
+            if (in_array($code, ['timeout', 'curl_timeout', 'connection_error', 'unreadable_response'], true)) {
+                // The provider's own code is carried through, so the row records which
+                // kind of doubt this was rather than a flat "ambiguous" for all of them.
+                return ChannelResult::ambiguous($message, $response, $code);
             }
 
             return ChannelResult::rejected($code, $message, $response);
         }
 
-        $messageId = $response['message_id'] ?? $response['messages'][0]['id'] ?? null;
+        // Three shapes, because the providers disagree and the disagreement was silent.
+        // Meta returns `messages[0].id`; the demo provider returns `provider_message_id`.
+        // Reading only the first two accepted every send with a null message id, so the
+        // delivery was marked sent with nothing to correlate against — and the status
+        // webhook, whose whole job is to match a delivery to Meta's message id, would
+        // have matched nothing at all. No test noticed, because nothing asserted the id
+        // was stored.
+        $messageId = $response['message_id']
+            ?? $response['messages'][0]['id']
+            ?? $response['provider_message_id']
+            ?? null;
 
         return ChannelResult::accepted($messageId === null ? null : (string) $messageId, $response);
     }
