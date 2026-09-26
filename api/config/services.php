@@ -48,6 +48,15 @@ return [
         'access_token' => env('WHATSAPP_ACCESS_TOKEN', 'demo_access_token'),
         'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'demo_verify_token'),
         'default_template' => env('WHATSAPP_DEFAULT_TEMPLATE', 'demo_business_alert'),
+
+        // One version for every Graph call this app makes. Meta expires versions on a
+        // fixed schedule and stops serving them without notice, so the version is
+        // config rather than a string baked into a URL: a single edit moves listing and
+        // sending together, and the two can never end up straddling versions.
+        //
+        // v25.0 expires 2028-07-29. v26.0 is newer but its expiry is still listed as
+        // TBD, and v21.0 — which this file previously hardcoded — expires 2027-01-21.
+        'graph_api_version' => env('WHATSAPP_GRAPH_API_VERSION', 'v25.0'),
     ],
 
     'slack' => [
