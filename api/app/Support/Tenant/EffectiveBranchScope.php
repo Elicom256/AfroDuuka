@@ -6,6 +6,8 @@ use App\Models\BusinessBranch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class EffectiveBranchScope
 {
@@ -35,6 +37,63 @@ class EffectiveBranchScope
         }
 
         return [null, [$user->business_branch_id]];
+    }
+
+    /**
+     * Resolve the branch a report should be scoped to, from user input.
+     *
+     * Reports are per branch: one document describes one branch's month, never a
+     * blended "company total" that reads as if it were somebody's branch.
+     *
+     * This deliberately reuses branchesFor() so the permitted set can never drift from
+     * the rows the scope actually admits. Asking the scope first is not enough on its
+     * own: a business admin's scope admits every branch of their business, so a
+     * branch_id typed into a query string would otherwise be treated as a permission
+     * when it is only a preference.
+     *
+     * @param  mixed  $requested  the branch_id from the request, if any
+     * @return int the branch id to scope to
+     *
+     * @throws ValidationException when the branch is not permitted
+     * @throws HttpException when a named branch is not the caller's
+     */
+    public static function resolveReportBranch(?User $user, mixed $requested): int
+    {
+        $resolved = static::branchesFor($user);
+
+        if ($resolved === null) {
+            // A system role with no business is never in this position: both callers
+            // require an authenticated business first. Failing closed rather than
+            // open means a future caller that forgets that check cannot accidentally
+            // report on whichever branch a request happened to name.
+            throw ValidationException::withMessages([
+                'branch_id' => 'No business is associated with this account.',
+            ]);
+        }
+
+        $allowed = array_map('intval', $resolved[1]);
+
+        if (filled($requested)) {
+            $branchId = (int) $requested;
+
+            abort_unless(
+                $branchId > 0 && in_array($branchId, $allowed, true),
+                403,
+                'You do not have access to that branch.',
+            );
+
+            return $branchId;
+        }
+
+        if (count($allowed) === 1) {
+            return $allowed[0];
+        }
+
+        throw ValidationException::withMessages([
+            'branch_id' => count($allowed) === 0
+                ? 'This business has no branches to report on.'
+                : 'Select a branch. Each branch has its own report.',
+        ]);
     }
 
     /**
