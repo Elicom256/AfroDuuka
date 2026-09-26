@@ -14,11 +14,12 @@ class StoreWhatsAppConfigRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (! $this->has('business_phone')) {
-            $this->merge([
-                'business_phone' => '+256731794401',
-            ]);
-        }
+        // business_phone is deliberately NOT defaulted here. It used to be filled in
+        // with a specific handset when the client omitted it, which meant a settings
+        // form that simply did not ask for a number still saved one — and the business
+        // then sent every message from, and could be replied to at, a stranger's phone.
+        // Omitting it now fails validation, which is the correct outcome: a sending
+        // identity is something the business chooses or does not have yet.
 
         if (! $this->has('provider')) {
             $this->merge([

@@ -5,8 +5,7 @@ namespace App\Services\WhatsApp;
 use App\Services\Notifications\TemplateRenderer;
 
 /**
- * Kept only so the two existing jobs (ProcessWhatsAppNotificationJob,
- * GenerateMonthlyBusinessReportJob) still have somewhere to call render().
+ * Kept only so ProcessWhatsAppNotificationJob still has somewhere to call render().
  *
  * New code should use App\Services\Notifications\TemplateRenderer directly. This
  * wrapper cannot do the strict work the renderer does, because it is handed a data
