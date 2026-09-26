@@ -240,7 +240,7 @@ Acceptance criteria:
 - Offline transactions sync accurately without double-counting.
 - Conflicting records are safely resolved or flagged.
 
-### 4.2 Retry and failure handling
+### 4.2 Retry and failure handling ✅
 
 Bug: queued jobs or sync operations fail silently or leave partial updates.
 
