@@ -125,7 +125,7 @@ Acceptance criteria:
 - Taxes are consistent across all product types.
 - Totals do not drift because of floating-point issues.
 
-### 2.2 Cash reconciliation and drawer mismatch
+### 2.2 Cash reconciliation and drawer mismatch ✅
 
 Bug: cash totals from POS transactions may not match final drawer balance.
 

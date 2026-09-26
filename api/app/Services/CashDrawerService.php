@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CashDrawerSession;
+use App\Models\CashFlow;
 use App\Models\SalePayment;
 use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
@@ -57,7 +58,18 @@ class CashDrawerService
                 })
                 ->sum('amount');
 
-            $expectedCash = round((float) $locked->opening_cash + (float) $cashSales, 2);
+            $cashInflows = CashFlow::where('business_branch_id', $locked->business_branch_id)
+                ->where('payment_method', 'cash')
+                ->whereIn('type', ['payment_in'])
+                ->whereBetween('created_at', [$locked->opened_at, now()])
+                ->sum('amount');
+            $cashOutflows = CashFlow::where('business_branch_id', $locked->business_branch_id)
+                ->where('payment_method', 'cash')
+                ->whereIn('type', ['refund', 'expense', 'payment_out'])
+                ->whereBetween('created_at', [$locked->opened_at, now()])
+                ->sum('amount');
+
+            $expectedCash = round((float) $locked->opening_cash + (float) $cashSales + (float) $cashInflows - (float) $cashOutflows, 2);
             $variance = round($countedCash - $expectedCash, 2);
 
             if (abs($variance) > (float) $locked->allowed_variance) {
