@@ -6,6 +6,11 @@ use App\Contracts\Notifications\AttachmentBuilder;
 use App\Models\NotificationDelivery;
 use App\ValueObjects\MonthlyReport;
 use Barryvdh\DomPDF\Facade\Pdf;
+// Aliased, because PHP class names are case-insensitive: importing the concrete
+// document as PDF alongside the Pdf facade collides, and the resulting "name is
+// already in use" is a fatal at class-compile time, which PHPUnit reports as
+// "Premature end of PHP process" rather than as anything pointing at this file.
+use Barryvdh\DomPDF\PDF as DomPdf;
 
 /**
  * The monthly performance report as a PDF.
@@ -19,6 +24,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
  * The per-branch table is included when the payload carries one and omitted when it
  * does not, because whether the monthly report is consolidated or per-branch is still an
  * open decision (undone.md, #6) and this should not pre-empt it.
+ *
+ * render() is public so that the admin reports download and the email attachment go
+ * through the same renderer and the same view. A second copy of this layout is the way
+ * the downloadable PDF and the emailed PDF end up disagreeing.
  */
 class MonthlyReportPdf implements AttachmentBuilder
 {
@@ -35,12 +44,26 @@ class MonthlyReportPdf implements AttachmentBuilder
             return null;
         }
 
-        $pdf = Pdf::loadView('pdfs.monthly-report', ['report' => $report->toArray()]);
-
         return [
-            'filename' => 'monthly-report-'.($report->slug() ?: 'report').'.pdf',
-            'content' => $pdf->output(),
+            'filename' => $this->filename($report),
+            'content' => $this->render($report)->output(),
             'mime' => 'application/pdf',
         ];
+    }
+
+    /**
+     * Render a report to a PDF document.
+     */
+    public function render(MonthlyReport $report): DomPdf
+    {
+        return Pdf::loadView('pdfs.monthly-report', ['report' => $report->toArray()]);
+    }
+
+    /**
+     * The download filename for a report, e.g. "monthly-report-august-2026.pdf".
+     */
+    public function filename(MonthlyReport $report): string
+    {
+        return 'monthly-report-'.($report->slug() ?: 'report').'.pdf';
     }
 }

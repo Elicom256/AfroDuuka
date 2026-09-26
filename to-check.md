@@ -579,6 +579,74 @@ Not removed here: `tests/Feature/WhatsApp/StageZeroRepairTest.php` and
 `ProcessWhatsAppNotificationJob` path, so retiring these is a Stage 4 decision with
 tests attached, not a drive-by deletion.
 
+### Admin reports monthly download — findings
+
+Built after Stage 2 chunk 3 so the emailed document is also reachable from the UI. Five
+things came out of it that are not obvious from the diff:
+
+**1. The figures had to be extracted into a service, and this settles open question #2.**
+`businesses.timezone` is a **real column**, so the monthly window is drawn in the
+business's own timezone rather than the server's. `#2` in the deferred list asked whether
+to add a column or a settings row; the column is already there and populated
+(`Africa/Kampala` in the dev data). No schema change needed.
+
+**2. `cash_flows`, not the raw documents — a deliberate divergence from the legacy job.**
+`GenerateMonthlyBusinessReportJob` derives its figures from `Sale`/`Purchase`/`Expense`
+models. I used `cash_flows` instead, because `BranchPerformanceReports` — the card
+immediately above this one on `/admin/reports` — already reads `cash_flows`, and
+`cash_flows` carries `business_branch_id`, which the per-branch table needs. Using the
+legacy job's approach would print a headline total that contradicts the neighbouring
+card. **Stage 4's trigger should call `MonthlyPerformanceReport` (service) and not copy
+the legacy job's arithmetic**, or the emailed report and the downloaded one will differ
+from each other and from the dashboard.
+
+**3. `payment_in` / `payment_out` / `refund` / `adjustment` and the stock-transfer types
+are excluded from sales, purchases and expenses.** They are movements of money that are
+not trading income, cost or overhead, and each already has a sale or purchase behind it —
+counting them double-counts. Pinned by a test.
+
+**4. An unauthenticated browser GET on any of these API routes 500s, not 401s.** A plain
+`GET` that fails `auth:sanctum` throws an `AuthenticationException` looking for a `login`
+route to redirect to; there is none in an API-only app, so it surfaces as a 500. This is
+pre-existing and app-wide, not introduced here — but it is the mechanism behind **two of
+the three known pre-existing failures**: `PosCheckoutTest::test_checkout_requires_auth`
+and `PosSearchTest::test_search_requires_auth` both assert `302` and get `200`/`422`
+depending on whether the request is JSON. My auth test therefore asserts `401` with an
+`Accept: application/json` header, and the download is requested as a blob rather than
+navigated to. **Worth fixing properly** (an `Accept`/redirector tweak on the api
+middleware group) before anyone writes more auth tests against the wrong status.
+
+**5. RTK Query has no lazy-query hooks.** `useMonthlyPerformancePdfLazyQuery` does not
+exist — `useLazyQuery` is React Query's API, not RTK's. The repo's established pattern
+for an on-demand PDF (`downloadReceiptPdf` on the receipts page) is a **mutation**, so
+that is what this uses. The one deliberate difference: the response is a `Blob` via
+`responseHandler: (response) => response.blob()` rather than base64. Base64 inflates the
+payload by a third, and this response is never cached in the store the way a preview's
+would be. Note RTK's `ResponseHandler` type has no `'blob'` string form — the function
+form is the supported way.
+
+**Left alone on purpose:** the quotation PDF. It already downloads from
+`/admin/quotations` (`QuotationsPage.tsx`, `GET /quotations/{id}/pdf`). You confirmed
+the monthly report only; putting a second copy of the same document into reports would be
+two entry points for one file.
+
+### Not fixed — found while building the reports download
+
+**`pdftotext` is not installed in the application container**, and the only PDF assertion
+that existed (`NotificationAttachmentTest`) checks for the `%PDF-` magic bytes and
+nothing else — which passes for a template that prints entirely the wrong numbers, since
+content streams are compressed. The new tests extract the text in PHP instead (inflate
+the Flate streams, pull the text-show operands, drop the NUL bytes dompdf's TrueType
+subsets produce). It is deliberately a presence check, never a count, because the
+extraction also picks up glyph data from the embedded font programmes.
+
+**The whole suite is unrunnable in the container without an env prefix.** See the
+commands in `undone.md`; the short version is `APP_ENV=testing MAIL_MAILER=array` in
+front of the command, because the container exports `APP_ENV=local` and `MAIL_MAILER=log`
+as real env vars that beat both `phpunit.xml` and `.env.testing`. `force="true"` on the
+`phpunit.xml` entries does not help. I tried that first and reverted it rather than leave
+a change whose comment claimed a fix it did not deliver.
+
 ---
 
 *Remaining work is tracked in [`undone.md`](undone.md). This file stays the record of
