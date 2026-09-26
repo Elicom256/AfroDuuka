@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import ReportCard from './ReportCard';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import {
   useMonthlyPerformancePdfMutation,
   useMonthlyPerformanceQuery,
@@ -40,8 +41,30 @@ const recentMonths = (count = MONTHS_OFFERED): { value: string; label: string }[
 
 const MONTHS = recentMonths();
 
-const fileNameFor = (period: string) =>
-  `monthly-report-${period.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase()}.pdf`;
+/**
+ * The branches query is untyped (`builder.query<any, void>`), so the shape it actually
+ * returns is pinned here instead of being taken on trust. Spelled out locally rather than
+ * by typing the shared endpoint, which would put this change in front of every consumer
+ * of the branches API.
+ */
+type BranchOption = { id: number | string; name: string };
+
+const slug = (value: string) =>
+  value
+    .replace(/[^a-z0-9]+/gi, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+
+/**
+ * Must produce exactly what MonthlyReportPdf::filename() produces.
+ *
+ * The anchor element's download attribute wins over Content-Disposition, so a browser
+ * never sees the header the server carefully set. If the two disagree the user gets a
+ * file called "monthly-report-august-2026.pdf" for a branch, which is the same filename
+ * for every branch of the business — so the branch has to be in it here too.
+ */
+const fileNameFor = (branchName: string, period: string) =>
+  ['monthly-report', slug(branchName), slug(period)].filter(Boolean).join('-') + '.pdf';
 
 /**
  * The monthly performance report, and the same document the notification email attaches.
@@ -50,12 +73,33 @@ const fileNameFor = (period: string) =>
  * downloaded here is the report as it stands. The emailed copy is a snapshot frozen when
  * the notification was reserved, which is the right thing for a record of what was sent
  * and the wrong thing for someone who wants the current numbers.
+ *
+ * Every branch has its own report, so the branch is a required choice rather than a
+ * filter: there is no company-wide document to fall back on, and offering one would put
+ * a blended total in front of the branch manager who has to act on it.
  */
 export const MonthlyPerformanceReport = () => {
   const { currency: fallbackCurrency } = useCurrency();
   const [month, setMonth] = useState<string>(MONTHS[0].value);
+  const [branchId, setBranchId] = useState<string>('');
 
-  const { data, isLoading, isError } = useMonthlyPerformanceQuery(month);
+  const { data: branchesData } = useBranchesQuery();
+  const branches = useMemo<BranchOption[]>(
+    () => branchesData?.branches || [],
+    [branchesData]
+  );
+
+  // Defaults to the first branch once the list arrives. Unlike the comparison card there
+  // is no "all branches" view to preserve here, so there is nothing for a default to
+  // destroy.
+  const activeBranchId = branchId || (branches[0] ? String(branches[0].id) : '');
+
+  // Skipped until a branch is known: firing with an empty branch_id would come back 422,
+  // because the API has no whole-company document to serve.
+  const { data, isLoading, isError } = useMonthlyPerformanceQuery(
+    { month, branchId: activeBranchId },
+    { skip: !activeBranchId }
+  );
 
   // Lazy, so the PDF is fetched on click rather than with the page. A report is a few
   // hundred KB of PDF and nobody who came to read the figures asked for that.
@@ -63,6 +107,7 @@ export const MonthlyPerformanceReport = () => {
 
   const report = data?.data;
   const currency = report?.currency || fallbackCurrency || 'UGX';
+  const pending = !activeBranchId || isLoading;
 
   const figures = useMemo(
     () =>
@@ -88,7 +133,7 @@ export const MonthlyPerformanceReport = () => {
 
   const download = async () => {
     try {
-      const blob = await fetchPdf(month).unwrap();
+      const blob = await fetchPdf({ month, branchId: activeBranchId }).unwrap();
 
       if (!(blob instanceof Blob)) {
         throw new Error('Unexpected response');
@@ -100,7 +145,9 @@ export const MonthlyPerformanceReport = () => {
       const link = document.createElement('a');
 
       link.href = url;
-      link.download = report ? fileNameFor(report.period) : `monthly-report-${month}.pdf`;
+      link.download = report
+        ? fileNameFor(report.branch_name, report.period)
+        : `monthly-report-${month}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -109,30 +156,50 @@ export const MonthlyPerformanceReport = () => {
   };
 
   const profit = report?.figures.profit_loss;
-  const branches = report?.branches ?? [];
 
   return (
-    <ReportCard title='Monthly Performance Report' loading={isLoading}>
+    <ReportCard title='Monthly Performance Report' loading={pending}>
       <div className='flex flex-wrap items-center justify-between gap-4 mb-6'>
-        <div className='flex items-center gap-3'>
-          <label className='text-sm text-muted-foreground' htmlFor='monthly-report-month'>
-            Month:
-          </label>
-          <select
-            id='monthly-report-month'
-            className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-          >
-            {MONTHS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <div className='flex flex-wrap items-center gap-3'>
+          <div className='flex items-center gap-3'>
+            <label className='text-sm text-muted-foreground' htmlFor='monthly-report-branch'>
+              Branch:
+            </label>
+            <select
+              id='monthly-report-branch'
+              className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
+              value={activeBranchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              disabled={branches.length === 0}
+            >
+              {branches.map((branch) => (
+                <option key={branch.id} value={String(branch.id)}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className='flex items-center gap-3'>
+            <label className='text-sm text-muted-foreground' htmlFor='monthly-report-month'>
+              Month:
+            </label>
+            <select
+              id='monthly-report-month'
+              className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+            >
+              {MONTHS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <Button size='sm' disabled={isDownloading} onClick={download}>
+        <Button size='sm' disabled={isDownloading || !activeBranchId} onClick={download}>
           {isDownloading ? 'Preparing…' : 'Download PDF'}
         </Button>
       </div>
@@ -143,12 +210,22 @@ export const MonthlyPerformanceReport = () => {
         </div>
       )}
 
-      {!isError && !report && !isLoading && (
+      {!isError && !report && !pending && (
         <div className='text-center py-12 text-muted-foreground'>No report data available.</div>
+      )}
+
+      {!isError && !report && pending && (
+        <div className='text-center py-12 text-muted-foreground'>
+          {branches.length === 0 ? 'This business has no branches to report on.' : 'Loading…'}
+        </div>
       )}
 
       {report && (
         <div className='space-y-6'>
+          <p className='text-sm text-muted-foreground'>
+            Every figure below describes {report.branch_name} only.
+          </p>
+
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
             {figures.map((figure) => (
               <div key={figure.label} className='bg-card border rounded-xl p-5'>
@@ -177,44 +254,6 @@ export const MonthlyPerformanceReport = () => {
             <span>{report.counts.sales ?? 0} sales recorded</span>
             <span>{report.counts.purchases ?? 0} purchases recorded</span>
           </div>
-
-          {branches.length > 0 && (
-            <div>
-              <h3 className='text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3'>
-                Branch breakdown
-              </h3>
-              <div className='overflow-x-auto'>
-                <table className='w-full text-sm'>
-                  <thead>
-                    <tr className='border-b text-left text-muted-foreground'>
-                      <th className='py-2 pr-4 font-medium'>Branch</th>
-                      <th className='py-2 pr-4 font-medium text-right'>Sales</th>
-                      <th className='py-2 pr-4 font-medium text-right'>Purchases</th>
-                      <th className='py-2 pr-4 font-medium text-right'>Expenses</th>
-                      <th className='py-2 font-medium text-right'>Profit / loss</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {branches.map((branch) => (
-                      <tr key={branch.name} className='border-b last:border-0'>
-                        <td className='py-2 pr-4 font-medium'>{branch.name}</td>
-                        <td className='py-2 pr-4 text-right'>{formatMoney(branch.sales)}</td>
-                        <td className='py-2 pr-4 text-right'>{formatMoney(branch.purchases)}</td>
-                        <td className='py-2 pr-4 text-right'>{formatMoney(branch.expenses)}</td>
-                        <td
-                          className={`py-2 text-right font-medium ${
-                            branch.profit_loss < 0 ? 'text-red-600' : 'text-emerald-600'
-                          }`}
-                        >
-                          {formatMoney(branch.profit_loss)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
           <p className='text-xs text-muted-foreground'>
             The download is the same document the monthly summary email attaches.

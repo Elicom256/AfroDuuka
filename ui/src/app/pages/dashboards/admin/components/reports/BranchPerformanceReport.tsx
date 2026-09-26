@@ -8,14 +8,16 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const BranchPerformanceReport = () => {
   const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  // Empty means every branch, and that is the default on purpose. This card exists to
+  // compare branches, so defaulting to the first one would make the best and worst
+  // performing branch the same branch and leave the comparison permanently empty.
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
 
   const { data: branchesData } = useBranchesQuery();
   const branches = branchesData?.branches || [];
-  const defaultBranchId = branches.length > 0 ? branches[0].id : null;
 
   const { data, isLoading } = useBranchPerformanceQuery({
-    id: selectedBranchId || defaultBranchId,
+    id: selectedBranchId || undefined,
     period,
   });
 
@@ -30,6 +32,15 @@ export const BranchPerformanceReport = () => {
   const report = data?.data;
   const summary = report?.summary;
   const branchRows = report?.branches || [];
+
+  // When one branch is selected the three tiles switch from the company's totals to that
+  // branch's. They are separate queries, and the branch filter applies only to the
+  // per-branch one, so leaving the tiles on the company figure would show Jinja's row
+  // above a revenue total that included Kampala.
+  const scoped = branchRows.length === 1 ? branchRows[0] : null;
+  const totalRevenue = scoped ? scoped.total_revenue : summary?.total_company_revenue;
+  const totalExpenses = scoped ? scoped.total_expenses : summary?.total_company_expenses;
+  const netProfit = scoped ? scoped.net_profit : summary?.total_company_profit;
 
   return (
     <ReportCard title='Branch Performance' loading={isLoading}>
@@ -53,11 +64,12 @@ export const BranchPerformanceReport = () => {
           <label className='text-sm text-muted-foreground'>Branch:</label>
           <select
             className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
-            value={selectedBranchId || defaultBranchId || ''}
+            value={selectedBranchId}
             onChange={(e) => setSelectedBranchId(e.target.value)}
           >
+            <option value=''>All branches</option>
             {branches.map((branch: any) => (
-              <option key={branch.id} value={branch.id}>
+              <option key={branch.id} value={String(branch.id)}>
                 {branch.name}
               </option>
             ))}
@@ -75,24 +87,26 @@ export const BranchPerformanceReport = () => {
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Total Revenue</p>
               <p className='text-3xl font-semibold mt-2 text-emerald-600'>
-                {formatCurrency(summary.total_company_revenue)}
+                {formatCurrency(totalRevenue)}
               </p>
             </div>
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Total Expenses</p>
               <p className='text-3xl font-semibold mt-2 text-red-600'>
-                {formatCurrency(summary.total_company_expenses)}
+                {formatCurrency(totalExpenses)}
               </p>
             </div>
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Net Profit</p>
-              <p className={`text-3xl font-semibold mt-2 ${summary.total_company_profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {formatCurrency(summary.total_company_profit)}
+              <p className={`text-3xl font-semibold mt-2 ${netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {formatCurrency(netProfit)}
               </p>
             </div>
           </div>
 
-          {summary.best_performing_branch && (
+          {/* Needs more than one branch to mean anything: with a single branch in the
+              result, the best performer is simply the branch that was selected. */}
+          {branchRows.length > 1 && summary?.best_performing_branch && (
             <div className='bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl p-4'>
               <p className='text-sm text-emerald-600 font-medium'>Best Performing Branch</p>
               <p className='text-lg font-bold mt-1'>{summary.best_performing_branch.branch_name}</p>

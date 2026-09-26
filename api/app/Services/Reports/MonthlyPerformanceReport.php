@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\DB;
 /**
  * The figures behind a monthly performance report.
  *
+ * One document describes one branch. There is deliberately no "company total" variant:
+ * a blended figure across every branch reads as if it were somebody's branch, and the
+ * person who has to act on it — a branch manager — cannot. Comparisons across branches
+ * are Branch Performance's job, on a different card, for a different reader.
+ *
  * Returns the payload contract that App\ValueObjects\MonthlyReport parses, so that the
  * downloadable PDF, the emailed PDF and the email body are all describing the same
  * numbers. That matters more than it looks: the notification path freezes these figures
@@ -20,9 +25,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Sourced from cash_flows rather than from sales/purchases/expenses directly, because
  * cash_flows is what the other report cards on the admin reports page already read, and
- * because it carries business_branch_id, which the per-branch table needs. Deriving this
- * from the raw documents instead would put a total on screen that contradicts the Branch
- * Performance card two inches above it.
+ * because it carries business_branch_id, which is what makes per-branch scoping possible
+ * at all. Deriving this from the raw documents instead would put a total on screen that
+ * contradicts the Branch Performance card two inches above it.
  *
  * Note the type filters below deliberately ignore 'payment_in', 'payment_out',
  * 'refund', 'adjustment' and the stock-transfer types. Those are movements of money
@@ -34,14 +39,14 @@ class MonthlyPerformanceReport
     /**
      * @return array<string, mixed> The notification payload contract.
      */
-    public function payload(Business $business, Carbon $month): array
+    public function payload(Business $business, BusinessBranch $branch, Carbon $month): array
     {
         [$start, $end] = $this->window($business, $month);
 
         // [0] because aggregate() hands back a list of rows, and the totals query is
         // ungrouped so that list always holds exactly one row. Reading
         // $totals['total_sales'] off the list looks right and silently yields 0.
-        $totals = $this->aggregate($business, $start, $end, groupByBranch: false)[0] ?? [];
+        $totals = $this->aggregate($business, $branch, $start, $end)[0] ?? [];
 
         $sales = (float) ($totals['total_sales'] ?? 0);
         $purchases = (float) ($totals['total_purchases'] ?? 0);
@@ -49,6 +54,7 @@ class MonthlyPerformanceReport
 
         return [
             'business_name' => (string) $business->name,
+            'branch_name' => (string) $branch->name,
             'period' => $month->format('F Y'),
             'currency' => (string) ($business->country?->currency_code ?: 'UGX'),
             'total_sales' => $sales,
@@ -57,83 +63,23 @@ class MonthlyPerformanceReport
             'total_profit_loss' => round($sales - $purchases - $expenses, 2),
             'number_of_sales' => (int) ($totals['number_of_sales'] ?? 0),
             'number_of_purchases' => (int) ($totals['number_of_purchases'] ?? 0),
-            'branches' => $this->branches($business, $start, $end),
-        ];
-    }
-
-    /**
-     * Per-branch rows, shaped for MonthlyReport::branches().
-     *
-     * Rows without a resolvable branch name are dropped rather than printed as a blank
-     * line: a cash flow recorded against no branch still counts in the headline totals
-     * above, and printing it under an empty heading would imply the total did not add up.
-     *
-     * @return array<int, array<string, float|string>>
-     */
-    private function branches(Business $business, string $start, string $end): array
-    {
-        $rows = $this->aggregate($business, $start, $end, groupByBranch: true);
-
-        if ($rows === []) {
-            return [];
-        }
-
-        $names = $this->branchNames($rows);
-
-        return array_values(array_filter(array_map(function (array $row) use ($names) {
-            $name = trim((string) ($names[$row['business_branch_id'] ?? 0] ?? ''));
-
-            if ($name === '') {
-                return null;
-            }
-
-            $sales = (float) ($row['total_sales'] ?? 0);
-            $purchases = (float) ($row['total_purchases'] ?? 0);
-            $expenses = (float) ($row['total_expenses'] ?? 0);
-
-            return [
-                'name' => $name,
+            // Kept as a single row so that a consumer which iterates branch rows still
+            // works unchanged. The layout hides a one-row table; the name is in the
+            // header, which is where a reader of a per-branch document looks for it.
+            'branches' => [[
+                'name' => (string) $branch->name,
                 'sales' => $sales,
                 'purchases' => $purchases,
                 'expenses' => $expenses,
                 'profit_loss' => round($sales - $purchases - $expenses, 2),
-            ];
-        }, $rows), fn (?array $row) => $row !== null));
-    }
-
-    /**
-     * Branch names keyed by id, for the rows above.
-     *
-     * Deliberately a second query rather than a join to business_branches. Both tables
-     * carry a business_id column, and the tenant global scope in BaseModel adds an
-     * unqualified `where business_id = ?` — so joining turns every one of these queries
-     * into "column reference business_id is ambiguous". Qualifying the scope's own output
-     * is not an option either, since it is framework-wide and shared by every model.
-     *
-     * @param  array<int, array<string, mixed>>  $rows
-     * @return array<int, string>
-     */
-    private function branchNames(array $rows): array
-    {
-        $ids = array_values(array_unique(array_filter(array_map(
-            fn (array $row) => $row['business_branch_id'] ?? null,
-            $rows
-        ))));
-
-        if ($ids === []) {
-            return [];
-        }
-
-        return BusinessBranch::query()
-            ->whereIn('id', $ids)
-            ->pluck('name', 'id')
-            ->all();
+            ]],
+        ];
     }
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function aggregate(Business $business, string $start, string $end, bool $groupByBranch): array
+    private function aggregate(Business $business, BusinessBranch $branch, string $start, string $end): array
     {
         $sale = "SUM(CASE WHEN cash_flows.type = 'sale' OR cash_flows.category = 'product_sales' THEN cash_flows.amount ELSE 0 END)";
 
@@ -147,14 +93,11 @@ class MonthlyPerformanceReport
             ])
             ->where('cash_flows.business_id', $business->id)
             ->where('cash_flows.status', 'completed')
+            // Explicit, and not merely inherited from the branch scope. The scope allows
+            // a business admin every branch, so relying on it alone would let a document
+            // labelled with one branch's name carry another branch's figures.
+            ->where('cash_flows.business_branch_id', $branch->id)
             ->whereBetween('cash_flows.transaction_date', [$start, $end]);
-
-        if ($groupByBranch) {
-            $query
-                ->addSelect('cash_flows.business_branch_id')
-                ->groupBy('cash_flows.business_branch_id')
-                ->orderByDesc('total_sales');
-        }
 
         // No GROUP BY for the company-wide totals. A bare aggregate query already returns
         // exactly one row, and the obvious-looking `groupByRaw('1')` is a trap here:

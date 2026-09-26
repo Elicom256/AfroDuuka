@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\BusinessBranch;
 use App\Services\Notifications\Attachments\MonthlyReportPdf;
 use App\Services\Reports\MonthlyPerformanceReport as MonthlyPerformanceReportService;
+use App\Support\Tenant\EffectiveBranchScope;
 use App\ValueObjects\MonthlyReport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -26,13 +28,16 @@ class MonthlyPerformanceReport extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        [$business, $month] = $this->resolve($request);
+        [$business, $branch, $month] = $this->resolve($request);
 
-        $report = MonthlyReport::fromPayload($this->service->payload($business, $month));
+        $report = MonthlyReport::fromPayload($this->service->payload($business, $branch, $month));
 
         return response()->json([
             'message' => 'Monthly performance report fetched',
-            'data' => $report->toArray() + ['month' => $month->format('Y-m')],
+            'data' => $report->toArray() + [
+                'month' => $month->format('Y-m'),
+                'branch_id' => $branch->id,
+            ],
         ], 200);
     }
 
@@ -50,15 +55,15 @@ class MonthlyPerformanceReport extends Controller
      */
     public function pdf(Request $request): Response
     {
-        [$business, $month] = $this->resolve($request);
+        [$business, $branch, $month] = $this->resolve($request);
 
-        $report = MonthlyReport::fromPayload($this->service->payload($business, $month));
+        $report = MonthlyReport::fromPayload($this->service->payload($business, $branch, $month));
 
         return $this->pdf->render($report)->download($this->pdf->filename($report));
     }
 
     /**
-     * @return array{0: Business, 1: Carbon}
+     * @return array{0: Business, 1: BusinessBranch, 2: Carbon}
      *
      * @throws ValidationException
      */
@@ -66,17 +71,27 @@ class MonthlyPerformanceReport extends Controller
     {
         $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
+            'branch_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $business = Auth::user()?->business()->first();
+        $user = Auth::user();
+        $business = $user?->business()->first();
 
         abort_if($business === null, 403, 'No business is associated with this account.');
+
+        // Authorised before it is read, not after: a branch id that is not the caller's
+        // has to fail even when it happens to share an id with nothing they own.
+        $branchId = EffectiveBranchScope::resolveReportBranch($user, $request->input('branch_id'));
+
+        $branch = BusinessBranch::query()
+            ->where('business_id', $business->id)
+            ->findOrFail($branchId);
 
         $month = $request->filled('month')
             ? Carbon::createFromFormat('!Y-m', (string) $request->input('month'))->startOfMonth()
             : $this->lastCompletedMonth($business);
 
-        return [$business, $month];
+        return [$business, $branch, $month];
     }
 
     /**
