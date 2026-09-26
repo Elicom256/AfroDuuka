@@ -1,6 +1,7 @@
-import { BarChart3, Package, TrendingUp } from 'lucide-react';
+import { BarChart3, FileText, Package, TrendingUp } from 'lucide-react';
 import {
   BranchPerformanceReport,
+  MonthlyPerformanceReport,
   StockSummaryReport,
   LowStockReport,
   OutOfStockReport,
@@ -30,6 +31,15 @@ export const AdminReportsPage = () => {
           <h2 className='text-lg font-semibold'>Branch Performance</h2>
         </div>
         <BranchPerformanceReport />
+      </section>
+
+      {/* Monthly Performance */}
+      <section>
+        <div className='flex items-center gap-2 mb-4'>
+          <FileText className='h-5 w-5 text-primary' />
+          <h2 className='text-lg font-semibold'>Monthly Performance</h2>
+        </div>
+        <MonthlyPerformanceReport />
       </section>
 
       {/* Inventory Overview */}

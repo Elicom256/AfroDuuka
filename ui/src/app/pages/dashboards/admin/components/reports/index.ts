@@ -1,4 +1,5 @@
 export { default as BranchPerformanceReport } from './BranchPerformanceReport';
+export { default as MonthlyPerformanceReport } from './MonthlyPerformanceReport';
 export { default as StockSummaryReport } from './StockSummaryReport';
 export { default as LowStockReport } from './LowStockReport';
 export { default as OutOfStockReport } from './OutOfStockReport';
