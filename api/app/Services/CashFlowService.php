@@ -28,7 +28,7 @@ class CashFlowService
     {
       $user = Auth::user();
         CashFlow::create([
-            'transaction_code' => $validated["transaction_code"] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0'.STR_PAD_LEFT),
+            'transaction_code' => $validated["transaction_code"] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
             'type' => 'sale',
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
@@ -52,7 +52,7 @@ class CashFlowService
     {
       $user = Auth::user();
         CashFlow::create([
-            'transaction_code' => $validated["transaction_code"] ?? 'CF-PURCH-'.str_pad($purchase->id, 6, '0'.STR_PAD_LEFT),
+            'transaction_code' => $validated["transaction_code"] ?? 'CF-PURCH-'.str_pad($purchase->id, 6, '0', STR_PAD_LEFT),
             'type' => 'purchase',
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
