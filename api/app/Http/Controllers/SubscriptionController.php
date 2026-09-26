@@ -14,7 +14,8 @@ class SubscriptionController extends Controller
     public function index()
     {
         $subscriptions = Subscription::with(['plan', 'business', 'payments'])->get();
-        return response()->json(["subscriptions" => $subscriptions, "message" => "Subscriptions retrieved"]);
+
+        return response()->json(['subscriptions' => $subscriptions, 'message' => 'Subscriptions retrieved']);
     }
 
     public function store(StoreSubscriptionRequest $request)
@@ -30,11 +31,14 @@ class SubscriptionController extends Controller
         $subscription = Subscription::create($validated);
         $plan = Plan::find($subscription->plan_id);
 
-        (new WhatsAppNotificationService())->queueBusinessNotification([
+        (new WhatsAppNotificationService)->queueBusinessNotification([
             'business_id' => $subscription->business_id,
             'type' => 'subscription.created',
             'template_key' => 'subscription.created',
-            'recipient_phone' => $subscription->business?->phone ?? Auth::user()?->phone ?? '+256731794401',
+            // No hardcoded fallback. A subscription created for a business with no phone
+            // on file has nowhere to go, and the old `?? '+256731794401'` sent it to a
+            // personal number that had nothing to do with the customer.
+            'recipient_phone' => $subscription->business?->phone ?? Auth::user()?->phone,
             'template_data' => [
                 'business_name' => $subscription->business?->name ?? 'Your business',
                 'plan_name' => $plan?->name ?? 'Your plan',
@@ -43,16 +47,16 @@ class SubscriptionController extends Controller
         ]);
 
         return response()->json([
-            "subscription" => $subscription->load(['plan', 'business', 'payments']),
-            "message" => "Subscribed to $plan->name!"
+            'subscription' => $subscription->load(['plan', 'business', 'payments']),
+            'message' => "Subscribed to $plan->name!",
         ], 201);
     }
 
     public function show(Subscription $subscription)
     {
         return response()->json([
-            "subscription" => $subscription->load(['plan', 'business', 'payments']),
-            "message" => "Subscription retrieved"
+            'subscription' => $subscription->load(['plan', 'business', 'payments']),
+            'message' => 'Subscription retrieved',
         ]);
     }
 
@@ -60,15 +64,17 @@ class SubscriptionController extends Controller
     {
         $validated = $request->validated();
         $subscription->update($validated);
+
         return response()->json([
-            "subscription" => $subscription->fresh()->load(['plan', 'business', 'payments']),
-            "message" => "Subscription updated"
+            'subscription' => $subscription->fresh()->load(['plan', 'business', 'payments']),
+            'message' => 'Subscription updated',
         ]);
     }
 
     public function destroy(Subscription $subscription)
     {
         $subscription->delete();
-        return response()->json(["message" => "Subscription deleted"]);
+
+        return response()->json(['message' => 'Subscription deleted']);
     }
 }

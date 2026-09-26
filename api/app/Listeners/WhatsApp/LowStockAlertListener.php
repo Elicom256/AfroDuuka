@@ -9,7 +9,7 @@ class LowStockAlertListener
 {
     public function handle(WhatsAppNotificationEvents\LowStockAlert $event): void
     {
-        (new WhatsAppNotificationService())->queueLowStockAlert([
+        (new WhatsAppNotificationService)->queueLowStockAlert([
             'business_id' => $event->business->id,
             'branch_id' => $event->branch?->id,
             'business_name' => $event->business->name,
