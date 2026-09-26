@@ -43,7 +43,11 @@ return [
     'whatsapp' => [
         'provider' => env('WHATSAPP_PROVIDER', 'demo'),
         'demo_mode' => filter_var(env('WHATSAPP_DEMO_MODE', true), FILTER_VALIDATE_BOOLEAN),
-        'business_phone' => env('WHATSAPP_BUSINESS_PHONE', '+256731794401'),
+        // No fallback value. A default here is a sending identity that every
+        // unconfigured business inherits, and the send path cannot tell an inherited
+        // identity from a chosen one. Null means "not configured", which the send path
+        // refuses rather than guesses at.
+        'business_phone' => env('WHATSAPP_BUSINESS_PHONE'),
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID', 'demo_phone_number_id'),
         'access_token' => env('WHATSAPP_ACCESS_TOKEN', 'demo_access_token'),
         'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'demo_verify_token'),

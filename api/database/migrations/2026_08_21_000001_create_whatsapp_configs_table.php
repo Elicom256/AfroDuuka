@@ -16,7 +16,15 @@ return new class extends Migration
             // and a business can send from the wrong phone number.
             $table->foreignId('business_id')->unique()->constrained('businesses')->cascadeOnDelete();
             $table->string('provider')->default('demo');
-            $table->string('business_phone')->default('+256731794401');
+            // Nullable, and deliberately without a default. It used to default to one
+            // specific handset, which meant a business that had never chosen a sending
+            // identity silently inherited a stranger's — and every message it sent
+            // afterwards appeared to come from, and could be replied to by, that number.
+            //
+            // "Not configured yet" has to be a state the schema can hold, because the
+            // alternative is inventing an identity on the business's behalf. A send with
+            // no sending identity is refused, not redirected.
+            $table->string('business_phone')->nullable();
             $table->string('phone_number_id')->nullable();
             // The WhatsApp Business Account id. Every Graph call except sending and
             // webhooks is scoped to the WABA, not the phone number, so template

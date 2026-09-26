@@ -200,12 +200,12 @@ class PhaseOneMessagingTest extends TestCase
             'branch_id' => 4,
             'business_name' => 'Alpha Retail',
             'plan_name' => 'Starter',
-            'days_remaining' => 2,
+            'days_overdue' => 2,
             'recipient_phone' => '+256712345678',
         ]);
 
         $this->assertSame('subscription.expiry_reminder', $payload['type']);
-        $this->assertSame(2, $payload['template_data']['days_remaining']);
+        $this->assertSame(2, $payload['template_data']['days_overdue']);
         $this->assertStringContainsString('subscription.expiry_reminder', $payload['dedupe_key']);
 
         Queue::assertPushed(ProcessWhatsAppNotificationJob::class, function ($job) use ($payload) {
