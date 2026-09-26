@@ -16,6 +16,7 @@ class CustomerCreditController extends Controller
     public function balance(Customer $customer)
     {
         $branchId = (int) request('business_branch_id', Auth::user()->business_branch_id);
+        $this->creditService->assertAccess(Auth::user(), $branchId);
 
         return response()->json([
             'customer_id' => $customer->id,

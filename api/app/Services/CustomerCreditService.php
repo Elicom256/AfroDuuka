@@ -89,6 +89,11 @@ class CustomerCreditService
         return round((float) $totals->charges - (float) $totals->payments, 2);
     }
 
+    public function assertAccess(User $user, int $branchId): void
+    {
+        $this->assertBranchAccess($user, $branchId);
+    }
+
     private function assertBranchAccess(User $user, int $branchId): void
     {
         $resolved = EffectiveBranchScope::branchesFor($user);
