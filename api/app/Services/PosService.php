@@ -24,15 +24,18 @@ class PosService
     protected CashFlowService $cashFlowService;
     protected NotificationService $notificationService;
     protected TaxService $taxService;
+    protected CustomerCreditService $customerCreditService;
 
     public function __construct(
         CashFlowService $cashFlowService,
         NotificationService $notificationService,
-        TaxService $taxService
+        TaxService $taxService,
+        CustomerCreditService $customerCreditService
     ) {
         $this->cashFlowService = $cashFlowService;
         $this->notificationService = $notificationService;
         $this->taxService = $taxService;
+        $this->customerCreditService = $customerCreditService;
     }
 
     public function searchProducts(string $query, int $limit = 20): array
@@ -148,6 +151,11 @@ class PosService
         $cartErrors = $this->validateCart($validated['items']);
         if (!empty($cartErrors)) {
             throw new Exception(implode('; ', $cartErrors), 422);
+        }
+
+        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
+            && empty($validated['customer_id'])) {
+            throw new Exception('A customer is required when using credit payment.', 422);
         }
 
         return DB::transaction(function () use ($validated, $user, $branchId) {
@@ -274,7 +282,8 @@ class PosService
             }
 
             $totalPaid = 0;
- foreach ($validated['payments'] as $payment) {
+            $creditAmount = 0;
+            foreach ($validated['payments'] as $payment) {
                 SalePayment::create([
                     'sale_id'       => $sale->id,
                     'method'        => $payment['method'],
@@ -282,9 +291,17 @@ class PosService
                     'paymentStatus' => 'paid',
                 ]);
                 $totalPaid += $payment['amount'];
+                if ($payment['method'] === 'credit') {
+                    $creditAmount += $payment['amount'];
+                }
             }
 
+            $netTotal = $totalAmount;
             $changeGiven = max(0, $totalPaid - $totalAmount);
+
+            if ($creditAmount > 0) {
+                $this->customerCreditService->recordCharge($user, $sale, $creditAmount);
+            }
 
             $customer = isset($validated['customer_id'])
                 ? Customer::with('user')->find($validated['customer_id'])?->user

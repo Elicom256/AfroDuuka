@@ -166,6 +166,49 @@ class PosCheckoutTest extends TestCase
         $this->assertDatabaseHas('sale_payments', ['method' => 'mobile_money', 'amount' => 15000]);
     }
 
+    public function test_credit_sale_is_added_to_customer_ledger_and_payment_reduces_balance(): void
+    {
+        $response = $this->postJson('/api/pos/checkout', [
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity' => 1, 'unit_price' => 10000],
+            ],
+            'payments' => [['method' => 'credit', 'amount' => 10000]],
+            'customer_id' => $this->customer->id,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('customer_credit_transactions', [
+            'customer_id' => $this->customer->id,
+            'type' => 'charge',
+            'amount' => 10000,
+        ]);
+
+        $payment = $this->postJson("/api/finances/customers/{$this->customer->id}/credit-payments", [
+            'business_branch_id' => $this->branch->id,
+            'amount' => 4000,
+            'reference' => 'PAY-001',
+        ]);
+
+        $payment->assertStatus(201)->assertJsonPath('balance', 6000);
+        $this->assertDatabaseHas('customer_credit_transactions', [
+            'customer_id' => $this->customer->id,
+            'type' => 'payment',
+            'amount' => 4000,
+        ]);
+    }
+
+    public function test_credit_payment_requires_a_customer(): void
+    {
+        $response = $this->postJson('/api/pos/checkout', [
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity' => 1, 'unit_price' => 10000],
+            ],
+            'payments' => [['method' => 'credit', 'amount' => 10000]],
+        ]);
+
+        $response->assertStatus(422);
+    }
+
     public function test_checkout_with_discount(): void
     {
         $response = $this->postJson('/api/pos/checkout', [

@@ -140,7 +140,7 @@ Acceptance criteria:
 - Drawer mismatch is detectable immediately.
 - A cash close cannot succeed if totals do not reconcile.
 
-### 2.3 Debt and credit balance accuracy
+### 2.3 Debt and credit balance accuracy ✅
 
 Bug: customer credits and debt balances may be miscalculated after payments or refunds.
 
