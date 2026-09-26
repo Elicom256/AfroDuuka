@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Traits\LogsActivity;
 
 class StockMovement extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_id',
         'business_branch_id',

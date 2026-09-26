@@ -63,6 +63,7 @@ class FinanceController extends Controller
     public function transactions(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $query = CashFlow::with(['branch', 'createdBy']);
 
             if ($request->filled('type')) {
@@ -107,6 +108,7 @@ class FinanceController extends Controller
     public function transaction($id)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $cashFlow = CashFlow::with(['branch', 'createdBy', 'customer', 'supplier', 'sale', 'purchase'])
                 ->findOrFail($id);
 
@@ -146,6 +148,7 @@ class FinanceController extends Controller
     public function revenueReport(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->revenueReport(
                 $branchId,
@@ -169,6 +172,7 @@ class FinanceController extends Controller
     public function expenseReport(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->expenseReport(
                 $branchId,
@@ -191,6 +195,7 @@ class FinanceController extends Controller
     public function incomeSummary(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->incomeSummary(
                 $branchId,
@@ -212,6 +217,7 @@ class FinanceController extends Controller
     public function branchStatement($branchId)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($branchId, Auth::user());
             $data = $this->financeService->branchStatement($branchId);
 

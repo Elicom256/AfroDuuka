@@ -191,7 +191,7 @@ Acceptance criteria:
 - A branch user cannot view another branch’s stock or reports.
 - Sensitive finance actions require higher privileges.
 
-### 3.2 Audit trail coverage
+### 3.2 Audit trail coverage ✅
 
 Bug: key changes cannot be explained later.
 
@@ -206,7 +206,7 @@ Acceptance criteria:
 - A suspicious stock change can be traced to a user and timestamp.
 - Audit logs exist for critical operations.
 
-### 3.3 Sensitive report protection
+### 3.3 Sensitive report protection ✅
 
 Bug: financial records or customer data may be exposed beyond intended roles.
 

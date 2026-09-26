@@ -14,7 +14,10 @@ trait LogsActivity
         });
 
         static::updated(function ($model) {
-            $model->logActivityEvent('updated');
+            $model->logActivityEvent('updated', [
+                'changes' => $model->getChanges(),
+                'original' => $model->getOriginal(),
+            ]);
         });
 
         static::deleted(function ($model) {
@@ -22,7 +25,7 @@ trait LogsActivity
         });
     }
 
-    protected function logActivityEvent(string $event): void
+    protected function logActivityEvent(string $event, array $metadata = []): void
     {
         if (!Auth::check()) {
             return;
@@ -40,6 +43,7 @@ trait LogsActivity
             'description' => $description,
             'subject_type' => get_class($this),
             'subject_id' => $this->getKey(),
+            'metadata' => $metadata,
         ]);
     }
 }
