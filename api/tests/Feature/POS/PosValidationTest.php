@@ -69,6 +69,19 @@ class PosValidationTest extends TestCase
             ->assertJson(['valid' => false]);
     }
 
+    public function test_cart_validation_fails_when_combined_quantity_exceeds_stock(): void
+    {
+        $response = $this->postJson('/api/pos/cart/validate', [
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity' => 3],
+                ['product_id' => $this->product->id, 'quantity' => 3],
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson(['valid' => false]);
+    }
+
     public function test_cart_validation_fails_for_inactive_product(): void
     {
         $inactiveProduct = Product::factory()->create([
