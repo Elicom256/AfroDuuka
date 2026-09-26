@@ -465,6 +465,120 @@ counts so a silent address failure surfaces before a customer does. It deliberat
 - Put the route behind no global api auth middleware. It is deliberately outside every
   prefix group, and a 401 there is indistinguishable from a webhook that was never wired.
 
+### Stage 2 chunk 3 (PDF attachments) — findings
+
+**The generator was never actually an open question.** `undone.md` said "nothing in the
+repo has a PDF dependency yet" and that we had to pick one. `barryvdh/laravel-dompdf
+^3.1` was already in `composer.json`, already vendored, and already used by
+`QuotationController::pdf()` and `ReceiptController::pdf()`, with
+`resources/views/pdfs/quotation.blade.php` and `pdfs/receipt.blade.php` already
+written. Two controllers in this same codebase were the precedent; the checklist entry
+had not noticed them.
+
+Consequence: `QuotationPdf` renders `pdfs.quotation` — the *same* view the download
+endpoint uses — rather than a second template written for email. A separate email
+template would have been the more natural-looking choice and the worse one: two
+renderings of a document a customer quotes from, free to drift.
+
+**The Mailable cannot have a method called `attachments()`.** `Illuminate\Mail\Mailable`
+declares `attachments()` **privately** (`Mailable.php:1081`, used by
+`hasEnvelopeAttachment()` for envelope de-duplication). A child class may legally
+redeclare a parent's private method, so this compiles cleanly, passes
+`ReflectionClass::hasMethod()`, and produces no warning. It then fails at runtime with
+`Call to undefined method App\Mail\NotificationMail::attachments()` on **every email in
+the suite**, because Laravel's internal call is being dispatched to our method. The
+Mailable swallows it as a `build_failed` rejection, so the visible symptom is 14 tests
+reporting `failed` with no build error anywhere — the actual message only appears in
+`storage/logs/laravel.log` under `SES mail build failed`.
+
+`buildAttachments()` is private on the parent for the same reason. The helper is
+`attachmentFiles()`. Worth knowing before anyone "tidies up" the name.
+
+**An attachment failure must not fail the email.** `AttachmentRegistry::buildFor()`
+catches `Throwable` per builder, logs, and returns what it has. The reasoning: these
+notifications are the delivery channel for a document the customer asked for, and the
+attachment is a convenience on top of a body that already summarises the content. If
+rendering threw and propagated, a Blade typo in a PDF view would mean the customer
+receives *nothing* — strictly worse than an email without a file. Covered by
+`test_an_attachment_that_throws_does_not_fail_the_send`.
+
+This is not hypothetical: it fired for real during development, when a `ParseError` in
+the value object was swallowed by the registry and the report emails quietly went out
+with no attachment. The suite was green.
+
+**The report PDF reads the delivery payload and nothing else.** No database reads.
+`NotificationDelivery::values()` already carries the rendered values precisely so a send
+can be replayed without re-deriving them; re-querying at send time would produce a
+document describing a different month from the body beside it, and the two would
+disagree on any sale landing in between.
+
+That makes the payload key contract load-bearing, and it is easy to get wrong silently:
+`total_sales` / `total_purchases` / `total_expenses` / `total_profit_loss` are prefixed,
+`number_of_sales` / `number_of_purchases` use a different prefix, and the branch rows
+use no prefix at all. A miss prints "not recorded" where the profit should be and
+reports no error. The contract is documented on `MonthlyReport` and pinned by
+`test_the_payload_keys_the_report_expects_are_the_ones_documented`.
+
+**`number_format()` output is the payload, and `(float)` mangles it.** The figures are
+formatted before they are stored, so the payload holds `"4,250,000.00"`.
+`(float) "4,250,000.00"` is `4.0` — a factor of a million on a revenue figure that
+passes every "is this numeric?" check and surfaces only as a wrong total in a PDF nobody
+re-derives by hand. Hence `MonthlyReport::number()`, which strips separators (including
+the non-breaking space) before casting. Mutation-tested: removing the strip fails
+`test_a_thousands_separated_figure_is_not_read_as_its_leading_digit`.
+
+**Tenant isolation on attachment payloads.** `QuotationPdf` loads the quotation inside
+`BusinessContext::run($delivery->business_id, …)`. A `quotation_id` in a delivery row is
+not on its own proof the row belongs to that business, and the naive `find()` — which is
+what `BaseModel`'s scopes give you when no job context is set — would return another
+tenant's quotation, with its customer, line items and totals, into this tenant's email.
+Asserted directly in
+`test_a_quotation_belonging_to_another_business_is_not_attached`.
+
+**Catalogue validation extended, not bypassed.** `attachments` is optional and additive,
+and `NotificationCatalogue::validate()` now rejects it on a notification that never
+sends email — the mirror of the existing `meta`/no-WhatsApp check, and for the same
+reason: dead config that would quietly start working years later when someone adds an
+email channel. `test_every_catalogue_attachment_name_resolves_to_a_builder` catches the
+typo case at test time rather than coupling config validation to the container.
+
+**Tests assert on the built MIME message**, via the `array` mailer, exactly as the
+unsubscribe-header tests do — not `Mail::fake()`, which records the Mailable without
+building it and would not have shown the attachment at all. Assertions cover the media
+type (`application`/`pdf`), the filename, the `%PDF-` magic, and a real page object
+(so a blank render cannot pass as a document).
+
+**Known gap.** No PDF has been through a real send. Nothing dispatches `report.monthly`
+or `quotation.sent` yet — that is Stage 4 — and the pre-Stage-0
+`GenerateMonthlyBusinessReportJob` is WhatsApp-only, so there is no email path for
+`report.monthly` at all. The chunk is verified at the unit/MIME level only, which was
+the agreed trade.
+
+**Stale docblock, left alone.** `NotificationMail`'s class docblock cites an
+`EmailMailableFactory` that does not exist anywhere in `app/`. Not touched: it is prose
+about a design decision rather than code, and rewriting it is a separate call.
+
+### Not fixed — found while surveying for chunk 3
+
+**Three scheduled jobs bypass the entire notification pipeline.**
+`routes/console.php` still schedules `GenerateMonthlyBusinessReportJob` (monthly),
+`ProcessSubscriptionLifecycleWhatsAppJob` (daily 07:00) and `CheckNotificationsJob`
+(every six hours). All three predate Stage 0 and share none of its machinery: no
+catalogue, no `notification_deliveries`, no preferences, no `RecipientResolver`, and
+WhatsApp sent synchronously inside the job rather than through a queued delivery.
+
+This matters concretely for `report.monthly`. Wiring the catalogue trigger in Stage 4
+without retiring `GenerateMonthlyBusinessReportJob` sends the customer **two** monthly
+reports. It also hardcodes a fallback recipient, `'+256731794401'`
+(`app/Jobs/GenerateMonthlyBusinessReportJob.php:69`), so a business with no phone on
+file has its report sent to a hardcoded number — against §2.2 of
+`whatsapp_implementation.md`, and a live data-leak shape, not just a style problem.
+
+Not removed here: `tests/Feature/WhatsApp/StageZeroRepairTest.php` and
+`tests/Unit/WhatsApp/PhaseOneMessagingTest.php` cover the legacy
+`ProcessWhatsAppNotificationJob` path, so retiring these is a Stage 4 decision with
+tests attached, not a drive-by deletion.
+
 ---
 
 *Remaining work is tracked in [`undone.md`](undone.md). This file stays the record of
