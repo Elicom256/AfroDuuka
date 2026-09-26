@@ -40,7 +40,7 @@ class CheckNotificationsJob implements ShouldQueue
     {
         Log::info('CheckNotificationsJob started');
 
-        $businesses = $this->usersToCheck();
+        $businesses = $this->businessesToCheck();
 
         foreach ($businesses as $business) {
             $recipients = $this->recipientsFor($business);
