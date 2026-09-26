@@ -19,9 +19,9 @@ and log.
 
 | Suite | Result |
 |---|---|
-| `tests/Feature/WhatsApp/` | ✅ 182 tests, 589 assertions |
-| `tests/Feature/Reports/` | ✅ 15 tests, 60 assertions (new) |
-| Full suite | 342 tests, 1080 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| `tests/Feature/WhatsApp/` | ✅ 187 tests, 596 assertions |
+| `tests/Feature/Reports/` | ✅ 32 tests, 108 assertions (new) |
+| Full suite | 364 tests, 1135 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
@@ -30,18 +30,71 @@ and log.
 
 ### ⬜ Stage 3 — WhatsApp (real Meta)
 
-`MetaWhatsAppProvider::sendMessage()` is still a **stub**. Template *listing* against
-`GET /v21.0/{wabaId}/message_templates` is real and syncing daily; sending is not.
+`MetaWhatsAppProvider::sendMessage()` **throws**. It used to return a fabricated success
+— see "the stub fails open" below. Template *listing* against
+`GET /{version}/{wabaId}/message_templates` is real and syncing daily; sending is not.
 
-- `POST /v21.0/{phoneNumberId}/messages` — template message body, `messaging_product`,
+- `POST /{version}/{phoneNumberId}/messages` — template message body, `messaging_product`,
   `recipient_type`, E.164 normalisation (do this at the boundary, not the caller).
 - Status webhook + reconciliation. The `notification_deliveries` states and the
   ambiguous-send design already exist for this: an ambiguous send is left in `sending`
   and the webhook settles it, rather than being retried and double-delivering.
 - Throttle rails. §3 is emphatic that volume is the enemy; the 429 path needs backoff
   that the retry config can actually express.
-- Confirm Cloud API version. Plan says v26.0; the listing path was written against
-  v21.0. **Do not mix versions in the same provider** — settle on one.
+
+#### ✅ Cloud API version — settled, and not the one the plan assumed
+
+**v25.0**, via `config('services.whatsapp.graph_api_version')`, overridable with
+`WHATSAPP_GRAPH_API_VERSION`. Both settled questions here, and the plan's answer was not
+the right one.
+
+Meta expires Graph API versions on a fixed schedule and then stops serving them. Checked
+against Meta's own changelog on 2026-09-26:
+
+| Version | Released | Expires | |
+|---|---|---|---|
+| v26.0 | 2026-07-29 | TBD | latest, but no committed expiry and 2 months old |
+| **v25.0** | **2026-02-18** | **2028-07-29** | **chosen** — what Meta's current docs examples use |
+| v24.0 | 2025-10-08 | 2028-02-18 | |
+| v23.0 | 2025-05-29 | 2027-10-08 | |
+| v22.0 | 2025-01-21 | 2027-05-20 | |
+| v21.0 | 2024-10-02 | **2027-01-21** | ← what this code hardcoded; **under 4 months away** |
+| v20.0 | 2024-05-21 | 2026-09-24 | already expired |
+
+The plan said v26.0. v25.0 is preferred over it because v26.0's expiry is still `TBD` and
+it was two months old at the time of writing, while v25.0 is the version Meta's own
+documentation demonstrates and carries a confirmed ~2-year runway.
+
+**The real finding is that v21.0 was a trap.** The obvious "keep v21.0, it already works
+and it avoids mixing versions" answer would have bought a forced migration in under four
+months. The doc's instinct not to just keep the working version was right, for a
+sharper reason than it gave.
+
+Two details worth carrying:
+
+- The version is **config, not a URL fragment**. It was previously inlined at
+  `MetaWhatsAppProvider.php:68`, so "settle on one version" meant editing code and the send
+  path added in Stage 3 could easily have landed on a different version from the listing
+  path. Every Graph URL now resolves through one `graphUrl()` helper, so listing and
+  sending cannot drift apart.
+- Meta only honours calls to an older version if the app **has actually called** it. That
+  restriction applies to moving *back*. Jumping forward to v25.0 is always permitted, so
+  this change is safe regardless of the app's call history.
+
+#### ✅ The stub fails closed now
+
+`sendMessage()` used to return `'status' => 'sent'` with a `provider_message_id` that was
+an md5 of the recipient and body. Nothing had been transmitted. That is the worst possible
+shape for an unimplemented send: the delivery is marked sent, the dashboard says it went
+out, nothing retries it, and the customer's only symptom is a message that never arrives.
+
+It needed no bug to trigger — setting `WHATSAPP_PROVIDER=meta` was sufficient, and every
+notification would have "succeeded" silently. It now throws a `LogicException` naming the
+recipient and pointing at `WHATSAPP_PROVIDER=demo`, so the failure is loud and lands where
+the dispatcher's error handling can see it. 5 tests in
+`tests/Feature/WhatsApp/MetaWhatsAppProviderGuardTest.php`.
+
+Stage 7 already said flip the provider last; throwing means that instruction now has teeth.
 
 ### ✅ Stage 2 · chunk 3 — PDF attachments (done)
 
