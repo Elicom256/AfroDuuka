@@ -5,21 +5,23 @@
 spec; this file is what is actually left to build. Finished items are kept and marked
 ✅ so progress is visible at a glance rather than inferred from a git log.
 
-Last updated: end of Stage 2 chunk 3.
+Last updated: after the admin reports PDF download.
 
 ---
 
 ## Where we are
 
 Stage 0, Stage 1, the first two chunks of Stage 2, and **Stage 2 chunk 3 (PDF
-attachments)** are done and green. The next chunk is **Stage 3**, which is the first
+attachments)** are done and green. On top of chunk 3, the **monthly report is now
+downloadable from `/admin/reports`**. The next chunk is **Stage 3**, which is the first
 genuinely new thing since chunk 2 — a real HTTP call to Meta instead of the filesystem
 and log.
 
 | Suite | Result |
 |---|---|
 | `tests/Feature/WhatsApp/` | ✅ 182 tests, 589 assertions |
-| Full suite | 327 tests, 1020 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| `tests/Feature/Reports/` | ✅ 15 tests, 60 assertions (new) |
+| Full suite | 342 tests, 1080 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
@@ -73,6 +75,38 @@ Three things about it worth knowing before changing it:
 **Not verified end to end**, and this is the loose end: nothing dispatches
 `report.monthly` or `quotation.sent` yet, so no PDF has been through a real send. That
 is Stage 4 work, not a defect in this chunk.
+
+### ✅ Monthly report download in admin reports (done)
+
+The monthly document is now reachable from `/admin/reports`, which is where someone
+actually goes to read it. Built: `MonthlyPerformanceReport` service (the figures),
+`MonthlyPerformanceReport` controller, two routes, the `MonthlyPerformanceReport` card
+with a month picker, and a `monthlyPerformancePdf` mutation in the reports query slice.
+15 tests.
+
+Decisions, so they are not relitigated by accident:
+
+- **The figures live in a service, not in the controller.** `MonthlyPerformanceReport`
+  service returns exactly the payload `MonthlyReport` parses, so the emailed PDF, the
+  downloaded PDF and the email body are all derived from one implementation. Stage 4's
+  monthly trigger should call that service rather than re-deriving the numbers — that is
+  the whole reason it exists as a service.
+- **Sourced from `cash_flows`, not from `sales`/`purchases`/`expenses`.** The Branch
+  Performance card directly above it on the same page already reads `cash_flows`, and
+  `cash_flows` carries `business_branch_id`, which the per-branch table needs. Deriving
+  it from the raw documents would print a total that contradicts the card next to it.
+- **Month-scoped, not the shared period filter.** The document is titled with a calendar
+  month and the email's dedupe identity is `business:{id}:{YYYY-MM}`, so a "last 30 days"
+  version of it would be a different document wearing the same name. Defaults to the last
+  *completed* month — the current one is still accumulating and would understate itself.
+- **A month with no transactions still downloads.** An empty month is a report full of
+  zeroes, not a failure, and is plausibly exactly what someone wants to forward on.
+- **The quotation was left alone.** It already downloads from `/admin/quotations`.
+  Putting a second copy of the same document in reports would be two entry points for one
+  file, not a feature.
+- **`businesses.timezone` is a real column**, which settles the open question in
+  `to-check.md` #2 in favour of the column. The month boundary is drawn in the
+  business's own timezone.
 
 ---
 
@@ -200,7 +234,16 @@ DB_HOST=127.0.0.1 DB_DATABASE=inventory_test ./vendor/bin/phpunit
 - `php artisan duukaflow:notifications:backfill-recipients` — existing businesses.
 - `php artisan duukaflow:whatsapp:sync-templates` — pulls live Meta approval status.
 - The `mysqli.so` startup warning on every PHP command is a broken local extension and
-  is harmless here.
+  is harmless here. There is **no `pdo_sqlite`** on this host at all, so
+  `DB_CONNECTION=sqlite` is not an option — the only drivers are `mysql` and `pgsql`.
+- **Running inside the `duukaflow-backend-1` container needs
+  `APP_ENV=testing MAIL_MAILER=array` in front of the command.** The container exports
+  `APP_ENV=local` and `MAIL_MAILER=log` as real environment variables, which win over
+  `phpunit.xml` and over `.env.testing`, so the suite boots against `.env` with the log
+  mailer and every test touching sent mail dies on `LogTransport::flush()` — a method
+  that does not exist on the log transport. `force="true"` on the `phpunit.xml` entries
+  does *not* fix it; only the shell prefix does. The host invocation above needs no such
+  prefix, which is why the documented command does not have one.
 
 ## Three traps worth remembering
 
@@ -215,6 +258,24 @@ DB_HOST=127.0.0.1 DB_DATABASE=inventory_test ./vendor/bin/phpunit
   legal, compiles, and passes reflection — then every email in the suite fails with
   `Call to undefined method`, because Laravel's internal call is landing on your method.
   `buildAttachments()` is taken by the parent too. The helper is `attachmentFiles()`.
+- **PHP class names are case-insensitive, so `use ...\Facade\Pdf;` and `use ...\PDF;`
+  collide.** `use Barryvdh\DomPDF\Facade\Pdf;` next to `use Barryvdh\DomPDF\PDF;` is
+  `Cannot use ... as PDF because the name is already in use` — a fatal at class-compile
+  time, which PHPUnit reports as `Premature end of PHP process`, pointing at no file and
+  mentioning no import. Alias the concrete class (`PDF as DomPdf`).
+- **Never `groupByRaw('1')` for a totals-only query.** Postgres resolves an ordinal
+  `GROUP BY` against the select list, so it groups by the first `SUM()` and fails with
+  `aggregate functions are not allowed in GROUP BY`. MySQL accepts it, so it passes in dev
+  and dies in production. A bare aggregate query needs no `GROUP BY` at all.
+- **Do not join a tenant-scoped query to another tenant table.** `business_branches` has a
+  `business_id` too, and the global scope in `BaseModel` emits an *unqualified*
+  `where business_id = ?`, so the join turns every query into
+  `Ambiguous column: business_id is ambiguous`. Qualifying the scope's own output is not
+  an option; it is framework-wide. Look the names up in a second query instead.
+- **`(array) $model` is not `$model->getAttributes()`.** Casting an Eloquent model to an
+  array yields its private properties under NUL-prefixed mangled keys with the real
+  columns buried inside `['attributes']`. A report built that way renders every figure as
+  zero and nothing anywhere reports an error.
 
 ## Where the reasoning is written up
 
