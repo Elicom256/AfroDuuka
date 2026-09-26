@@ -24,26 +24,51 @@ class MetaWhatsAppProvider implements WhatsAppProviderInterface
         return ! empty($config['business_phone']) || ! empty($config['access_token']) || ! empty($config['phone_number_id']);
     }
 
+    /**
+     * Not implemented yet — Stage 3.
+     *
+     * This used to return a fabricated success: an md5 of the recipient and body dressed
+     * up as a `provider_message_id`, with `'status' => 'sent'`. That is the worst possible
+     * shape for a not-implemented send. It reports success for a message that was never
+     * transmitted, so the delivery is marked sent, the dashboard says it went out, and
+     * nothing retries it. A customer simply never receives it, and the only symptom is an
+     * absence nobody is looking for.
+     *
+     * Worse, the failure needed no bug to trigger: setting WHATSAPP_PROVIDER=meta was
+     * enough. Every message would have "succeeded" silently.
+     *
+     * So it throws. A loud failure at the call site, where the dispatcher's error handling
+     * can see it, beats a plausible lie. Implement this against
+     * POST /{version}/{phone-number-id}/messages (see graphUrl) and delete this method's
+     * body.
+     *
+     * @throws \LogicException always, until the send path is implemented
+     */
     public function sendMessage(array $payload): array
     {
-        $to = (string) ($payload['to'] ?? '');
-        $message = (string) ($payload['message'] ?? '');
-        $templateKey = (string) ($payload['template_key'] ?? 'general');
+        throw new \LogicException(sprintf(
+            'MetaWhatsAppProvider::sendMessage() is not implemented. Sending a WhatsApp '
+            .'message to %s would be reported as delivered without being transmitted. '
+            .'Implement the Cloud API send path (Stage 3) before setting '
+            .'WHATSAPP_PROVIDER=meta, or keep WHATSAPP_PROVIDER=demo.',
+            (string) ($payload['to'] ?? '(no recipient)'),
+        ));
+    }
 
-        // In a real implementation, this would call the Meta WhatsApp Business API
-        // For now, return a structured response that can be used for logging
+    /**
+     * The Graph base URL for this app, on the one configured API version.
+     *
+     * Every call goes through here so that listing and sending cannot drift onto
+     * different versions. Meta expires versions on a schedule — v21.0, which this file
+     * used to hardcode, stops being served on 2027-01-21 — and a provider that mixes
+     * versions is the situation where a half of the integration breaks on a date nobody
+     * put in a calendar.
+     */
+    private function graphUrl(string $path): string
+    {
+        $version = trim((string) config('services.whatsapp.graph_api_version', 'v25.0'));
 
-        return [
-            'success' => ! empty($to) && ! empty($message),
-            'provider' => $this->getName(),
-            'message' => $message,
-            'recipient' => $to,
-            'template_key' => $templateKey,
-            'mode' => 'meta_api',
-            'provider_message_id' => 'meta-'.md5($to.':'.$message.':'.now()->timestamp),
-            'status' => 'sent',
-            'warning' => 'Meta WhatsApp API integration - requires valid access_token and phone_number_id configuration.',
-        ];
+        return sprintf('https://graph.facebook.com/%s/%s', $version, ltrim($path, '/'));
     }
 
     /**
@@ -65,7 +90,7 @@ class MetaWhatsAppProvider implements WhatsAppProviderInterface
         try {
             $response = Http::withToken($token)
                 ->timeout(30)
-                ->get("https://graph.facebook.com/v21.0/{$wabaId}/message_templates", [
+                ->get($this->graphUrl($wabaId).'/message_templates', [
                     'limit' => 100,
                 ]);
         } catch (\Throwable) {
