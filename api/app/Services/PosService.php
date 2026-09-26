@@ -96,6 +96,8 @@ class PosService
     public function validateCart(array $items): array
     {
         $errors = [];
+        $requestedByProduct = [];
+        $userBranchId = Auth::user()?->business_branch_id;
 
         foreach ($items as $index => $item) {
             $product = Product::where('id', $item['product_id'])
@@ -106,14 +108,24 @@ class PosService
                 continue;
             }
 
+            if ($userBranchId !== null && (int) $product->business_branch_id !== (int) $userBranchId) {
+                $errors[] = "Item #" . ($index + 1) . ": Product not found in this branch.";
+                continue;
+            }
+
             if ($product->status !== 'active') {
                 $errors[] = "{$product->name}: Product is not available for sale.";
                 continue;
             }
 
-            if ($product->quantity < $item['quantity']) {
-                $errors[] = "{$product->name}: Only {$product->quantity} available, but {$item['quantity']} requested.";
-                continue;
+            $requestedByProduct[$product->id] = ($requestedByProduct[$product->id] ?? 0) + (int) $item['quantity'];
+        }
+
+        foreach ($requestedByProduct as $productId => $requestedQuantity) {
+            $product = Product::where('id', $productId)->first();
+
+            if ($product && $product->quantity < $requestedQuantity) {
+                $errors[] = "{$product->name}: Only {$product->quantity} available, but {$requestedQuantity} requested.";
             }
         }
 
@@ -142,8 +154,26 @@ class PosService
             $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
+                ->where('business_branch_id', $branchId)
+                ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
+
+            if (count($products) !== count($productIds)) {
+                throw new Exception('One or more products are not available in this branch.', 422);
+            }
+
+            $requestedByProduct = [];
+            foreach ($validated['items'] as $item) {
+                $requestedByProduct[$item['product_id']] = ($requestedByProduct[$item['product_id']] ?? 0) + (int) $item['quantity'];
+            }
+
+            foreach ($requestedByProduct as $productId => $requestedQuantity) {
+                $product = $products->get($productId);
+                if ($product && $product->quantity < $requestedQuantity) {
+                    throw new Exception("{$product->name}: Only {$product->quantity} available, but {$requestedQuantity} requested.", 422);
+                }
+            }
 
             $totalAmount = 0;
             $totalDiscount = 0;

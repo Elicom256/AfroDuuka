@@ -33,16 +33,19 @@ class InventoryService
     public function stockOut(Product $product, int $quantity, ?string $referenceType = null, ?int $referenceId = null)
     {
         DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId) {
+            $lockedProduct = Product::whereKey($product->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             // prevent negative stock
-            if ($product->quantity < $quantity) {
-                throw new \Exception("Insufficient stock for product: {$product->name}");
+            if ($lockedProduct->quantity < $quantity) {
+                throw new \Exception("Insufficient stock for product: {$lockedProduct->name}");
             }
 
-            $product->decrement('quantity', $quantity);
+            $lockedProduct->decrement('quantity', $quantity);
 
             StockMovement::create([
-                'product_id' => $product->id,
+                'product_id' => $lockedProduct->id,
                 'type' => 'out',
                 'quantity' => $quantity,
                 'reference_type' => $referenceType,
