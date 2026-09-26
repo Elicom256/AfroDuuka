@@ -35,6 +35,12 @@ class FinanceController extends Controller
         return $branchId;
     }
 
+    private function authorizeSensitiveFinance(): void
+    {
+        $role = strtolower((string) Auth::user()?->role?->name);
+        abort_unless(in_array($role, ['admin', 'manager', 'superadmin', 'siteadmin'], true), 403, 'This financial action requires an authorized role.');
+    }
+
     public function dashboard()
     {
         try {
@@ -119,6 +125,7 @@ class FinanceController extends Controller
     public function adjustment(StoreCashFlowRequest $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $validated = $request->validated();
             $validated['type'] = 'adjustment';
 
@@ -223,6 +230,7 @@ class FinanceController extends Controller
     public function businessStatement()
     {
         try {
+            $this->authorizeSensitiveFinance();
             $data = $this->financeService->businessStatement();
 
             return response()->json([

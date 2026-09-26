@@ -176,7 +176,7 @@ Acceptance criteria:
 
 This is where many SaaS projects fail silently if not treated seriously.
 
-### 3.1 Branch-level permission enforcement
+### 3.1 Branch-level permission enforcement ✅
 
 Bug: users may view or modify records outside their assigned branch.
 
