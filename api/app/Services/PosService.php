@@ -187,8 +187,10 @@ class PosService
                     ->firstOrFail();
                 $sale->update(['status' => 'completed', 'note' => $validated['note'] ?? $sale->note]);
 
-                $totalAmount = collect($validated['items'] ?? [])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
-                $totalDiscount = collect($validated['items'] ?? [])->sum(fn($i) => ($i['discount'] ?? 0) * $i['quantity']);
+                $totalAmount = (float) $sale->total_amount;
+                $totalDiscount = (float) SaleItem::where('sale_id', $sale->id)
+                    ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
+                    ->value('total');
             } else {
                 foreach ($validated['items'] as $item) {
                     $product = $products->get($item['product_id']);
@@ -282,8 +284,7 @@ class PosService
                 $totalPaid += $payment['amount'];
             }
 
-            $netTotal = $totalAmount - $totalDiscount;
-            $changeGiven = max(0, $totalPaid - $netTotal);
+            $changeGiven = max(0, $totalPaid - $totalAmount);
 
             $customer = isset($validated['customer_id'])
                 ? Customer::with('user')->find($validated['customer_id'])?->user
@@ -313,9 +314,11 @@ class PosService
     protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven): Receipt
     {
         $user = Auth::user();
-        $discountTotal = SaleItem::where('sale_id', $sale->id)->sum('discount');
-        $subtotal = (float) $sale->subtotal ?? $sale->total_amount;
-        $tax = (float) $sale->tax_amount ?? 0;
+        $discountTotal = (float) SaleItem::where('sale_id', $sale->id)
+            ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
+            ->value('total');
+        $subtotal = (float) ($sale->subtotal ?? $sale->total_amount);
+        $tax = (float) ($sale->tax_amount ?? 0);
         $total = (float) $sale->total_amount;
         $paymentMethod = collect($validated['payments'])->pluck('method')->implode(', ');
 

@@ -110,7 +110,7 @@ Acceptance criteria:
 
 Financial errors are business-critical and must be addressed before any broader feature release.
 
-### 2.1 Tax calculation and rounding
+### 2.1 Tax calculation and rounding ✅
 
 Bug: inconsistent tax totals can cause undercharging or overcharging.
 

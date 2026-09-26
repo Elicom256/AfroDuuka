@@ -286,6 +286,47 @@ class TransactionTaxTest extends TestCase
         ]);
     }
 
+    public function test_completing_a_discounted_held_sale_uses_the_stored_total(): void
+    {
+        $held = $this->postJson('/api/pos/sales/hold', [
+            'items' => [
+                [
+                    'product_id' => $this->exclusiveProduct->id,
+                    'quantity' => 1,
+                    'unit_price' => 10_000,
+                    'discount' => 1_000,
+                ],
+            ],
+            'notes' => 'Held discounted sale',
+        ]);
+
+        $held->assertStatus(201);
+        $saleId = $held->json('data.id');
+
+        $response = $this->postJson('/api/pos/checkout', [
+            'sale_id' => $saleId,
+            'items' => [
+                [
+                    'product_id' => $this->exclusiveProduct->id,
+                    'quantity' => 1,
+                    'unit_price' => 10_000,
+                    'discount' => 1_000,
+                ],
+            ],
+            'payments' => [['method' => 'cash', 'amount' => 10_620]],
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('sales', [
+            'id' => $saleId,
+            'total_amount' => 10_620,
+        ]);
+        $this->assertDatabaseHas('cash_flows', [
+            'type' => 'sale',
+            'amount' => 10_620,
+        ]);
+    }
+
     public function test_pos_product_search_exposes_tax_rate(): void
     {
         $response = $this->getJson('/api/pos/products/search?q=' . urlencode($this->exclusiveProduct->name));
