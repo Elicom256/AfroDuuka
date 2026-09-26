@@ -40,10 +40,16 @@ final class ChannelResult
     /**
      * The request may or may not have landed. Leave the row in `sending` and let the
      * status webhook decide; do not retry on this alone.
+     *
+     * The default code is the family name, which is enough to answer "was this sent?".
+     * Callers that know *why* it is in doubt should pass it through, so a 5xx, a dead
+     * connection and an unparseable reply stay distinguishable afterwards — three
+     * different operational problems that all collapse to one value the moment they are
+     * recorded.
      */
-    public static function ambiguous(string $errorMessage, array $raw = []): self
+    public static function ambiguous(string $errorMessage, array $raw = [], string $errorCode = 'ambiguous'): self
     {
-        return new self(false, true, null, 'ambiguous', $errorMessage, $raw);
+        return new self(false, true, null, $errorCode, $errorMessage, $raw);
     }
 
     public function isSuccessful(): bool

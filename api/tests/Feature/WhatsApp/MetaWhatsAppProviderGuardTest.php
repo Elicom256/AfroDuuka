@@ -18,35 +18,50 @@ class MetaWhatsAppProviderGuardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sending_throws_rather_than_reporting_a_message_it_never_sent(): void
+    public function test_an_unconfigured_provider_refuses_instead_of_reporting_a_send(): void
     {
+        Http::fake();
+
+        $response = (new MetaWhatsAppProvider([
+            'access_token' => 'token',
+            'phone_number_id' => 'phone-number-id',
+        ]))->sendMessage([
+            'to' => 'not-a-number',
+            'template' => ['name' => 'welcome', 'language' => 'en', 'parameters' => []],
+        ]);
+
+        // This replaced a stub that returned status=sent with an md5 of the recipient and
+        // body as a provider_message_id. Nothing checked the message had been
+        // transmitted, so flipping WHATSAPP_PROVIDER=meta marked every customer's
+        // notifications delivered and delivered none of them.
+        //
+        // The invariant worth pinning is not "this throws" — it is "this never claims a
+        // send it did not make". A rejection says that; a fabricated id does not.
+        $this->assertArrayHasKey('error', $response);
+        $this->assertArrayNotHasKey('status', $response);
+        $this->assertArrayNotHasKey('provider_message_id', $response);
+    }
+
+    public function test_no_response_shape_ever_claims_a_send_that_was_not_made(): void
+    {
+        Http::fake();
+
         $provider = new MetaWhatsAppProvider([
             'access_token' => 'token',
             'phone_number_id' => 'phone-number-id',
         ]);
 
-        // The stub this replaces returned status=sent with an md5 of the recipient and
-        // body as a provider_message_id. Nothing checked the message had been
-        // transmitted, so flipping WHATSAPP_PROVIDER=meta marked every customer's
-        // notifications delivered and delivered none of them.
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('is not implemented');
+        // Every way this can come back short of a real 200 from Graph. Whichever one
+        // happens, the caller must not be able to read a successful send out of it.
+        $responses = [
+            $provider->sendMessage(['to' => '+256700000000', 'template' => ['name' => 'welcome']]),
+            $provider->sendMessage(['to' => 'rubbish', 'template' => ['name' => 'welcome']]),
+            $provider->sendMessage(['to' => '+256700000000', 'template' => []]),
+        ];
 
-        $provider->sendMessage(['to' => '+256700000000', 'message' => 'hello']);
-    }
-
-    public function test_the_thrown_error_names_the_recipient_and_the_safe_setting(): void
-    {
-        $provider = new MetaWhatsAppProvider(['access_token' => 'token']);
-
-        try {
-            $provider->sendMessage(['to' => '+256700000000', 'message' => 'hello']);
-            $this->fail('sendMessage() should not return.');
-        } catch (\LogicException $e) {
-            // The operator reading the log needs to know which message was lost and what
-            // to set instead, without reading this file.
-            $this->assertStringContainsString('+256700000000', $e->getMessage());
-            $this->assertStringContainsString('WHATSAPP_PROVIDER=demo', $e->getMessage());
+        foreach ($responses as $response) {
+            $this->assertArrayHasKey('error', $response, 'A send was reported with no error and no provider response.');
+            $this->assertArrayNotHasKey('status', $response);
         }
     }
 
