@@ -9,7 +9,7 @@ class BusinessRegisteredListener
 {
     public function handle(WhatsAppNotificationEvents\BusinessRegistered $event): void
     {
-        (new WhatsAppNotificationService())->queueBusinessNotification([
+        (new WhatsAppNotificationService)->queueBusinessNotification([
             'business_id' => $event->business->id,
             'type' => 'registration',
             'template_key' => 'registration.welcome',

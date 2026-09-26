@@ -18,9 +18,9 @@ finally has something to reconcile against: real Meta message ids are being stor
 
 | Suite | Result |
 |---|---|
-| `tests/Feature/WhatsApp/` | ✅ 213 tests, 674 assertions |
+| `tests/Feature/WhatsApp/` | ✅ 217 tests, 680 assertions |
 | `tests/Feature/Reports/` | ✅ 32 tests, 108 assertions (new) |
-| Full suite | 390 tests, 1213 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| Full suite | 394 tests, 1219 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
@@ -286,27 +286,68 @@ events that should fire them.
   `YYYY-MM`. **See the hazard below before writing it.**
 - Quotation send.
 
-#### ⚠️ Three scheduled jobs bypass the whole pipeline
+#### ✅ Investigated: the three scheduled jobs are not the same problem
 
-`routes/console.php` still schedules three jobs that predate Stage 0 and share none of
-its machinery — no catalogue, no `notification_deliveries`, no preferences, no
-`RecipientResolver`:
+This section previously claimed all three jobs "bypass the whole pipeline" and that
+retiring them was needed to avoid sending customers two monthly reports. **That was wrong
+about two of the three**, and checking it properly changed the plan.
 
-- `GenerateMonthlyBusinessReportJob` — monthly, and the reason `report.monthly` has no
-  email today. WhatsApp-only, so the chunk-3 PDF cannot ship until this is replaced.
-- `ProcessSubscriptionLifecycleWhatsAppJob` — daily 07:00.
-- `CheckNotificationsJob` — every six hours.
+| Job | What it actually does | Verdict |
+|---|---|---|
+| `CheckNotificationsJob` | Writes in-app `notifications` rows **only** | **Keep.** Not a duplicate-send risk |
+| `GenerateMonthlyBusinessReportJob` | Cannot execute at all | **Dead code.** Delete |
+| `ProcessSubscriptionLifecycleWhatsAppJob` | Really does send WhatsApp | **The real hazard.** Fix, then retire in Stage 4 |
 
-`GenerateMonthlyBusinessReportJob` also hardcodes a fallback recipient,
-`'+256731794401'` (`app/Jobs/GenerateMonthlyBusinessReportJob.php:69`), so a business
-with no phone on file has its monthly report sent to a hardcoded number. It sends
-synchronously inside `foreach (Business::all())`, against §2.2 of
-`whatsapp_implementation.md`.
+**`CheckNotificationsJob` must stay.** `NotificationService` only ever calls
+`Notification::create` — it sends no WhatsApp, no email, no SMS. And `NotificationController`
+serves those rows from `/notifications`, including the unread count. So it feeds a live
+user-facing feature that the catalogue pipeline does not write to at all. Retiring it
+would delete the in-app notification feed to prevent a duplicate that cannot happen.
 
-**Wiring the catalogue triggers without retiring these sends customers two monthly
-reports.** Decide what happens to them as part of Stage 4, not after. `StageZeroRepair
-Test` covers the legacy `ProcessWhatsAppNotificationJob` path, so deletion is not
-automatic.
+**`GenerateMonthlyBusinessReportJob` has never run.** `purchases` is scoped by
+`business_branch_id` and has no `business_id` column, so `Purchase::where('business_id', …)`
+raises an SQL error on the first business and the job fatals. Every run has failed. So the
+hardcoded-recipient leak in it was **latent, not live**, and deleting it costs no coverage,
+because there has never been any coverage. It also computed a company-wide consolidated
+total — the exact document shape that was rejected in favour of one report per branch —
+using `Carbon::now()` rather than the `businesses.timezone` column, with a dedupe key
+carrying no `branch_id`.
+
+**`ProcessSubscriptionLifecycleWhatsAppJob` is the only genuine double-send hazard.** Its
+dedupe lives in `whatsapp_message_logs.dedupe_key` and its keys are built on a completely
+different scheme from the catalogue's, so it **cannot** suppress `subscription.expired` or
+`subscription.expiring` when those are wired. Two further defects found in it:
+
+- `handleExpiryReminder()` passes `days_since_expiry` into the `days_remaining` field, so
+  the message would say "N days remaining" where N is days *overdue*.
+- Its reminder is guarded by `ends_at->isPast()`, so it can only ever fire **after**
+  expiry. The catalogue's `subscription.expiring` is a *pre*-expiry reminder. The legacy
+  "reminder" is not the same notification under an older name.
+
+#### ✅ The hardcoded recipient was nine send paths, not one
+
+`'+256731794401'` was a fallback recipient in the monthly report job, **seven** listeners
+(`SubscriptionCreated`, `SubscriptionPlanChanged`, `SubscriptionExpired`,
+`FreeTrialExpired`, `PaymentFailed`, `SaleOrderCreated`, `PurchaseOrderCreated`) and
+`SubscriptionController` — and a default *sender identity* in `config/services.php` and
+`ProcessWhatsAppNotificationJob`. Any business without a phone on file had its
+subscription, payment, sale and purchase notifications delivered to one personal handset.
+
+Removed at source in all nine, plus one guard in `WhatsAppNotificationService::
+queueBusinessNotification()` — the single dispatch point all ten `queue*()` methods funnel
+through, so the pattern cannot come back at the next entry point. It logs a warning and
+returns `queued => false` rather than throwing, because a missing phone number must not
+abort the subscription or sale that triggered it.
+
+The new pipeline was never exposed to this: `RecipientResolver` returns null instead of
+guessing, and the channel rejects a delivery with no address. This was a legacy-layer
+habit, which is itself an argument for retiring that layer rather than patching it
+indefinitely. 4 tests in `tests/Feature/WhatsApp/LegacyHardcodedRecipientTest.php`,
+including a source-level guard so a new listener copying the old line is caught.
+
+`StageZeroRepairTest` and `PhaseOneMessagingTest` cover `ProcessWhatsAppNotificationJob`,
+which is the legacy *sender* rather than a scheduled job — so that deletion still is not
+automatic, and it is out of scope here.
 
 
 ### ⬜ Stage 5 — Tests
