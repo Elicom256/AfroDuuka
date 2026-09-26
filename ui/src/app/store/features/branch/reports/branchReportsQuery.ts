@@ -10,6 +10,9 @@ export type MonthlyPerformanceBranch = {
 
 export type MonthlyPerformanceReport = {
   business_name: string;
+  /** The one branch this document describes. */
+  branch_name: string;
+  branch_id: number;
   period: string;
   currency: string;
   figures: {
@@ -23,6 +26,9 @@ export type MonthlyPerformanceReport = {
   /** YYYY-MM, echoed back so the picker and the document cannot disagree. */
   month: string;
 };
+
+/** A month and the branch it is reported for. Reports are per branch, never per business. */
+export type MonthlyPerformanceScope = { month: string; branchId: string };
 
 type ApiEnvelope<T> = { message: string; data: T };
 
@@ -42,11 +48,14 @@ export const branchReportsQuery = createApi({
   }),
   tagTypes: ['Reports'],
   endpoints: (builder) => ({
-    branchPerformance: builder.query<any, { id: string; period: string }>({
+    // `id` is optional and empty means every branch, because this card exists to compare
+    // them: defaulting it to the first branch would make best and worst performing branch
+    // the same branch and quietly turn a comparison into a lookup.
+    branchPerformance: builder.query<any, { id?: string; period: string }>({
       query: ({ id, period }) => ({
         url: `/branch-performance`,
         method: 'GET',
-        params: { id, period },
+        params: { id: id || undefined, period },
       }),
       providesTags: ['Reports'],
     }),
@@ -135,14 +144,18 @@ export const branchReportsQuery = createApi({
     //
     // Month-scoped rather than driven by the shared period filter, deliberately: the
     // document is titled with a calendar month and the email's dedupe identity is
-    // business:{id}:{YYYY-MM}, so a "last 30 days" version of it would be a different
-    // document wearing the same name. The current month is left out of the picker's
-    // defaults by the caller because it is still accumulating.
-    monthlyPerformance: builder.query<ApiEnvelope<MonthlyPerformanceReport>, string>({
-      query: (month) => ({
+    // business:{id}:{branch_id}:{YYYY-MM}, so a "last 30 days" version of it would be a
+    // different document wearing the same name. The current month is left out of the
+    // picker's defaults by the caller because it is still accumulating.
+    //
+    // branchId is not optional here. Every branch has its own report, so there is no
+    // sensible "all branches" document to fall back on and the API refuses one; sending
+    // nothing would surface as a 422 in the UI for no reason the user can act on.
+    monthlyPerformance: builder.query<ApiEnvelope<MonthlyPerformanceReport>, MonthlyPerformanceScope>({
+      query: ({ month, branchId }) => ({
         url: '/monthly-performance',
         method: 'GET',
-        params: { month },
+        params: { month, branch_id: branchId },
       }),
       providesTags: ['Reports'],
     }),
@@ -156,11 +169,11 @@ export const branchReportsQuery = createApi({
     //
     // RTK's ResponseHandler type has no 'blob' shorthand, so the function form is the
     // supported way to ask for one.
-    monthlyPerformancePdf: builder.mutation<Blob, string>({
-      query: (month) => ({
+    monthlyPerformancePdf: builder.mutation<Blob, MonthlyPerformanceScope>({
+      query: ({ month, branchId }) => ({
         url: '/monthly-performance/pdf',
         method: 'GET',
-        params: { month },
+        params: { month, branch_id: branchId },
         responseHandler: async (response: Response) => response.blob(),
       }),
     }),

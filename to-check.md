@@ -594,11 +594,71 @@ to add a column or a settings row; the column is already there and populated
 `GenerateMonthlyBusinessReportJob` derives its figures from `Sale`/`Purchase`/`Expense`
 models. I used `cash_flows` instead, because `BranchPerformanceReports` — the card
 immediately above this one on `/admin/reports` — already reads `cash_flows`, and
-`cash_flows` carries `business_branch_id`, which the per-branch table needs. Using the
-legacy job's approach would print a headline total that contradicts the neighbouring
-card. **Stage 4's trigger should call `MonthlyPerformanceReport` (service) and not copy
-the legacy job's arithmetic**, or the emailed report and the downloaded one will differ
-from each other and from the dashboard.
+`cash_flows` carries `business_branch_id`, which is what makes per-branch scoping possible
+at all. Using the legacy job's approach would print a headline total that contradicts the
+neighbouring card. **Stage 4's trigger should call `MonthlyPerformanceReport` (service) and
+not copy the legacy job's arithmetic**, or the emailed report and the downloaded one will
+differ from each other and from the dashboard.
+
+**2a. Reports are per branch, one document per branch — a reversal of the original
+recommendation.** I originally recommended a consolidated business total with a per-branch
+table, and that is what the first implementation did. The user rejected it: reports belong
+under the branch, every branch should have its own report. Correct on reflection — a blended
+total reads as if it were somebody's branch, and the reader who has to act on a monthly
+figure is the branch manager.
+
+Consequences, all now implemented:
+
+- `branch_id` is **required** by `/reports/monthly-performance` and
+  `/reports/monthly-performance/pdf`. A business admin with several branches must choose
+  one and gets **422** otherwise. Defaulting to the first branch would be worse than an
+  error: it hands back a real, plausible document about a branch nobody asked for.
+- A branch-restricted user is always scoped to their own branch, with or without the
+  parameter, and asking for a sibling's returns **403**.
+- A business with exactly one branch needs no choice; a business with none gets a 422
+  saying so rather than an empty report.
+- The service filters with an explicit
+  `where cash_flows.business_branch_id = $branch->id`, **not** by relying on
+  `EffectiveBranchScope`. A business admin's scope admits every branch of their business,
+  so the scope alone would allow a document headed with one branch's name to carry
+  another's figures — the exact failure this change exists to prevent.
+- The filename now includes the branch (`monthly-report-kampala-road-august-2026.pdf`).
+  The browser honours the anchor's `download` attribute over `Content-Disposition`, so the
+  UI mirrors the server's naming by hand; without the branch, every branch of the business
+  produces the same filename.
+- **`Stage 4 must change the dedupe key** from `business:{id}:{YYYY-MM}` to
+  `business:{id}:{branch_id}:{YYYY-MM}`. Left as it was, one branch's report would
+  suppress another's for the same month.
+- The PDF drops its "By branch" table when only one row is present, and names the branch
+  in the header instead. The table survives for payloads carrying several rows so a
+  delivery produced before this change loses no figures.
+
+`BranchPerformanceReports` is the deliberate exception: an absent `id` there still means
+"all branches", because that card exists to compare them and its best/worst-performing
+tiles are meaningless when narrowed to one branch.
+
+**2b. `BranchPerformanceReports` was returning 500 on every request, and had no test.**
+Found while checking whether the ambiguous-column trap applied elsewhere — it did, exactly.
+It joined `business_branches` onto a `cash_flows` query while the tenant global scope emits
+an unqualified `where business_id = ?`, so every request failed with
+`SQLSTATE[42702]: column reference "business_id" is ambiguous`. It is the top card on
+`/admin/reports` and it had zero test coverage, which is the only reason this survived.
+Fixed the same way as the monthly report — names resolved in a second query, no join — and
+added `tests/Feature/Reports/BranchPerformanceReportsTest.php`, whose first test is mostly
+a regression guard on that 500.
+
+**2c. The branch dropdown on that card did nothing.** The component has always sent
+`?id=<branch>`, and the controller read only `filter`/`period` and dropped it, so the
+selector narrowed nothing. Now honoured, and validated through the same
+`resolveReportBranch()` as the monthly report, so a cross-tenant branch id is a 403.
+
+One thing that had to change with it: the component defaulted to `branches[0].id`, so once
+the parameter was honoured the card would have shown a single branch permanently and its
+best/worst-performing tiles would have been the same branch twice. It now defaults to "All
+branches" (`id` omitted) and the three summary tiles switch from company totals to the
+selected branch's figures when exactly one branch is in the result — they are separate
+queries and the branch filter only applied to the per-branch one, so leaving them alone
+would have shown one branch's row above a total that included another.
 
 **3. `payment_in` / `payment_out` / `refund` / `adjustment` and the stock-transfer types
 are excluded from sales, purchases and expenses.** They are movements of money that are

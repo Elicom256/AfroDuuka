@@ -21,9 +21,10 @@ use Barryvdh\DomPDF\PDF as DomPdf;
  * document describing a different month from the one summarised in the email body
  * beside it, and the two would disagree on any sale that landed in between.
  *
- * The per-branch table is included when the payload carries one and omitted when it
- * does not, because whether the monthly report is consolidated or per-branch is still an
- * open decision (undone.md, #6) and this should not pre-empt it.
+ * Reports are per branch: one document describes one branch's month, and the branch is
+ * named in the layout's header. The branch table is rendered only when a payload carries
+ * more than one row, which in practice is never — it survives so that a payload from a
+ * trigger that predates per-branch reporting still renders rather than losing figures.
  *
  * render() is public so that the admin reports download and the email attachment go
  * through the same renderer and the same view. A second copy of this layout is the way
@@ -60,10 +61,24 @@ class MonthlyReportPdf implements AttachmentBuilder
     }
 
     /**
-     * The download filename for a report, e.g. "monthly-report-august-2026.pdf".
+     * The download filename for a report, e.g. "monthly-report-kampala-august-2026.pdf".
+     *
+     * The branch is in the name because the branch is now the document's subject. Without
+     * it, two branches of one business downloading the same month land in a downloads
+     * folder as two identically named files, and the one you did not mean is the one you
+     * open.
+     *
+     * The empty branch case is preserved because a payload predating per-branch
+     * reporting carries no branch_name, and a nameless file is better than a file that
+     * claims to be about a branch that was never named.
      */
     public function filename(MonthlyReport $report): string
     {
-        return 'monthly-report-'.($report->slug() ?: 'report').'.pdf';
+        $branch = $report->branchSlug();
+        $period = $report->slug();
+
+        $parts = array_filter([$branch ?: null, $period ?: null]) ?: ['report'];
+
+        return 'monthly-report-'.implode('-', $parts).'.pdf';
     }
 }

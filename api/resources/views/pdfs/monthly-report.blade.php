@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Monthly Performance Report{{ $report['period'] ? ' — '.$report['period'] : '' }}</title>
+    <title>Monthly Performance Report{{ $report['branch_name'] ?? '' ? ' — '.$report['branch_name'] : '' }}{{ $report['period'] ? ' — '.$report['period'] : '' }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -32,6 +32,14 @@
             font-size: 15px;
             font-weight: bold;
             margin-bottom: 5px;
+        }
+        /* The branch is the document's subject, not a caption: every figure below it
+           describes this branch and no other. */
+        .header .branch {
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 3px;
         }
         .header p {
             color: #666;
@@ -116,6 +124,9 @@
     <div class="page">
         <div class="header">
             <h1>{{ $report['business_name'] }}</h1>
+            @if ($report['branch_name'] ?? '')
+                <div class="branch">{{ $report['branch_name'] }}</div>
+            @endif
             @if ($report['period'])
                 <div class="period">{{ $report['period'] }}</div>
             @endif
@@ -178,7 +189,11 @@
             @endforeach
         </table>
 
-        @if (count($report['branches']))
+        {{-- A per-branch report has exactly one row, and a table titled "By branch"
+             containing the branch the whole document is already about reads as though
+             something were missing. The table survives for a payload that carries
+             several, so an older consolidated delivery loses no figures. --}}
+        @if (count($report['branches']) > 1)
             <h2>By branch</h2>
             <table class="grid">
                 <thead>
@@ -210,7 +225,16 @@
         @endif
 
         <div class="footer">
-            {{ $report['business_name'] }}@if ($report['period']) · {{ $report['period'] }}@endif
+            {{-- Spaced directives on purpose: Blade anchors directives on \B@, and an
+                 "@endif@if" leaves the second one as literal text because the @ sits
+                 directly after a word character. --}}
+            {{ $report['business_name'] }}
+            @if ($report['branch_name'] ?? '')
+                · {{ $report['branch_name'] }}
+            @endif
+            @if ($report['period'])
+                · {{ $report['period'] }}
+            @endif
             · Generated {{ now()->format('F j, Y') }} · Figures in {{ $report['currency'] }}
         </div>
     </div>

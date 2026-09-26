@@ -93,12 +93,26 @@ Decisions, so they are not relitigated by accident:
   the whole reason it exists as a service.
 - **Sourced from `cash_flows`, not from `sales`/`purchases`/`expenses`.** The Branch
   Performance card directly above it on the same page already reads `cash_flows`, and
-  `cash_flows` carries `business_branch_id`, which the per-branch table needs. Deriving
-  it from the raw documents would print a total that contradicts the card next to it.
+  `cash_flows` carries `business_branch_id`, which is what makes per-branch scoping
+  possible. Deriving it from the raw documents would print a total that contradicts the
+  card next to it.
+- **One document per branch; `branch_id` is required, not a filter.** See resolved #6
+  below. The service takes a `BusinessBranch` and adds
+  `where cash_flows.business_branch_id = $branch->id` explicitly rather than leaning on the
+  branch global scope, because a business admin's scope admits every branch and would let a
+  document headed with one branch's name carry another's figures. The filename carries the
+  branch (`monthly-report-kampala-road-august-2026.pdf`) so two branches of one business
+  don't land in a downloads folder as two identically named files.
+- **Branch authorisation is resolved once, in one place.**
+  `EffectiveBranchScope::resolveReportBranch()` reuses `branchesFor()` so the permitted set
+  cannot drift from the rows the scope actually admits. Both report controllers call it;
+  `BranchPerformanceReports` treats an absent id as "all branches" (that card compares them)
+  while the monthly report requires one (there is no company-wide document to serve).
 - **Month-scoped, not the shared period filter.** The document is titled with a calendar
-  month and the email's dedupe identity is `business:{id}:{YYYY-MM}`, so a "last 30 days"
-  version of it would be a different document wearing the same name. Defaults to the last
-  *completed* month — the current one is still accumulating and would understate itself.
+  month and the email's dedupe identity is
+  `business:{id}:{branch_id}:{YYYY-MM}`, so a "last 30 days" version of it would be a
+  different document wearing the same name. Defaults to the last *completed* month — the
+  current one is still accumulating and would understate itself.
 - **A month with no transactions still downloads.** An empty month is a report full of
   zeroes, not a failure, and is plausibly exactly what someone wants to forward on.
 - **The quotation was left alone.** It already downloads from `/admin/quotations`.
@@ -188,10 +202,22 @@ These block real-world behaviour and cannot be done from the repo.
 - **#1 Template-only vs free text.** Recommend template-only
   (`WHATSAPP_ALLOW_FREE_TEXT=false`); we have no inbound handling, so free text is a
   policy violation. Revisit when inbound exists.
-- **#2 `businesses.timezone` column vs settings table.** Recommend column. Unanswered,
-  and it blocks the monthly report job.
-- **#6 Per-branch or consolidated monthly report.** Recommend consolidated business
-  with a per-branch table inside the PDF.
+- ~~**#2 `businesses.timezone` column vs settings table.**~~ ✅ **Resolved.** It is a real
+  column on `businesses`, so the column wins over a settings row and the month boundary is
+  drawn in the business's own day.
+- ~~**#6 Per-branch or consolidated monthly report.**~~ ✅ **Resolved: per branch, one
+  document per branch.** Recommended consolidated with a per-branch table; rejected after
+  the user asked for it explicitly. A blended company total reads as if it were somebody's
+  branch, and the person who has to act on a monthly figure is the branch manager. So
+  `branch_id` is required, a branch-restricted user is always scoped to their own branch, a
+  business admin with several branches must choose one, and a business with exactly one
+  branch needs no choice. There is no company-wide document at all — the API answers 422
+  rather than inventing one, because a default to the first branch would hand back a real,
+  plausible report about a branch nobody asked for. Cross-branch comparison stays on the
+  Branch Performance card, which is a different card for a different reader. **Consequence
+  for Stage 4:** the notification dedupe key must become
+  `business:{id}:{branch_id}:{YYYY-MM}`, not `business:{id}:{YYYY-MM}`, or one branch's
+  report suppresses another's.
 - ~~**#4/#7 Catalogue scope.**~~ ✅ **Resolved.** `daily_sales_summary` and
   `payment_reminder` deferred, sale-receipt email deferred. The plan said the first two
   were "already seeded as templates" and needed deleting — that was wrong on both counts.
@@ -272,6 +298,15 @@ DB_HOST=127.0.0.1 DB_DATABASE=inventory_test ./vendor/bin/phpunit
   `where business_id = ?`, so the join turns every query into
   `Ambiguous column: business_id is ambiguous`. Qualifying the scope's own output is not
   an option; it is framework-wide. Look the names up in a second query instead.
+  **`BranchPerformanceReports` had exactly this join and was 500ing on every request** — the
+  top card on the reports page, with no test at all. Check every other report service for
+  the same shape before assuming this was a new mistake rather than an existing one.
+- **Never put two Blade directives back to back.** Blade anchors directives on `\B@`, and
+  `@` is a non-word character, so in `@endif@if` the second `@` sits directly after the
+  word character `f` — that is a word boundary, `\B` fails, and the second directive is
+  left in the output as literal text. The template still compiles, so the failure arrives
+  as `syntax error, unexpected token "endif"` from the compiled view, a long way from the
+  line that caused it. Put directives on their own lines.
 - **`(array) $model` is not `$model->getAttributes()`.** Casting an Eloquent model to an
   array yields its private properties under NUL-prefixed mangled keys with the real
   columns buried inside `['attributes']`. A report built that way renders every figure as

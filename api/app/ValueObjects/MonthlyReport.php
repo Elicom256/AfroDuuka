@@ -18,6 +18,10 @@ namespace App\ValueObjects;
  * The payload contract, which the monthly report trigger has to match exactly:
  *
  *   business_name       string, the tenant's trading name
+ *   branch_name         string, the one branch this document describes. A report is
+ *                        per branch, so this is the document's subject, not a caption
+ *                        on a breakdown. Optional: a payload from a trigger that predates
+ *                        per-branch reporting has none, and renders as before.
  *   period              string, e.g. "August 2026". Also the dedupe identity.
  *   currency            string, 3 letters. Defaults to UGX.
  *   total_sales         number or formatted string
@@ -47,6 +51,7 @@ final class MonthlyReport
      */
     private function __construct(
         public readonly string $businessName,
+        public readonly string $branchName,
         public readonly string $period,
         public readonly string $currency,
         public readonly array $figures,
@@ -73,6 +78,7 @@ final class MonthlyReport
 
         return new self(
             businessName: (string) ($values['business_name'] ?? config('app.name')),
+            branchName: (string) ($values['branch_name'] ?? ''),
             period: (string) ($values['period'] ?? ''),
             currency: (string) ($values['currency'] ?? 'UGX'),
             figures: $figures,
@@ -102,6 +108,17 @@ final class MonthlyReport
     }
 
     /**
+     * The branch's filename stem, e.g. "kampala" from "Kampala Central".
+     *
+     * Empty when the payload named no branch, which is the case for a payload produced
+     * before reports were per branch.
+     */
+    public function branchSlug(): string
+    {
+        return trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $this->branchName)), '-');
+    }
+
+    /**
      * The shape the Blade view reads.
      *
      * @return array<string, mixed>
@@ -110,6 +127,7 @@ final class MonthlyReport
     {
         return [
             'business_name' => $this->businessName,
+            'branch_name' => $this->branchName,
             'period' => $this->period,
             'currency' => $this->currency,
             'figures' => $this->figures,

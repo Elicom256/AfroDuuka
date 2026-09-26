@@ -209,7 +209,7 @@ class MonthlyPerformanceReportTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
-        $response->assertHeader('content-disposition', 'attachment; filename=monthly-report-august-2026.pdf');
+        $response->assertHeader('content-disposition', 'attachment; filename=monthly-report-kampala-road-august-2026.pdf');
 
         $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
