@@ -11,36 +11,91 @@ Last updated: after the admin reports PDF download.
 
 ## Where we are
 
-Stage 0, Stage 1, the first two chunks of Stage 2, and **Stage 2 chunk 3 (PDF
-attachments)** are done and green. On top of chunk 3, the **monthly report is now
-downloadable from `/admin/reports`**. The next chunk is **Stage 3**, which is the first
-genuinely new thing since chunk 2 — a real HTTP call to Meta instead of the filesystem
-and log.
+Stage 0, Stage 1, the first two chunks of Stage 2, **Stage 2 chunk 3 (PDF attachments)**,
+and the **Stage 3 send path** are done and green. On top of chunk 3, the **monthly report
+is now downloadable from `/admin reports`**. Stage 3 now needs the **status webhook**, which
+finally has something to reconcile against: real Meta message ids are being stored.
 
 | Suite | Result |
 |---|---|
-| `tests/Feature/WhatsApp/` | ✅ 187 tests, 596 assertions |
+| `tests/Feature/WhatsApp/` | ✅ 213 tests, 674 assertions |
 | `tests/Feature/Reports/` | ✅ 32 tests, 108 assertions (new) |
-| Full suite | 364 tests, 1135 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| Full suite | 390 tests, 1213 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
 
 ## Start here tomorrow
 
-### ⬜ Stage 3 — WhatsApp (real Meta)
+### 🟡 Stage 3 — WhatsApp (real Meta)
 
-`MetaWhatsAppProvider::sendMessage()` **throws**. It used to return a fabricated success
-— see "the stub fails open" below. Template *listing* against
-`GET /{version}/{wabaId}/message_templates` is real and syncing daily; sending is not.
+`MetaWhatsAppProvider::sendMessage()` now performs a **real send**. Template *listing*
+against `GET /{version}/{wabaId}/message_templates` has always been real and still syncs
+daily.
 
-- `POST /{version}/{phoneNumberId}/messages` — template message body, `messaging_product`,
-  `recipient_type`, E.164 normalisation (do this at the boundary, not the caller).
-- Status webhook + reconciliation. The `notification_deliveries` states and the
-  ambiguous-send design already exist for this: an ambiguous send is left in `sending`
-  and the webhook settles it, rather than being retried and double-delivering.
-- Throttle rails. §3 is emphatic that volume is the enemy; the 429 path needs backoff
+- ✅ `POST /{version}/{phoneNumberId}/messages` — template message body, `messaging_product`,
+  `recipient_type`, E.164 normalisation (done at the boundary, not the caller).
+- ⬜ Status webhook + reconciliation. `notification_deliveries` states and the
+  ambiguous-send design now have a producer to feed them: a real Meta message id is
+  stored on every accepted send, which is what the webhook matches on.
+- ⬜ Throttle rails. §3 is emphatic that volume is the enemy; the 429 path needs backoff
   that the retry config can actually express.
+
+#### The send is decided by classification, not by the HTTP call
+
+The substance of `sendMessage()` is deciding, for every way the call can end, whether Meta
+took the message. The two ways of getting that wrong fail in opposite directions, and both
+fail silently:
+
+| Outcome | Classification | Why |
+|---|---|---|
+| 2xx with `messages[0].id` | accepted | Meta took it; store the id for the webhook |
+| 2xx with **no readable id** | ambiguous | Accepted, but nothing to reconcile on |
+| 4xx template/param error | rejected, Meta's code | A bug in our payload, not a transient fault |
+| 401/403 | rejected, `auth` | Token problem; nothing was sent |
+| **429** | rejected, `throttled` | Meta answered, so nothing was sent |
+| 5xx | ambiguous | May have failed *after* accepting |
+| Dead connection | ambiguous | May have reached Meta and been accepted |
+| Unusable recipient / no token | rejected | Refused before any request |
+
+Three of these were decided deliberately against the obvious reading:
+
+**A 429 is not ambiguous.** Meta answered, so nothing was sent and no status webhook will
+ever mention that message. Filing it as ambiguous leaves the row in `sending` awaiting a
+callback that cannot exist — the notification is lost with no error displayed. It is also
+not an ordinary rejection, since it clears and the message should go out later, so it gets
+its own code for the throttle rails to attach backoff to. **Stage 3's next piece has to
+make `throttled` retryable**; today it is recorded as `failed`, which is honest and
+recoverable by hand but not automatic.
+
+**A 5xx is ambiguous even though Meta answered it.** The tempting rule is "answered means
+definitive", but a 5xx may have failed after accepting. The worst case here is a delivery
+recorded as unresolved; the worst case on the other side is a customer messaged twice.
+
+**A 2xx we cannot parse is ambiguous, not accepted.** A guard test caught this. Meta's send
+endpoint always returns `messages[0].id`, so a success with no readable id means the
+response is not a send response. Returning it as-is read downstream as a *successful send
+with a null id* — the same fabricated-success shape the old stub returned, reached by a
+different road, and equally invisible: the dashboard says delivered and the webhook can
+never match a row with nothing to match on.
+
+#### Two smaller consequences worth recording
+
+`ChannelResult::ambiguous()` hardcoded `errorCode = 'ambiguous'`, which collapsed a 5xx, a
+dead connection and an unparseable reply into one value at the moment of recording — three
+different operational problems, one undiagnosable bucket. It now takes the provider's code,
+defaulting to `ambiguous` so nothing else changes.
+
+`validateConfiguration()` passes if *any* of business phone, token or phone number ID is
+set, so a config with only a business phone is "valid" and then cannot address a send at
+all. `sendMessage()` therefore re-checks token and phone number ID at the boundary and
+refuses with `not_configured` before attempting anything. Not thrown: nothing was
+transmitted, so it is a definitive rejection.
+
+**18 tests** in `MetaWhatsAppSendTest.php` cover the body shape, the version and phone
+number in the URL, boundary normalisation, and each row of the table above as observed
+through the delivery row it produces. The two 2026-era classifications were verified as
+guards by re-breaking them and confirming 3 tests fail.
 
 #### ✅ Cloud API version — settled, and not the one the plan assumed
 
@@ -89,12 +144,49 @@ shape for an unimplemented send: the delivery is marked sent, the dashboard says
 out, nothing retries it, and the customer's only symptom is a message that never arrives.
 
 It needed no bug to trigger — setting `WHATSAPP_PROVIDER=meta` was sufficient, and every
-notification would have "succeeded" silently. It now throws a `LogicException` naming the
-recipient and pointing at `WHATSAPP_PROVIDER=demo`, so the failure is loud and lands where
-the dispatcher's error handling can see it. 5 tests in
-`tests/Feature/WhatsApp/MetaWhatsAppProviderGuardTest.php`.
+notification would have "succeeded" silently.
 
-Stage 7 already said flip the provider last; throwing means that instruction now has teeth.
+This was first made to throw a `LogicException`, then made to return a structured
+rejection once the send was implemented. **The invariant that matters was never "it
+throws" — it is "it never claims a send it did not make."** Both forms satisfy it; the
+rejection is better, because a throw was recorded as an *ambiguous* send and left the row
+in `sending` awaiting a webhook, which is wrong for a provider that sent nothing at all.
+The guard test now pins the invariant rather than the old mechanism, asserting that no
+response shape carries a `status` key or a `provider_message_id` it did not earn.
+5 tests in `tests/Feature/WhatsApp/MetaWhatsAppProviderGuardTest.php`.
+
+Stage 7 already said flip the provider last, and that instruction still has teeth.
+
+#### ✅ The send path's own outcomes had never been exercised
+
+Closing the stub exposed a gap next to it. The sent path had only ever been driven
+through the demo provider, and **nothing asserted the provider message id** — so two
+branches had never run:
+
+**The message id was silently dropped.** `WhatsAppChannel::interpret()` read only
+`message_id` and `messages[0].id`. The demo provider returns `provider_message_id`, so
+every demo send was marked `sent` with a **null** `provider_message_id`. Verified, not
+inferred: a probe printed `status=sent provider=demo provider_message_id=NULL`.
+
+This is the id the status webhook matches on, so the webhook — the next piece of Stage 3
+— would have had nothing to correlate against, and every delivery would have sat in
+`sending` forever. `interpret()` now reads all three shapes. The channel's own docblock
+records why the disagreement was invisible: the providers return different keys, and only
+one of them was read.
+
+**The exception branch had no coverage at all.** `SendNotificationJob` catches `Throwable`
+from the transport, leaves the row in `sending` with `error_code = 'exception'` and
+rethrows, and a retry then stands down because `isAmbiguous()` is true. All correct — and
+none of it tested. That is now the *primary* path for anyone who sets
+`WHATSAPP_PROVIDER=meta`, since the provider throws by design.
+
+7 tests in `tests/Feature/WhatsApp/SendPathOutcomeTest.php`: a successful send stores a
+non-null id, a throwing provider never leaves a row claiming the customer was reached, a
+thrown send is not retried into a duplicate, and Meta's nested `messages[0].id` shape is
+pinned *before* Stage 3 exists to produce it. The provider is faked rather than the
+channel, because the bug lived in the seam between a provider's response and the delivery
+row — exactly what a hand-written unit test skips. Reverting the one-line fix fails 2 of
+them, so they are guards rather than decoration.
 
 ### ✅ Stage 2 · chunk 3 — PDF attachments (done)
 
