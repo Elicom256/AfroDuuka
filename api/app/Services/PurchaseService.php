@@ -10,6 +10,7 @@ use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseService
 {
@@ -37,33 +38,65 @@ class PurchaseService
         }
 
         $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
-        $purchase = Purchase::create([
-            "supplier_id" => $validated["supplier_id"],
-            "business_branch_id" => $branchId,
-            "total_amount" => $total_amount,
-            "note" => $validated["note"] ?? null
-        ]);
-        foreach ($validated["items"] as $item) {
-            PurchaseItem::create([
-                "purchase_id" => $purchase->id,
-                "product_id" => $item["product_id"],
-                "quantity" => $item["quantity"],
-                "cost_price" => $item["cost_price"],
-                "subtotal" => $item["cost_price"] * $item["quantity"]
+
+        return DB::transaction(function () use ($validated, $branchId, $total_amount, $notificationService, $user) {
+            $purchase = Purchase::create([
+                "supplier_id" => $validated["supplier_id"],
+                "business_branch_id" => $branchId,
+                "total_amount" => $total_amount,
+                "status" => $validated['status'] ?? 'pending',
+                "note" => $validated["note"] ?? null
             ]);
-            $businessProduct = Product::find($item["product_id"]);
-            if ($businessProduct) {
-                $businessProduct->increment("quantity", $item["quantity"]);
-                $businessProduct->update([
+
+            foreach ($validated["items"] as $item) {
+                PurchaseItem::create([
+                    "purchase_id" => $purchase->id,
+                    "product_id" => $item["product_id"],
+                    "quantity" => $item["quantity"],
                     "cost_price" => $item["cost_price"],
+                    "subtotal" => $item["cost_price"] * $item["quantity"]
                 ]);
             }
-        }
-        $supplier = Supplier::find($purchase->supplier_id);
-        $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
-        $notificationService->newPurchaseRecorded($user, $supplier->company_name, number_format($total_amount), $purchase->id);
 
-        return $purchase->load("purchaseItems");
+            $supplier = Supplier::find($purchase->supplier_id);
+            $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
+            $notificationService->newPurchaseRecorded($user, $supplier?->company_name ?? 'Supplier', number_format($total_amount), $purchase->id);
+
+            return $purchase->load("purchaseItems");
+        });
+    }
+
+    public function receivePurchase(Purchase $purchase, array $receivedItems, ?int $receivedBy = null): Purchase
+    {
+        if ($purchase->status === 'completed' && ! is_null($purchase->received_at)) {
+            throw new Exception('This purchase has already been received and stock has been updated.', 422);
+        }
+
+        return DB::transaction(function () use ($purchase, $receivedItems, $receivedBy) {
+            $userId = $receivedBy ?? Auth::id();
+
+            foreach ($purchase->purchaseItems as $item) {
+                $receivedQty = (int) ($receivedItems[$item->id] ?? $item->quantity);
+
+                if ($receivedQty < 0 || $receivedQty > (int) $item->quantity) {
+                    throw new Exception("Received quantity for item {$item->product_id} is invalid.", 422);
+                }
+
+                $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
+                if ($product) {
+                    $product->increment('quantity', $receivedQty);
+                    $product->update(['cost_price' => $item->cost_price]);
+                }
+            }
+
+            $purchase->update([
+                'status' => 'completed',
+                'received_at' => now(),
+                'received_by' => $userId,
+            ]);
+
+            return $purchase->fresh()->load('purchaseItems');
+        });
     }
 
     public function analytics(string $period = "last_7_days")

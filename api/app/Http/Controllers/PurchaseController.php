@@ -6,6 +6,8 @@ use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
@@ -44,6 +46,27 @@ class PurchaseController extends Controller
         $product = Purchase::with("supplier", "purchaseItems.product")
                   ->findOrFail($purchase);
         return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
+    }
+
+    public function receive(Purchase $purchase, Request $request): JsonResponse
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.purchase_item_id' => 'required|exists:purchase_items,id',
+            'items.*.quantity' => 'required|integer|min:0',
+        ]);
+
+        $receivedItems = [];
+        foreach ($request->input('items', []) as $item) {
+            $receivedItems[(int) $item['purchase_item_id']] = (int) $item['quantity'];
+        }
+
+        $updatedPurchase = $this->purchaseService->receivePurchase($purchase, $receivedItems, auth()->id());
+
+        return response()->json([
+            'message' => 'Purchase received and stock updated successfully.',
+            'purchase' => $updatedPurchase,
+        ]);
     }
 
     public function salesAnalytics()
