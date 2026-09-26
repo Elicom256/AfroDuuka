@@ -15,11 +15,13 @@ class SaleReturnService
 {
     protected CashFlowService $cashFlowService;
     protected InventoryService $inventoryService;
+    protected CustomerCreditService $customerCreditService;
 
-    public function __construct(CashFlowService $cashFlowService, InventoryService $inventoryService)
+    public function __construct(CashFlowService $cashFlowService, InventoryService $inventoryService, CustomerCreditService $customerCreditService)
     {
         $this->cashFlowService = $cashFlowService;
         $this->inventoryService = $inventoryService;
+        $this->customerCreditService = $customerCreditService;
     }
 
     public function handleCreateSaleReturn(array $validated, ?string $business_branch_id = null)
@@ -99,6 +101,7 @@ class SaleReturnService
         }
 
         $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
+        $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
 
         Receipt::where('sale_id', $sale->id)
             ->where('status', 'completed')
