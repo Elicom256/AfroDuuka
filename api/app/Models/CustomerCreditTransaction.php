@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\LogsActivity;
 
 class CustomerCreditTransaction extends BaseModel
 {
+    use LogsActivity;
+
     protected $fillable = [
         'business_branch_id',
         'customer_id',
