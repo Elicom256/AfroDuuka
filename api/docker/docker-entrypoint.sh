@@ -24,7 +24,11 @@ fi
 
 echo "Running database migrations..."
 # to remove the seeder in production
-php artisan migrate --force
+# Sidecar containers (e.g. the queue worker) set SKIP_MIGRATIONS=true so that
+# migrations are not run twice concurrently against the same database.
+if [ "${SKIP_MIGRATIONS:-false}" != "true" ]; then
+    php artisan migrate --force
+fi
 
 if [ "$APP_ENV" != "local" ] && [ "$APP_ENV" != "development" ]; then
     echo "Caching config..."
