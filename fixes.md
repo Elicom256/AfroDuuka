@@ -42,7 +42,7 @@ Before code changes, define the business invariants that must never be violated.
 
 These are the most important bugs because they affect actual business operations.
 
-### 1.1 Negative stock and oversell protection
+### 1.1 Negative stock and oversell protection ✅
 
 Bug: sales, transfers, or refunds can push stock below zero or miscalculate remaining quantity.
 
@@ -59,7 +59,7 @@ Acceptance criteria:
 - A transfer cannot move more units than available at source.
 - Failed transactions leave stock unchanged.
 
-### 1.2 Duplicate stock movement records
+### 1.2 Duplicate stock movement records ✅
 
 Bug: retries or partial failures can create duplicate stock entries.
 
@@ -74,7 +74,7 @@ Acceptance criteria:
 - Retrying a failed request does not double-count stock.
 - Logs reflect only one final movement per transaction.
 
-### 1.3 Purchase vs received stock mismatch
+### 1.3 Purchase vs received stock mismatch ✅
 
 Bug: purchased stock may be recorded without matching actual stock arrival or receipt validation.
 

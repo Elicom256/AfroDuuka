@@ -15,6 +15,7 @@ class StockMovement extends BaseModel
         'movement_key',
         'type',
         'quantity',
+        'reason',
         'reference_type',
         'reference_id',
         'notes',
