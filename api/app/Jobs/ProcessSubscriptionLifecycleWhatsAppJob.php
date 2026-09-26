@@ -73,19 +73,33 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
         ]);
     }
 
+    /**
+     * Overdue notice, sent on a 2-day cadence after expiry.
+     *
+     * This is deliberately *not* the catalogue's `subscription.expiring`, and the two
+     * cannot be merged. That one is a pre-expiry reminder; this one only ever runs
+     * after `ends_at` has passed, because an expired subscription is the only state
+     * worth chasing. Treating them as the same notification under an older name is
+     * what would let this job suppress a reminder the customer has not had yet.
+     *
+     * The bucket is keyed on days *overdue*, and the payload says so. It used to pass
+     * this count into a `days_remaining` field, so a customer three days past expiry was
+     * carrying "3 days remaining" — the one number in the message that was wrong, in the
+     * direction that made the message read as reassuring.
+     */
     private function handleExpiryReminder(Subscription $subscription, $business, WhatsAppNotificationService $service): void
     {
         if (! $subscription->ends_at || ! $subscription->ends_at->isPast()) {
             return;
         }
 
-        $daysSinceExpiry = (int) now()->diffInDays($subscription->ends_at);
+        $daysOverdue = (int) now()->diffInDays($subscription->ends_at);
 
-        if ($daysSinceExpiry < 2 || $daysSinceExpiry % 2 !== 0) {
+        if ($daysOverdue < 2 || $daysOverdue % 2 !== 0) {
             return;
         }
 
-        $dedupeKey = 'notification:subscription:expiry_reminder:business-' . $business->id . ':days-' . $daysSinceExpiry;
+        $dedupeKey = 'notification:subscription:overdue:business-' . $business->id . ':days-' . $daysOverdue;
 
         $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
             ->where('dedupe_key', $dedupeKey)
@@ -93,7 +107,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             ->first();
 
         if ($existingLog) {
-            Log::info('Skipping duplicate subscription expiry reminder', [
+            Log::info('Skipping duplicate subscription overdue notice', [
                 'business_id' => $business->id,
                 'dedupe_key' => $dedupeKey,
             ]);
@@ -105,7 +119,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             'branch_id' => null,
             'business_name' => $business->name,
             'plan_name' => $subscription->plan?->name ?? 'Your plan',
-            'days_remaining' => $daysSinceExpiry,
+            'days_overdue' => $daysOverdue,
             'recipient_phone' => $business->phone,
         ]);
     }

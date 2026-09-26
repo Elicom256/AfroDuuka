@@ -14,11 +14,11 @@ class TestWhatsAppMessageRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (! $this->has('recipient')) {
-            $this->merge([
-                'recipient' => '+256731794401',
-            ]);
-        }
+        // recipient is deliberately NOT defaulted here. It used to be filled in with a
+        // specific handset when the client omitted it, so a test-send request with no
+        // recipient quietly sent a real message to a real person's phone. The
+        // recipient is the one field a caller has to supply: it is the whole point of
+        // the request, and there is no sensible stand-in for it.
 
         if (! $this->has('message')) {
             $this->merge([

@@ -18,9 +18,9 @@ finally has something to reconcile against: real Meta message ids are being stor
 
 | Suite | Result |
 |---|---|
-| `tests/Feature/WhatsApp/` | ✅ 217 tests, 680 assertions |
+| `tests/Feature/WhatsApp/` + `tests/Unit/WhatsApp/` | ✅ 235 tests, 739 assertions |
 | `tests/Feature/Reports/` | ✅ 32 tests, 108 assertions (new) |
-| Full suite | 394 tests, 1219 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
+| Full suite | 396 tests, 1225 assertions, **3 failures** — all pre-existing and unrelated (see [Known failures](#known-failures)) |
 | Plan §6 count | ✅ Reconciled: 14 live, 1 deferred |
 
 ---
@@ -296,7 +296,7 @@ about two of the three**, and checking it properly changed the plan.
 |---|---|---|
 | `CheckNotificationsJob` | Writes in-app `notifications` rows **only** | **Keep.** Not a duplicate-send risk |
 | `GenerateMonthlyBusinessReportJob` | Cannot execute at all | **Dead code.** Delete |
-| `ProcessSubscriptionLifecycleWhatsAppJob` | Really does send WhatsApp | **The real hazard.** Fix, then retire in Stage 4 |
+| `ProcessSubscriptionLifecycleWhatsAppJob` | Really does send WhatsApp | **The real hazard.** Partly fixed; retire in Stage 4 |
 
 **`CheckNotificationsJob` must stay.** `NotificationService` only ever calls
 `Notification::create` — it sends no WhatsApp, no email, no SMS. And `NotificationController`
@@ -304,50 +304,145 @@ serves those rows from `/notifications`, including the unread count. So it feeds
 user-facing feature that the catalogue pipeline does not write to at all. Retiring it
 would delete the in-app notification feed to prevent a duplicate that cannot happen.
 
-**`GenerateMonthlyBusinessReportJob` has never run.** `purchases` is scoped by
+**`GenerateMonthlyBusinessReportJob` is deleted.** `purchases` is scoped by
 `business_branch_id` and has no `business_id` column, so `Purchase::where('business_id', …)`
-raises an SQL error on the first business and the job fatals. Every run has failed. So the
-hardcoded-recipient leak in it was **latent, not live**, and deleting it costs no coverage,
-because there has never been any coverage. It also computed a company-wide consolidated
+raised an SQL error on the first business and the job fataled. Every run had failed, so
+the hardcoded-recipient leak in it was **latent, not live**, and deleting it cost no
+coverage, because there had never been any. It also computed a company-wide consolidated
 total — the exact document shape that was rejected in favour of one report per branch —
 using `Carbon::now()` rather than the `businesses.timezone` column, with a dedupe key
-carrying no `branch_id`.
+carrying no `branch_id`. The schedule entry is gone too, so it cannot be quietly
+rescheduled; `LegacyHardcodedRecipientTest` asserts both.
 
 **`ProcessSubscriptionLifecycleWhatsAppJob` is the only genuine double-send hazard.** Its
 dedupe lives in `whatsapp_message_logs.dedupe_key` and its keys are built on a completely
 different scheme from the catalogue's, so it **cannot** suppress `subscription.expired` or
-`subscription.expiring` when those are wired. Two further defects found in it:
+`subscription.expiring` when those are wired. Partly fixed:
 
-- `handleExpiryReminder()` passes `days_since_expiry` into the `days_remaining` field, so
-  the message would say "N days remaining" where N is days *overdue*.
+- ~~`handleExpiryReminder()` passes `days_since_expiry` into the `days_remaining` field, so
+  the message would say "N days remaining" where N is days *overdue*.~~ **Fixed.** The
+  payload key is now `days_overdue`, and the bucket is keyed on the same thing. A field
+  name is documentation every reader trusts; it should not describe the opposite of the
+  value it carries.
 - Its reminder is guarded by `ends_at->isPast()`, so it can only ever fire **after**
   expiry. The catalogue's `subscription.expiring` is a *pre*-expiry reminder. The legacy
-  "reminder" is not the same notification under an older name.
+  "reminder" is not the same notification under an older name — so this is **not** fixed,
+  and should not be. It is a post-expiry chase, and Stage 4 gives it a real home.
 
-#### ✅ The hardcoded recipient was nine send paths, not one
+Its `subscription.expiry_reminder` template key is worth knowing about: it has no entry in
+`config/notifications.php` and no wording in `TemplateProvisioner`, so nothing renders it
+today and the send falls back to the demo default string. The `days_remaining` defect was
+therefore also latent. It is still worth having fixed.
 
-`'+256731794401'` was a fallback recipient in the monthly report job, **seven** listeners
-(`SubscriptionCreated`, `SubscriptionPlanChanged`, `SubscriptionExpired`,
-`FreeTrialExpired`, `PaymentFailed`, `SaleOrderCreated`, `PurchaseOrderCreated`) and
-`SubscriptionController` — and a default *sender identity* in `config/services.php` and
-`ProcessWhatsAppNotificationJob`. Any business without a phone on file had its
-subscription, payment, sale and purchase notifications delivered to one personal handset.
+#### ✅ The hardcoded recipient was eleven send paths, and half of them were senders
 
-Removed at source in all nine, plus one guard in `WhatsAppNotificationService::
-queueBusinessNotification()` — the single dispatch point all ten `queue*()` methods funnel
-through, so the pattern cannot come back at the next entry point. It logs a warning and
-returns `queued => false` rather than throwing, because a missing phone number must not
-abort the subscription or sale that triggered it.
+The first pass at this removed the number as a **fallback recipient** in nine places and
+stopped there, which is why the section above used to claim the job was finished. It was
+not. The same number was also a default **sending identity**, and that half was worse: a
+message that goes to the wrong person is a privacy incident, whereas a message that
+*comes from* the wrong number means the reply goes to that stranger as well.
+
+Removed at source:
+
+| Site | Was |
+|---|---|
+| `GenerateMonthlyBusinessReportJob` | recipient fallback — and the whole job, deleted above |
+| Seven listeners | `?? '+256731794401'` on the recipient |
+| `SubscriptionController` | `?? '+256731794401'` on the recipient |
+| `config/services.php` | `env('WHATSAPP_BUSINESS_PHONE', '+256…')` |
+| `ProcessWhatsAppNotificationJob` | `config('services.whatsapp.business_phone', '+256…')` |
+| `WhatsAppService::getConfigForBusiness()` | a literal, which also **persisted** it |
+| **`whats_app_configs.business_phone`** | a **column default**, so every row was born holding it |
+| `WhatsAppConfigController::index()` | served it as `data`, so the settings form displayed it as chosen |
+| `StoreWhatsAppConfigRequest` | **injected it** when the client omitted the field |
+| `TestWhatsAppMessageRequest` | **injected it** as the test-send recipient |
+| **`ui/…/WhatsAppSettings.tsx`** | the prefilled form value, and the "Send Demo Message" button's default recipient |
+
+The last one was the only path a person could trigger by accident: open the admin settings
+page, click "Send Demo Message", and a real message goes to a real stranger's handset. The
+button is now disabled until a number is typed, and the field starts empty.
+
+Three notes on why the replacements are what they are:
+
+- **`business_phone` is now nullable, with no default.** "Not configured yet" has to be a
+  state the schema can hold, because the alternative is inventing an identity on the
+  business's behalf. The migration is edited in place — there was no data worth
+  preserving, and a follow-up migration to undo a default nobody wanted would be cruft.
+- **Nothing breaks by it being null.** `business_phone` is a display field, not the
+  operational sender identity: the providers read it only in `validateConfiguration()`,
+  where it is one of three alternatives, and Meta sends from `phone_number_id`.
+- **The two form requests now reject an absent number** rather than filling one in.
+  `business_phone` was already `required`, and `recipient` is the entire point of a
+  test send, so validation is the correct place for this.
+
+One guard in `WhatsAppNotificationService::queueBusinessNotification()` — the single
+dispatch point all twelve `queue*()` methods funnel through — so the recipient half cannot
+come back at the next entry point. It logs a warning and returns `queued => false` rather
+than throwing, because a missing phone number must not abort the subscription or sale that
+triggered it. `ProcessWhatsAppNotificationJob` had the same gap and now refuses too: it used
+to fall back to `$config->business_phone` at the point of sending, making the sending
+identity double as the destination.
 
 The new pipeline was never exposed to this: `RecipientResolver` returns null instead of
 guessing, and the channel rejects a delivery with no address. This was a legacy-layer
 habit, which is itself an argument for retiring that layer rather than patching it
-indefinitely. 4 tests in `tests/Feature/WhatsApp/LegacyHardcodedRecipientTest.php`,
-including a source-level guard so a new listener copying the old line is caught.
+indefinitely.
+
+#### ✅ The `$result['success']` bug was fixed in the dead job and left in the live one
+
+`MetaWhatsAppProvider` reports a refusal by returning an `error` key and has **no**
+`success` key at all; only the demo provider sets one. So `$result['success']` — read in
+`ProcessWhatsAppNotificationJob` three times and `WhatsAppService` twice — raised an
+undefined-key warning on every genuine Meta failure and fell through to `'failed'`. Correct
+by accident, and one provider rename away from filing refusals as successes.
+
+The identical bug in `GenerateMonthlyBusinessReportJob` was found and fixed while
+investigating that job. The live sender kept it, because the two were fixed in different
+places by different passes, and nothing tied them together.
+
+Both now go through `App\Services\WhatsApp\ProviderResponse`, which is the one place that
+reads a provider's answer — extracted from `WhatsAppChannel::interpret()`, which already
+had it right. Two things come out of that beyond the bug: an ambiguous outcome (timeout,
+or a 2xx that could not be parsed) is no longer silently a failure, and `error_code` now
+records the provider's actual reason instead of a blanket `provider_error`.
+
+`whats_app_message_logs` is a deprecated read-only mirror of `notification_deliveries`, so
+it has no third state for "we do not know" and both non-accepted outcomes still land on
+`'failed'`. The reason is kept in `error_code` either way.
+
+#### ✅ The guard test now covers the whole surface
+
+`tests/Feature/WhatsApp/LegacyHardcodedRecipientTest.php`, 6 tests. The first version
+globbbed `app/Listeners/WhatsApp/*.php` plus one named file — the boundary was drawn around
+the directory that had already been fixed, so config, controller, service, migration and
+the UI were all structurally invisible to it. It now sweeps `app/`, `config/`, `routes/`,
+`database/migrations/` and `ui/src/`, and asserts three rules rather than one number:
+
+1. the legacy value appears in no shipped code,
+2. no `business_phone` is assigned a string literal anywhere — **any** literal, so it
+   catches the next number rather than this one,
+3. no `recipient_phone` falls back to a quoted literal. Deliberately narrower than "no `??`":
+   `?? Auth::user()?->phone` is a real source and `?? ''` is how you say "none", so a
+   broader rule flagged two correct lines.
+
+Comments are stripped before matching, because three of them quote the removed line on
+purpose to explain why it went. A guard that fails on its own documentation gets deleted
+rather than fixed, which is how these come back. Seeders are exempt — a fixture phone
+number is test data by definition.
+
+Each rule was verified to actually fail: a probe file violating all three was added under
+`app/`, all three failed, and the probe was removed.
 
 `StageZeroRepairTest` and `PhaseOneMessagingTest` cover `ProcessWhatsAppNotificationJob`,
 which is the legacy *sender* rather than a scheduled job — so that deletion still is not
 automatic, and it is out of scope here.
+
+#### ⬜ Found while cleaning, not fixed: `sendDemoMessage` is dead
+
+`WhatsAppService::sendDemoMessage()` has no callers in `app/`, `tests/` or `routes/`. It
+duplicates `queueDemoMessage()`, and it carried its own copy of the `$result['success']`
+bug. Fixed in place because it was in a file being cleaned, but it should be deleted
+outright rather than kept correct.
 
 
 ### ⬜ Stage 5 — Tests
@@ -429,7 +524,7 @@ All three pre-date this work and are unrelated to notifications:
 
 - `Tests\Feature\NotificationTest::test_unread_count_returns_grouped_by_type`
 - `Tests\Feature\POS\PosCheckoutTest::test_checkout_requires_auth`
-- `Tests\Feature\POS\PosSearchTest::test_search_request_requires_auth`
+- `Tests\Feature\POS\PosSearchTest::test_search_requires_auth`
 
 ## Commands
 

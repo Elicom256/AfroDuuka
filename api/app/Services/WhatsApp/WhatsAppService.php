@@ -28,7 +28,11 @@ class WhatsAppService
         return WhatsAppConfig::create([
             'business_id' => $businessId,
             'provider' => 'demo',
-            'business_phone' => '+256731794401',
+            // No invented sending identity. This used to be a literal phone number, so
+            // every business that had never configured WhatsApp was recorded as sending
+            // from a specific handset that had nothing to do with it. Read from config
+            // now, so a deployment can set one deliberately and the default is nothing.
+            'business_phone' => config('services.whatsapp.business_phone'),
             'phone_number_id' => 'demo_phone_number_id',
             'access_token' => 'demo_access_token',
             'webhook_verify_token' => 'demo_verify_token',
@@ -127,6 +131,8 @@ class WhatsAppService
             'business_id' => $config->business_id,
         ]);
 
+        $outcome = ProviderResponse::interpret($result);
+
         $log = WhatsAppMessageLog::create([
             'business_id' => $config->business_id,
             'template_id' => null,
@@ -134,16 +140,20 @@ class WhatsAppService
             'channel' => 'whatsapp',
             'message_body' => $message,
             'variables' => ['business_phone' => $config->business_phone],
-            'status' => $result['success'] ? 'sent' : 'failed',
+            // Not `$result['success']`, which Meta never sets. See ProviderResponse.
+            'status' => $outcome->isSuccessful() ? 'sent' : 'failed',
             'provider_response' => $result,
-            'sent_at' => $result['success'] ? now() : null,
+            'error_code' => $outcome->isSuccessful() ? null : ($outcome->errorCode ?? 'provider_error'),
+            'sent_at' => $outcome->isSuccessful() ? now() : null,
         ]);
 
         return [
-            'success' => true,
+            'success' => $outcome->isSuccessful(),
             'business_number' => $config->business_phone,
             'provider' => $config->provider,
-            'message' => 'Demo WhatsApp message queued successfully. No live API billing is attached yet.',
+            'message' => $outcome->isSuccessful()
+                ? 'Demo WhatsApp message queued successfully. No live API billing is attached yet.'
+                : 'The provider refused this message: '.($outcome->errorMessage ?? 'no reason given'),
             'recipient' => $recipient,
             'log_id' => $log->id,
             'dedupe_key' => $notification['dedupe_key'],
