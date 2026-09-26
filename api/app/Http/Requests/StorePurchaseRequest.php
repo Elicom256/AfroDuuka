@@ -28,7 +28,7 @@ class StorePurchaseRequest extends FormRequest
 
         $this->merge([
             'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
-            'status'             => $this->input('status', 'completed'),
+            'status'             => $this->input('status', 'pending'),
             'currency'           => $this->input('currency', $defaultCurrency),
         ]);
     }
