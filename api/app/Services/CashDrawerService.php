@@ -91,6 +91,11 @@ class CashDrawerService
         });
     }
 
+    public function assertAccess(User $user, int $branchId): void
+    {
+        $this->assertBranchAccess($user, $branchId);
+    }
+
     private function assertBranchAccess(User $user, int $branchId): void
     {
         $resolved = EffectiveBranchScope::branchesFor($user);

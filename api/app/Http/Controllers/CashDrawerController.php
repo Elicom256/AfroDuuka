@@ -40,6 +40,8 @@ class CashDrawerController extends Controller
 
     public function show(CashDrawerSession $session)
     {
+        $this->cashDrawerService->assertAccess(Auth::user(), $session->business_branch_id);
+
         return response()->json(['data' => $session->load(['branch', 'openedBy', 'closedBy'])]);
     }
 }

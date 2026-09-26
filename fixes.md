@@ -155,7 +155,7 @@ Acceptance criteria:
 - Customer balances always match underlying transactions.
 - Refunds and partial payments adjust balances correctly.
 
-### 2.4 Sales/refunds/cancelation consistency
+### 2.4 Sales/refunds/cancelation consistency ✅
 
 Bug: cancelled orders, partial returns, and failed transactions can create financial mismatch.
 
