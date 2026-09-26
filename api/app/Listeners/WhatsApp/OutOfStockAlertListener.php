@@ -9,7 +9,7 @@ class OutOfStockAlertListener
 {
     public function handle(WhatsAppNotificationEvents\OutOfStockAlert $event): void
     {
-        (new WhatsAppNotificationService())->queueOutOfStockAlert([
+        (new WhatsAppNotificationService)->queueOutOfStockAlert([
             'business_id' => $event->business->id,
             'branch_id' => $event->branch?->id,
             'business_name' => $event->business->name,

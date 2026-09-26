@@ -3,12 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Business;
+use App\Models\Expense;
 use App\Models\Purchase;
 use App\Models\Sale;
-use App\Models\Expense;
 use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
 use App\Models\WhatsAppTemplate;
+use App\Services\WhatsApp\WhatsAppProviderFactory;
 use App\Services\WhatsApp\WhatsAppTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -66,7 +67,24 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
                 ])
                 ->count();
 
-            $recipientPhone = $business->phone ?? '+256731794401';
+            $recipientPhone = $business->phone;
+
+            // This used to be `$business->phone ?? '+256731794401'`, which sent a
+            // business's monthly revenue, expenses and profit/loss to a hardcoded
+            // personal number whenever the business had no phone on file. A developer's
+            // phone receiving customers' financials is not a defect worth carrying for
+            // one more sprint, and it is invisible: the log says "sent" and the row
+            // records a recipient nobody chose.
+            //
+            // No recipient means no send. There is no default that is not somebody's
+            // personal number.
+            if (empty($recipientPhone)) {
+                Log::warning('Monthly business report skipped: business has no phone on file', [
+                    'business_id' => $businessId,
+                ]);
+
+                continue;
+            }
 
             $config = WhatsAppConfig::where('business_id', $businessId)->first();
 
@@ -91,11 +109,14 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
                 'number_of_purchases' => is_numeric($numberOfPurchases) ? $numberOfPurchases : 0,
             ];
 
-            $message = (new WhatsAppTemplateService())->render($templateString, $templateData);
+            $message = (new WhatsAppTemplateService)->render($templateString, $templateData);
 
-            $provider = \App\Services\WhatsApp\WhatsAppProviderFactory::create([
+            $provider = WhatsAppProviderFactory::create([
                 'provider' => $config?->provider ?? 'demo',
-                'business_phone' => $config?->business_phone ?? '+256731794401',
+                // Was `?? '+256731794401'`. The same hardcoded number, this time as the
+                // sending identity, so the report would have appeared to come from a
+                // stranger's handset as well as going to one.
+                'business_phone' => $config?->business_phone,
                 'access_token' => $config?->access_token,
                 'phone_number_id' => $config?->phone_number_id,
             ]);
@@ -107,6 +128,12 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
                 'business_id' => $businessId,
             ]);
 
+            // Not `$result['success']`. The real provider reports a refusal by returning
+            // an `error` key and has no `success` key at all, so the old read raised an
+            // undefined-key warning on every genuine Meta failure and fell through to
+            // 'failed' — correct by accident, and one rename away from silently inverted.
+            $sent = ($result['error'] ?? null) === null;
+
             WhatsAppMessageLog::create([
                 'business_id' => $businessId,
                 'template_id' => $template?->id,
@@ -114,10 +141,10 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
                 'channel' => 'whatsapp',
                 'message_body' => $message,
                 'variables' => $templateData,
-                'status' => $result['success'] ? 'sent' : 'failed',
+                'status' => $sent ? 'sent' : 'failed',
                 'provider_response' => $result,
-                'sent_at' => $result['success'] ? now() : null,
-                'dedupe_key' => 'report:monthly:business-' . $businessId . ':' . Carbon::now()->subMonth()->format('Y-m'),
+                'sent_at' => $sent ? now() : null,
+                'dedupe_key' => 'report:monthly:business-'.$businessId.':'.Carbon::now()->subMonth()->format('Y-m'),
             ]);
 
             Log::info('Monthly business report generated', [
@@ -125,7 +152,7 @@ class GenerateMonthlyBusinessReportJob implements ShouldQueue
                 'total_sales' => $totalSales,
                 'total_purchases' => $totalPurchases,
                 'profit_loss' => $profitLoss,
-                'status' => $result['success'] ? 'sent' : 'failed',
+                'status' => $sent ? 'sent' : 'failed',
             ]);
         }
     }
