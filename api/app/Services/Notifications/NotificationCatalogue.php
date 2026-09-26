@@ -163,6 +163,20 @@ class NotificationCatalogue
     }
 
     /**
+     * Attachment builder names this type's email carries.
+     *
+     * Declared per entry rather than inferred from the type, for the same reason
+     * channels are: a notification that gains a PDF is then a config change, and one
+     * that loses it cannot keep building the file on every send.
+     *
+     * @return array<int, string>
+     */
+    public function attachmentsFor(string $type): array
+    {
+        return $this->get($type)['attachments'] ?? [];
+    }
+
+    /**
      * Build the deterministic dedupe key for one occurrence of a notification.
      *
      * The shapes are declared here rather than at each call site so that two
@@ -287,6 +301,36 @@ class NotificationCatalogue
                     $type,
                     $entry['meta']
                 ));
+            }
+
+            // Same reasoning as the meta checks above, inverted: an attachment on a
+            // notification with no email channel is dead config. It would be built on
+            // nothing, or — worse, once a WhatsApp-only type grows an email channel
+            // years from now — quietly start attaching to a notification nobody
+            // reviewed it for.
+            if (isset($entry['attachments'])) {
+                if (! in_array('email', $entry['channels'], true)) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Catalogue entry "%s" declares attachments but never sends email.',
+                        $type
+                    ));
+                }
+
+                if (! is_array($entry['attachments']) || $entry['attachments'] === []) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Catalogue entry "%s" has an empty attachments list. Omit the key instead.',
+                        $type
+                    ));
+                }
+
+                foreach ($entry['attachments'] as $name) {
+                    if (! is_string($name) || trim($name) === '') {
+                        throw new InvalidArgumentException(sprintf(
+                            'Catalogue entry "%s" has a non-string attachment name.',
+                            $type
+                        ));
+                    }
+                }
             }
 
             $this->validated[$type] = $entry;
