@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Jobs\ProcessWhatsAppNotificationJob;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class WhatsAppNotificationService
@@ -19,8 +20,8 @@ class WhatsAppNotificationService
         $dedupeKey = implode(':', [
             'notification',
             $type,
-            'business-' . $businessId,
-            $branchId ? 'branch-' . $branchId : 'branch-none',
+            'business-'.$businessId,
+            $branchId ? 'branch-'.$branchId : 'branch-none',
             $templateKey,
             md5(json_encode($templateData, JSON_THROW_ON_ERROR)),
         ]);
@@ -44,9 +45,33 @@ class WhatsAppNotificationService
     {
         $normalized = $this->buildPayload($payload);
 
+        // Every queue*() method funnels through here, so this is the one place that can
+        // guarantee a message is never dispatched without a recipient.
+        //
+        // The seven legacy listeners all resolved their recipient as
+        // `$business?->phone ?? '+256731794401'`, so any business without a phone on file
+        // had its subscription, payment, sale and purchase notifications delivered to a
+        // hardcoded personal number. Seven entry points, one defect, and one fix here
+        // rather than seven edits that would each be easy to miss.
+        //
+        // The new pipeline cannot reach this: `RecipientResolver` returns null rather than
+        // guessing a number and the channel rejects a delivery with no address. This
+        // fallback is a legacy-layer habit, and it is the reason the legacy layer has to go.
+        if (trim((string) $normalized['recipient_phone']) === '') {
+            Log::warning('WhatsApp notification not queued: no recipient address', [
+                'business_id' => $normalized['business_id'],
+                'template_key' => $normalized['template_key'],
+            ]);
+
+            // Returned rather than thrown. A listener that throws would abort whatever
+            // domain event it was handling, and a missing phone number is not a reason to
+            // fail a subscription or a sale.
+            return $normalized + ['queued' => false];
+        }
+
         ProcessWhatsAppNotificationJob::dispatch($normalized);
 
-        return $normalized;
+        return $normalized + ['queued' => true];
     }
 
     public function queueLowStockAlert(array $payload): array
