@@ -12,6 +12,7 @@ class StockMovement extends BaseModel
         'business_id',
         'business_branch_id',
         'product_id',
+        'movement_key',
         'type',
         'quantity',
         'reference_type',

@@ -243,16 +243,21 @@ class PosService
                     $product->decrement('quantity', $item['quantity']);
                     $product->update(['last_sold_at' => now()]);
 
-                    StockMovement::create([
-                        'business_id'       => $user->business_id,
-                        'business_branch_id' => $branchId,
-                        'product_id'        => $item['product_id'],
-                        'type'              => 'out',
-                        'quantity'          => $item['quantity'],
-                        'reference_type'    => Sale::class,
-                        'reference_id'      => $sale->id,
-                        'notes'             => 'POS sale',
-                    ]);
+                    StockMovement::updateOrCreate(
+                        [
+                            'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
+                        ],
+                        [
+                            'business_id'       => $user->business_id,
+                            'business_branch_id' => $branchId,
+                            'product_id'        => $item['product_id'],
+                            'type'              => 'out',
+                            'quantity'          => $item['quantity'],
+                            'reference_type'    => Sale::class,
+                            'reference_id'      => $sale->id,
+                            'notes'             => 'POS sale',
+                        ]
+                    );
 
                     if ($product->quantity <= $product->reorder_level) {
                         $this->notificationService->lowStockAlert(
@@ -298,6 +303,11 @@ class PosService
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
+    }
+
+    protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
+    {
+        return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
     }
 
     protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven): Receipt
