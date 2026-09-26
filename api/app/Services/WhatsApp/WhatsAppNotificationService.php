@@ -125,6 +125,19 @@ class WhatsAppNotificationService
         ]);
     }
 
+    /**
+     * Post-expiry chase notice. Legacy: the only production caller is
+     * ProcessSubscriptionLifecycleWhatsAppJob, which Stage 4 retires in favour of the
+     * catalogue's `subscription.expiring`.
+     *
+     * The count is `days_overdue`, not `days_remaining`, and that is the whole point of
+     * the rename. This method's key has no catalogue entry and no provisioned wording, so
+     * nothing renders it today — but the payload was still being handed a
+     * `days_remaining` value that was days *past* expiry, which is the one number a
+     * message like this gets wrong in the direction that reassures. A field name is
+     * documentation every reader trusts; it should not describe the opposite of the
+     * value it carries.
+     */
     public function queueSubscriptionReminderAlert(array $payload): array
     {
         return $this->queueBusinessNotification([
@@ -136,7 +149,7 @@ class WhatsAppNotificationService
             'template_data' => [
                 'business_name' => $payload['business_name'] ?? 'Your business',
                 'plan_name' => $payload['plan_name'] ?? 'Your plan',
-                'days_remaining' => (int) ($payload['days_remaining'] ?? 2),
+                'days_overdue' => (int) ($payload['days_overdue'] ?? 2),
             ],
         ]);
     }

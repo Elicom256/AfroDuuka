@@ -24,7 +24,12 @@ export const WhatsAppSettings = () => {
   const [testMessage, { isLoading: isTesting }] = useTestWhatsAppMessageMutation();
 
   const [form, setForm] = useState({
-    business_phone: '+256731794401',
+    // Empty, not a sample number. This used to be prefilled with a specific handset,
+    // which put a real person's phone number into the "Send Demo Message" button's
+    // default recipient: opening the page and clicking the button sent that stranger a
+    // message from this business. An empty field means the operator has to type a
+    // number they actually own.
+    business_phone: '',
     provider: 'demo',
     phone_number_id: 'demo_phone_number_id',
     access_token: 'demo_access_token',
@@ -38,11 +43,19 @@ export const WhatsAppSettings = () => {
       setForm((prev) => ({
         ...prev,
         ...data.data,
+        // A business with no config gets business_phone back as null. Coerced, because
+        // `value={null}` silently turns the input uncontrolled and React warns.
+        business_phone: data.data.business_phone ?? '',
       }));
     }
   }, [data]);
 
   const handleSave = async () => {
+    if (!form.business_phone.trim()) {
+      toast.error('Enter the business WhatsApp number, or clear the field and save nothing');
+      return;
+    }
+
     try {
       await saveConfig({
         ...form,
@@ -55,6 +68,13 @@ export const WhatsAppSettings = () => {
   };
 
   const handleTest = async () => {
+    // The test send goes to the number in the field above, so an empty field has no
+    // destination. The server rejects this too, but saying so here beats a 422.
+    if (!form.business_phone.trim()) {
+      toast.error('Enter a number to send the test message to');
+      return;
+    }
+
     try {
       const result = await testMessage({
         recipient: form.business_phone,
@@ -103,7 +123,11 @@ export const WhatsAppSettings = () => {
             <Label>Business WhatsApp Number</Label>
             <div className='flex items-center gap-2'>
               <Phone className='h-4 w-4 text-muted-foreground' />
-              <Input value={form.business_phone} onChange={(e) => setForm({ ...form, business_phone: e.target.value })} />
+              <Input
+                value={form.business_phone}
+                placeholder='+256700000000'
+                onChange={(e) => setForm({ ...form, business_phone: e.target.value })}
+              />
             </div>
           </div>
 
@@ -142,7 +166,7 @@ export const WhatsAppSettings = () => {
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
 
-          <Button variant='outline' onClick={handleTest} disabled={isTesting}>
+          <Button variant='outline' onClick={handleTest} disabled={isTesting || !form.business_phone.trim()}>
             <Send className='mr-2 h-4 w-4' />
             {isTesting ? 'Sending...' : 'Send Demo Message'}
           </Button>

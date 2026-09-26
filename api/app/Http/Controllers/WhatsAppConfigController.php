@@ -68,8 +68,13 @@ class WhatsAppConfigController extends Controller
 
         return response()->json([
             'message' => 'WhatsApp config fetched',
+
+            // A business with no config row gets the truth: nothing is configured. It
+            // used to get a real-looking phone number here, which the settings form
+            // displayed as though the business had chosen it — so saving the page
+            // unchanged persisted a sending identity belonging to a specific handset.
             'data' => $config ? $this->present($config) : [
-                'business_phone' => '+256731794401',
+                'business_phone' => null,
                 'provider' => 'demo',
                 'is_active' => true,
                 'status' => 'demo_mode',

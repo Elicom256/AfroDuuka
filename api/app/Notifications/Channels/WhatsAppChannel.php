@@ -7,6 +7,7 @@ use App\Contracts\Notifications\NotificationChannel;
 use App\Models\NotificationDelivery;
 use App\Models\WhatsAppConfig;
 use App\Services\WhatsApp\Contracts\WhatsAppProviderInterface;
+use App\Services\WhatsApp\ProviderResponse;
 use App\Services\WhatsApp\WhatsAppProviderFactory;
 use App\Services\WhatsApp\WhatsAppService;
 
@@ -78,51 +79,9 @@ class WhatsAppChannel implements NotificationChannel
 
         $delivery->forceFill(['provider' => $provider->getName()])->save();
 
-        // The provider layer returns a plain array; interpreting it is kept here so the
-        // demo and real providers can differ in shape without the job caring.
-        return $this->interpret($response);
-    }
-
-    /**
-     * @param  array<string, mixed>  $response
-     */
-    private function interpret(array $response): ChannelResult
-    {
-        $error = $response['error'] ?? null;
-
-        if ($error !== null) {
-            $code = (string) ($response['code'] ?? 'provider_error');
-            $message = is_array($error) ? json_encode($error) : (string) $error;
-
-            // Codes where the request may or may not have landed. A timeout tells us
-            // nothing about whether it was delivered, so it is ambiguous rather than a
-            // failure: retrying it is how a customer gets it twice. `unreadable_response`
-            // belongs here for the same reason — Meta answered 2xx, so it probably took
-            // the message, but the reply could not be parsed and there is no id to
-            // reconcile on. Calling it a failure would invite a resend of a message that
-            // probably went out.
-            if (in_array($code, ['timeout', 'curl_timeout', 'connection_error', 'unreadable_response'], true)) {
-                // The provider's own code is carried through, so the row records which
-                // kind of doubt this was rather than a flat "ambiguous" for all of them.
-                return ChannelResult::ambiguous($message, $response, $code);
-            }
-
-            return ChannelResult::rejected($code, $message, $response);
-        }
-
-        // Three shapes, because the providers disagree and the disagreement was silent.
-        // Meta returns `messages[0].id`; the demo provider returns `provider_message_id`.
-        // Reading only the first two accepted every send with a null message id, so the
-        // delivery was marked sent with nothing to correlate against — and the status
-        // webhook, whose whole job is to match a delivery to Meta's message id, would
-        // have matched nothing at all. No test noticed, because nothing asserted the id
-        // was stored.
-        $messageId = $response['message_id']
-            ?? $response['messages'][0]['id']
-            ?? $response['provider_message_id']
-            ?? null;
-
-        return ChannelResult::accepted($messageId === null ? null : (string) $messageId, $response);
+        // The provider layer returns a plain array and the implementations disagree
+        // about its shape, so reading it is ProviderResponse's one job.
+        return ProviderResponse::interpret($response);
     }
 
     /**
@@ -130,9 +89,9 @@ class WhatsAppChannel implements NotificationChannel
      * demo sender, which is what that service has always done.
      *
      * Treating a missing config as "cannot send" was wrong: it made "never configured
-     * WhatsApp" indistinguishable from "opted out", and since the recipient address
-     * falls back to the business phone, the send was legitimate in every case except a
-     * deliberately deactivated config.
+     * WhatsApp" indistinguishable from "opted out", and the two need different answers
+     * from this method. The first is a business that has not got round to it, and
+     * quietly doing nothing for it is the right answer.
      */
     private function config(NotificationDelivery $delivery): ?WhatsAppConfig
     {
