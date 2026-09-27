@@ -16,10 +16,18 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class CheckNotificationsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
 
     private ?User $user;
 
@@ -32,7 +40,7 @@ class CheckNotificationsJob implements ShouldQueue
     {
         Log::info('CheckNotificationsJob started');
 
-        $businesses = $this->usersToCheck();
+        $businesses = $this->businessesToCheck();
 
         foreach ($businesses as $business) {
             $recipients = $this->recipientsFor($business);
@@ -45,6 +53,13 @@ class CheckNotificationsJob implements ShouldQueue
         }
 
         Log::info('CheckNotificationsJob completed');
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('CheckNotificationsJob failed permanently', [
+            'error' => $exception->getMessage(),
+        ]);
     }
 
     /**

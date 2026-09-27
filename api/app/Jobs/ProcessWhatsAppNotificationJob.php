@@ -20,6 +20,13 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
+
     public function __construct(
         public array $payload
     ) {

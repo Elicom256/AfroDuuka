@@ -11,10 +11,18 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
 
     public function handle(): void
     {
@@ -40,6 +48,13 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
         }
 
         Log::info('Subscription lifecycle WhatsApp job completed');
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('Subscription lifecycle WhatsApp job failed permanently', [
+            'error' => $exception->getMessage(),
+        ]);
     }
 
     private function handleExpiryAlert(Subscription $subscription, $business, WhatsAppNotificationService $service): void

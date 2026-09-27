@@ -28,7 +28,7 @@ class CashFlowService
     {
       $user = Auth::user();
         CashFlow::create([
-            'transaction_code' => $validated["transaction_code"] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0'.STR_PAD_LEFT),
+            'transaction_code' => $validated["transaction_code"] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
             'type' => 'sale',
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
@@ -38,6 +38,7 @@ class CashFlowService
             'sale_id' => $sale->id,
             'description' => $sale->note ?? "Walk-in sale",
             'category' => 'product_sales',
+            'payment_method' => collect($validated['payments'] ?? [])->pluck('method')->unique()->implode(',') ?: 'cash',
             'payment_status_id' => $validated["payment_status_id"],
             'reference' => $validated['reference'] ?? null,
             'status' => 'completed',
@@ -51,7 +52,7 @@ class CashFlowService
     {
       $user = Auth::user();
         CashFlow::create([
-            'transaction_code' => $validated["transaction_code"] ?? 'CF-PURCH-'.str_pad($purchase->id, 6, '0'.STR_PAD_LEFT),
+            'transaction_code' => $validated["transaction_code"] ?? 'CF-PURCH-'.str_pad($purchase->id, 6, '0', STR_PAD_LEFT),
             'type' => 'purchase',
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
@@ -149,6 +150,7 @@ class CashFlowService
             'sale_return_id' => $saleReturn->id,
             'description' => $saleReturn->reason ?? 'Sale return refund',
             'category' => 'product_sales',
+            'payment_method' => $validated['payment_method'] ?? 'cash',
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $user->id,
@@ -170,6 +172,7 @@ class CashFlowService
             'purchase_return_id' => $purchaseReturn->id,
             'description' => $purchaseReturn->reason ?? 'Purchase return from supplier',
             'category' => 'product_purchases',
+            'payment_method' => $validated['payment_method'] ?? 'cash',
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $user->id,
@@ -192,6 +195,7 @@ class CashFlowService
             'expense_id' => $expense->id,
             'description' => $expense->description ?? $expense->category?->name ?? 'General expense',
             'category' => 'expenses',
+            'payment_method' => 'cash',
             'reference' => null,
             'status' => 'completed',
             'transaction_date' => $expense->payment_date->toDateString(),

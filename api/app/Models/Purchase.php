@@ -10,10 +10,11 @@ class Purchase extends BaseModel
 {
     use LogsActivity;
 
-    protected $fillable = [ 'business_branch_id', 'supplier_id', 'total_amount', 'status', 'note'];
+    protected $fillable = [ 'business_branch_id', 'supplier_id', 'total_amount', 'status', 'received_at', 'received_by', 'note'];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'received_at' => 'datetime',
     ];
 
     public function supplier(): BelongsTo
