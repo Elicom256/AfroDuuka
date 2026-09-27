@@ -59,16 +59,21 @@ class StockTransferService
                 $sourceProduct->decrement('quantity', $item->quantity_expected);
                 $destProduct->increment('quantity', $item->quantity_expected);
 
-                StockMovement::create([
-                    'business_id' => $transfer->business_id,
-                    'business_branch_id' => $transfer->from_branch_id,
-                    'product_id' => $item->product_id,
-                    'type' => 'out',
-                    'quantity' => $item->quantity_expected,
-                    'reference_type' => StockTransfer::class,
-                    'reference_id' => $transfer->id,
-                    'notes' => "Stock transfer to branch #{$transfer->to_branch_id}",
-                ]);
+                StockMovement::updateOrCreate(
+                    [
+                        'movement_key' => $this->stockMovementKey('out', (int) $item->product_id, (int) $transfer->id, StockTransfer::class, (int) $item->quantity_expected),
+                    ],
+                    [
+                        'business_id' => $transfer->business_id,
+                        'business_branch_id' => $transfer->from_branch_id,
+                        'product_id' => $item->product_id,
+                        'type' => 'out',
+                        'quantity' => $item->quantity_expected,
+                        'reference_type' => StockTransfer::class,
+                        'reference_id' => $transfer->id,
+                        'notes' => "Stock transfer to branch #{$transfer->to_branch_id}",
+                    ]
+                );
             }
 
             $transfer->update([
@@ -106,16 +111,21 @@ class StockTransferService
                     'status' => $receivedQty === $item->quantity_expected ? 'received' : 'damaged',
                 ]);
 
-                StockMovement::create([
-                    'business_id' => $transfer->business_id,
-                    'business_branch_id' => $transfer->to_branch_id,
-                    'product_id' => $destProduct->id,
-                    'type' => 'in',
-                    'quantity' => $receivedQty,
-                    'reference_type' => StockTransfer::class,
-                    'reference_id' => $transfer->id,
-                    'notes' => "Stock transfer from branch #{$transfer->from_branch_id}",
-                ]);
+                StockMovement::updateOrCreate(
+                    [
+                        'movement_key' => $this->stockMovementKey('in', (int) $destProduct->id, (int) $transfer->id, StockTransfer::class, (int) $receivedQty),
+                    ],
+                    [
+                        'business_id' => $transfer->business_id,
+                        'business_branch_id' => $transfer->to_branch_id,
+                        'product_id' => $destProduct->id,
+                        'type' => 'in',
+                        'quantity' => $receivedQty,
+                        'reference_type' => StockTransfer::class,
+                        'reference_id' => $transfer->id,
+                        'notes' => "Stock transfer from branch #{$transfer->from_branch_id}",
+                    ]
+                );
             }
 
             $transfer->update([
@@ -131,6 +141,11 @@ class StockTransferService
 
             return $transfer->fresh()->load('items');
         });
+    }
+
+    protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
+    {
+        return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
     }
 
     public function cancel(StockTransfer $transfer): StockTransfer

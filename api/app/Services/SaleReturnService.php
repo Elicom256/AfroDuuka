@@ -10,20 +10,24 @@ use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SaleReturnService
 {
     protected CashFlowService $cashFlowService;
     protected InventoryService $inventoryService;
+    protected CustomerCreditService $customerCreditService;
 
-    public function __construct(CashFlowService $cashFlowService, InventoryService $inventoryService)
+    public function __construct(CashFlowService $cashFlowService, InventoryService $inventoryService, CustomerCreditService $customerCreditService)
     {
         $this->cashFlowService = $cashFlowService;
         $this->inventoryService = $inventoryService;
+        $this->customerCreditService = $customerCreditService;
     }
 
     public function handleCreateSaleReturn(array $validated, ?string $business_branch_id = null)
     {
+        return DB::transaction(function () use ($validated, $business_branch_id) {
         $totalRefund = 0;
         $returnItems = [];
 
@@ -37,7 +41,7 @@ class SaleReturnService
         $branchId = $business_branch_id ?: $sale->business_branch_id;
 
         foreach ($validated['items'] as $item) {
-            $saleItem = SaleItem::whereHas('sale')->with('product')->find($item['sale_item_id']);
+            $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
             if (!$saleItem) {
                 throw new Exception("Sale item not found.", 404);
             }
@@ -99,11 +103,19 @@ class SaleReturnService
         }
 
         $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
+        $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
 
-        Receipt::where('sale_id', $sale->id)
-            ->where('status', 'completed')
-            ->update(['status' => 'refunded']);
+        $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
+            ->sum('quantity');
+        $soldQuantity = $sale->saleItems->sum('quantity');
+
+        if ($returnedQuantity >= $soldQuantity) {
+            Receipt::where('sale_id', $sale->id)
+                ->where('status', 'completed')
+                ->update(['status' => 'refunded']);
+        }
 
         return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
+        });
     }
 }

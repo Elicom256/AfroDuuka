@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Settles deliveries that SES never confirmed, and reports on suppressions.
@@ -31,6 +32,13 @@ class ProcessSesSuppressionsJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
 
     public function handle(): void
     {
@@ -57,6 +65,13 @@ class ProcessSesSuppressionsJob implements ShouldQueue
         }
 
         $this->reportSuppressions();
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('ProcessSesSuppressionsJob failed permanently', [
+            'error' => $exception->getMessage(),
+        ]);
     }
 
     /**

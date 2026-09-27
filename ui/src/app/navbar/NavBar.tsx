@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import logo from '../../../public/logo-1.png';
+import logo from '../../../public/afroduuka.png.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
 const navLinks = [

@@ -37,6 +37,7 @@ class CashFlow extends BaseModel
         'direction',
         'running_balance',
         'category',
+        'payment_method',
         'payment_method_id',
         'reference',
         'status',

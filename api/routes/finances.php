@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CashFlowController;
+use App\Http\Controllers\CashDrawerController;
+use App\Http\Controllers\CustomerCreditController;
 use App\Http\Controllers\FinanceController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +13,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Financial Transactions
     Route::get('transactions', [FinanceController::class, 'transactions']);
     Route::get('transactions/{id}', [FinanceController::class, 'transaction']);
+
+    Route::post('cash-drawers/open', [CashDrawerController::class, 'open']);
+    Route::post('cash-drawers/{session}/close', [CashDrawerController::class, 'close']);
+    Route::get('cash-drawers/{session}', [CashDrawerController::class, 'show']);
+    Route::get('customers/{customer}/credit-balance', [CustomerCreditController::class, 'balance']);
+    Route::post('customers/{customer}/credit-payments', [CustomerCreditController::class, 'payment']);
 
     // Manual Adjustments (admin only)
     Route::post('adjustments', [FinanceController::class, 'adjustment']);

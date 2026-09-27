@@ -1,17 +1,35 @@
-# -----------------------------
-# Build stage
-# -----------------------------
-FROM node:22-alpine AS Frontend-builder
+# ------------------------------------------------------------------------------
+# Development image
+# ------------------------------------------------------------------------------
+# Dependencies are installed at BUILD time with `npm ci`, so starting the stack
+# no longer runs an install. docker-compose.dev.yml pairs the `./ui:/app` bind
+# mount with a named volume on /app/node_modules; Docker seeds that volume from
+# the tree installed here, so the host checkout never shadows it and `npm ci`
+# never has to be repeated on boot.
+#
+# After changing dependencies: `docker compose -f docker-compose.dev.yml build
+# frontend` then recreate the volume (`docker compose -f docker-compose.dev.yml
+# up -d --force-recreate ui-node-modules`) to pick the new tree up.
+# ------------------------------------------------------------------------------
+FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Lockfiles only: this layer stays cached until a dependency actually changes.
+# `npm ci` requires package-lock.json and installs exactly what it pins, making
+# the local and CI trees identical and the install reproducible.
+COPY package.json package-lock.json ./
+
+# --no-audit/--no-fund skip the network round trips npm makes at the end of an
+# install. A `--mount=type=cache` for /root/.npm is deliberately not used here:
+# with npm 10.9.x it intermittently aborts with "Exit handler never called!".
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 
-# RUN npm run build
-
 EXPOSE 5173
 
+# The dev server compiles on demand, so no build output is produced here. Vite
+# (not just the built bundle) and the ESLint/TypeScript toolchain are needed at
+# runtime, so devDependencies are kept in the image.
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

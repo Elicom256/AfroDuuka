@@ -24,15 +24,18 @@ class PosService
     protected CashFlowService $cashFlowService;
     protected NotificationService $notificationService;
     protected TaxService $taxService;
+    protected CustomerCreditService $customerCreditService;
 
     public function __construct(
         CashFlowService $cashFlowService,
         NotificationService $notificationService,
-        TaxService $taxService
+        TaxService $taxService,
+        CustomerCreditService $customerCreditService
     ) {
         $this->cashFlowService = $cashFlowService;
         $this->notificationService = $notificationService;
         $this->taxService = $taxService;
+        $this->customerCreditService = $customerCreditService;
     }
 
     public function searchProducts(string $query, int $limit = 20): array
@@ -96,6 +99,8 @@ class PosService
     public function validateCart(array $items): array
     {
         $errors = [];
+        $requestedByProduct = [];
+        $userBranchId = Auth::user()?->business_branch_id;
 
         foreach ($items as $index => $item) {
             $product = Product::where('id', $item['product_id'])
@@ -106,14 +111,24 @@ class PosService
                 continue;
             }
 
+            if ($userBranchId !== null && (int) $product->business_branch_id !== (int) $userBranchId) {
+                $errors[] = "Item #" . ($index + 1) . ": Product not found in this branch.";
+                continue;
+            }
+
             if ($product->status !== 'active') {
                 $errors[] = "{$product->name}: Product is not available for sale.";
                 continue;
             }
 
-            if ($product->quantity < $item['quantity']) {
-                $errors[] = "{$product->name}: Only {$product->quantity} available, but {$item['quantity']} requested.";
-                continue;
+            $requestedByProduct[$product->id] = ($requestedByProduct[$product->id] ?? 0) + (int) $item['quantity'];
+        }
+
+        foreach ($requestedByProduct as $productId => $requestedQuantity) {
+            $product = Product::where('id', $productId)->first();
+
+            if ($product && $product->quantity < $requestedQuantity) {
+                $errors[] = "{$product->name}: Only {$product->quantity} available, but {$requestedQuantity} requested.";
             }
         }
 
@@ -138,12 +153,35 @@ class PosService
             throw new Exception(implode('; ', $cartErrors), 422);
         }
 
+        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
+            && empty($validated['customer_id'])) {
+            throw new Exception('A customer is required when using credit payment.', 422);
+        }
+
         return DB::transaction(function () use ($validated, $user, $branchId) {
             $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
+                ->where('business_branch_id', $branchId)
+                ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
+
+            if (count($products) !== count($productIds)) {
+                throw new Exception('One or more products are not available in this branch.', 422);
+            }
+
+            $requestedByProduct = [];
+            foreach ($validated['items'] as $item) {
+                $requestedByProduct[$item['product_id']] = ($requestedByProduct[$item['product_id']] ?? 0) + (int) $item['quantity'];
+            }
+
+            foreach ($requestedByProduct as $productId => $requestedQuantity) {
+                $product = $products->get($productId);
+                if ($product && $product->quantity < $requestedQuantity) {
+                    throw new Exception("{$product->name}: Only {$product->quantity} available, but {$requestedQuantity} requested.", 422);
+                }
+            }
 
             $totalAmount = 0;
             $totalDiscount = 0;
@@ -157,8 +195,10 @@ class PosService
                     ->firstOrFail();
                 $sale->update(['status' => 'completed', 'note' => $validated['note'] ?? $sale->note]);
 
-                $totalAmount = collect($validated['items'] ?? [])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
-                $totalDiscount = collect($validated['items'] ?? [])->sum(fn($i) => ($i['discount'] ?? 0) * $i['quantity']);
+                $totalAmount = (float) $sale->total_amount;
+                $totalDiscount = (float) SaleItem::where('sale_id', $sale->id)
+                    ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
+                    ->value('total');
             } else {
                 foreach ($validated['items'] as $item) {
                     $product = $products->get($item['product_id']);
@@ -213,16 +253,21 @@ class PosService
                     $product->decrement('quantity', $item['quantity']);
                     $product->update(['last_sold_at' => now()]);
 
-                    StockMovement::create([
-                        'business_id'       => $user->business_id,
-                        'business_branch_id' => $branchId,
-                        'product_id'        => $item['product_id'],
-                        'type'              => 'out',
-                        'quantity'          => $item['quantity'],
-                        'reference_type'    => Sale::class,
-                        'reference_id'      => $sale->id,
-                        'notes'             => 'POS sale',
-                    ]);
+                    StockMovement::updateOrCreate(
+                        [
+                            'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
+                        ],
+                        [
+                            'business_id'       => $user->business_id,
+                            'business_branch_id' => $branchId,
+                            'product_id'        => $item['product_id'],
+                            'type'              => 'out',
+                            'quantity'          => $item['quantity'],
+                            'reference_type'    => Sale::class,
+                            'reference_id'      => $sale->id,
+                            'notes'             => 'POS sale',
+                        ]
+                    );
 
                     if ($product->quantity <= $product->reorder_level) {
                         $this->notificationService->lowStockAlert(
@@ -237,7 +282,8 @@ class PosService
             }
 
             $totalPaid = 0;
- foreach ($validated['payments'] as $payment) {
+            $creditAmount = 0;
+            foreach ($validated['payments'] as $payment) {
                 SalePayment::create([
                     'sale_id'       => $sale->id,
                     'method'        => $payment['method'],
@@ -245,10 +291,17 @@ class PosService
                     'paymentStatus' => 'paid',
                 ]);
                 $totalPaid += $payment['amount'];
+                if ($payment['method'] === 'credit') {
+                    $creditAmount += $payment['amount'];
+                }
             }
 
-            $netTotal = $totalAmount - $totalDiscount;
-            $changeGiven = max(0, $totalPaid - $netTotal);
+            $netTotal = $totalAmount;
+            $changeGiven = max(0, $totalPaid - $totalAmount);
+
+            if ($creditAmount > 0) {
+                $this->customerCreditService->recordCharge($user, $sale, $creditAmount);
+            }
 
             $customer = isset($validated['customer_id'])
                 ? Customer::with('user')->find($validated['customer_id'])?->user
@@ -270,12 +323,19 @@ class PosService
         });
     }
 
+    protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
+    {
+        return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
+    }
+
     protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven): Receipt
     {
         $user = Auth::user();
-        $discountTotal = SaleItem::where('sale_id', $sale->id)->sum('discount');
-        $subtotal = (float) $sale->subtotal ?? $sale->total_amount;
-        $tax = (float) $sale->tax_amount ?? 0;
+        $discountTotal = (float) SaleItem::where('sale_id', $sale->id)
+            ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
+            ->value('total');
+        $subtotal = (float) ($sale->subtotal ?? $sale->total_amount);
+        $tax = (float) ($sale->tax_amount ?? 0);
         $total = (float) $sale->total_amount;
         $paymentMethod = collect($validated['payments'])->pluck('method')->implode(', ');
 

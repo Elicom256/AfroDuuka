@@ -35,6 +35,12 @@ class FinanceController extends Controller
         return $branchId;
     }
 
+    private function authorizeSensitiveFinance(): void
+    {
+        $role = strtolower((string) Auth::user()?->role?->name);
+        abort_unless(in_array($role, ['admin', 'manager', 'superadmin', 'siteadmin'], true), 403, 'This financial action requires an authorized role.');
+    }
+
     public function dashboard()
     {
         try {
@@ -57,6 +63,7 @@ class FinanceController extends Controller
     public function transactions(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $query = CashFlow::with(['branch', 'createdBy']);
 
             if ($request->filled('type')) {
@@ -101,6 +108,7 @@ class FinanceController extends Controller
     public function transaction($id)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $cashFlow = CashFlow::with(['branch', 'createdBy', 'customer', 'supplier', 'sale', 'purchase'])
                 ->findOrFail($id);
 
@@ -119,6 +127,7 @@ class FinanceController extends Controller
     public function adjustment(StoreCashFlowRequest $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $validated = $request->validated();
             $validated['type'] = 'adjustment';
 
@@ -139,6 +148,7 @@ class FinanceController extends Controller
     public function revenueReport(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->revenueReport(
                 $branchId,
@@ -162,6 +172,7 @@ class FinanceController extends Controller
     public function expenseReport(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->expenseReport(
                 $branchId,
@@ -184,6 +195,7 @@ class FinanceController extends Controller
     public function incomeSummary(Request $request)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($request->query('branch_id'), Auth::user());
             $data = $this->financeService->incomeSummary(
                 $branchId,
@@ -205,6 +217,7 @@ class FinanceController extends Controller
     public function branchStatement($branchId)
     {
         try {
+            $this->authorizeSensitiveFinance();
             $branchId = $this->resolveBranchId($branchId, Auth::user());
             $data = $this->financeService->branchStatement($branchId);
 
@@ -223,6 +236,7 @@ class FinanceController extends Controller
     public function businessStatement()
     {
         try {
+            $this->authorizeSensitiveFinance();
             $data = $this->financeService->businessStatement();
 
             return response()->json([

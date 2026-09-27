@@ -5,17 +5,23 @@
 services:
   # =========================== Front end service ======================
   frontend:
-    image: node:22-alpine
+    build:
+      context: ./ui
+      dockerfile: Dockerfile.dev
+    image: inventory-frontend-dev
     working_dir: /app
     env_file:
       - ./ui/.env
     volumes:
       - ./ui:/app
-      - /app/node_modules # Keeps container modules isolated from local machine overrides
+      # The bind mount above shadows /app entirely, so dependencies live in a
+      # named volume instead. Docker seeds it from the node_modules installed by
+      # `npm ci` in Dockerfile.dev on first use, which is why no install runs at
+      # container start. Recreate it after changing package.json.
+      - ui-node-modules:/app/node_modules
     # ports:
     #   - '5173:5173'
-    # Populate the isolated volume before starting Vite.
-    command: sh -c 'npm install && npm run dev -- --host 0.0.0.0'
+    # The dev command comes from the image (npm run dev -- --host 0.0.0.0).
     depends_on:
       backend:
         condition: service_healthy
@@ -37,6 +43,8 @@ services:
       - ./api/.env
     volumes:
       - ./api:/app
+      # Mount the entrypoint so edits apply without rebuilding the image.
+      - ./api/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     depends_on:
       pgsql:
         condition: service_healthy
@@ -56,10 +64,13 @@ services:
       - ./api/.env
     volumes:
       - ./api:/app
+      # Mount the entrypoint so edits apply without rebuilding the image.
+      - ./api/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     command: php artisan queue:work --tries=3 --sleep=3 --max-time=3600
+    environment:
+      # The backend service owns migrations; running them here too would race.
+      SKIP_MIGRATIONS: "true"
     depends_on:
-      backend:
-        condition: service_healthy
       pgsql:
         condition: service_healthy
       redis:
@@ -67,6 +78,11 @@ services:
     restart: unless-stopped
     networks:
       - app
+    # The image bakes in a HEALTHCHECK that probes 127.0.0.1:8000/up, but
+    # queue:work never binds :8000. Disable it so the container is not
+    # permanently marked unhealthy.
+    healthcheck:
+      disable: true
 
   #  ---------------------------------------------------------------
   #  Postgres service
@@ -124,6 +140,8 @@ services:
 volumes:
   pgsql-data:
   redis-data:
+  # Frontend dependencies, installed by `npm ci` in ui/Dockerfile.dev.
+  ui-node-modules:
 
 networks:
   app:
