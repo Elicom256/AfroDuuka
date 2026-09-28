@@ -2,6 +2,28 @@
 
 ## Milestone
 
+## Database Backups
+
+Create a PostgreSQL custom-format backup:
+
+```bash
+php artisan duukaflow:database:backup
+```
+
+Write to a specific path:
+
+```bash
+php artisan duukaflow:database:backup storage/app/backups/release.dump
+```
+
+Restore is destructive and requires an explicit confirmation flag:
+
+```bash
+php artisan duukaflow:database:backup --restore=storage/app/backups/release.dump --force
+```
+
+Run a restore drill against a disposable database before using it in production.
+
 ## To Add
 
 - damaged/lost stock logs
@@ -70,4 +92,5 @@ continue selling
 sync later
 
 ## checking installed extemsions in FrankenPHP image
+
 docker run --rm dunglas/frankenphp:1.2.0-php8.3-alpine php -m

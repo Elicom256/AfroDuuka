@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -10,7 +11,8 @@ use App\Traits\LogsActivity;
 
 class Supplier extends BaseModel
 {
-    use SoftDeletes, LogsActivity;
+    /** @use HasFactory<\Database\Factories\SupplierFactory> */
+    use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'user_id', 
