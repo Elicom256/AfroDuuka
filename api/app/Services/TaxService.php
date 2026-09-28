@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\TaxRate;
+use App\Support\Money;
 
 class TaxService
 {
@@ -33,10 +34,9 @@ class TaxService
     /**
      * Calculate per-line transaction tax for a given product line.
      *
-     * The unit price mirrors what the POS client sends (typically the product's
-     * selling price). When the product price is tax-inclusive, the tax is
-     * derived from the portion embedded in the selling price; otherwise tax is
-     * added on top of the discounted line amount.
+     * All arithmetic is performed in integer cents to eliminate floating-point
+     * drift. Tax is rounded per sale line (half-up); sale-level tax totals are
+     * the sum of the rounded line taxes.
      *
      * @return array{
      *     rate: float|null,
@@ -53,35 +53,38 @@ class TaxService
         float $discountPerUnit = 0
     ): array {
         $rate = $this->effectiveRateForProduct($product);
-        $discountedAmount = round(($quantity * $unitPrice) - ($discountPerUnit * $quantity), 2);
+
+        $unitPriceCents = Money::toCents($unitPrice);
+        $discountPerUnitCents = Money::toCents($discountPerUnit);
+        $discountedCents = Money::mul($unitPriceCents - $discountPerUnitCents, $quantity);
 
         if (!$rate) {
             return [
                 'rate'              => null,
                 'is_tax_inclusive'  => (bool) $product->is_tax_inclusive,
-                'discounted_amount' => $discountedAmount,
-                'taxable_amount'    => $discountedAmount,
-                'tax_amount'        => 0,
+                'discounted_amount' => Money::fromCents($discountedCents),
+                'taxable_amount'    => Money::fromCents($discountedCents),
+                'tax_amount'        => 0.0,
             ];
         }
 
-        $rateValue = (float) $rate->rate;
         $isTaxInclusive = (bool) $product->is_tax_inclusive;
+        $rateCentsPerHundred = (int) round(((float) $rate->rate) * 10000);
 
         if ($isTaxInclusive) {
-            $taxableAmount = round($discountedAmount / (1 + $rateValue), 2);
-            $taxAmount = round($discountedAmount - $taxableAmount, 2);
+            $taxableCents = Money::roundHalfUp($discountedCents * 10000, 10000 + $rateCentsPerHundred);
+            $taxCents = $discountedCents - $taxableCents;
         } else {
-            $taxableAmount = $discountedAmount;
-            $taxAmount = round($discountedAmount * $rateValue, 2);
+            $taxableCents = $discountedCents;
+            $taxCents = Money::roundHalfUp($discountedCents * $rateCentsPerHundred, 10000);
         }
 
         return [
-            'rate'              => $rateValue,
+            'rate'              => (float) $rate->rate,
             'is_tax_inclusive'  => $isTaxInclusive,
-            'discounted_amount' => $discountedAmount,
-            'taxable_amount'    => $taxableAmount,
-            'tax_amount'        => $taxAmount,
+            'discounted_amount' => Money::fromCents($discountedCents),
+            'taxable_amount'    => Money::fromCents($taxableCents),
+            'tax_amount'        => Money::fromCents($taxCents),
         ];
     }
 }

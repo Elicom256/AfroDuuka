@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BusinessCreditController;
+use App\Http\Controllers\BusinessDebitController;
 use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CashDrawerController;
 use App\Http\Controllers\CustomerCreditController;
@@ -19,6 +21,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cash-drawers/{session}', [CashDrawerController::class, 'show']);
     Route::get('customers/{customer}/credit-balance', [CustomerCreditController::class, 'balance']);
     Route::post('customers/{customer}/credit-payments', [CustomerCreditController::class, 'payment']);
+
+    Route::get('business-debits/overdue', [BusinessDebitController::class, 'overdue']);
+    Route::post('business-debits/{businessDebit}/pay', [BusinessDebitController::class, 'pay']);
+    Route::resource('business-debits', BusinessDebitController::class)->except(['create', 'edit']);
+
+    Route::get('business-credits/overdue', [BusinessCreditController::class, 'overdue']);
+    Route::resource('business-credits', BusinessCreditController::class)->except(['create', 'edit']);
 
     // Manual Adjustments (admin only)
     Route::post('adjustments', [FinanceController::class, 'adjustment']);

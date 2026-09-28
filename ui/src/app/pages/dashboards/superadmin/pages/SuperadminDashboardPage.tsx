@@ -13,9 +13,12 @@ const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-600 border-green-500/20',
   deactivated: 'bg-red-500/10 text-red-600 border-red-500/20',
   banned: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  completed: 'bg-green-500/10 text-green-600 border-green-500/20',
+  failed: 'bg-red-500/10 text-red-600 border-red-500/20',
 };
 
-export const SuperAdminDashboardPage = () => {
+export const SuperadminDashboardPage = () => {
   const { data: subsData, isLoading: subsLoading } = useGetSubscriptionsQuery();
   const { data: paymentsData, isLoading: paymentsLoading } = useGetSubscriptionPaymentsQuery();
   const { data: plansData, isLoading: plansLoading } = useGetAdminPlansQuery();
@@ -29,13 +32,20 @@ export const SuperAdminDashboardPage = () => {
   const activeBusinesses = businesses.filter((b: any) => b.status === 'active');
   const activeSubscriptions = subscriptions.filter((s: any) => s.status === 'active');
   const pendingPayments = payments.filter((p: any) => p.payment_status === 'pending');
-  const totalRevenue = payments
-    .filter((p: any) => p.payment_status === 'completed')
-    .reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0);
+  const completedRevenue = payments
+    .filter((payment: any) => payment.payment_status === 'completed')
+    .reduce((totals: Record<string, number>, payment: any) => {
+      const currency = payment.subscription?.plan?.currency ?? 'UGX';
+      totals[currency] = (totals[currency] ?? 0) + Number(payment.amount_paid);
+      return totals;
+    }, {});
+  const revenueSummary = Object.entries(completedRevenue)
+    .map(([currency, amount]) => `${currency} ${amount.toLocaleString()}`)
+    .join(' · ');
 
-  const recentPayments = [...payments].sort(
-    (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  ).slice(0, 5);
+  const recentPayments = [...payments]
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
 
   if (subsLoading || paymentsLoading || plansLoading || businessesLoading) {
     return <PageLoadingState />;
@@ -59,12 +69,8 @@ export const SuperAdminDashboardPage = () => {
               <LayoutDashboard className='h-4 w-4' />
               Dashboard
             </div>
-            <h1 className='text-2xl font-bold tracking-tight mt-1'>
-              System Overview
-            </h1>
-            <p className='text-sm text-muted-foreground mt-0.5'>
-              Manage all businesses, subscriptions, and plans.
-            </p>
+            <h1 className='text-2xl font-bold tracking-tight mt-1'>System Overview</h1>
+            <p className='text-sm text-muted-foreground mt-0.5'>Manage all businesses, subscriptions, and plans.</p>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>
             <CalendarDays className='h-4 w-4' />
@@ -95,10 +101,10 @@ export const SuperAdminDashboardPage = () => {
           iconClassName='bg-amber-500/10 text-amber-600'
         />
         <StatsCard
-          title='Total Plans'
-          value={plans.length}
+          title='Completed Payments'
+          value={payments.filter((payment: any) => payment.payment_status === 'completed').length}
           icon={CreditCard}
-          description='Available subscription plans'
+          description={revenueSummary ? `Collected: ${revenueSummary}` : `${plans.length} plans available`}
           iconClassName='bg-blue-500/10 text-blue-600'
         />
       </div>
@@ -173,9 +179,7 @@ export const SuperAdminDashboardPage = () => {
                   {businesses.slice(0, 5).map((business: any) => (
                     <TableRow key={business.id}>
                       <TableCell className='font-medium'>{business.name}</TableCell>
-                      <TableCell className='text-sm text-muted-foreground'>
-                        {business.users?.length ?? 0}
-                      </TableCell>
+                      <TableCell className='text-sm text-muted-foreground'>{business.users?.length ?? 0}</TableCell>
                       <TableCell>
                         <Badge variant='outline' className={statusColors[business.status] ?? ''}>
                           {business.status}

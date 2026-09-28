@@ -145,6 +145,10 @@ Route::prefix("product-audits")->group(function () {
     require __DIR__."/product-audits.php";
 });
 
+Route::prefix("product-losses")->group(function () {
+    require __DIR__."/product-losses.php";
+});
+
 Route::prefix("financial-audits")->group(function () {
     require __DIR__."/financial-audits.php";
 });

@@ -34,18 +34,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import {
-  CreditCard,
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-} from 'lucide-react';
+import { CreditCard, Plus, Pencil, Trash2, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const SuperAdminPlansPage = () => {
+export const SuperadminPlansPage = () => {
   const { data, isLoading } = useGetAdminPlansQuery();
   const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
   const [updatePlan, { isLoading: isUpdating }] = useUpdatePlanMutation();
@@ -217,28 +209,46 @@ export const SuperAdminPlansPage = () => {
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label>Name *</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder='Basic' />
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder='Basic'
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label>Slug *</Label>
-                  <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder='basic' />
+                  <Input
+                    value={form.slug}
+                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    placeholder='basic'
+                  />
                 </div>
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label>Monthly Price *</Label>
-                  <Input type='number' value={form.monthly_price} onChange={(e) => setForm({ ...form, monthly_price: e.target.value })} />
+                  <Input
+                    type='number'
+                    value={form.monthly_price}
+                    onChange={(e) => setForm({ ...form, monthly_price: e.target.value })}
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label>Yearly Price *</Label>
-                  <Input type='number' value={form.yearly_price} onChange={(e) => setForm({ ...form, yearly_price: e.target.value })} />
+                  <Input
+                    type='number'
+                    value={form.yearly_price}
+                    onChange={(e) => setForm({ ...form, yearly_price: e.target.value })}
+                  />
                 </div>
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label>Billing Cycle</Label>
                   <Select value={form.billing_cycle} onValueChange={(v) => setForm({ ...form, billing_cycle: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='monthly'>Monthly</SelectItem>
                       <SelectItem value='yearly'>Yearly</SelectItem>
@@ -248,14 +258,20 @@ export const SuperAdminPlansPage = () => {
                 </div>
                 <div className='space-y-2'>
                   <Label>Currency</Label>
-                  <Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} placeholder='UGX' />
+                  <Input
+                    value={form.currency}
+                    onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                    placeholder='UGX'
+                  />
                 </div>
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label>Mark</Label>
                   <Select value={form.mark} onValueChange={(v) => setForm({ ...form, mark: v })}>
-                    <SelectTrigger><SelectValue placeholder='None' /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder='None' />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='Affordable'>Affordable</SelectItem>
                       <SelectItem value='Most Popular'>Most Popular</SelectItem>
@@ -267,7 +283,9 @@ export const SuperAdminPlansPage = () => {
                 <div className='space-y-2'>
                   <Label>Status</Label>
                   <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='active'>Active</SelectItem>
                       <SelectItem value='inactive'>Inactive</SelectItem>
@@ -278,27 +296,58 @@ export const SuperAdminPlansPage = () => {
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label>Discount %</Label>
-                  <Input type='number' value={form.discount_percentage} onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })} />
+                  <Input
+                    type='number'
+                    value={form.discount_percentage}
+                    onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })}
+                  />
                 </div>
                 <div className='space-y-2'>
                   <Label>Sort Order</Label>
-                  <Input type='number' value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} />
+                  <Input
+                    type='number'
+                    value={form.sort_order}
+                    onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+                  />
                 </div>
               </div>
               <div className='space-y-2'>
                 <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
+                <Textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  rows={2}
+                />
               </div>
               <div className='space-y-2'>
                 <Label>Features (one per line)</Label>
-                <Textarea value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} rows={3} placeholder='Up to 10 employees&#10;Basic analytics&#10;Email support' />
+                <Textarea
+                  value={form.features}
+                  onChange={(e) => setForm({ ...form, features: e.target.value })}
+                  rows={3}
+                  placeholder='Up to 10 employees&#10;Basic analytics&#10;Email support'
+                />
               </div>
               <div className='space-y-2'>
                 <Label>Limits (JSON)</Label>
-                <Textarea value={form.limits} onChange={(e) => setForm({ ...form, limits: e.target.value })} rows={2} placeholder='{"maxProducts": 50, "maxBranches": 1}' />
+                <Textarea
+                  value={form.limits}
+                  onChange={(e) => setForm({ ...form, limits: e.target.value })}
+                  rows={2}
+                  placeholder='{"maxProducts": 50, "maxBranches": 1}'
+                />
               </div>
               <DialogFooter>
-                <Button type='button' variant='outline' onClick={() => { setAddOpen(false); resetForm(); }}>Cancel</Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => {
+                    setAddOpen(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button type='submit' disabled={isCreating}>
                   {isCreating && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                   Create
@@ -310,7 +359,9 @@ export const SuperAdminPlansPage = () => {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>All Plans ({plans.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Plans ({plans.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {plans.length === 0 ? (
             <p className='text-muted-foreground text-sm text-center py-8'>No plans found.</p>
@@ -341,14 +392,25 @@ export const SuperAdminPlansPage = () => {
                     <TableCell className='font-medium'>{Number(plan.monthly_price).toLocaleString()}</TableCell>
                     <TableCell className='font-medium'>{Number(plan.yearly_price).toLocaleString()}</TableCell>
                     <TableCell>
-                      <Badge variant='outline' className={plan.status === 'active' ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-600'}>
-                        {plan.status === 'active' ? <CheckCircle2 className='h-3 w-3 mr-1' /> : <XCircle className='h-3 w-3 mr-1' />}
+                      <Badge
+                        variant='outline'
+                        className={
+                          plan.status === 'active' ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-600'
+                        }
+                      >
+                        {plan.status === 'active' ? (
+                          <CheckCircle2 className='h-3 w-3 mr-1' />
+                        ) : (
+                          <XCircle className='h-3 w-3 mr-1' />
+                        )}
                         {plan.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       {plan.mark && (
-                        <Badge variant='secondary' className='text-xs'>{plan.mark}</Badge>
+                        <Badge variant='secondary' className='text-xs'>
+                          {plan.mark}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell>{plan.currency}</TableCell>
@@ -367,7 +429,8 @@ export const SuperAdminPlansPage = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Plan</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure? This action cannot be undone. This will also affect subscriptions using this plan.
+                                Are you sure? This action cannot be undone. This will also affect subscriptions using
+                                this plan.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -409,18 +472,28 @@ export const SuperAdminPlansPage = () => {
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <Label>Monthly Price</Label>
-                <Input type='number' value={form.monthly_price} onChange={(e) => setForm({ ...form, monthly_price: e.target.value })} />
+                <Input
+                  type='number'
+                  value={form.monthly_price}
+                  onChange={(e) => setForm({ ...form, monthly_price: e.target.value })}
+                />
               </div>
               <div className='space-y-2'>
                 <Label>Yearly Price</Label>
-                <Input type='number' value={form.yearly_price} onChange={(e) => setForm({ ...form, yearly_price: e.target.value })} />
+                <Input
+                  type='number'
+                  value={form.yearly_price}
+                  onChange={(e) => setForm({ ...form, yearly_price: e.target.value })}
+                />
               </div>
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <Label>Billing Cycle</Label>
                 <Select value={form.billing_cycle} onValueChange={(v) => setForm({ ...form, billing_cycle: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='monthly'>Monthly</SelectItem>
                     <SelectItem value='yearly'>Yearly</SelectItem>
@@ -437,7 +510,9 @@ export const SuperAdminPlansPage = () => {
               <div className='space-y-2'>
                 <Label>Mark</Label>
                 <Select value={form.mark} onValueChange={(v) => setForm({ ...form, mark: v })}>
-                  <SelectTrigger><SelectValue placeholder='None' /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder='None' />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='Affordable'>Affordable</SelectItem>
                     <SelectItem value='Most Popular'>Most Popular</SelectItem>
@@ -449,7 +524,9 @@ export const SuperAdminPlansPage = () => {
               <div className='space-y-2'>
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='active'>Active</SelectItem>
                     <SelectItem value='inactive'>Inactive</SelectItem>
@@ -460,27 +537,53 @@ export const SuperAdminPlansPage = () => {
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <Label>Discount %</Label>
-                <Input type='number' value={form.discount_percentage} onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })} />
+                <Input
+                  type='number'
+                  value={form.discount_percentage}
+                  onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })}
+                />
               </div>
               <div className='space-y-2'>
                 <Label>Sort Order</Label>
-                <Input type='number' value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} />
+                <Input
+                  type='number'
+                  value={form.sort_order}
+                  onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+                />
               </div>
             </div>
             <div className='space-y-2'>
               <Label>Description</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={2}
+              />
             </div>
             <div className='space-y-2'>
               <Label>Features (one per line)</Label>
-              <Textarea value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} rows={3} />
+              <Textarea
+                value={form.features}
+                onChange={(e) => setForm({ ...form, features: e.target.value })}
+                rows={3}
+              />
             </div>
             <div className='space-y-2'>
               <Label>Limits (JSON)</Label>
               <Textarea value={form.limits} onChange={(e) => setForm({ ...form, limits: e.target.value })} rows={2} />
             </div>
             <DialogFooter>
-              <Button type='button' variant='outline' onClick={() => { setEditOpen(false); setEditingPlan(null); resetForm(); }}>Cancel</Button>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => {
+                  setEditOpen(false);
+                  setEditingPlan(null);
+                  resetForm();
+                }}
+              >
+                Cancel
+              </Button>
               <Button type='submit' disabled={isUpdating}>
                 {isUpdating && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                 Update

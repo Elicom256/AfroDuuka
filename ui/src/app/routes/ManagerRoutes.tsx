@@ -22,10 +22,10 @@ import { ManagerAttendancePage } from '../pages/dashboards/manager/pages/Manager
 import { Product } from '../pages/dashboards/manager/components/products/Product';
 import { Purchase } from '../pages/dashboards/manager/components/purchases/Purchase';
 import { Sale } from '../pages/dashboards/manager/components/sales/Sale';
-import { SaleReturn } from '../pages/dashboards/manageradmin/components/sale-returns/SaleReturn';
-import { PurchaseReturn } from '../pages/dashboards/manageradmin/components/purchase-returns/PurchaseReturn';
-import { SaleReturnsPage } from '../pages/dashboards/manageradmin/pages/SaleReturnsPage';
-import { PurchaseReturnsPage } from '../pages/dashboards/manageradmin/pages/PurchaseReturnsPage';
+import { SaleReturn } from '../pages/dashboards/manager/components/sale-returns/SaleReturn';
+import { PurchaseReturn } from '../pages/dashboards/manager/components/purchase-returns/PurchaseReturn';
+import { ManagerSaleReturnsPage } from '../pages/dashboards/manager/pages/ManagerSaleReturnsPage';
+import { ManagerPurchaseReturnsPage } from '../pages/dashboards/manager/pages/ManagerPurchaseReturnsPage';
 import { Worker } from '../pages/dashboards/manager/pages/components/Worker';
 import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceiptsPage';
 import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Receipt';
@@ -52,9 +52,9 @@ export const ManagerRoutes = () => {
         <Route path='receipts/:id' element={<ReceiptDetail />} />
         <Route path='purchases' element={<ManagerPurchasesPage />} />
         <Route path='purchases/:id' element={<Purchase />} />
-        <Route path='sale-returns' element={<SaleReturnsPage />} />
+        <Route path='sale-returns' element={<ManagerSaleReturnsPage />} />
         <Route path='sale-returns/:id' element={<SaleReturn />} />
-        <Route path='purchase-returns' element={<PurchaseReturnsPage />} />
+        <Route path='purchase-returns' element={<ManagerPurchaseReturnsPage />} />
         <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
         <Route path='products' element={<ManagerProductsPage />} />
         <Route path='products/:id' element={<Product />} />
