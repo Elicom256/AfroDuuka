@@ -45,7 +45,8 @@ class BusinessDebitPolicy
      */
     public function delete(User $user, BusinessDebit $businessDebit): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class BusinessDebitPolicy
      */
     public function forceDelete(User $user, BusinessDebit $businessDebit): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

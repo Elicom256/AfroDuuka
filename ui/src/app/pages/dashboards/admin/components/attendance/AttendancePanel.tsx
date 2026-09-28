@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 type AttendancePanelProps = {
   attendances: any[];
@@ -13,6 +14,7 @@ type AttendancePanelProps = {
 
 export const AttendancePanel = ({ attendances, absentCount, presentCount, employees }: AttendancePanelProps) => {
   const navigate = useNavigate();
+  useRolePermissions();
   const total = attendances.length;
   const headers = ['Name', 'Branch', 'Status', 'Attendance'];
   // const attendanceheaders = ['Name', 'Branch', 'Status',];

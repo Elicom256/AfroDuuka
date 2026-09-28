@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -9,9 +10,18 @@ use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
+    /**
+     * The catalogue gate is repeated here on purpose.
+     *
+     * FormRequest::authorize() runs before rules(), and the controller's
+     * `$this->authorize('create', ...)` runs after them. Without this the denial would
+     * depend on the payload: a restricted role sending a well-formed product would get
+     * 403, and sending a malformed one would get 422 — as though the role were allowed
+     * to try. Authoring a product is refused outright, whatever the body says.
+     */
     public function authorize(): bool
     {
-        return Auth::check();
+        return Auth::check() && RolePermissions::canCreateCatalog($this->user());
     }
 
     public function prepareForValidation(): void

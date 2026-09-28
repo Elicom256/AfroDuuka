@@ -45,7 +45,8 @@ class SuppliersSettingsPolicy
      */
     public function delete(User $user, SuppliersSettings $suppliersSettings): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class SuppliersSettingsPolicy
      */
     public function forceDelete(User $user, SuppliersSettings $suppliersSettings): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

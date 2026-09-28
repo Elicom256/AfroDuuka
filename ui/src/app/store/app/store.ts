@@ -56,6 +56,7 @@ import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
 import { posQuery } from '../features/branch/pos/posQuery';
 import { ordersQuery } from '../features/orders/ordersQuery';
 import { purchaseOrdersQuery } from '../features/orders/purchaseOrdersQuery';
+import { quotationsQuery } from '../features/orders/quotationsQuery';
 import { couponsQuery } from '../features/coupons/couponsQuery';
 import { financeQuery } from '../features/finance/financeQuery';
 import { productAuditQuery } from '../features/audit/productAuditQuery';
@@ -121,6 +122,7 @@ export const store = configureStore({
     [posQuery.reducerPath]: posQuery.reducer,
     [ordersQuery.reducerPath]: ordersQuery.reducer,
     [purchaseOrdersQuery.reducerPath]: purchaseOrdersQuery.reducer,
+    [quotationsQuery.reducerPath]: quotationsQuery.reducer,
     [couponsQuery.reducerPath]: couponsQuery.reducer,
     [financeQuery.reducerPath]: financeQuery.reducer,
     [productAuditQuery.reducerPath]: productAuditQuery.reducer,
@@ -196,6 +198,7 @@ export const store = configureStore({
       taxCategoriesQuery.middleware,
       taxRatesQuery.middleware,
       taxPaymentsQuery.middleware,
+      quotationsQuery.middleware,
     ),
 });
 

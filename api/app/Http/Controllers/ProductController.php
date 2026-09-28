@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Services\InventoryService;
 use App\Services\ProductService;
+use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -14,9 +17,12 @@ class ProductController extends Controller
 {
     protected ProductService $productService;
 
-    public function __construct(ProductService $productService)
+    protected InventoryService $inventoryService;
+
+    public function __construct(ProductService $productService, InventoryService $inventoryService)
     {
         $this->productService = $productService;
+        $this->inventoryService = $inventoryService;
     }
 
     public function index()
@@ -194,6 +200,10 @@ class ProductController extends Controller
 
         $validated = $request->validated();
 
+        if (RolePermissions::isRestricted($request->user())) {
+            return $this->adjustStock($product, $validated);
+        }
+
         // Pass change_reason to the model so PriceHistoryObserver can pick it up
         if (isset($validated['change_reason'])) {
             $product->priceChangeReason = $validated['change_reason'];
@@ -201,6 +211,34 @@ class ProductController extends Controller
 
         $product->update($validated);
         return response()->json(["message" => "Product Updated Successfully!", "product" => $product], 201);
+    }
+
+    /**
+     * Apply a counted stock level for a role that may not edit the catalogue.
+     *
+     * The request carries the resulting quantity because that is what a stock take
+     * observes. The difference against the recorded level is what actually moved, so
+     * that is what gets booked — through InventoryService, not a bare update, so a
+     * stock_movements row explains the new number. Writing `quantity` straight onto the
+     * product would leave the ledger disagreeing with the shelf.
+     */
+    private function adjustStock(Product $product, array $validated): JsonResponse
+    {
+        $delta = (int) $validated['quantity'] - (int) $product->quantity;
+
+        if ($delta !== 0) {
+            $this->inventoryService->adjust(
+                $product,
+                $delta,
+                $validated['adjustment_notes'] ?? null,
+                $validated['adjustment_reason'] ?? 'stock_take',
+            );
+        }
+
+        return response()->json([
+            "message" => "Product stock adjusted successfully!",
+            "product" => $product->refresh(),
+        ], 201);
     }
 
     public function destroy(string $product)

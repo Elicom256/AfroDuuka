@@ -18,6 +18,8 @@ class ProductCategoryController extends Controller
 
     public function store(StoreProductCategoryRequest $request)
     {
+        $this->authorize('create', ProductCategory::class);
+
         $validated = $request->validated();
         $category = ProductCategory::create($validated);
         return response()->json(["message" => "Category created successfully!", "category" => $category], 201);
@@ -25,11 +27,15 @@ class ProductCategoryController extends Controller
 
     public function show(ProductCategory $productCategory)
     {
+        $this->authorize('view', $productCategory);
+
         return response()->json(["message" => "Category fetched!", "category" => $productCategory], 200);
     }
 
     public function update(UpdateProductCategoryRequest $request, ProductCategory $productCategory)
     {
+        $this->authorize('update', $productCategory);
+
         $validated = $request->validated();
         $productCategory->update($validated);
         return response()->json(["message" => "Category updated successfully!", "category" => $productCategory], 201);
@@ -37,6 +43,8 @@ class ProductCategoryController extends Controller
 
     public function destroy(ProductCategory $productCategory)
     {
+        $this->authorize('delete', $productCategory);
+
         $productCategory->delete();
         return response()->json(["message" => "Category with id $productCategory->id deleted successfully!"], 201);
     }

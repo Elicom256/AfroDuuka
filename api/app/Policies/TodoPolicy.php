@@ -29,6 +29,7 @@ class TodoPolicy
 
     public function delete(User $user, Todo $todo): bool
     {
-        return $user->business_id === $todo->business_id;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }
