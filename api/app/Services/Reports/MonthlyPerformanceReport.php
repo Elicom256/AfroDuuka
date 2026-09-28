@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  * code from the same tables.
  *
  * Sourced from cash_flows rather than from sales/purchases/expenses directly, because
- * cash_flows is what the other report cards on the admin reports page already read, and
+ * cash_flows is what the other report cards on the executive reports page already read, and
  * because it carries business_branch_id, which is what makes per-branch scoping possible
  * at all. Deriving this from the raw documents instead would put a total on screen that
  * contradicts the Branch Performance card two inches above it.
@@ -94,7 +94,7 @@ class MonthlyPerformanceReport
             ->where('cash_flows.business_id', $business->id)
             ->where('cash_flows.status', 'completed')
             // Explicit, and not merely inherited from the branch scope. The scope allows
-            // a business admin every branch, so relying on it alone would let a document
+            // a business executive every branch, so relying on it alone would let a document
             // labelled with one branch's name carry another branch's figures.
             ->where('cash_flows.business_branch_id', $branch->id)
             ->whereBetween('cash_flows.transaction_date', [$start, $end]);

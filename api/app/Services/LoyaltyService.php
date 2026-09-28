@@ -58,7 +58,7 @@ class LoyaltyService
     }
 
     /**
-     * Adjust points manually (admin correction).
+     * Adjust points manually (executive correction).
      */
     public function adjustPoints(int $loyaltyCardId, float $points, string $reference = null): LoyaltyTransaction
     {

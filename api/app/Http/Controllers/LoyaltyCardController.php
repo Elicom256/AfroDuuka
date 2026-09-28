@@ -95,7 +95,7 @@ class LoyaltyCardController extends Controller
     }
 
     /**
-     * Adjust points (admin only).
+     * Adjust points (executive only).
      */
     public function adjustPoints(Request $request, LoyaltyCard $loyaltyCard)
     {
