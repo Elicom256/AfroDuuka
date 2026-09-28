@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const branchesQuery = createApi({
   reducerPath: 'branchesPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/branches`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/branches`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {

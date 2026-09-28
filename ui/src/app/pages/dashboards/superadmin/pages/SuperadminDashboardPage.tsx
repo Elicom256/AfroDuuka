@@ -40,7 +40,7 @@ export const SuperadminDashboardPage = () => {
       return totals;
     }, {});
   const revenueSummary = Object.entries(completedRevenue)
-    .map(([currency, amount]) => `${currency} ${amount.toLocaleString()}`)
+    .map(([currency, amount]) => `${currency} ${Number(amount).toLocaleString()}`)
     .join(' · ');
 
   const recentPayments = [...payments]

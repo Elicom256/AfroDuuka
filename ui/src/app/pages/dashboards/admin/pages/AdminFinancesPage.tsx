@@ -43,7 +43,7 @@ export const AdminFinancesPage = () => {
           onPageChange={setPage}
         />
         <div className='flex justify-end mt-4'>
-          <Button variant='outline' onClick={() => navigate('/admin/finance/transactions')}>
+          <Button variant='outline' onClick={() => navigate('/dashboard/finance/transactions')}>
             View All Transactions
             <ArrowRight className='ml-2 h-4 w-4' />
           </Button>

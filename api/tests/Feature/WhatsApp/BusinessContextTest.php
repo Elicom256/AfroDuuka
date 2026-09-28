@@ -62,15 +62,14 @@ class BusinessContextTest extends TestCase
 
         Role::factory()->create(['business_id' => $mine->id, 'name' => 'Executive']);
         Role::factory()->create(['business_id' => $mine->id, 'name' => 'Operations']);
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Other Staff']);
 
         $context = app(BusinessContext::class);
 
         $seen = $context->run($mine->id, fn () => Role::count());
 
-        $this->assertSame(3, $seen);
+        $this->assertSame(2, $seen);
         $this->assertNull($context->businessId());
-        $this->assertSame(3, Role::count(), 'Scope survived the callback.');
+        $this->assertSame(2, Role::count(), 'Scope survived the callback.');
     }
 
     public function test_the_context_is_restored_after_a_nested_run(): void
@@ -178,12 +177,11 @@ class BusinessContextTest extends TestCase
 
         Role::factory()->create(['business_id' => $mine->id, 'name' => 'Executive']);
         Role::factory()->create(['business_id' => $mine->id, 'name' => 'Operations']);
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Other Staff']);
 
         $context = app(BusinessContext::class);
         $context->set($mine->id);
 
-        $this->assertSame(3, Role::count());
+        $this->assertSame(2, Role::count());
 
         $context->clear();
 

@@ -13,11 +13,11 @@ type ProcurementSidebarProps = {
 };
 
 const navItems = [
-  { label: 'Overview', to: '/admin/procurement', icon: LayoutDashboard, end: true },
-  { label: 'Reorder Suggestions', to: '/admin/procurement/reorder-suggestions', icon: PackageSearch },
-  { label: 'Purchase Orders', to: '/admin/procurement/purchase-orders', icon: ClipboardList },
-  { label: 'Suppliers', to: '/admin/procurement/suppliers', icon: Truck },
-  { label: 'History', to: '/admin/procurement/history', icon: History },
+  { label: 'Overview', to: '/dashboard/procurement', icon: LayoutDashboard, end: true },
+  { label: 'Reorder Suggestions', to: '/dashboard/procurement/reorder-suggestions', icon: PackageSearch },
+  { label: 'Purchase Orders', to: '/dashboard/procurement/purchase-orders', icon: ClipboardList },
+  { label: 'Suppliers', to: '/dashboard/procurement/suppliers', icon: Truck },
+  { label: 'History', to: '/dashboard/procurement/history', icon: History },
 ];
 
 export const ProcurementSidebar = ({ onNavigate }: ProcurementSidebarProps) => {

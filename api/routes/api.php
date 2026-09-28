@@ -33,7 +33,7 @@ Route::prefix("sales")->group(function () {
     require __DIR__."/sales.php";
 });
 
-Route::prefix("admin")->group(function () {
+Route::prefix("dashboard")->group(function () {
     require __DIR__."/admin.php";
 });
 

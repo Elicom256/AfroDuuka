@@ -161,7 +161,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
         </TableHeader>
         <TableBody>
           {paginatedWorkers.map((worker: any) => (
-            <TableRow key={worker.id} onClick={() => navigate(`/admin/workers/${worker.id}`)}>
+            <TableRow key={worker.id} onClick={() => navigate(`/dashboard/workers/${worker.id}`)}>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <input
                   type='checkbox'

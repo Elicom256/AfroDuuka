@@ -41,6 +41,7 @@ import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
 import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 type AdminSidebarProps = {
   onNavigate?: () => void;
@@ -52,99 +53,99 @@ const navSections: Array<{
 }> = [
   {
     title: 'Dashboard',
-    items: [{ label: 'Overview', to: '/admin', icon: LayoutDashboard }],
+    items: [{ label: 'Overview', to: '/', icon: LayoutDashboard }],
   },
   {
     title: 'Operations',
     items: [
-      { label: 'POS', to: '/admin/pos', icon: ShoppingCart },
-      { label: 'Products', to: '/admin/products', icon: PackageCheck },
-      { label: 'Sales', to: '/admin/sales', icon: DollarSign },
-      { label: 'Receipts', to: '/admin/receipts', icon: FileText },
-      { label: 'Purchases', to: '/admin/purchases', icon: Truck },
-      { label: 'Sale Returns', to: '/admin/sale-returns', icon: Undo2 },
-      { label: 'Purchase Returns', to: '/admin/purchase-returns', icon: ArrowLeftToLine },
-      { label: 'Orders', to: '/admin/orders', icon: Package2 },
-      { label: 'Quotations', to: '/admin/quotations', icon: FileText },
+      { label: 'POS', to: '/pos', icon: ShoppingCart },
+      { label: 'Products', to: '/products', icon: PackageCheck },
+      { label: 'Sales', to: '/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/receipts', icon: FileText },
+      { label: 'Purchases', to: '/purchases', icon: Truck },
+      { label: 'Sale Returns', to: '/sale-returns', icon: Undo2 },
+      { label: 'Purchase Returns', to: '/purchase-returns', icon: ArrowLeftToLine },
+      { label: 'Orders', to: '/orders', icon: Package2 },
+      { label: 'Quotations', to: '/quotations', icon: FileText },
     ],
   },
   {
     title: 'Tasks',
-    items: [{ label: 'Todos', to: '/admin/todos', icon: CheckSquare }],
+    items: [{ label: 'Todos', to: '/todos', icon: CheckSquare }],
   },
   {
     title: 'People',
     items: [
-      { label: 'Workers', to: '/admin/workers', icon: Users },
-      { label: 'Suppliers', to: '/admin/suppliers', icon: Users2, settingKey: 'suppliers' },
-      { label: 'Customers', to: '/admin/customers', icon: Users2, settingKey: 'customers' },
+      { label: 'Workers', to: '/workers', icon: Users },
+      { label: 'Suppliers', to: '/suppliers', icon: Users2, settingKey: 'suppliers' },
+      { label: 'Customers', to: '/customers', icon: Users2, settingKey: 'customers' },
     ],
   },
   {
     title: 'Business',
     items: [
-      { label: 'Analytics', to: '/admin/analytics', icon: BarChart3 },
-      { label: 'Reports', to: '/admin/reports', icon: TrendingUp, settingKey: 'reports' },
-      { label: 'Expenses', to: '/admin/expenses', icon: Receipt },
-      { label: 'Attendance', to: '/admin/attendance', icon: AlertTriangle, settingKey: 'attendance' },
-      { label: 'Payroll', to: '/admin/remuneration', icon: Users },
-      { label: 'Salaries', to: '/admin/employee-salaries', icon: DollarSign },
-      { label: 'Branches', to: '/admin/branches', icon: Truck },
+      { label: 'Analytics', to: '/analytics', icon: BarChart3 },
+      { label: 'Reports', to: '/reports', icon: TrendingUp, settingKey: 'reports' },
+      { label: 'Expenses', to: '/expenses', icon: Receipt },
+      { label: 'Attendance', to: '/attendance', icon: AlertTriangle, settingKey: 'attendance' },
+      { label: 'Payroll', to: '/remuneration', icon: Users },
+      { label: 'Salaries', to: '/employee-salaries', icon: DollarSign },
+      { label: 'Branches', to: '/branches', icon: Truck },
     ],
   },
   {
     title: 'Financials',
     items: [
-      { label: 'Cash Flow', to: '/admin/cashflow', icon: Wallet },
-      { label: 'Transactions', to: '/admin/finance/transactions', icon: Landmark },
-      { label: 'Reports', to: '/admin/finance/reports', icon: PieChart },
+      { label: 'Cash Flow', to: '/cashflow', icon: Wallet },
+      { label: 'Transactions', to: '/finance/transactions', icon: Landmark },
+      { label: 'Reports', to: '/finance/reports', icon: PieChart },
     ],
   },
   {
     title: 'Billing',
-    items: [{ label: 'Payments', to: '/admin/subscriptions', icon: CreditCard }],
+    items: [{ label: 'Payments', to: '/subscriptions', icon: CreditCard }],
   },
   {
     title: 'Marketing',
     items: [
-      { label: 'Promotions', to: '/admin/promotions', icon: Gift, settingKey: 'promotions' },
-      { label: 'Coupons', to: '/admin/coupons', icon: Tag },
-      { label: 'Loyalty', to: '/admin/loyalty', icon: Award },
+      { label: 'Promotions', to: '/promotions', icon: Gift, settingKey: 'promotions' },
+      { label: 'Coupons', to: '/coupons', icon: Tag },
+      { label: 'Loyalty', to: '/loyalty', icon: Award },
     ],
   },
   {
     title: 'Integrations',
     items: [
-      { label: 'Currency Rates', to: '/admin/currency-rates', icon: Globe },
-      { label: 'Printers', to: '/admin/printers', icon: Printer },
+      { label: 'Currency Rates', to: '/currency-rates', icon: Globe },
+      { label: 'Printers', to: '/printers', icon: Printer },
     ],
   },
   {
     title: 'Inventory',
     items: [
-      { label: 'Stock Transfers', to: '/admin/stock-transfers', icon: ArrowLeftRight },
-      { label: 'Reorder Rules', to: '/admin/reorder-rules', icon: PackageSearch },
-      { label: 'Report Exports', to: '/admin/report-exports', icon: FileDown },
+      { label: 'Stock Transfers', to: '/stock-transfers', icon: ArrowLeftRight },
+      { label: 'Reorder Rules', to: '/reorder-rules', icon: PackageSearch },
+      { label: 'Report Exports', to: '/report-exports', icon: FileDown },
     ],
   },
   {
     title: 'Audits',
     items: [
-      { label: 'Product Audits', to: '/admin/product-audits', icon: ClipboardList },
-      { label: 'Financial Audits', to: '/admin/financial-audits', icon: Calculator },
+      { label: 'Product Audits', to: '/product-audits', icon: ClipboardList },
+      { label: 'Financial Audits', to: '/financial-audits', icon: Calculator },
     ],
   },
   {
     title: 'Taxes',
-    items: [{ label: 'Tax Management', to: '/admin/tax', icon: Percent }],
+    items: [{ label: 'Tax Management', to: '/tax', icon: Percent }],
   },
   {
     title: 'System',
     items: [
-      { label: 'Notifications', to: '/admin/notifications', icon: Bell },
-      { label: 'Messages', to: '/admin/messages', icon: MessageSquare },
-      { label: 'Activity Logs', to: '/admin/activity-logs', icon: History },
-      { label: 'Settings', to: '/admin/settings', icon: Settings },
+      { label: 'Notifications', to: '/notifications', icon: Bell },
+      { label: 'Messages', to: '/messages', icon: MessageSquare },
+      { label: 'Activity Logs', to: '/activity-logs', icon: History },
+      { label: 'Settings', to: '/settings', icon: Settings },
     ],
   },
 ];
@@ -155,9 +156,9 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const features = useFeatureSettings();
 
   const role = userData?.data?.role?.name;
+  const prefix = getRolePrefix(role);
   const unreadCount = unreadData?.unread_count ?? 0;
 
-  // Filter nav sections based on feature settings
   const filteredSections = navSections
     .map((section) => ({
       ...section,
@@ -171,7 +172,7 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
-        <h2 className='text-lg font-semibold tracking-tight'>Admin Panel</h2>
+        <h2 className='text-lg font-semibold tracking-tight'>{role ?? 'Dashboard'}</h2>
         <p className='text-xs text-muted-foreground mt-1'>Inventory • Shop</p>
       </div>
 
@@ -185,12 +186,13 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
 
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const isNotifications = item.to === '/admin/notifications';
+                const isNotifications = item.to === '/notifications';
+                const itemPath = `${prefix}${item.to}`;
 
                 return (
                   <NavLink
                     key={item.to}
-                    to={!role || role !== 'admin' ? '/login' : item.to}
+                    to={!role ? '/login' : itemPath}
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(
@@ -204,7 +206,6 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
                     <Icon className='h-4 w-4' />
                     {item.label}
 
-                    {/* Unread Badge - Only for Notifications */}
                     {isNotifications && unreadCount > 0 && (
                       <div className='ml-auto flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-medium bg-red-500 text-white rounded-full'>
                         {unreadCount > 99 ? '99+' : unreadCount}
@@ -222,7 +223,6 @@ export const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
         )}
       </div>
 
-      {/* Footer */}
       <div className='p-4 border-t border-border mt-auto'>{userData && <UserProfile data={userData} />}</div>
     </nav>
   );
