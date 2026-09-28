@@ -6,7 +6,10 @@ import {
   useUpdateSubscriptionMutation,
   useDeleteSubscriptionMutation,
 } from '@/app/store/features/subscriptions/subscriptionsQuery';
-import { useGetSubscriptionPaymentsQuery, useUpdateSubscriptionPaymentMutation } from '@/app/store/features/subscriptions/subscriptionPaymentsQuery';
+import {
+  useGetSubscriptionPaymentsQuery,
+  useUpdateSubscriptionPaymentMutation,
+} from '@/app/store/features/subscriptions/subscriptionPaymentsQuery';
 import { useGetPlansQuery } from '@/app/store/features/plans/plansQuery';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,16 +39,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import {
-  Crown,
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  CalendarDays,
-  Building2,
-  CheckCircle,
-} from 'lucide-react';
+import { Crown, Plus, Pencil, Trash2, Loader2, CalendarDays, Building2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -56,7 +50,7 @@ const statusColors: Record<string, string> = {
   expired: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
-export const SuperAdminSubscriptionsPage = () => {
+export const SuperadminSubscriptionsPage = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionsQuery();
   const { data: paymentsData } = useGetSubscriptionPaymentsQuery();
@@ -153,9 +147,7 @@ export const SuperAdminSubscriptionsPage = () => {
 
   const handleVerifyPayment = async (subId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const pendingPayment = allPayments.find(
-      (p: any) => p.subscription_id === subId && p.payment_status === 'pending'
-    );
+    const pendingPayment = allPayments.find((p: any) => p.subscription_id === subId && p.payment_status === 'pending');
     if (!pendingPayment) {
       toast.error('No pending payment found for this subscription');
       return;
@@ -199,10 +191,14 @@ export const SuperAdminSubscriptionsPage = () => {
               <div className='space-y-2'>
                 <Label>Plan</Label>
                 <Select value={form.plan_id} onValueChange={(v) => setForm({ ...form, plan_id: v })}>
-                  <SelectTrigger><SelectValue placeholder='Select plan' /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select plan' />
+                  </SelectTrigger>
                   <SelectContent>
                     {plans.map((plan: any) => (
-                      <SelectItem key={plan.id} value={String(plan.id)}>{plan.name}</SelectItem>
+                      <SelectItem key={plan.id} value={String(plan.id)}>
+                        {plan.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -217,7 +213,16 @@ export const SuperAdminSubscriptionsPage = () => {
                 />
               </div>
               <DialogFooter>
-                <Button type='button' variant='outline' onClick={() => { setAddOpen(false); resetForm(); }}>Cancel</Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => {
+                    setAddOpen(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button type='submit' disabled={isCreating}>
                   {isCreating && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                   Create
@@ -229,7 +234,9 @@ export const SuperAdminSubscriptionsPage = () => {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>All Subscriptions ({subscriptions.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Subscriptions ({subscriptions.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {subscriptions.length === 0 ? (
             <p className='text-muted-foreground text-sm text-center py-8'>No subscriptions found.</p>
@@ -248,7 +255,7 @@ export const SuperAdminSubscriptionsPage = () => {
               <TableBody>
                 {subscriptions.map((sub: any) => {
                   const hasPendingPayment = allPayments.some(
-                    (p: any) => p.subscription_id === sub.id && p.payment_status === 'pending'
+                    (p: any) => p.subscription_id === sub.id && p.payment_status === 'pending',
                   );
                   return (
                     <TableRow
@@ -264,7 +271,9 @@ export const SuperAdminSubscriptionsPage = () => {
                       </TableCell>
                       <TableCell>{sub.plan?.name ?? 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge className={statusColors[sub.status] ?? ''} variant='outline'>{sub.status}</Badge>
+                        <Badge className={statusColors[sub.status] ?? ''} variant='outline'>
+                          {sub.status}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className='flex items-center gap-1.5 text-sm'>
@@ -292,12 +301,26 @@ export const SuperAdminSubscriptionsPage = () => {
                               Verify
                             </Button>
                           )}
-                          <Button variant='ghost' size='icon' onClick={(e) => { e.stopPropagation(); handleEdit(sub); }}>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(sub);
+                            }}
+                          >
                             <Pencil className='h-4 w-4' />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant='ghost' size='icon' onClick={(e) => { e.stopPropagation(); setDeleteId(sub.id); }}>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteId(sub.id);
+                                }}
+                              >
                                 <Trash2 className='h-4 w-4 text-destructive' />
                               </Button>
                             </AlertDialogTrigger>
@@ -338,10 +361,14 @@ export const SuperAdminSubscriptionsPage = () => {
             <div className='space-y-2'>
               <Label>Plan</Label>
               <Select value={form.plan_id} onValueChange={(v) => setForm({ ...form, plan_id: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {plans.map((plan: any) => (
-                    <SelectItem key={plan.id} value={String(plan.id)}>{plan.name}</SelectItem>
+                    <SelectItem key={plan.id} value={String(plan.id)}>
+                      {plan.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -349,10 +376,14 @@ export const SuperAdminSubscriptionsPage = () => {
             <div className='space-y-2'>
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {['active', 'paused', 'cancelled', 'expired'].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -360,15 +391,33 @@ export const SuperAdminSubscriptionsPage = () => {
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <Label>Start Date</Label>
-                <Input type='datetime-local' value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} />
+                <Input
+                  type='datetime-local'
+                  value={form.starts_at}
+                  onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
+                />
               </div>
               <div className='space-y-2'>
                 <Label>End Date</Label>
-                <Input type='datetime-local' value={form.ends_at} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} />
+                <Input
+                  type='datetime-local'
+                  value={form.ends_at}
+                  onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
+                />
               </div>
             </div>
             <DialogFooter>
-              <Button type='button' variant='outline' onClick={() => { setEditOpen(false); setEditingSub(null); resetForm(); }}>Cancel</Button>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => {
+                  setEditOpen(false);
+                  setEditingSub(null);
+                  resetForm();
+                }}
+              >
+                Cancel
+              </Button>
               <Button type='submit' disabled={isUpdating}>
                 {isUpdating && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                 Update

@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\CashFlow;
 use App\Models\Product;
+use App\Models\ProductLoss;
 use App\Models\StockMovement;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class InventoryService
@@ -110,7 +113,7 @@ class InventoryService
         });
     }
 
-    public function writeOff(Product $product, int $quantity, string $reason, ?string $notes = null, ?string $movementKey = null)
+    public function writeOff(Product $product, int $quantity, string $reason, ?string $notes = null, ?string $movementKey = null, ?string $lossDate = null): ProductLoss
     {
         if ($quantity <= 0) {
             throw new \InvalidArgumentException('Write-off quantity must be greater than zero.');
@@ -121,6 +124,61 @@ class InventoryService
             throw new \InvalidArgumentException("Write-off reason must be one of: " . implode(', ', $allowedReasons));
         }
 
-        return $this->adjust($product, -$quantity, $notes ?? "Inventory write-off: {$reason}", $reason, $movementKey);
+        $resolvedMovementKey = $movementKey ?? md5($product->id . ':writeoff:' . $reason . ':' . $quantity . ':' . ($lossDate ?? now()->toDateString()));
+
+        return DB::transaction(function () use ($product, $quantity, $reason, $notes, $resolvedMovementKey, $lossDate) {
+            $lockedProduct = Product::whereKey($product->getKey())->lockForUpdate()->firstOrFail();
+
+            $existingMovement = StockMovement::where('movement_key', $resolvedMovementKey)->first();
+            if ($existingMovement) {
+                return ProductLoss::where('stock_movement_id', $existingMovement->id)->firstOrFail();
+            }
+
+            if ($lockedProduct->quantity < $quantity) {
+                throw new \Exception("Insufficient stock for product: {$lockedProduct->name}");
+            }
+
+            $lockedProduct->decrement('quantity', $quantity);
+
+            $movement = StockMovement::create([
+                'product_id' => $lockedProduct->id,
+                'movement_key' => $resolvedMovementKey,
+                'type' => 'adjustment',
+                'quantity' => $quantity,
+                'reason' => $reason,
+                'notes' => $notes ?? "Inventory write-off: {$reason}",
+            ]);
+
+            $unitCostCents = Money::toCents((float) $lockedProduct->cost_price);
+            $totalLossCents = $unitCostCents * $quantity;
+
+            $loss = ProductLoss::create([
+                'business_branch_id' => $lockedProduct->business_branch_id,
+                'product_id' => $lockedProduct->id,
+                'stock_movement_id' => $movement->id,
+                'type' => $reason,
+                'quantity' => $quantity,
+                'unit_cost' => $unitCostCents,
+                'total_loss' => $totalLossCents,
+                'reason' => $notes,
+                'loss_date' => $lossDate ?? now()->toDateString(),
+                'reported_by' => auth()->id(),
+            ]);
+
+            CashFlow::create([
+                'transaction_code' => 'CF-LOSS-' . str_pad((string) $loss->id, 6, '0', STR_PAD_LEFT),
+                'type' => 'expense',
+                'amount' => Money::fromCents($totalLossCents),
+                'currency' => 'UGX',
+                'business_branch_id' => $lockedProduct->business_branch_id,
+                'description' => "Inventory loss ({$reason}): {$lockedProduct->name} x{$quantity}",
+                'category' => 'inventory_loss',
+                'status' => 'completed',
+                'transaction_date' => $lossDate ?? now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+
+            return $loss;
+        });
     }
 }

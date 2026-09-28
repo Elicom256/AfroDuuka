@@ -15,9 +15,7 @@ const settingsSections = [
     title: 'Security',
     description: 'Security and access control',
     icon: Shield,
-    items: [
-      { label: 'Super Admin Email', value: 'superadmin@gmail.com' },
-    ],
+    items: [{ label: 'Super Admin Email', value: 'superadmin@gmail.com' }],
   },
   {
     title: 'Notifications',
@@ -39,7 +37,7 @@ const settingsSections = [
   },
 ];
 
-export const SuperAdminSettingsPage = () => {
+export const SuperadminSettingsPage = () => {
   return (
     <div className='space-y-6'>
       <div>

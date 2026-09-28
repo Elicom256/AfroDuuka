@@ -13,7 +13,7 @@ const paymentStatusColors: Record<string, string> = {
   rejected: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
-export const SuperAdminSubscriptionPaymentShow = () => {
+export const SuperadminSubscriptionPaymentShow = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionPaymentQuery(Number(id));
@@ -23,7 +23,9 @@ export const SuperAdminSubscriptionPaymentShow = () => {
     return (
       <div className='text-center py-12'>
         <p className='text-muted-foreground'>Payment not found.</p>
-        <Button variant='outline' className='mt-4' onClick={() => navigate('/superadmin/subscription-payments')}>Go Back</Button>
+        <Button variant='outline' className='mt-4' onClick={() => navigate('/superadmin/subscription-payments')}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -52,7 +54,9 @@ export const SuperAdminSubscriptionPaymentShow = () => {
 
       <div className='grid gap-6 md:grid-cols-2'>
         <Card>
-          <CardHeader><CardTitle>Payment Info</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Payment Info</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center justify-between'>
               <span className='text-sm text-muted-foreground'>Amount Paid</span>
@@ -76,32 +80,37 @@ export const SuperAdminSubscriptionPaymentShow = () => {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Business / Plan</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Business / Plan</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center gap-2'>
               <Building2 className='h-4 w-4 text-muted-foreground' />
-              <span className='font-medium'>{payment.subscription?.business?.name ?? `Business #${payment.subscription?.business_id}`}</span>
+              <span className='font-medium'>
+                {payment.subscription?.business?.name ?? `Business #${payment.subscription?.business_id}`}
+              </span>
             </div>
+            <div className='text-sm text-muted-foreground'>Plan: {payment.subscription?.plan?.name ?? 'N/A'}</div>
             <div className='text-sm text-muted-foreground'>
-              Plan: {payment.subscription?.plan?.name ?? 'N/A'}
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              {payment.subscription?.plan?.currency ?? 'UGX'} {Number(payment.subscription?.plan?.monthly_price ?? 0).toLocaleString()}/mo
+              {payment.subscription?.plan?.currency ?? 'UGX'}{' '}
+              {Number(payment.subscription?.plan?.monthly_price ?? 0).toLocaleString()}/mo
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Payment Method</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Payment Method</CardTitle>
+          </CardHeader>
           <CardContent>
-            <p className='font-medium capitalize'>
-              {payment.payment_method?.method?.replace(/_/g, ' ') ?? 'N/A'}
-            </p>
+            <p className='font-medium capitalize'>{payment.payment_method?.method?.replace(/_/g, ' ') ?? 'N/A'}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Verification</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Verification</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center gap-2 text-sm'>
               <UserCheck className='h-4 w-4 text-muted-foreground' />
