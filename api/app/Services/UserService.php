@@ -42,7 +42,7 @@ class UserService
     //  * Create a new user account (adding worker)
     public function signupUser(array $data)
     {
-        $admin = Auth::user();
+        $executive = Auth::user();
             $user = User::create([
             'email' => $data['email'],
             "firstname" => $data["firstname"] ?? $data["name"] ?? null,
@@ -50,7 +50,7 @@ class UserService
             'username' => "@" . ($data['name'] ?? $data['firstname'] ?? $data['email']),
             'phone' => $data['phone'],
             'password' => Hash::make("password"),
-            'business_id' => $admin->business_id,
+            'business_id' => $executive->business_id,
             'role_id' => $data['role_id'],
             "nin" => $data["nin"] ?? null
         ]);
@@ -62,7 +62,7 @@ class UserService
     }
 
 
-    // create account for admin
+    // create account for executive
     public function createAccount(array $data){
         return User::create([
             "firstname" => $data['firstname'] ?? $data['name'] ?? null,
@@ -72,7 +72,7 @@ class UserService
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password'] ?? "password"),
             // 'business_id' => $data['business_id'] ?? null,
-            // 'role_id' => $adminRoleId,
+            // 'role_id' => $executiveRoleId,
         ]);
     }
     /**

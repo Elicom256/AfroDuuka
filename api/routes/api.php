@@ -34,7 +34,7 @@ Route::prefix("sales")->group(function () {
 });
 
 Route::prefix("dashboard")->group(function () {
-    require __DIR__."/admin.php";
+    require __DIR__."/executive.php";
 });
 
 Route::prefix("purchases")->group(function () {

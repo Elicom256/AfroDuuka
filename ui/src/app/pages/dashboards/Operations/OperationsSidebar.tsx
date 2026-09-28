@@ -1,0 +1,142 @@
+import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  AlertTriangle,
+  Truck,
+  DollarSign,
+  BarChart3,
+  PackageCheck,
+  Users,
+  Users2,
+  TrendingUp,
+  Gift,
+  CalendarCheck,
+  Bell,
+  MessageSquare,
+  Undo2,
+  FileText,
+  ArrowLeftToLine,
+  ShoppingCart,
+  Package2,
+  Wallet,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import { UserProfile } from '../auth/UserProfile';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
+
+const navSections: Array<{
+  title: string;
+  items: Array<{ label: string; to: string; icon: any; settingKey?: string }>;
+}> = [
+  {
+    title: 'Overview',
+    items: [{ label: 'Overview', to: '/dashboard', icon: LayoutDashboard }],
+  },
+  {
+    title: 'Operations',
+    items: [
+      { label: 'POS', to: '/dashboard/pos', icon: ShoppingCart },
+      { label: 'Products', to: '/dashboard/products', icon: PackageCheck },
+      { label: 'Sales', to: '/dashboard/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/dashboard/receipts', icon: FileText },
+      { label: 'Purchases', to: '/dashboard/purchases', icon: Truck },
+      { label: 'Sale Returns', to: '/dashboard/sale-returns', icon: Undo2 },
+      { label: 'Purchase Returns', to: '/dashboard/purchase-returns', icon: ArrowLeftToLine },
+      { label: 'Orders', to: '/dashboard/orders', icon: Package2 },
+      { label: 'Quotations', to: '/dashboard/quotations', icon: FileText },
+      { label: 'Inventory', to: '/dashboard/inventory', icon: AlertTriangle },
+      { label: 'Workers', to: '/dashboard/workers', icon: Users },
+      { label: 'Customers', to: '/dashboard/customers', icon: Users2, settingKey: 'customers' },
+      { label: 'Suppliers', to: '/dashboard/suppliers', icon: Truck, settingKey: 'suppliers' },
+    ],
+  },
+  {
+    title: 'Financials',
+    items: [
+      { label: 'Dashboard', to: '/dashboard/finance', icon: Wallet },
+    ],
+  },
+  {
+    title: 'Performance',
+    items: [
+      { label: 'Analytics', to: '/dashboard/analytics', icon: BarChart3 },
+      { label: 'Reports', to: '/dashboard/reports', icon: TrendingUp, settingKey: 'reports' },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { label: 'Notifications', to: '/dashboard/notifications', icon: Bell },
+      { label: 'Messages', to: '/dashboard/messages', icon: MessageSquare },
+      { label: 'Promotions', to: '/dashboard/promotions', icon: Gift, settingKey: 'promotions' },
+      { label: 'Attendance', to: '/dashboard/attendance', icon: CalendarCheck, settingKey: 'attendance' },
+    ],
+  },
+];
+
+type OperationsSidebarProps = {
+  onNavigate?: () => void;
+};
+
+export const OperationsSidebar = ({ onNavigate }: OperationsSidebarProps) => {
+  const { data } = useLoggedinUserQuery();
+  const features = useFeatureSettings();
+
+  const filteredSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.settingKey && !features[item.settingKey as keyof typeof features]) return false;
+        return true;
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  return (
+    <nav className='flex flex-col h-full'>
+      <div className='px-4 py-2 border-b border-border'>
+        <h2 className='text-lg font-semibold tracking-tight'>Operations Panel</h2>
+        <p className='text-xs text-muted-foreground mt-1'>Branch Management</p>
+      </div>
+
+      <div className='flex-1 overflow-y-auto p-3 space-y-8'>
+        {data && data?.data.business ? (
+          filteredSections.map((section) => (
+            <div key={section.title} className='space-y-1'>
+              <h4 className='px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2'>
+                {section.title}
+              </h4>
+
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={onNavigate}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                        isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground',
+                      )
+                    }
+                  >
+                    <Icon className='h-4 w-4' />
+                    {item.label}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))
+        ) : (
+          <div className='p-4 text-center text-muted-foreground'>
+            <p>No business data available</p>
+          </div>
+        )}
+      </div>
+
+      <div className='border-t border-border p-4'>{data && <UserProfile data={data} />}</div>
+    </nav>
+  );
+};

@@ -141,7 +141,7 @@ class UserController extends Controller
         }
     }
 
-    // create account for admin with plan subscription
+    // create account for executive with plan subscription
     public function signup(StoreUserRequest $request)
     {
         try {

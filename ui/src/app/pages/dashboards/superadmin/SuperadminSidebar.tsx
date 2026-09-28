@@ -23,8 +23,8 @@ export const SuperadminSidebar = ({ onNavigate }: SuperadminSidebarProps) => {
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
-        <h2 className='text-lg font-semibold tracking-tight'>Super Admin</h2>
-        <p className='text-xs text-muted-foreground mt-1'>System Administration</p>
+        <h2 className='text-lg font-semibold tracking-tight'>Super Executive</h2>
+        <p className='text-xs text-muted-foreground mt-1'>System Executiveistration</p>
       </div>
       <div className='flex-1 overflow-y-auto p-3 space-y-1'>
         {navItems.map((item) => {

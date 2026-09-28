@@ -8,7 +8,7 @@ import { SuperadminSubscriptionShow } from '../pages/dashboards/superadmin/pages
 import { SuperadminSubscriptionPaymentsPage } from '../pages/dashboards/superadmin/pages/SuperadminSubscriptionPaymentsPage';
 import { SuperadminSubscriptionPaymentShow } from '../pages/dashboards/superadmin/pages/SuperadminSubscriptionPaymentShow';
 import { SuperadminSettingsPage } from '../pages/dashboards/superadmin/pages/SuperadminSettingsPage';
-import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminPaymentGatewaysPage';
+import { ExecutivePaymentGatewaysPage } from '../pages/dashboards/executive/pages/ExecutivePaymentGatewaysPage';
 
 export const SuperadminRoutes = () => (
   <Routes>
@@ -20,7 +20,7 @@ export const SuperadminRoutes = () => (
       <Route path='subscriptions/:id' element={<SuperadminSubscriptionShow />} />
       <Route path='subscription-payments' element={<SuperadminSubscriptionPaymentsPage />} />
       <Route path='subscription-payments/:id' element={<SuperadminSubscriptionPaymentShow />} />
-      <Route path='payment-gateways' element={<AdminPaymentGatewaysPage />} />
+      <Route path='payment-gateways' element={<ExecutivePaymentGatewaysPage />} />
       <Route path='settings' element={<SuperadminSettingsPage />} />
     </Route>
   </Routes>

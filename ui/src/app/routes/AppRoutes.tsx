@@ -6,7 +6,7 @@ import { About } from '../pages/public/About';
 import { Documentation } from '../pages/public/Documentation';
 import { Login } from '../pages/public/Login';
 import { SignUp } from '../pages/public/SignUp';
-import { AdminRoutes } from './AdminRoutes';
+import { ExecutiveRoutes } from './ExecutiveRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { OperationsRoutes } from './OperationsRoutes';
 import { StaffDashboard } from './StaffDashboard';
@@ -35,7 +35,7 @@ export const AppRoutes = () => {
       <Route path='documentation' element={<Documentation />} />
 
       {/* Role-based protected routes */}
-      {role === 'Executive' && <Route path='/*' element={<AdminRoutes />} />}
+      {role === 'Executive' && <Route path='/*' element={<ExecutiveRoutes />} />}
       {role === 'CoreSupport' && <Route path='/*' element={<SuperadminRoutes />} />}
       {role === 'Operations' && <Route path='/*' element={<OperationsRoutes />} />}
       {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}

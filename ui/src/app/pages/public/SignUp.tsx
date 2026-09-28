@@ -70,7 +70,7 @@ export const SignUp: React.FC = () => {
         if (res) {
           toast.success(res.message);
         }
-        return (window.location.href = '/admin');
+        return (window.location.href = '/dashboard');
       } else {
         await register(formState).unwrap();
         toast.success('Account created successfully');
@@ -202,7 +202,7 @@ export const SignUp: React.FC = () => {
                   <SelectValue placeholder='Select role' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='admin'>Admin</SelectItem>
+                  <SelectItem value='executive'>Executive</SelectItem>
                   <SelectItem value='user'>User</SelectItem>
                 </SelectContent>
               </Select>

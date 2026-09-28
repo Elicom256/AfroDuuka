@@ -13,7 +13,7 @@ export const SuperadminLayout = () => {
       <div className='border-b border-border/70 bg-background/80 p-4 shadow-sm shadow-slate-950/5 backdrop-blur md:hidden'>
         <div className='container mx-auto flex items-center justify-between gap-4'>
           <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground'>Super Admin</p>
+            <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground'>Super Executive</p>
             <h1 className='text-lg font-semibold'>DuukaFlow System</h1>
           </div>
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
