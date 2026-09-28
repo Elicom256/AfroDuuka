@@ -129,6 +129,10 @@ Route::prefix("purchase-orders")->group(function () {
     require __DIR__."/purchase-orders.php";
 });
 
+Route::prefix("procurement")->group(function () {
+    require __DIR__."/procurement.php";
+});
+
 Route::prefix("quotations")->group(function () {
     require __DIR__."/quotations.php";
 });

@@ -121,7 +121,7 @@ class RecipientProvisioner
     {
         $user = User::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->whereHas('role', fn ($q) => $q->where('name', 'admin'))
+            ->whereHas('role', fn ($q) => $q->where('name', 'Executive'))
             ->first();
 
         return $user ?? User::withoutGlobalScopes()->where('business_id', $business->id)->first();

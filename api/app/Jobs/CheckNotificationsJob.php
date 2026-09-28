@@ -73,7 +73,7 @@ class CheckNotificationsJob implements ShouldQueue
         }
 
         return Business::whereHas('users', function ($q) {
-            $q->whereHas('role', fn ($r) => $r->where('name', 'admin'));
+            $q->whereHas('role', fn ($r) => $r->where('name', 'Executive'));
         })->get();
     }
 
@@ -89,7 +89,7 @@ class CheckNotificationsJob implements ShouldQueue
         return User::query()
             ->where('business_id', $business->id)
             ->where('status', 'active')
-            ->whereHas('role', fn ($q) => $q->where('name', 'admin'))
+            ->whereHas('role', fn ($q) => $q->where('name', 'Executive'))
             ->get();
     }
 

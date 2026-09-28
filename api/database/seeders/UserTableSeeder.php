@@ -26,22 +26,22 @@ class UserTableSeeder extends Seeder
         $business_id = $business->id;
 
         // =============================================
-        // SUPER ADMIN (1)
+        // CORE SUPPORT (1)
         // =============================================
         User::updateOrCreate(
-            ['email' => 'superadmin@gmail.com'],
+            ['email' => 'coresupport@gmail.com'],
             [
-                'firstname'          => 'Super',
-                'lastname'           => 'Admin',
-                'username'           => '@superadmin',
+                'firstname'          => 'Core',
+                'lastname'           => 'Support',
+                'username'           => '@coresupport',
                 'password'           => Hash::make('password'),
                 'phone'              => '0781000001',
-                'role_id'            => Role::where('name', "superadmin")->value('id'),
+                'role_id'            => Role::where('name', "CoreSupport")->value('id'),
                 'status'             => 'active',
                 'nin'                => 'CM' . rand(10000000, 99999999),
             ]
         );
-        $this->command->info("✅ Super Admin created: superadmin@gmail.com");
+        $this->command->info("✅ Core Support created: coresupport@gmail.com");
 
         // =============================================
         // SITE ADMINS (3)
@@ -75,13 +75,13 @@ class UserTableSeeder extends Seeder
         // Define users with role names (clean mapping)
         $users = [
             "Mikel Arteta" => [
-                "email" => "admin@gmail.com",
-                "role" => "admin",
+                "email" => "executive@gmail.com",
+                "role" => "Executive",
                  "phone" => "0781490833"
             ],
             "Martin Odegaard" => [
                 "email" => "odegaard@gmail.com",
-                "role" => "manager",
+                "role" => "Operations",
                 "phone" => "0781490811"
             ],
             "Bukayo Saka" => [
@@ -91,8 +91,13 @@ class UserTableSeeder extends Seeder
             ],
             "Declan Rice" => [
                 "email" => "rice@gmail.com",
-                "role" => "staff",
+                "role" => "Operations",
                 "phone" => "0781490822"
+            ],
+            "John Cleaner" => [
+                "email" => "cleaner@gmail.com",
+                "role" => "Other Staff",
+                "phone" => "0781490844"
             ],
         ];
         $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id")

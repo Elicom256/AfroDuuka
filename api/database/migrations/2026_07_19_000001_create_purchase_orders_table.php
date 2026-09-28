@@ -16,7 +16,12 @@ return new class extends Migration
             $table->foreignId("supplier_id")->nullable()->constrained()->nullOnDelete();
             $table->string("order_number")->unique();
             $table->decimal("total_amount", 12, 2)->default(0);
-            $table->enum("status", ["pending", "approved", "cancelled"])->default("pending");
+            $table->enum("status", ["draft", "pending", "approved", "ordered", "partially_received", "received", "cancelled"])->default("draft");
+            $table->date("order_date")->nullable();
+            $table->date("expected_delivery_date")->nullable();
+            $table->foreignId("approved_by")->nullable()->constrained("users")->nullOnDelete();
+            $table->timestamp("received_at")->nullable();
+            $table->foreignId("received_by")->nullable()->constrained("users")->nullOnDelete();
             $table->text("notes")->nullable();
             $table->timestamps();
         });
@@ -26,6 +31,7 @@ return new class extends Migration
             $table->foreignId("purchase_order_id")->constrained()->cascadeOnDelete();
             $table->foreignId("product_id")->constrained()->cascadeOnDelete();
             $table->integer("quantity");
+            $table->integer("received_quantity")->default(0);
             $table->decimal("unit_price", 12, 2);
             $table->decimal("subtotal", 12, 2);
             $table->timestamps();
