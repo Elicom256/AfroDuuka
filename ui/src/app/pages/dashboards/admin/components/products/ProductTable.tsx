@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { EditProduct } from './EditProduct';
 import { useNavigate } from 'react-router-dom';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 interface Product {
   id: string;
@@ -43,6 +44,7 @@ export const ProductTable = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const itemsPerPage = 8;
   const navigate = useNavigate();
+  const { canDelete } = useRolePermissions();
 
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
@@ -156,15 +158,17 @@ export const ProductTable = () => {
                           <Button variant='outline' size='icon' onClick={() => openEditDialog(product)}>
                             <PencilLine className='h-4 w-4' />
                           </Button>
-                          {/* <Button
-                            variant='outline'
-                            size='icon'
-                            className='text-destructive hover:text-destructive'
-                            onClick={() => handleDelete(product.id)}
-                            disabled={isDeleting}
-                          >
-                            <Trash2 className='h-4 w-4' />
-                          </Button> */}
+                          {canDelete && (
+                            <Button
+                              variant='outline'
+                              size='icon'
+                              className='text-destructive hover:text-destructive'
+                              onClick={() => handleDelete(product.id)}
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className='h-4 w-4' />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -30,7 +30,8 @@ class PaymentMethodPolicy
 
     public function delete(User $user, PaymentMethod $paymentMethod): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     public function restore(User $user, PaymentMethod $paymentMethod): bool
@@ -40,6 +41,7 @@ class PaymentMethodPolicy
 
     public function forceDelete(User $user, PaymentMethod $paymentMethod): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

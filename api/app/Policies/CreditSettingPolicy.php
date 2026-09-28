@@ -45,7 +45,8 @@ class CreditSettingPolicy
      */
     public function delete(User $user, CreditSetting $creditSetting): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class CreditSettingPolicy
      */
     public function forceDelete(User $user, CreditSetting $creditSetting): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

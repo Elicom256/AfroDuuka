@@ -30,7 +30,8 @@ class QuotationPolicy
 
     public function delete(User $user, Quotation $quotation): bool
     {
-        return $this->isWithinBranchSet($user, $quotation);
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     private function isWithinBranchSet(User $user, Quotation $quotation): bool

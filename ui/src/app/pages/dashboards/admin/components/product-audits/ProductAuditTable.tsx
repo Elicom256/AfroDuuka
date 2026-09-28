@@ -6,6 +6,7 @@ import { Eye, FileText, ThumbsUp, XCircle, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { format } from 'date-fns';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -35,7 +36,9 @@ export const ProductAuditTable = ({
   onEdit,
   onDelete,
   onCancel,
-}: Props) => (
+}: Props) => {
+  const { canDelete } = useRolePermissions();
+  return (
   <Card className='rounded-3xl border border-border/70 bg-card/80 shadow-sm'>
     <CardContent className='p-0'>
       <Table>
@@ -90,7 +93,7 @@ export const ProductAuditTable = ({
                         <XCircle className='h-4 w-4 text-orange-500' />
                       </Button>
                     )}
-                    {(audit.status === 'draft' || audit.status === 'cancelled') && (
+                    {(audit.status === 'draft' || audit.status === 'cancelled') && canDelete && (
                       <Button variant='ghost' size='icon' onClick={() => onDelete(audit.id)}>
                         <Trash2 className='h-4 w-4 text-red-500' />
                       </Button>
@@ -114,4 +117,5 @@ export const ProductAuditTable = ({
       )}
     </CardContent>
   </Card>
-);
+  );
+};

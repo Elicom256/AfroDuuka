@@ -45,7 +45,8 @@ class PromotionsSettingsPolicy
      */
     public function delete(User $user, PromotionsSettings $promotionsSettings): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class PromotionsSettingsPolicy
      */
     public function forceDelete(User $user, PromotionsSettings $promotionsSettings): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

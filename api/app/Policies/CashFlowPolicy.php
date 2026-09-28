@@ -45,7 +45,8 @@ class CashFlowPolicy
      */
     public function delete(User $user, CashFlow $cashFlow): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class CashFlowPolicy
      */
     public function forceDelete(User $user, CashFlow $cashFlow): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

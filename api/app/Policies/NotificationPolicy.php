@@ -45,7 +45,8 @@ class NotificationPolicy
      */
     public function delete(User $user, Notification $notification): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class NotificationPolicy
      */
     public function forceDelete(User $user, Notification $notification): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

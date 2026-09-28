@@ -6,12 +6,14 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Mail, Phone, MapPin, User, Building2, Hash, Trash2 } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export const Supplier = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, error, isLoading } = useSupplierQuery(id!, { skip: !id });
   const [destroy, { isLoading: deleting }] = useDeleteSupplierMutation();
+  const { canDelete } = useRolePermissions();
   const supplier = data?.supplier;
   const user = supplier?.user;
 
@@ -50,7 +52,7 @@ export const Supplier = () => {
         </div>
 
         <div className=''>
-          <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />
+          {canDelete && <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />}
         </div>
       </div>
 

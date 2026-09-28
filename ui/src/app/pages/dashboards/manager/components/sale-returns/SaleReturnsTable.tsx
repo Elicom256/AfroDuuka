@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 interface SaleReturnsTableProps {
   saleReturns: any[];
@@ -13,6 +14,7 @@ export const SaleReturnsTable = ({ saleReturns }: SaleReturnsTableProps) => {
   const { currency } = useCurrency();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  useRolePermissions();
   const itemsPerPage = 10;
 
   const totalPages = Math.ceil((saleReturns?.length || 0) / itemsPerPage);
