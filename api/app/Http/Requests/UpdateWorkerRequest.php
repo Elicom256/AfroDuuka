@@ -19,7 +19,7 @@ class UpdateWorkerRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
-        $role_id = Role::where("business_id", $user->business_id)->where("name", "worker")->value("id");
+        $role_id = Role::where("business_id", $user->business_id)->where("name", "Operations")->value("id");
         $this->merge([
             "business_id"        => $user->business_id,
             "status" => $this->input("status", "active"),

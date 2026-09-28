@@ -77,6 +77,7 @@ import { AdminFinancialAuditsPage } from '../pages/dashboards/admin/pages/AdminF
 import { AdminFinancialAuditPage } from '../pages/dashboards/admin/pages/AdminFinancialAuditPage';
 import { AdminFinancialAuditReportPage } from '../pages/dashboards/admin/pages/AdminFinancialAuditReportPage';
 import { AdminTaxPage } from '../pages/dashboards/admin/pages/AdminTaxPage';
+import { ProcurementRoutes } from './ProcurementRoutes';
 
 export const AdminRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -165,6 +166,7 @@ export const AdminRoutes = () => {
           <Route path='financial-audits/:id' element={<AdminFinancialAuditPage />} />
           <Route path='financial-audits/:id/report' element={<AdminFinancialAuditReportPage />} />
           <Route path='tax' element={<AdminTaxPage />} />
+          <Route path='procurement/*' element={<ProcurementRoutes />} />
         </Route>
       </Route>
 

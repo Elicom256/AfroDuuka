@@ -21,7 +21,7 @@ class StoreSubscriptionRequest extends FormRequest
         if ($user->business_id) {
             $businessId = $user->business_id;
         } elseif (!$this->filled('business_id')) {
-            abort(422, 'business_id is required for superadmin subscriptions.');
+            abort(422, 'business_id is required for CoreSupport subscriptions.');
         } else {
             $businessId = $this->input('business_id');
         }

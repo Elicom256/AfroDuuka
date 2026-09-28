@@ -49,14 +49,14 @@ class BusinessService
         // Dispatch business registration event
         event(new BusinessRegistered($business));
 
-        // Create the admin role for this business
-        $adminRole = Role::create([
-            'name' => 'admin',
+        // Create the Executive role for this business
+        $executiveRole = Role::create([
+            'name' => 'Executive',
             'business_id' => $business->id,
         ]);
 
         $existingRoleNames = Role::where('business_id', $business->id)->pluck('name')->all();
-        $new_roles = ['admin', 'manager', 'editor', 'staff', 'worker', 'customer', 'supplier'];
+        $new_roles = ['Operations', 'Other Staff', 'editor', 'customer', 'supplier'];
         foreach ($new_roles as $new_role) {
             if (in_array($new_role, $existingRoleNames, true)) {
                 continue;
@@ -70,7 +70,7 @@ class BusinessService
         // Update the user's profile with business_id and role_id
         $user->update([
             'business_id' => $business->id,
-            'role_id' => $adminRole->id,
+            'role_id' => $executiveRole->id,
         ]);
         BusinessBranch::create([
             'business_id' => $business->id,

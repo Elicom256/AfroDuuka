@@ -38,7 +38,7 @@ class FinanceController extends Controller
     private function authorizeSensitiveFinance(): void
     {
         $role = strtolower((string) Auth::user()?->role?->name);
-        abort_unless(in_array($role, ['admin', 'manager', 'superadmin', 'siteadmin'], true), 403, 'This financial action requires an authorized role.');
+        abort_unless(in_array($role, ['executive', 'operations', 'other staff', 'coresupport', 'siteadmin'], true), 403, 'This financial action requires an authorized role.');
     }
 
     public function dashboard()

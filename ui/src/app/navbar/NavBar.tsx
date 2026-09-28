@@ -50,14 +50,14 @@ export const NavBar: React.FC = () => {
         </nav>
 
         <div className='hidden items-center gap-2 md:flex'>
-          {data && role === 'admin' ? (
+          {data && role === 'Executive' ? (
             <Link to='/admin'>Dashboard</Link>
-          ) : role === 'manager' ? (
+          ) : role === 'Operations' || role === 'Other Staff' ? (
             <Link to='/manager'>Dashboard</Link>
           ) : role === 'staff' ? (
             <Link to='/staff'>Dashboard</Link>
-          ) : role === 'superadmin' ? (
-            <Link to='/superadmin'>Dashboard</Link>
+          ) : role === 'CoreSupport' ? (
+            <Link to='/coresupport'>Dashboard</Link>
           ) : (
             <Button asChild size='sm'>
               <Link to='/login'>Try It</Link>

@@ -36,8 +36,8 @@ class BusinessContextTest extends TestCase
         $a = Business::factory()->create();
         $b = Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $a->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $b->id, 'name' => 'admin']);
+        Role::factory()->create(['business_id' => $a->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $b->id, 'name' => 'Executive']);
 
         $this->assertSame(2, Role::count());
     }
@@ -47,8 +47,8 @@ class BusinessContextTest extends TestCase
         $mine = Business::factory()->create();
         $other = Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $other->id, 'name' => 'admin']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $other->id, 'name' => 'Executive']);
 
         $seen = app(BusinessContext::class)->run($mine->id, fn () => Role::count());
 
@@ -60,16 +60,17 @@ class BusinessContextTest extends TestCase
         $mine = Business::factory()->create();
         Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'manager']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Operations']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Other Staff']);
 
         $context = app(BusinessContext::class);
 
         $seen = $context->run($mine->id, fn () => Role::count());
 
-        $this->assertSame(2, $seen);
+        $this->assertSame(3, $seen);
         $this->assertNull($context->businessId());
-        $this->assertSame(2, Role::count(), 'Scope survived the callback.');
+        $this->assertSame(3, Role::count(), 'Scope survived the callback.');
     }
 
     public function test_the_context_is_restored_after_a_nested_run(): void
@@ -77,8 +78,8 @@ class BusinessContextTest extends TestCase
         $outer = Business::factory()->create();
         $inner = Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $outer->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $inner->id, 'name' => 'admin']);
+        Role::factory()->create(['business_id' => $outer->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $inner->id, 'name' => 'Executive']);
 
         $context = app(BusinessContext::class);
 
@@ -164,7 +165,7 @@ class BusinessContextTest extends TestCase
 
         $role = app(BusinessContext::class)->run(
             $mine->id,
-            fn () => Role::create(['name' => 'admin'])
+            fn () => Role::create(['name' => 'Executive'])
         );
 
         $this->assertSame($mine->id, $role->fresh()->business_id);
@@ -175,13 +176,14 @@ class BusinessContextTest extends TestCase
         $mine = Business::factory()->create();
         Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $mine->id, 'name' => 'manager']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Operations']);
+        Role::factory()->create(['business_id' => $mine->id, 'name' => 'Other Staff']);
 
         $context = app(BusinessContext::class);
         $context->set($mine->id);
 
-        $this->assertSame(2, Role::count());
+        $this->assertSame(3, Role::count());
 
         $context->clear();
 
@@ -193,8 +195,8 @@ class BusinessContextTest extends TestCase
         $first = Business::factory()->create();
         $second = Business::factory()->create();
 
-        Role::factory()->create(['business_id' => $first->id, 'name' => 'admin']);
-        Role::factory()->create(['business_id' => $second->id, 'name' => 'admin']);
+        Role::factory()->create(['business_id' => $first->id, 'name' => 'Executive']);
+        Role::factory()->create(['business_id' => $second->id, 'name' => 'Executive']);
 
         $context = app(BusinessContext::class);
 
