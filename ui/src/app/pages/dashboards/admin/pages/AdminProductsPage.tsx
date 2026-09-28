@@ -9,12 +9,14 @@ import { AddProductCategory } from '../components/products/AddProductCategory';
 import { ProductTable } from '../components/products/ProductTable';
 import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export const AdminProductsPage = () => {
   const [addProduct] = useAddProductMutation();
   const { data: branchesData } = useBranchesQuery();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const branches = branchesData?.branches ?? branchesData ?? [];
+  const { canCreate } = useRolePermissions();
 
   return (
     <div className='space-y-6'>
@@ -45,8 +47,8 @@ export const AdminProductsPage = () => {
                 ))}
               </SelectContent>
             </Select>
-            <AddProduct addProduct={addProduct} />
-            <AddProductCategory />
+            {canCreate && <AddProduct addProduct={addProduct} />}
+            {canCreate && <AddProductCategory />}
           </div>
         </CardHeader>
         <CardContent className='flex flex-wrap items-center gap-3 border-t border-border/60 pt-4'>

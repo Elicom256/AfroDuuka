@@ -45,7 +45,8 @@ class SalePaymentPolicy
      */
     public function delete(User $user, SalePayment $salePayment): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class SalePaymentPolicy
      */
     public function forceDelete(User $user, SalePayment $salePayment): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

@@ -45,7 +45,8 @@ class BusinessCreditPolicy
      */
     public function delete(User $user, BusinessCredit $businessCredit): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -61,6 +62,7 @@ class BusinessCreditPolicy
      */
     public function forceDelete(User $user, BusinessCredit $businessCredit): bool
     {
-        return false;
+        $role = strtolower((string) $user->role?->name);
+        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
     }
 }

@@ -92,7 +92,7 @@ class StageZeroRepairTest extends TestCase
         $user = $this->onboardingUser();
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/admin/business', $this->registerBusinessPayload());
+        $response = $this->postJson('/api/dashboard/business', $this->registerBusinessPayload());
 
         $response->assertCreated();
 
@@ -110,7 +110,7 @@ class StageZeroRepairTest extends TestCase
         $user = $this->onboardingUser();
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/admin/business', $this->registerBusinessPayload())->assertCreated();
+        $this->postJson('/api/dashboard/business', $this->registerBusinessPayload())->assertCreated();
 
         $business = Business::where('name', 'Acme Traders')->firstOrFail();
 
@@ -127,7 +127,7 @@ class StageZeroRepairTest extends TestCase
 
         Sanctum::actingAs($this->onboardingUser());
 
-        $this->postJson('/api/admin/business', $this->registerBusinessPayload([
+        $this->postJson('/api/dashboard/business', $this->registerBusinessPayload([
             'country_id' => $kenya->id,
         ]))->assertCreated();
 
@@ -180,7 +180,7 @@ class StageZeroRepairTest extends TestCase
         $this->seedDefaultCountry();
         Sanctum::actingAs($this->onboardingUser());
 
-        $this->postJson('/api/admin/business', $this->registerBusinessPayload())->assertCreated();
+        $this->postJson('/api/dashboard/business', $this->registerBusinessPayload())->assertCreated();
 
         // The welcome message must travel the event -> listener path exactly once.
         // BusinessService used to also call the notification service directly, which

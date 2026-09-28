@@ -9,6 +9,7 @@ import { Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export type WorkerItem = {
   id: number;
@@ -34,6 +35,7 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
   const [currentPage, setCurrentPage] = useState(1);
 
   const navigate = useNavigate();
+  const { canDelete } = useRolePermissions();
 
   const submitAttendance = async () => {
     const attendances = (workers || []).map((w: any) => ({
@@ -191,17 +193,19 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
                   >
                     <Edit3 className='h-4 w-4' />
                   </Button>
-                  <Button
-                    size='icon-sm'
-                    variant='destructive'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(worker);
-                    }}
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
+                  {canDelete && (
+                    <Button
+                      size='icon-sm'
+                      variant='destructive'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(worker);
+                      }}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
