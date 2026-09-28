@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import {
-  useGetAdminPlansQuery,
+  useGetExecutivePlansQuery,
   useCreatePlanMutation,
   useUpdatePlanMutation,
   useDeletePlanMutation,
-} from '@/app/store/features/plans/adminPlansQuery';
+} from '@/app/store/features/plans/executivePlansQuery';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +38,7 @@ import { CreditCard, Plus, Pencil, Trash2, Loader2, CheckCircle2, XCircle } from
 import { toast } from 'sonner';
 
 export const SuperadminPlansPage = () => {
-  const { data, isLoading } = useGetAdminPlansQuery();
+  const { data, isLoading } = useGetExecutivePlansQuery();
   const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
   const [updatePlan, { isLoading: isUpdating }] = useUpdatePlanMutation();
   const [deletePlan, { isLoading: isDeleting }] = useDeletePlanMutation();

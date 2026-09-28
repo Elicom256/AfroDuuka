@@ -29,28 +29,28 @@ import { paymentSettingsQuery } from '../features/business/settings/payment';
 import { promotionsSettingsQuery } from '../features/business/settings/promotions';
 import { reportsSettingsQuery } from '../features/business/settings/reports';
 import { supplierSettingsQuery } from '../features/business/settings/supplier';
-import { adminAttendanceQuery } from '../features/business/admin/attendanceQuery';
-import { adminEmployeeRemunerationQuery } from '../features/business/admin/employeeRemunerationQuery';
-import { adminBusinessActivityLogsQuery } from '../features/business/admin/businessActivityLogsQuery';
-import { currencyRatesQuery } from '../features/business/admin/currencyRatesQuery';
-import { paymentGatewaysQuery } from '../features/business/admin/paymentGatewaysQuery';
-import { whatsappQuery } from '../features/business/admin/whatsappQuery';
-import { printersQuery } from '../features/business/admin/printersQuery';
-import { stockTransfersQuery } from '../features/business/admin/stockTransfersQuery';
-import { reorderRulesQuery } from '../features/business/admin/reorderRulesQuery';
-import { loyaltyQuery } from '../features/business/admin/loyaltyQuery';
-import { employeeSalaryQuery } from '../features/business/admin/employeeSalaryQuery';
+import { executiveAttendanceQuery } from '../features/business/executive/attendanceQuery';
+import { executiveEmployeeRemunerationQuery } from '../features/business/executive/employeeRemunerationQuery';
+import { executiveBusinessActivityLogsQuery } from '../features/business/executive/businessActivityLogsQuery';
+import { currencyRatesQuery } from '../features/business/executive/currencyRatesQuery';
+import { paymentGatewaysQuery } from '../features/business/executive/paymentGatewaysQuery';
+import { whatsappQuery } from '../features/business/executive/whatsappQuery';
+import { printersQuery } from '../features/business/executive/printersQuery';
+import { stockTransfersQuery } from '../features/business/executive/stockTransfersQuery';
+import { reorderRulesQuery } from '../features/business/executive/reorderRulesQuery';
+import { loyaltyQuery } from '../features/business/executive/loyaltyQuery';
+import { employeeSalaryQuery } from '../features/business/executive/employeeSalaryQuery';
 import { countriesQuery } from '../features/countries/countriesQuery';
-import { cashFlowQuery } from '../features/business/admin/cashFlowQuery';
+import { cashFlowQuery } from '../features/business/executive/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
 import { todoQuery } from '../features/todos/todoQuery';
 import { plansQuery } from '../features/plans/plansQuery';
-import { adminPlansQuery } from '../features/plans/adminPlansQuery';
+import { executivePlansQuery } from '../features/plans/executivePlansQuery';
 import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
 import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
 import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
-import { expenseCategoriesQuery } from '../features/business/admin/expenseCategoriesQuery';
-import { expenseQuery } from '../features/business/admin/expenseQuery';
+import { expenseCategoriesQuery } from '../features/business/executive/expenseCategoriesQuery';
+import { expenseQuery } from '../features/business/executive/expenseQuery';
 import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQuery';
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
 import { posQuery } from '../features/branch/pos/posQuery';
@@ -88,9 +88,9 @@ export const store = configureStore({
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
-    [adminAttendanceQuery.reducerPath]: adminAttendanceQuery.reducer,
-    [adminEmployeeRemunerationQuery.reducerPath]: adminEmployeeRemunerationQuery.reducer,
-    [adminBusinessActivityLogsQuery.reducerPath]: adminBusinessActivityLogsQuery.reducer,
+    [executiveAttendanceQuery.reducerPath]: executiveAttendanceQuery.reducer,
+    [executiveEmployeeRemunerationQuery.reducerPath]: executiveEmployeeRemunerationQuery.reducer,
+    [executiveBusinessActivityLogsQuery.reducerPath]: executiveBusinessActivityLogsQuery.reducer,
     [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
     [paymentGatewaysQuery.reducerPath]: paymentGatewaysQuery.reducer,
     [whatsappQuery.reducerPath]: whatsappQuery.reducer,
@@ -111,7 +111,7 @@ export const store = configureStore({
     [aiQuery.reducerPath]: aiQuery.reducer,
     [todoQuery.reducerPath]: todoQuery.reducer,
     [plansQuery.reducerPath]: plansQuery.reducer,
-    [adminPlansQuery.reducerPath]: adminPlansQuery.reducer,
+    [executivePlansQuery.reducerPath]: executivePlansQuery.reducer,
     [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
     [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
     [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
@@ -157,9 +157,9 @@ export const store = configureStore({
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       attachmentsQuery.middleware,
-      adminAttendanceQuery.middleware,
-      adminEmployeeRemunerationQuery.middleware,
-      adminBusinessActivityLogsQuery.middleware,
+      executiveAttendanceQuery.middleware,
+      executiveEmployeeRemunerationQuery.middleware,
+      executiveBusinessActivityLogsQuery.middleware,
       currencyRatesQuery.middleware,
       paymentGatewaysQuery.middleware,
       whatsappQuery.middleware,
@@ -180,7 +180,7 @@ export const store = configureStore({
       aiQuery.middleware,
       todoQuery.middleware,
       plansQuery.middleware,
-      adminPlansQuery.middleware,
+      executivePlansQuery.middleware,
       subscriptionsQuery.middleware,
       subscriptionPaymentsQuery.middleware,
       superAdminBusinessesQuery.middleware,

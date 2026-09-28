@@ -26,7 +26,7 @@ use Barryvdh\DomPDF\PDF as DomPdf;
  * more than one row, which in practice is never — it survives so that a payload from a
  * trigger that predates per-branch reporting still renders rather than losing figures.
  *
- * render() is public so that the admin reports download and the email attachment go
+ * render() is public so that the executive reports download and the email attachment go
  * through the same renderer and the same view. A second copy of this layout is the way
  * the downloadable PDF and the emailed PDF end up disagreeing.
  */

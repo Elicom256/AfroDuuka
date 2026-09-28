@@ -47,7 +47,7 @@ class EffectiveBranchScope
      *
      * This deliberately reuses branchesFor() so the permitted set can never drift from
      * the rows the scope actually admits. Asking the scope first is not enough on its
-     * own: a business admin's scope admits every branch of their business, so a
+     * own: a business executive's scope admits every branch of their business, so a
      * branch_id typed into a query string would otherwise be treated as a permission
      * when it is only a preference.
      *

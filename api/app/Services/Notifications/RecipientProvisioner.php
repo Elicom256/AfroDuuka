@@ -106,7 +106,7 @@ class RecipientProvisioner
     }
 
     /**
-     * The business owner, i.e. the user on the admin role.
+     * The business owner, i.e. the user on the executive role.
      *
      * The user's own details are preferred over the business's throughout. At
      * registration they are the same value, but if an owner later changes their profile

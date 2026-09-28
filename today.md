@@ -1,4 +1,4 @@
-**You're a staff full stack software engineer:**
+**You're a staff full stack software engineer:** __
 
 # AfroDuuka — Phase 0: Dashboard Naming + Procurement Foundation
 
@@ -22,8 +22,8 @@ We are replacing the old dashboard terminology with modern business terminology.
 ## Current → New
 
 ```text
-Superadmin → Executive(Owner)
-Admin      → Operations(Record sales, purchases, etc)
+Admin → Executive(Owner)
+Manager      → Operations(Record sales, purchases, etc)
 ```
 
 And introduce:
@@ -45,11 +45,12 @@ First inspect the project and identify every place where the existing dashboard 
 Search both backend and frontend for concepts related to:
 
 ```text
-Superadmin
-superadmin
-super-admin
 Admin
 admin
+Admin
+admin
+manager
+Manager
 dashboard
 ```
 
@@ -108,15 +109,15 @@ Inspect and update:
 The desired terminology should be:
 
 ```text
-Executive
-Operations
+Executive->previously admin
+Operations->previously manager
 Procurement
 ```
 
 For example, if the current architecture has:
 
 ```text
-SuperadminController
+AdminController
 ```
 
 determine whether it should become something equivalent to:
@@ -128,7 +129,7 @@ ExecutiveController
 If there is:
 
 ```text
-AdminController
+ManagerController
 ```
 
 and that controller actually represents the operational staff workspace, rename it appropriately to:
@@ -157,7 +158,7 @@ Just edit it directly, the project is not yet in production
 If existing role/dashboard records contain values such as:
 
 ```text
-superadmin
+manager
 admin
 ```
 
@@ -166,8 +167,8 @@ determine whether these represent actual persisted role identifiers.
 If so, migrate the existing records safely to the new naming:
 
 ```text
-superadmin → Executive
-admin → operations
+admin → Executive
+manager → operations
 ```
 
 Do not create duplicate roles accidentally.
@@ -179,9 +180,9 @@ Do not create duplicate roles accidentally.
 Refactor the React frontend to use:
 
 ```text
-Executive
-Operations
-Procurement
+Executive - Replacing Currently Admin
+Operations - Replacing currently Manager
+Procurement - New
 ```
 
 Update:
@@ -735,3 +736,5 @@ At the beginning, report:
 7. Any naming conflicts or risky changes discovered
 
 Then implement the changes incrementally.
+**NB:** *First check if a module has been implemented already to avoid duplication or unnecessary work*
+ *Manager and Admin have not yet been fully renamed to what we need, so rename them wholy, meaning we expect no file that has the word admin in it*

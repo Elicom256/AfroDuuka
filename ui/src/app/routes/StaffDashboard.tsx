@@ -5,8 +5,8 @@ import { StaffSalesPage } from '../pages/dashboards/staff/pages/StaffSalesPage';
 import { StaffProductsPage } from '../pages/dashboards/staff/pages/StaffProductsPage';
 import { StaffInventoryPage } from '../pages/dashboards/staff/pages/StaffInventoryPage';
 import { StaffSalesOverviewPage } from '../pages/dashboards/staff/pages/StaffSalesOverviewPage';
-import { AdminReceiptsPage } from '../pages/dashboards/admin/pages/AdminReceiptsPage';
-import { ReceiptDetail } from '../pages/dashboards/admin/components/receipts/Receipt';
+import { ExecutiveReceiptsPage } from '../pages/dashboards/executive/pages/ExecutiveReceiptsPage';
+import { ReceiptDetail } from '../pages/dashboards/executive/components/receipts/Receipt';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
@@ -23,7 +23,7 @@ export const StaffDashboard = () => {
         <Route path='products' element={<StaffProductsPage />} />
         <Route path='inventory' element={<StaffInventoryPage />} />
         <Route path='sales-overview' element={<StaffSalesOverviewPage />} />
-        <Route path='receipts' element={<AdminReceiptsPage />} />
+        <Route path='receipts' element={<ExecutiveReceiptsPage />} />
         <Route path='receipts/:id' element={<ReceiptDetail />} />
       </Route>
       {/* unmatched */}
