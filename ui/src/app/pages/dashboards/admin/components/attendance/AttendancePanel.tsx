@@ -72,7 +72,7 @@ export const AttendancePanel = ({ attendances, absentCount, presentCount, employ
               ) : (
                 employees?.map((worker, index) => {
                   return (
-                    <TableRow key={worker.id ?? index} onClick={() => navigate(`/admin/attendance/${worker.id}`)}>
+                    <TableRow key={worker.id ?? index} onClick={() => navigate(`/dashboard/attendance/${worker.id}`)}>
                       {/* <TableCell>{formatted(worker.check_in || worker.created_at)}</TableCell> */}
                       <TableCell>
                         {`${worker?.user?.firstname || ''} ${worker?.user?.lastname || ''}`.trim() ||

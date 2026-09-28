@@ -12,7 +12,7 @@ import { AdminPaymentGatewaysPage } from '../pages/dashboards/admin/pages/AdminP
 
 export const SuperadminRoutes = () => (
   <Routes>
-    <Route path='superadmin' element={<SuperadminLayout />}>
+    <Route path='coresupport' element={<SuperadminLayout />}>
       <Route index element={<SuperadminDashboardPage />} />
       <Route path='plans' element={<SuperadminPlansPage />} />
       <Route path='businesses' element={<SuperadminBusinessesPage />} />

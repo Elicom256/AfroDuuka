@@ -33,7 +33,7 @@ export const ManagerWorkersPage = () => {
             <Card
               key={worker.id}
               className='hover:shadow-md w-full h-full hover:scale-102 transition-all ease-in-out cursor-pointer'
-              onClick={() => navigate(`/manager/workers/${worker.id}`)}
+              onClick={() => navigate(`/dashboard/workers/${worker.id}`)}
             >
               <CardHeader>
                 <CardAction className='rounded-full bg-white/20 px-2'> {worker.status}</CardAction>

@@ -14,9 +14,9 @@ class NotificationRecipient extends BaseModel
 
     public const LABEL_OWNER = 'owner';
 
-    public const LABEL_ADMIN = 'admin';
+    public const LABEL_EXECUTIVE = 'executive';
 
-    public const LABEL_MANAGER = 'manager';
+    public const LABEL_OPERATIONS = 'operations';
 
     public const LABEL_BRANCH_MANAGER = 'branch_manager';
 

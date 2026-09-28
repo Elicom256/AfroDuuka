@@ -14,6 +14,7 @@ class PurchaseOrderItem extends Model
         "purchase_order_id",
         "product_id",
         "quantity",
+        "received_quantity",
         "unit_price",
         "subtotal",
     ];
@@ -31,5 +32,10 @@ class PurchaseOrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getRemainingQuantityAttribute(): int
+    {
+        return (int) $this->quantity - (int) $this->received_quantity;
     }
 }

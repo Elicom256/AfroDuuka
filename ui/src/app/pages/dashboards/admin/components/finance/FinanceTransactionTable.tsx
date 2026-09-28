@@ -130,7 +130,7 @@ export const FinanceTransactionTable = ({
                     </TableCell>
                     <TableCell>
                       <Button variant='ghost' size='icon' asChild>
-                        <Link to={`/admin/finance/transactions/${record.id}`}>
+                        <Link to={`/dashboard/finance/transactions/${record.id}`}>
                           <Eye className='h-4 w-4' />
                         </Link>
                       </Button>

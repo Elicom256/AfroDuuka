@@ -72,7 +72,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $roles = ['customer', 'supplier', 'admin'];
+        $roles = ['customer', 'supplier', 'Executive'];
         $users = User::tenantVisible()
             ->whereHas('role', function ($q) use ($roles) {
             $q->whereNotIn('name', $roles);
@@ -90,7 +90,7 @@ class UserController extends Controller
     {
         $users = User::tenantVisible()
             ->whereHas('role', function ($q) {
-            $q->where('name', '!=', 'admin');
+            $q->where('name', '!=', 'Executive');
           })
         ->with(['business', 'role', "businessBranch"])
         ->get();

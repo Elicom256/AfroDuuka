@@ -3,7 +3,6 @@ import { ManagerLayout } from '../pages/dashboards/manager/ManagerLayout';
 import { ManagerDashboardPage } from '../pages/dashboards/manager/pages/ManagerDashboardPage';
 import { ManagerSalesPage } from '../pages/dashboards/manager/pages/ManagerSalesPage';
 import { ManagerPurchasesPage } from '../pages/dashboards/manager/pages/ManagerPurchasesPage';
-
 import { ManagerProductsPage } from '../pages/dashboards/manager/pages/ManagerProductsPage';
 import { ManagerInventoryPage } from '../pages/dashboards/manager/pages/ManagerInventoryPage';
 import { ManagerAnalyticsPage } from '../pages/dashboards/manager/pages/ManagerAnalyticsPage';
@@ -34,7 +33,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
 
-export const ManagerRoutes = () => {
+export const OperationsRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
   if (isLoading) {
     return <PageLoadingState />;
@@ -42,9 +41,9 @@ export const ManagerRoutes = () => {
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path='manager/pos' element={<PosPage />} />
+        <Route path='/dashboard/pos' element={<PosPage />} />
       </Route>
-      <Route path='manager' element={<ManagerLayout />}>
+      <Route path='/dashboard' element={<ManagerLayout />}>
         <Route index element={<ManagerDashboardPage />} />
         <Route path='sales' element={<ManagerSalesPage />} />
         <Route path='sales/:id' element={<Sale />} />
@@ -75,8 +74,6 @@ export const ManagerRoutes = () => {
         <Route path='promotions' element={<ManagerPromotionsPage />} />
         <Route path='attendance' element={<ManagerAttendancePage />} />
       </Route>
-      {/* unmatched */}
-      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };

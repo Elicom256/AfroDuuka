@@ -15,8 +15,8 @@ class EffectiveBranchScope
      * Resolve the business_branch_ids the given user may see.
      *
      * Resolution order (per scope_branch.md §3.1):
-     *   1. user has no business_id        -> null      (system role / superadmin: unrestricted)
-     *   2. business_id, no business_branch_id -> all branches of the business (business admin)
+     *   1. user has no business_id        -> null      (system role / CoreSupport: unrestricted)
+     *   2. business_id, no business_branch_id -> all branches of the business (Executive)
      *   3. otherwise                      -> [business_branch_id]
      *
      * @return array{0:int|null,1:int[]} [via_business_id, branch_ids]

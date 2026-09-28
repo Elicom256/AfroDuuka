@@ -37,7 +37,7 @@ export const PurchaseReturnsTable = ({ purchaseReturns }: PurchaseReturnsTablePr
             paginated.map((pr: any, i: number) => (
               <TableRow
                 key={pr.id}
-                onClick={() => navigate(`/manager/purchase-returns/${pr.id}`)}
+                onClick={() => navigate(`/dashboard/purchase-returns/${pr.id}`)}
                 className='cursor-pointer'
               >
                 <TableCell>{startIndex + i + 1}</TableCell>

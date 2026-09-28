@@ -39,7 +39,7 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
               return (
                 <TableRow
                   key={purchase.id}
-                  onClick={() => navigate(`/manager/purchases/${purchase.id}`)}
+                  onClick={() => navigate(`/dashboard/purchases/${purchase.id}`)}
                   className='cursor-pointer'
                 >
                   <TableCell>{startIndex + i + 1}</TableCell>

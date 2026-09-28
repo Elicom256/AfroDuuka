@@ -36,7 +36,7 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
           {paginatedSales?.map((sale, i) => {
             const totalPrice = Number(sale.total_amount ?? sale.total_amount ?? 0);
             return (
-              <TableRow key={sale.id} onClick={() => navigate(`/admin/sales/${sale.id}`)} className='cursor-pointer'>
+              <TableRow key={sale.id} onClick={() => navigate(`/dashboard/sales/${sale.id}`)} className='cursor-pointer'>
                 <TableHead>{startIndex + i + 1}</TableHead>
                 <TableCell>{sale.status ?? 'N/A'}</TableCell>
                 <TableCell>{sale.date ?? format(new Date(sale.created_at), 'PPP') ?? '-'}</TableCell>

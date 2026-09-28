@@ -8,7 +8,7 @@ import { Login } from '../pages/public/Login';
 import { SignUp } from '../pages/public/SignUp';
 import { AdminRoutes } from './AdminRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
-import { ManagerRoutes } from './ManagerRoutes';
+import { OperationsRoutes } from './OperationsRoutes';
 import { StaffDashboard } from './StaffDashboard';
 import { NotFound } from './NotFound';
 import { SuperadminRoutes } from './Superadmin';
@@ -35,9 +35,9 @@ export const AppRoutes = () => {
       <Route path='documentation' element={<Documentation />} />
 
       {/* Role-based protected routes */}
-      {role === 'admin' && <Route path='/*' element={<AdminRoutes />} />}
-      {role === 'superadmin' && <Route path='/*' element={<SuperadminRoutes />} />}
-      {role === 'manager' && <Route path='/*' element={<ManagerRoutes />} />}
+      {role === 'Executive' && <Route path='/*' element={<AdminRoutes />} />}
+      {role === 'CoreSupport' && <Route path='/*' element={<SuperadminRoutes />} />}
+      {role === 'Operations' && <Route path='/*' element={<OperationsRoutes />} />}
       {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}
 
       {/* Fallback */}

@@ -161,7 +161,7 @@ export const AdminSubscriptionPaymentsPage = () => {
                   {paymentMethods.length === 0 && (
                     <p className='text-xs text-muted-foreground mt-1'>
                       No payment methods enabled. Configure them in{' '}
-                      <Link to='/admin/settings/payment-settings' className='underline'>Payment Settings</Link>.
+                      <Link to='/dashboard/settings/payment-settings' className='underline'>Payment Settings</Link>.
                     </p>
                   )}
                 </div>

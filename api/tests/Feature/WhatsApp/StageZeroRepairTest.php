@@ -61,7 +61,7 @@ class StageZeroRepairTest extends TestCase
 
     private function userFor(Business $business): User
     {
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'admin']);
+        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'Executive']);
 
         return User::factory()->create([
             'business_id' => $business->id,
@@ -73,7 +73,7 @@ class StageZeroRepairTest extends TestCase
     /** A user with no business yet, as during onboarding. */
     private function onboardingUser(): User
     {
-        $role = Role::factory()->create(['business_id' => null, 'name' => 'admin']);
+        $role = Role::factory()->create(['business_id' => null, 'name' => 'Executive']);
 
         return User::factory()->create([
             'business_id' => null,
@@ -114,7 +114,7 @@ class StageZeroRepairTest extends TestCase
 
         $business = Business::where('name', 'Acme Traders')->firstOrFail();
 
-        $this->assertDatabaseHas('roles', ['business_id' => $business->id, 'name' => 'manager']);
+        $this->assertDatabaseHas('roles', ['business_id' => $business->id, 'name' => 'Operations']);
         $this->assertDatabaseHas('business_branches', ['business_id' => $business->id]);
     }
 

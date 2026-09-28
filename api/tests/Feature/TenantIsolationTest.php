@@ -18,7 +18,7 @@ class TenantIsolationTest extends TestCase
     protected function branchUser(Business $business, ?BusinessBranch $branch = null): User
     {
         $branch ??= BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'admin']);
+        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'Executive']);
 
         return User::factory()->create([
             'business_id' => $business->id,
@@ -29,7 +29,7 @@ class TenantIsolationTest extends TestCase
 
     protected function coreAdmin(Business $business): User
     {
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'admin']);
+        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'Executive']);
 
         return User::factory()->create([
             'business_id' => $business->id,
@@ -40,7 +40,7 @@ class TenantIsolationTest extends TestCase
 
     protected function superAdmin(): User
     {
-        $role = Role::factory()->create(['name' => 'admin']);
+        $role = Role::factory()->create(['name' => 'CoreSupport']);
 
         return User::factory()->create([
             'business_id' => null,
@@ -219,7 +219,7 @@ class TenantIsolationTest extends TestCase
         ]);
     }
 
-    public function test_superadmin_without_business_sees_products_from_all_businesses(): void
+    public function test_coresupport_without_business_sees_products_from_all_businesses(): void
     {
         $businessA = Business::factory()->create();
         $branchA = BusinessBranch::factory()->create(['business_id' => $businessA->id]);

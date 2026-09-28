@@ -393,7 +393,7 @@ export const PosPage = () => {
       {/* Top bar */}
       <header className='flex items-center justify-between border-b border-border px-6 py-3 bg-card shrink-0'>
         <div className='flex items-center gap-4'>
-          <Button variant='ghost' size='icon' onClick={() => navigate(`/${role}`)} className='h-9 w-9 rounded-xl'>
+          <Button variant='ghost' size='icon' onClick={() => navigate('/dashboard')} className='h-9 w-9 rounded-xl'>
             <ArrowLeft className='h-5 w-5' />
           </Button>
           <div className='h-6 w-px bg-border' />
