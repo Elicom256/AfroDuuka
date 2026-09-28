@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
 import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 
 interface Product {
@@ -27,6 +28,7 @@ interface Product {
 
 export const ProductTable = () => {
   const { data: branchProds, isLoading: loadProducts } = useProductsQuery(void 0);
+  const { canDelete } = useRolePermissions();
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
   console.log('branchProds available==>', branchProds);
@@ -89,17 +91,19 @@ export const ProductTable = () => {
                 <Link to={`/dashboard/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
                   <Eye size={20} />
                 </Link>
-                <div className='h-6 flex items-center'>
-                  {isLoading && prodId === product.id ? (
-                    <Spinner className='size-4' />
-                  ) : (
-                    <Trash2
-                      size={20}
-                      className='text-red-400 cursor-pointer'
-                      onClick={() => handleDelete(product.id)}
-                    />
-                  )}
-                </div>
+                {canDelete && (
+                  <div className='h-6 flex items-center'>
+                    {isLoading && prodId === product.id ? (
+                      <Spinner className='size-4' />
+                    ) : (
+                      <Trash2
+                        size={20}
+                        className='text-red-400 cursor-pointer'
+                        onClick={() => handleDelete(product.id)}
+                      />
+                    )}
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}
