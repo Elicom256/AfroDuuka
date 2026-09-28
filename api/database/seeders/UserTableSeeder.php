@@ -94,11 +94,6 @@ class UserTableSeeder extends Seeder
                 "role" => "Operations",
                 "phone" => "0781490822"
             ],
-            "John Cleaner" => [
-                "email" => "cleaner@gmail.com",
-                "role" => "Other Staff",
-                "phone" => "0781490844"
-            ],
         ];
         $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id")
             ?? $this->fixtureMainBranch($business)->id;

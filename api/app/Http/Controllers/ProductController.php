@@ -94,7 +94,8 @@ class ProductController extends Controller
     public function restocking()
     {
         try {
-            $branchIds = EffectiveBranchScope::branchesFor(Auth::user())[1] ?? null;
+            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            $branchIds = $resolved !== null ? $resolved[1] : null;
             $thresholdDays = (int) request()->query('threshold', 14);
             $periodDays = 30;
 

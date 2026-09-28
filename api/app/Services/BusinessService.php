@@ -56,7 +56,7 @@ class BusinessService
         ]);
 
         $existingRoleNames = Role::where('business_id', $business->id)->pluck('name')->all();
-        $new_roles = ['Operations', 'Other Staff', 'editor', 'customer', 'supplier'];
+        $new_roles = ['Operations', 'editor', 'customer', 'supplier'];
         foreach ($new_roles as $new_role) {
             if (in_array($new_role, $existingRoleNames, true)) {
                 continue;

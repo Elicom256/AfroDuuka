@@ -45,7 +45,7 @@ export const AdminCustomersPage = () => {
           customers.map((customer: any) => (
             <div
               key={customer.id}
-              onClick={() => navigate(`/admin/customers/${customer.id}`)}
+              onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
               className='border p-4 rounded-lg flex justify-between items-center'
             >
               <div>

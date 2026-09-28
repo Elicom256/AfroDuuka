@@ -28,7 +28,7 @@ export const Customer = () => {
       console.log('response==>', res);
       if (res) {
         toast.success(res.message);
-        return navigate('/admin/customers');
+        return navigate('/dashboard/customers');
       }
     } catch (error) {
       toast.error('failed to delete customer');

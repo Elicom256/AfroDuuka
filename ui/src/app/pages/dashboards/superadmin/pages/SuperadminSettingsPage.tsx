@@ -15,7 +15,7 @@ const settingsSections = [
     title: 'Security',
     description: 'Security and access control',
     icon: Shield,
-    items: [{ label: 'Super Admin Email', value: 'superadmin@gmail.com' }],
+    items: [{ label: 'Core Support Email', value: 'coresupport@gmail.com' }],
   },
   {
     title: 'Notifications',

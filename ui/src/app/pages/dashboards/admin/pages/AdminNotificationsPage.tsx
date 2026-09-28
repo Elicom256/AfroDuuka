@@ -85,7 +85,7 @@ export const AdminNotificationsPage = () => {
   };
 
   const handleOpen = (notification: any) => {
-    navigate(`/admin/notifications/${notification.id}`);
+    navigate(`/dashboard/notifications/${notification.id}`);
   };
 
   return (

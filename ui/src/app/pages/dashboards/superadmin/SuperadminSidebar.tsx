@@ -5,13 +5,13 @@ import { UserProfile } from '../auth/UserProfile';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 
 const navItems = [
-  { label: 'Overview', to: '/superadmin', icon: LayoutDashboard },
-  { label: 'Plans', to: '/superadmin/plans', icon: CreditCard },
-  { label: 'Businesses', to: '/superadmin/businesses', icon: Building2 },
-  { label: 'Subscriptions', to: '/superadmin/subscriptions', icon: Crown },
-  { label: 'Subscription Payments', to: '/superadmin/subscription-payments', icon: Wallet },
-  { label: 'Payment Gateways', to: '/superadmin/payment-gateways', icon: Wallet },
-  { label: 'Settings', to: '/superadmin/settings', icon: Settings },
+  { label: 'Overview', to: '/coresupport', icon: LayoutDashboard },
+  { label: 'Plans', to: '/coresupport/plans', icon: CreditCard },
+  { label: 'Businesses', to: '/coresupport/businesses', icon: Building2 },
+  { label: 'Subscriptions', to: '/coresupport/subscriptions', icon: Crown },
+  { label: 'Subscription Payments', to: '/coresupport/subscription-payments', icon: Wallet },
+  { label: 'Payment Gateways', to: '/coresupport/payment-gateways', icon: Wallet },
+  { label: 'Settings', to: '/coresupport/settings', icon: Settings },
 ];
 
 type SuperadminSidebarProps = {
@@ -33,7 +33,7 @@ export const SuperadminSidebar = ({ onNavigate }: SuperadminSidebarProps) => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/superadmin'}
+              end={item.to === '/coresupport'}
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(

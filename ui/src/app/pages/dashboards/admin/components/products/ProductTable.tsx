@@ -124,7 +124,7 @@ export const ProductTable = () => {
                 </TableHeader>
                 <TableBody>
                   {paginatedProducts.map((product: Product) => (
-                    <TableRow key={product.id} onClick={() => navigate(`/admin/products/${product.id}`)}>
+                    <TableRow key={product.id} onClick={() => navigate(`/dashboard/products/${product.id}`)}>
                       <TableCell>{product.id}</TableCell>
                       <TableCell className='text-xl'>
   <span>{product.cover_url ? (

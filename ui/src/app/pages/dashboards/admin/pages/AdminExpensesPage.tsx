@@ -104,7 +104,7 @@ export const AdminExpensesPage = () => {
         </CardHeader>
         <CardContent className='flex flex-wrap items-center gap-3 border-t border-border/60 pt-4'>
           <Link
-            to='/admin/expense-categories'
+            to='/dashboard/expense-categories'
             className='inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline'
           >
             <Tags className='h-4 w-4' />

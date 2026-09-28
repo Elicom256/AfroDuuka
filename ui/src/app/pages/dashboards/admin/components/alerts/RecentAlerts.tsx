@@ -11,7 +11,11 @@ export const RecentAlerts = () => {
 
   const isLoading = notifLoading || restockLoading;
 
-  const notifications = notificationsData?.data ?? notificationsData ?? [];
+  const notifications = Array.isArray(notificationsData?.data)
+    ? notificationsData.data
+    : Array.isArray(notificationsData)
+      ? notificationsData
+      : [];
   const atRisk = restockingData?.data?.predictions?.filter((p: any) => p.is_at_risk) ?? [];
 
   if (isLoading) {

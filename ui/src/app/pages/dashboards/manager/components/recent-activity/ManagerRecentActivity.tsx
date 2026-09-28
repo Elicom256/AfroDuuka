@@ -15,7 +15,11 @@ export const ManagerRecentActivity = () => {
 
   const sales = salesData?.sales ?? salesData?.data ?? salesData ?? [];
   const purchases = purchasesData?.purchases ?? purchasesData?.data ?? purchasesData ?? [];
-  const notifications = notifData?.data ?? notifData ?? [];
+  const notifications = Array.isArray(notifData?.data)
+    ? notifData.data
+    : Array.isArray(notifData)
+      ? notifData
+      : [];
 
   if (isLoading) {
     return (

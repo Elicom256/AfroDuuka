@@ -115,7 +115,6 @@ class StageZeroRepairTest extends TestCase
         $business = Business::where('name', 'Acme Traders')->firstOrFail();
 
         $this->assertDatabaseHas('roles', ['business_id' => $business->id, 'name' => 'Operations']);
-        $this->assertDatabaseHas('roles', ['business_id' => $business->id, 'name' => 'Other Staff']);
         $this->assertDatabaseHas('business_branches', ['business_id' => $business->id]);
     }
 

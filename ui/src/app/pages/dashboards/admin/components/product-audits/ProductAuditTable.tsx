@@ -73,7 +73,7 @@ export const ProductAuditTable = ({
                 <TableCell>
                   <div className='flex justify-end gap-1'>
                     <Button variant='ghost' size='icon' asChild>
-                      <Link to={`/admin/product-audits/${audit.id}`}><Eye className='h-4 w-4' /></Link>
+                      <Link to={`/dashboard/product-audits/${audit.id}`}><Eye className='h-4 w-4' /></Link>
                     </Button>
                     {audit.status === 'completed' && (
                       <Button variant='ghost' size='icon' onClick={() => onApprove(audit)}>
@@ -97,7 +97,7 @@ export const ProductAuditTable = ({
                     )}
                     {(audit.status === 'approved' || audit.status === 'completed') && (
                       <Button variant='ghost' size='icon' asChild>
-                        <Link to={`/admin/product-audits/${audit.id}/report`}><FileText className='h-4 w-4' /></Link>
+                        <Link to={`/dashboard/product-audits/${audit.id}/report`}><FileText className='h-4 w-4' /></Link>
                       </Button>
                     )}
                   </div>

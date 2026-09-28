@@ -261,7 +261,7 @@ export const SuperadminSubscriptionsPage = () => {
                     <TableRow
                       key={sub.id}
                       className='cursor-pointer hover:bg-muted/50'
-                      onClick={() => navigate(`/superadmin/subscriptions/${sub.id}`)}
+                      onClick={() => navigate(`/coresupport/subscriptions/${sub.id}`)}
                     >
                       <TableCell>
                         <div className='flex items-center gap-2'>

@@ -47,6 +47,7 @@ import { AdminCouponsPage } from '../pages/dashboards/admin/pages/AdminCouponsPa
 
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { getRolePrefix } from '@/lib/rolePrefix';
 import { Attendance } from '../pages/dashboards/admin/components/attendance/Attendance';
 import { Worker } from '../pages/dashboards/admin/components/workers/Worker';
 import { Supplier } from '../pages/dashboards/admin/components/suppliers/Supplier';
@@ -87,9 +88,8 @@ export const AdminRoutes = () => {
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        {/* Full-screen POS route (no sidebar) */}
-        <Route path='admin/pos' element={<PosPage />} />
-        <Route path='admin' element={<AdminLayout />}>
+        <Route path='/dashboard/pos' element={<PosPage />} />
+        <Route path='/dashboard' element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
 
           <Route path='workers' element={<AdminWorkersPage />} />
@@ -169,8 +169,6 @@ export const AdminRoutes = () => {
           <Route path='procurement/*' element={<ProcurementRoutes />} />
         </Route>
       </Route>
-
-      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };
