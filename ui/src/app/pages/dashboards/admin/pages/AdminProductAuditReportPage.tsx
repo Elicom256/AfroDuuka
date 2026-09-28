@@ -19,7 +19,7 @@ export const AdminProductAuditReportPage = () => {
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
           <Button variant='ghost' size='icon' asChild>
-            <Link to='/admin/product-audits'><ArrowLeft className='h-5 w-5' /></Link>
+            <Link to='/dashboard/product-audits'><ArrowLeft className='h-5 w-5' /></Link>
           </Button>
           <h1 className='text-2xl font-semibold'>Audit Report</h1>
         </div>

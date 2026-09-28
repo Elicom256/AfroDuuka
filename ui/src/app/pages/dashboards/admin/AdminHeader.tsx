@@ -14,10 +14,10 @@ export const AdminHeader = () => {
 
       <div className='flex flex-wrap gap-2'>
         <Button asChild size='sm' variant='outline'>
-          <Link to='/admin/workers'>Workers</Link>
+          <Link to='/dashboard/workers'>Workers</Link>
         </Button>
         <Button asChild size='sm'>
-          <Link to='/admin/products'>Products</Link>
+          <Link to='/dashboard/products'>Products</Link>
         </Button>
       </div>
     </div>

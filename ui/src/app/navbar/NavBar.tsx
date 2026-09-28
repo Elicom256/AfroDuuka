@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import logo from '../../../public/afroduuka.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -17,6 +18,7 @@ export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { data } = useLoggedinUserQuery();
   const role = data?.data.role.name;
+  const dashboardLink = '/dashboard';
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 backdrop-blur-xl shadow-sm shadow-slate-950/40'>
       <div className='container mx-auto flex items-center justify-between gap-4 px-4 py-4'>
@@ -50,14 +52,14 @@ export const NavBar: React.FC = () => {
         </nav>
 
         <div className='hidden items-center gap-2 md:flex'>
-          {data && role === 'admin' ? (
-            <Link to='/admin'>Dashboard</Link>
-          ) : role === 'manager' ? (
-            <Link to='/manager'>Dashboard</Link>
+          {data && role === 'Executive' ? (
+            <Link to={dashboardLink}>Dashboard</Link>
+          ) : role === 'Operations' ? (
+            <Link to={dashboardLink}>Dashboard</Link>
           ) : role === 'staff' ? (
             <Link to='/staff'>Dashboard</Link>
-          ) : role === 'superadmin' ? (
-            <Link to='/superadmin'>Dashboard</Link>
+          ) : role === 'CoreSupport' ? (
+            <Link to='/coresupport'>Dashboard</Link>
           ) : (
             <Button asChild size='sm'>
               <Link to='/login'>Try It</Link>

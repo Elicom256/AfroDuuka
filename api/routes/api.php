@@ -33,7 +33,7 @@ Route::prefix("sales")->group(function () {
     require __DIR__."/sales.php";
 });
 
-Route::prefix("admin")->group(function () {
+Route::prefix("dashboard")->group(function () {
     require __DIR__."/admin.php";
 });
 
@@ -127,6 +127,10 @@ Route::prefix("sale-orders")->group(function () {
 
 Route::prefix("purchase-orders")->group(function () {
     require __DIR__."/purchase-orders.php";
+});
+
+Route::prefix("procurement")->group(function () {
+    require __DIR__."/procurement.php";
 });
 
 Route::prefix("quotations")->group(function () {

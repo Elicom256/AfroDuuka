@@ -23,7 +23,7 @@ export const SuperadminSubscriptionShow = () => {
     return (
       <div className='text-center py-12'>
         <p className='text-muted-foreground'>Subscription not found.</p>
-        <Button variant='outline' className='mt-4' onClick={() => navigate('/superadmin/subscriptions')}>
+        <Button variant='outline' className='mt-4' onClick={() => navigate('/coresupport/subscriptions')}>
           Go Back
         </Button>
       </div>
@@ -35,7 +35,7 @@ export const SuperadminSubscriptionShow = () => {
 
   return (
     <div className='space-y-6'>
-      <Button variant='ghost' size='sm' onClick={() => navigate('/superadmin/subscriptions')}>
+      <Button variant='ghost' size='sm' onClick={() => navigate('/coresupport/subscriptions')}>
         <ArrowLeft className='h-4 w-4 mr-2' />
         Back to Subscriptions
       </Button>

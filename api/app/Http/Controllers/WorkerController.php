@@ -23,7 +23,7 @@ class WorkerController extends Controller
         // $business_id = Auth::user()->business_id;
         $workers = Worker::with(["user.role", "user.businessBranch", "attendances"])
                   ->whereHas("user.role", function($q){
-                    $q->where("name", "!=", "admin");
+                    $q->where("name", "!=", "Executive");
                   })
                   ->with("attendances", function($q){
                     $q->latest()

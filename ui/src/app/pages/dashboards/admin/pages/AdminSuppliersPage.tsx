@@ -44,7 +44,7 @@ export const AdminSuppliersPage = () => {
             <div
               key={supplier.id}
               className='border p-4 rounded-lg flex justify-between items-center hover:bg-white/20'
-              onClick={() => navigate(`/admin/suppliers/${supplier?.id}`)}
+              onClick={() => navigate(`/dashboard/suppliers/${supplier?.id}`)}
             >
               <div>
                 <p className='font-medium'>

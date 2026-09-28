@@ -39,7 +39,7 @@ export const ManagerNotificationsPage = () => {
   };
 
   const handleOpen = (notification: any) => {
-    navigate(`/manager/notifications/${notification.id}`);
+    navigate(`/dashboard/notifications/${notification.id}`);
   };
 
   return (

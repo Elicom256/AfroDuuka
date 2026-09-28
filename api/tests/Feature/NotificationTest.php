@@ -30,7 +30,7 @@ class NotificationTest extends TestCase
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $role = Role::factory()->create(['business_id' => $this->business->id, 'name' => 'admin']);
+        $role = Role::factory()->create(['business_id' => $this->business->id, 'name' => 'Executive']);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,

@@ -16,7 +16,7 @@ export const AdminProductAuditPage = () => {
     <div className='space-y-6'>
       <div className='flex items-center gap-4'>
         <Button variant='ghost' size='icon' asChild>
-          <Link to='/admin/product-audits'><ArrowLeft className='h-5 w-5' /></Link>
+          <Link to='/dashboard/product-audits'><ArrowLeft className='h-5 w-5' /></Link>
         </Button>
         <h1 className='text-2xl font-semibold'>Product Audit Detail</h1>
       </div>

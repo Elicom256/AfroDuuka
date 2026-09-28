@@ -150,7 +150,7 @@ export const SuperadminSubscriptionPaymentsPage = () => {
                   <TableRow
                     key={payment.id}
                     className='cursor-pointer hover:bg-muted/50'
-                    onClick={() => navigate(`/superadmin/subscription-payments/${payment.id}`)}
+                    onClick={() => navigate(`/coresupport/subscription-payments/${payment.id}`)}
                   >
                     <TableCell>
                       <div className='flex flex-col'>

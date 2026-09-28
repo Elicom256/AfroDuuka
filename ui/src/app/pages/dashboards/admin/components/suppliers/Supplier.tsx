@@ -25,7 +25,7 @@ export const Supplier = () => {
       console.log('response==>', res);
       if (res) {
         toast.success(res.message);
-        return navigate('/admin/suppliers');
+        return navigate('/dashboard/suppliers');
       }
     } catch (error) {
       toast.error('failed to delete supplier');

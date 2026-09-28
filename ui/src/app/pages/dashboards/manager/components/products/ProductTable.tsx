@@ -86,7 +86,7 @@ export const ProductTable = () => {
               <TableCell>{product.reorder_level ?? '-'}</TableCell>
               <TableCell>{(product.status as any) === true ? 'Active' : 'Inactive'}</TableCell>
               <TableCell className='grid grid-cols-2 place-items-center gap-2'>
-                <Link to={`/manager/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
+                <Link to={`/dashboard/products/${product.id}`} className='text-amber-400 h-full flex items-center'>
                   <Eye size={20} />
                 </Link>
                 <div className='h-6 flex items-center'>

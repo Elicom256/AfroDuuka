@@ -85,7 +85,7 @@ export const AdminSettingsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Check if a sub-setting is active (we're on a specific settings page, not the index)
-  const isOnSubPage = location.pathname !== '/admin/settings';
+  const isOnSubPage = location.pathname !== '/dashboard/settings';
 
   const navItems = [
     { to: 'plan-billing', label: 'Plan & Billing', Icon: Crown },
