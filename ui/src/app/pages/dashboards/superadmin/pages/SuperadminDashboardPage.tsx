@@ -3,6 +3,8 @@ import { useGetSubscriptionPaymentsQuery } from '@/app/store/features/subscripti
 import { useGetAdminPlansQuery } from '@/app/store/features/plans/adminPlansQuery';
 import { useGetSuperAdminBusinessesQuery } from '@/app/store/features/business/superAdminBusinessesQuery';
 import { StatsCard } from '@/app/pages/dashboards/admin/components/overview/StatsCard';
+import { SystemStatus } from '@/app/pages/dashboards/superadmin/components/system-status/SystemStatus';
+import { PlatformHealth } from '@/app/pages/dashboards/superadmin/components/platform-health/PlatformHealth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -107,6 +109,11 @@ export const SuperadminDashboardPage = () => {
           description={revenueSummary ? `Collected: ${revenueSummary}` : `${plans.length} plans available`}
           iconClassName='bg-blue-500/10 text-blue-600'
         />
+      </div>
+
+      <div className='grid gap-6 lg:grid-cols-2'>
+        <SystemStatus />
+        <PlatformHealth />
       </div>
 
       <div className='grid gap-6 lg:grid-cols-2'>
