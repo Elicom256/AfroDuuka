@@ -25,6 +25,7 @@ Relevant files:
 - ui/src/app/pages/dashboards/admin/AdminLayout.tsx
 - ui/src/app/pages/dashboards/admin/pages/AdminDashboardPage.tsx
 
+*NB* Use lucide icons and shadcn for UI/UX designs where possible
 Minimum first pass:
 
 - clean overview cards

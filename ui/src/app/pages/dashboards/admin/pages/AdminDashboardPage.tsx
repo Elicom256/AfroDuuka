@@ -3,6 +3,10 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { OverviewCards } from '@/app/pages/dashboards/admin/components/overview/OverviewCards';
 import { SmartRestocking } from '@/app/pages/dashboards/admin/components/restocking/SmartRestocking';
+import { StockHealth } from '@/app/pages/dashboards/admin/components/stock-health/StockHealth';
+import { SalesPurchasesSummary } from '@/app/pages/dashboards/admin/components/sales-purchases/SalesPurchasesSummary';
+import { RecentAlerts } from '@/app/pages/dashboards/admin/components/alerts/RecentAlerts';
+import { FinanceOverview } from '@/app/pages/dashboards/admin/components/finance-overview/FinanceOverview';
 import { LayoutDashboard, CalendarDays } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
@@ -49,8 +53,16 @@ export const AdminDashboardPage = () => {
           <OverviewCards />
 
           <div className='grid gap-4 ssm:grid-cols-2'>
-            <SmartRestocking />
+            <StockHealth />
+            <FinanceOverview />
           </div>
+
+          <div className='grid gap-4 ssm:grid-cols-2'>
+            <SalesPurchasesSummary />
+            <RecentAlerts />
+          </div>
+
+          <SmartRestocking />
         </div>
 
         <div className='h-[calc(100vh-16rem)] sticky top-6'>
