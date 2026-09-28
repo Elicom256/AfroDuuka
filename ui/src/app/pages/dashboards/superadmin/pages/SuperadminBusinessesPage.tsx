@@ -7,13 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Building2, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,7 +19,7 @@ const statusColors: Record<string, string> = {
   banned: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
-export const SuperAdminBusinessesPage = () => {
+export const SuperadminBusinessesPage = () => {
   const { data, isLoading } = useGetSuperAdminBusinessesQuery();
   const [updateStatus, { isLoading: isUpdating }] = useUpdateBusinessStatusMutation();
   const [search, setSearch] = useState('');
@@ -33,10 +27,11 @@ export const SuperAdminBusinessesPage = () => {
   const businesses = data?.businesses ?? [];
 
   const filtered = search
-    ? businesses.filter((b: any) =>
-        b.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.email?.toLowerCase().includes(search.toLowerCase()) ||
-        b.phone?.includes(search)
+    ? businesses.filter(
+        (b: any) =>
+          b.name.toLowerCase().includes(search.toLowerCase()) ||
+          b.email?.toLowerCase().includes(search.toLowerCase()) ||
+          b.phone?.includes(search),
       )
     : businesses;
 
@@ -72,7 +67,9 @@ export const SuperAdminBusinessesPage = () => {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>All Businesses ({filtered.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Businesses ({filtered.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
             <p className='text-muted-foreground text-sm text-center py-8'>

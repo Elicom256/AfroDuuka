@@ -27,7 +27,6 @@ class InventoryWriteOffTest extends TestCase
         ]);
 
         $product = Product::factory()->create([
-            'business_id' => $business->id,
             'business_branch_id' => $branch->id,
             'quantity' => 12,
             'status' => 'active',
@@ -36,11 +35,10 @@ class InventoryWriteOffTest extends TestCase
         $this->actingAs($user);
 
         $service = app(InventoryService::class);
-        $movement = $service->writeOff($product, 3, 'damaged', 'Expired crate found in storage');
+        $loss = $service->writeOff($product, 3, 'damaged', 'Expired crate found in storage');
 
         $this->assertSame(9, $product->fresh()->quantity);
-        $this->assertSame('adjustment', $movement->type);
-        $this->assertSame('damaged', $movement->reason);
+        $this->assertSame('damaged', $loss->type);
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $product->id,
             'type' => 'adjustment',

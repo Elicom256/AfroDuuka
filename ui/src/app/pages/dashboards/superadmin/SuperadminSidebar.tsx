@@ -14,11 +14,11 @@ const navItems = [
   { label: 'Settings', to: '/superadmin/settings', icon: Settings },
 ];
 
-type SuperAdminSidebarProps = {
+type SuperadminSidebarProps = {
   onNavigate?: () => void;
 };
 
-export const SuperAdminSidebar = ({ onNavigate }: SuperAdminSidebarProps) => {
+export const SuperadminSidebar = ({ onNavigate }: SuperadminSidebarProps) => {
   const { data: userData } = useLoggedinUserQuery();
   return (
     <nav className='flex flex-col h-full'>

@@ -13,7 +13,7 @@ const statusColors: Record<string, string> = {
   expired: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
-export const SuperAdminSubscriptionShow = () => {
+export const SuperadminSubscriptionShow = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionQuery(Number(id));
@@ -23,7 +23,9 @@ export const SuperAdminSubscriptionShow = () => {
     return (
       <div className='text-center py-12'>
         <p className='text-muted-foreground'>Subscription not found.</p>
-        <Button variant='outline' className='mt-4' onClick={() => navigate('/superadmin/subscriptions')}>Go Back</Button>
+        <Button variant='outline' className='mt-4' onClick={() => navigate('/superadmin/subscriptions')}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -46,12 +48,16 @@ export const SuperAdminSubscriptionShow = () => {
           </h1>
           <p className='text-muted-foreground mt-1'>View subscription information and payment history</p>
         </div>
-        <Badge className={statusColors[sub.status] ?? ''} variant='outline'>{sub.status}</Badge>
+        <Badge className={statusColors[sub.status] ?? ''} variant='outline'>
+          {sub.status}
+        </Badge>
       </div>
 
       <div className='grid gap-6 md:grid-cols-2'>
         <Card>
-          <CardHeader><CardTitle>Business Information</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Business Information</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center gap-2'>
               <Building2 className='h-4 w-4 text-muted-foreground' />
@@ -65,7 +71,9 @@ export const SuperAdminSubscriptionShow = () => {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Plan Details</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Plan Details</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center gap-2'>
               <CreditCard className='h-4 w-4 text-muted-foreground' />
@@ -73,15 +81,21 @@ export const SuperAdminSubscriptionShow = () => {
             </div>
             {sub.plan && (
               <div className='text-sm text-muted-foreground space-y-1'>
-                <p>Monthly: {sub.plan.currency ?? 'UGX'} {Number(sub.plan.monthly_price).toLocaleString()}</p>
-                <p>Yearly: {sub.plan.currency ?? 'UGX'} {Number(sub.plan.yearly_price).toLocaleString()}</p>
+                <p>
+                  Monthly: {sub.plan.currency ?? 'UGX'} {Number(sub.plan.monthly_price).toLocaleString()}
+                </p>
+                <p>
+                  Yearly: {sub.plan.currency ?? 'UGX'} {Number(sub.plan.yearly_price).toLocaleString()}
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Duration</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Duration</CardTitle>
+          </CardHeader>
           <CardContent className='space-y-3'>
             <div className='flex items-center gap-2 text-sm'>
               <CalendarDays className='h-4 w-4 text-muted-foreground' />
@@ -95,7 +109,9 @@ export const SuperAdminSubscriptionShow = () => {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Subscription Balance</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Subscription Balance</CardTitle>
+          </CardHeader>
           <CardContent>
             <p className='text-2xl font-bold'>{Number(sub.business?.subscription_balance ?? 0).toLocaleString()}</p>
             <p className='text-sm text-muted-foreground'>Current subscription balance</p>
@@ -120,15 +136,25 @@ export const SuperAdminSubscriptionShow = () => {
                   <div className='space-y-1'>
                     <p className='font-medium'>{Number(payment.amount_paid).toLocaleString()}</p>
                     <div className='flex items-center gap-3 text-xs text-muted-foreground'>
-                      <span className='flex items-center gap-1'><Clock className='h-3 w-3' />{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : '-'}</span>
+                      <span className='flex items-center gap-1'>
+                        <Clock className='h-3 w-3' />
+                        {payment.created_at ? new Date(payment.created_at).toLocaleDateString() : '-'}
+                      </span>
                       {payment.payment_method && <span>{payment.payment_method.method?.replace(/_/g, ' ')}</span>}
                     </div>
                   </div>
-                  <Badge variant='outline' className={
-                    payment.payment_status === 'completed' ? 'bg-green-500/10 text-green-600' :
-                    payment.payment_status === 'pending' ? 'bg-amber-500/10 text-amber-600' :
-                    'bg-red-500/10 text-red-600'
-                  }>{payment.payment_status}</Badge>
+                  <Badge
+                    variant='outline'
+                    className={
+                      payment.payment_status === 'completed'
+                        ? 'bg-green-500/10 text-green-600'
+                        : payment.payment_status === 'pending'
+                          ? 'bg-amber-500/10 text-amber-600'
+                          : 'bg-red-500/10 text-red-600'
+                    }
+                  >
+                    {payment.payment_status}
+                  </Badge>
                 </div>
               ))}
             </div>

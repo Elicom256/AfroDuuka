@@ -13,8 +13,9 @@ class CustomerCreditController extends Controller
     {
     }
 
-    public function balance(Customer $customer)
+    public function balance(int $customer)
     {
+        $customer = $this->customerForCurrentBusiness($customer);
         $branchId = (int) request('business_branch_id', Auth::user()->business_branch_id);
         $this->creditService->assertAccess(Auth::user(), $branchId);
 
@@ -25,8 +26,9 @@ class CustomerCreditController extends Controller
         ]);
     }
 
-    public function payment(StoreCustomerCreditPaymentRequest $request, Customer $customer)
+    public function payment(StoreCustomerCreditPaymentRequest $request, int $customer)
     {
+        $customer = $this->customerForCurrentBusiness($customer);
         $data = $request->validated();
         $payment = $this->creditService->recordPayment(
             Auth::user(),
@@ -42,5 +44,15 @@ class CustomerCreditController extends Controller
             'data' => $payment,
             'balance' => $this->creditService->balance($customer->id, (int) $data['business_branch_id']),
         ], 201);
+    }
+
+    private function customerForCurrentBusiness(int $customerId): Customer
+    {
+        return Customer::whereKey($customerId)
+            ->where(function ($query) {
+                $query->where('business_id', Auth::user()->business_id)
+                    ->orWhereHas('user', fn ($user) => $user->where('business_id', Auth::user()->business_id));
+            })
+            ->firstOrFail();
     }
 }

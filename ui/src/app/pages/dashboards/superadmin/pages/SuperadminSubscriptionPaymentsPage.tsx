@@ -31,7 +31,7 @@ const paymentStatusColors: Record<string, string> = {
 
 type FilterTab = 'all' | 'pending' | 'completed' | 'rejected';
 
-export const SuperAdminSubscriptionPaymentsPage = () => {
+export const SuperadminSubscriptionPaymentsPage = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useGetSubscriptionPaymentsQuery();
   const [updatePayment, { isLoading: isUpdating }] = useUpdateSubscriptionPaymentMutation();
@@ -78,8 +78,16 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
 
   const tabs: { key: FilterTab; label: string; count: number }[] = [
     { key: 'pending', label: 'Pending', count: allPayments.filter((p: any) => p.payment_status === 'pending').length },
-    { key: 'completed', label: 'Completed', count: allPayments.filter((p: any) => p.payment_status === 'completed').length },
-    { key: 'rejected', label: 'Rejected', count: allPayments.filter((p: any) => p.payment_status === 'rejected').length },
+    {
+      key: 'completed',
+      label: 'Completed',
+      count: allPayments.filter((p: any) => p.payment_status === 'completed').length,
+    },
+    {
+      key: 'rejected',
+      label: 'Rejected',
+      count: allPayments.filter((p: any) => p.payment_status === 'rejected').length,
+    },
     { key: 'all', label: 'All', count: allPayments.length },
   ];
 
@@ -115,7 +123,9 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-lg'>
             <CreditCard className='h-5 w-5' />
-            {filter === 'all' ? `All Payments (${filteredPayments.length})` : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Payments (${filteredPayments.length})`}
+            {filter === 'all'
+              ? `All Payments (${filteredPayments.length})`
+              : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Payments (${filteredPayments.length})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -148,7 +158,9 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                           <Building2 className='h-3.5 w-3.5 text-muted-foreground' />
                           {payment.subscription?.business?.name ?? payment.subscription?.business_id ?? 'N/A'}
                         </span>
-                        <span className='text-xs text-muted-foreground'>{payment.subscription?.plan?.name ?? 'N/A'}</span>
+                        <span className='text-xs text-muted-foreground'>
+                          {payment.subscription?.plan?.name ?? 'N/A'}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className='font-medium'>
@@ -192,13 +204,26 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                             <CheckCircle className='h-3.5 w-3.5 mr-1' />
                             Verify
                           </Button>
-                          <Dialog open={rejectDialogOpen && rejectingPayment?.id === payment.id} onOpenChange={(open) => { setRejectDialogOpen(open); if (!open) { setRejectingPayment(null); setRejectionReason(''); } }}>
+                          <Dialog
+                            open={rejectDialogOpen && rejectingPayment?.id === payment.id}
+                            onOpenChange={(open) => {
+                              setRejectDialogOpen(open);
+                              if (!open) {
+                                setRejectingPayment(null);
+                                setRejectionReason('');
+                              }
+                            }}
+                          >
                             <DialogTrigger asChild>
                               <Button
                                 size='sm'
                                 variant='outline'
                                 className='text-red-600 border-red-500/30 hover:bg-red-500/10'
-                                onClick={(e) => { e.stopPropagation(); setRejectingPayment(payment); setRejectDialogOpen(true); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRejectingPayment(payment);
+                                  setRejectDialogOpen(true);
+                                }}
                               >
                                 <XCircle className='h-3.5 w-3.5 mr-1' />
                                 Reject
@@ -207,9 +232,7 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Reject Payment</DialogTitle>
-                                <DialogDescription>
-                                  Provide a reason for rejecting this payment.
-                                </DialogDescription>
+                                <DialogDescription>Provide a reason for rejecting this payment.</DialogDescription>
                               </DialogHeader>
                               <div className='space-y-4'>
                                 <div className='space-y-2'>
@@ -223,7 +246,14 @@ export const SuperAdminSubscriptionPaymentsPage = () => {
                                 </div>
                               </div>
                               <DialogFooter>
-                                <Button variant='outline' onClick={() => { setRejectDialogOpen(false); setRejectingPayment(null); setRejectionReason(''); }}>
+                                <Button
+                                  variant='outline'
+                                  onClick={() => {
+                                    setRejectDialogOpen(false);
+                                    setRejectingPayment(null);
+                                    setRejectionReason('');
+                                  }}
+                                >
                                   Cancel
                                 </Button>
                                 <Button

@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import logo from '../../../public/afroduuka.png.png';
+import logo from '../../../public/afroduuka.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
 const navLinks = [
@@ -57,7 +57,7 @@ export const NavBar: React.FC = () => {
           ) : role === 'staff' ? (
             <Link to='/staff'>Dashboard</Link>
           ) : role === 'superadmin' ? (
-            <Link to='/staff'>Dashboard</Link>
+            <Link to='/superadmin'>Dashboard</Link>
           ) : (
             <Button asChild size='sm'>
               <Link to='/login'>Try It</Link>

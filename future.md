@@ -5,9 +5,11 @@ This system is close to being worth paying for, but it still needs several real 
 ## 1. Must-Have Features Before Launch
 
 ### A. WhatsApp notification system (required for the product promise)
+
 The app already advertises WhatsApp features in the public UI and in docs, but the backend is still incomplete. If this is in the plan, it must be real and configurable.
 
 Required API models:
+
 - WhatsAppConfig
   - business_id
   - phone_number_id
@@ -60,6 +62,7 @@ Required API models:
   - sent_at
 
 Required backend work:
+
 - Laravel notification channel for WhatsApp
 - Queue jobs with retries and backoff
 - Webhook receiver for delivery/read status
@@ -68,9 +71,11 @@ Required backend work:
 - Admin config screen for API credentials, phone number, and test message
 
 ### B. Business alerts that justify the subscription price
+
 The app should not only show in-app notifications. It should proactively create operational value.
 
 Launch-worthy alert types:
+
 - Low stock alerts
 - Daily sales summary
 - Purchase confirmation alerts
@@ -85,27 +90,32 @@ Launch-worthy alert types:
 ## 2. UI Changes Needed Before Launch
 
 ### Admin dashboard
+
 - Notifications center should be polished and visible, not only a basic list.
 - Add categories: Stock, Finance, Sales, Customers, Security.
 - Add unread count, filters, and quick action buttons.
 - Add a Settings page for message preferences and WhatsApp enablement.
 
 ### Manager / staff pages
+
 The current UI still contains placeholder states and unfinished views. This weakens the product perception.
 
 Fix or complete:
+
 - Manager inventory pages
 - Manager notifications pages
 - Staff inventory pages
 - Any dashboard sections that still say “will be implemented here”
 
 ### Customer-facing communications
+
 - Digital receipt send flow
 - WhatsApp receipt and payment reminder flow
 - Customer purchase history and follow-up messaging
 - Easy opt-in/opt-out configuration for customers
 
 ### Sales and operations UX
+
 - Shift handover confirmation
 - Drawer reconciliation summary with mismatch alerts
 - Daily summary cards with readable business metrics
@@ -114,6 +124,7 @@ Fix or complete:
 ## 3. API Changes Needed Before Launch
 
 ### Core backend readiness
+
 - Real notification service abstraction: in-app, email, SMS, WhatsApp
 - A provider adapter pattern (Meta WhatsApp / Twilio / SMS gateway)
 - Job queue and failed-job handling
@@ -121,6 +132,7 @@ Fix or complete:
 - Strong validation and audit logs around every outbound message
 
 ### Recommended endpoints
+
 - POST /api/business/notifications/settings
 - GET /api/business/notifications/logs
 - POST /api/business/whatsapp/test
@@ -129,6 +141,7 @@ Fix or complete:
 - POST /api/notifications/mark-all-read
 
 ### Reliability
+
 - Retry logic on provider failures
 - Exponential backoff
 - Response logging for every message attempt
@@ -140,6 +153,7 @@ Fix or complete:
 The system should feel like a “business operating system”, not a basic inventory tracker.
 
 Premium value layer:
+
 - Automated cash and stock control
 - AI/manager summaries
 - Customer retention messaging
@@ -151,6 +165,7 @@ Premium value layer:
 ## 5. Launch Recommendation
 
 Recommended order:
+
 1. Fix UI placeholder pages and dashboard polish.
 2. Build a real notification abstraction layer in the API.
 3. Implement WhatsApp configuration + provider adapter.
@@ -158,6 +173,20 @@ Recommended order:
 5. Add low-stock, sales summary, and payment reminder triggers.
 6. Add logs, audit trails, and admin test flows.
 7. Launch only after verifying the workflow end-to-end with a real business scenario.
+
+### Post-launch follow-up: offline sync
+
+Move offline-first POS sync to the first stabilization phase after launch so the initial release can focus on sale/stock/finance reliability without taking on a broad synchronization architecture too early.
+
+Recommended post-launch scope:
+
+- local pending transaction queue with unique local IDs
+- server-side idempotent sync endpoints
+- conflict policy for simultaneous changes during offline periods
+- retry and failure handling for queued sync batches
+- reconciliation reporting for partially synced transactions
+
+This should happen near launch, but not block the launch itself.
 
 ## 6. Final Verdict
 
