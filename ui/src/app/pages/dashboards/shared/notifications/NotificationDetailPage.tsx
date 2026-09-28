@@ -14,7 +14,7 @@ import {
 import {
   notificationRouteForType,
   notificationTypeLabel,
-} from '../../admin/components/notifications/notificationUtils';
+} from '../../executive/components/notifications/notificationUtils';
 
 const iconMap: Record<string, typeof Bell> = {
   low_stock: Package,
@@ -25,7 +25,7 @@ const iconMap: Record<string, typeof Bell> = {
   attendance: Users,
 };
 
-export const NotificationDetailPage = ({ scope }: { scope: 'admin' | 'manager' }) => {
+export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'operations' }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading, isError } = useGetNotificationQuery(id ?? '', { skip: !id });

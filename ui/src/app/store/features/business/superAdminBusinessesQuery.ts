@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const superAdminBusinessesQuery = createApi({
-  reducerPath: 'superAdminBusinessesPath',
+  reducerPath: 'superExecutiveBusinessesPath',
   baseQuery: fetchBaseQuery({
     baseUrl: `${import.meta.env.VITE_BASE_URL}/super-admin`,
     prepareHeaders: (headers) => {

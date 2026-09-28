@@ -1,8 +1,8 @@
 import { useGetSubscriptionsQuery } from '@/app/store/features/subscriptions/subscriptionsQuery';
 import { useGetSubscriptionPaymentsQuery } from '@/app/store/features/subscriptions/subscriptionPaymentsQuery';
-import { useGetAdminPlansQuery } from '@/app/store/features/plans/adminPlansQuery';
+import { useGetExecutivePlansQuery } from '@/app/store/features/plans/executivePlansQuery';
 import { useGetSuperAdminBusinessesQuery } from '@/app/store/features/business/superAdminBusinessesQuery';
-import { StatsCard } from '@/app/pages/dashboards/admin/components/overview/StatsCard';
+import { StatsCard } from '@/app/pages/dashboards/executive/components/overview/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +21,7 @@ const statusColors: Record<string, string> = {
 export const SuperadminDashboardPage = () => {
   const { data: subsData, isLoading: subsLoading } = useGetSubscriptionsQuery();
   const { data: paymentsData, isLoading: paymentsLoading } = useGetSubscriptionPaymentsQuery();
-  const { data: plansData, isLoading: plansLoading } = useGetAdminPlansQuery();
+  const { data: plansData, isLoading: plansLoading } = useGetExecutivePlansQuery();
   const { data: businessesData, isLoading: businessesLoading } = useGetSuperAdminBusinessesQuery();
 
   const subscriptions = subsData?.subscriptions ?? [];
