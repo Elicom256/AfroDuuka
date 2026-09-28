@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Mail, Phone, MapPin, User, Hash, FileText, Trash2 } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export const Customer = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export const Customer = () => {
   const { id } = useParams<{ id: string }>();
   const { data, error, isLoading } = useCustomerQuery(id!, { skip: !id });
   const [destroy, { isLoading: deleting }] = useDeleteCustomerMutation();
+  const { canDelete } = useRolePermissions();
 
   const customer = data?.customer;
   const user = customer?.user;
@@ -53,7 +55,7 @@ export const Customer = () => {
           </p>
         </div>
 
-        <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />
+        {canDelete && <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />}
       </div>
 
       <Separator />

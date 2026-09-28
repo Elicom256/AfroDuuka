@@ -5,16 +5,19 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditProduct } from './EditProduct';
+import { AdjustStock } from './AdjustStock';
 import { ProductImageManager } from '@/app/components/ProductImageManager';
 import { ArrowLeftCircle } from 'lucide-react';
 import { useProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
   console.log('id==>', id);
   const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
+  const { canManageCatalog } = useRolePermissions();
   const [editOpen, setEditOpen] = useState(false);
   console.log('product==>', data);
   if (isLoading) return <PageLoadingState />;
@@ -36,7 +39,7 @@ export const Product = () => {
           <h1 className='text-3xl font-bold'>Product Details</h1>
           <span>Product Id: {product.id}</span>
         </div>
-        <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
+        <Button onClick={() => setEditOpen(true)}>{canManageCatalog ? 'Edit Product' : 'Adjust Stock'}</Button>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-3'>
@@ -99,7 +102,11 @@ export const Product = () => {
         </div>
       </div>
 
-      <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product}  />
+      {canManageCatalog ? (
+        <EditProduct open={editOpen} onOpenChange={setEditOpen} product={product} />
+      ) : (
+        <AdjustStock open={editOpen} onOpenChange={setEditOpen} product={product} />
+      )}
     </div>
   );
 };

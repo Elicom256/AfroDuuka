@@ -43,8 +43,6 @@ const navSections: Array<{
       { label: 'Purchases', to: '/dashboard/purchases', icon: Truck },
       { label: 'Sale Returns', to: '/dashboard/sale-returns', icon: Undo2 },
       { label: 'Purchase Returns', to: '/dashboard/purchase-returns', icon: ArrowLeftToLine },
-      { label: 'Orders', to: '/dashboard/orders', icon: Package2 },
-      { label: 'Quotations', to: '/dashboard/quotations', icon: FileText },
       { label: 'Inventory', to: '/dashboard/inventory', icon: AlertTriangle },
       { label: 'Workers', to: '/dashboard/workers', icon: Users },
       { label: 'Customers', to: '/dashboard/customers', icon: Users2, settingKey: 'customers' },
