@@ -2,10 +2,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { ProductTable } from '../components/products/ProductTable';
 import { AddProduct } from '../components/products/AddProduct';
 import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const ManagerProductsPage = () => {
   const [addProduct, { isLoading }] = useAddProductMutation();
+  const { canCreate } = useRolePermissions();
 
   if (isLoading) return <PageLoadingState />;
   return (
@@ -14,7 +16,7 @@ export const ManagerProductsPage = () => {
         <CardTitle>Products</CardTitle>
         {/* <CardDescription>Manage your products here.</CardDescription> */}
         <div className='flex gap-2'>
-          <AddProduct addProduct={addProduct} />
+          {canCreate && <AddProduct addProduct={addProduct} />}
         </div>
       </CardHeader>
       <CardContent>
