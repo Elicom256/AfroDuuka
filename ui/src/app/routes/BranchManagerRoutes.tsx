@@ -51,6 +51,7 @@ import { ProcurementRoutes } from './ProcurementRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
+import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
 import { getRolePrefix } from '@/lib/rolePrefix';
 
@@ -92,6 +93,7 @@ export const BranchManagerRoutes = () => {
           <Route path='employee-salaries' element={<ExecutiveEmployeeSalaryPage />} />
           <Route path='remuneration' element={<ExecutiveEmployeeRemunerationPage />} />
           <Route path='activity-logs' element={<ExecutiveBusinessActivityLogs />} />
+          <Route path='activity-log' element={<ActivityLogPage />} />
           <Route path='promotions' element={<ExecutivePromotionsPage />} />
           <Route path='coupons' element={<ExecutiveCouponsPage />} />
           <Route path='messages' element={<ExecutiveMessagesPage />} />

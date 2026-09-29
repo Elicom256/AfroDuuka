@@ -31,6 +31,7 @@ import { ReceiptDetail } from '../pages/dashboards/executive/components/receipts
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
+import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
 import { getRolePrefix } from '@/lib/rolePrefix';
 
@@ -76,6 +77,7 @@ export const OperationsRoutes = () => {
         <Route path='quotations' element={<QuotationsPage />} />
         <Route path='promotions' element={<OperationsPromotionsPage />} />
         <Route path='attendance' element={<OperationsAttendancePage />} />
+        <Route path='activity-log' element={<ActivityLogPage />} />
       </Route>
     </Routes>
   );
