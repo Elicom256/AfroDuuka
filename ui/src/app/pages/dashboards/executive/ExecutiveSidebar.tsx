@@ -110,7 +110,6 @@ const navSections: Array<{
     items: [
       { label: 'Promotions', to: '/promotions', icon: Gift, settingKey: 'promotions' },
       { label: 'Coupons', to: '/coupons', icon: Tag },
-      { label: 'Loyalty', to: '/loyalty', icon: Award },
     ],
   },
   {

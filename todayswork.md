@@ -1,381 +1,95 @@
-# NEW MODULE
-Implement a complete **Finance Module** by following the existing project architecture, coding standards, API conventions, UI design, routing structure, authorization system, and reusable components.
+# Today's Work — DuukaFlow
 
-This project consists of:
+## API Tasks (Start Here)
 
-- Laravel REST API
-- React (TypeScript) SPA
-- shadcn/ui
-- lucide-react
-- Existing authentication and role-based authorization
-- Existing Business and Business Branch architecture
+### 1. Fix FinanceController branch scope bypass
+- **File:** `api/app/Http/Controllers/FinanceController.php:24`
+- **Issue:** `resolveBranchId()` returns `null` when no `branch_id` is provided, causing finance endpoints to return unfiltered cross-branch data
+- **Fix:** Return the user's default branch ID instead of `null`, or require `branch_id` for branch-scoped roles
+- **Status:** DONE
 
-Do **not** introduce a different architecture.
+### 2. Remove dead code — `sendDemoMessage()`
+- **File:** `api/app/Services/WhatsAppService.php`
+- **Issue:** `sendDemoMessage()` has no callers, duplicates `queueDemoMessage()`, and carries its own copy of the `$result['success']` bug
+- **Fix:** Delete the method entirely
+- **Status:** DONE
 
-Inspect the existing codebase first and reuse existing:
+### 3. Add backup/restore strategy
+- **Issue:** No backup or restore mechanism exists
+- **Fix:** Implement database backup command and restore endpoint
+- **Status:** DONE — already exists at `api/app/Console/Commands/DatabaseBackup.php` (pg_dump/pg_restore with --force)
 
-- services
-- patterns
-- middleware
-- policies
-- helpers
-- layouts
-- components
-- API response structure
-- validation
-- pagination
-- filters
-- reporting patterns
+### 4. Add stock adjustment workflow
+- **Issue:** No stock adjustment workflow exists
+- **Fix:** Create API endpoints for stock adjustments with audit trail
+- **Status:** DONE — already exists via `InventoryService::adjust()` and `ProductController::adjustStock()` with reason codes (damaged, expired, lost, stock_take)
 
----
+### 5. Add expiry tracking
+- **Issue:** No product expiry tracking implemented
+- **Fix:** Add expiry_date field to products, expiry alerts, and reporting
+- **Status:** DONE — already exists: `SweepExpiredProducts` command, `ProductController::expiringAnalytics()`, `expiry_date` field on products
 
-# FINANCE MODULE
+### 6. Add damaged/lost stock logs
+- **Issue:** No tracking for damaged or lost stock
+- **Fix:** Create stock damage/loss logging with reasons and approval flow
+- **Status:** DONE — already exists: `ProductLossController`, `InventoryService::writeOff()` with reason codes (damaged, expired, lost)
 
-Implement a complete financial module that tracks every financial movement occurring within the system.
+### 7. Add branch-to-branch stock transfer validation
+- **Issue:** Stock transfers between branches lack validation
+- **Fix:** Implement transfer workflow with source/destination validation
+- **Status:** DONE — already exists: `StockTransferController` with dispatch/receive/cancel workflow via `StockTransferService`
 
-The module should support both:
+### 8. Add CI/CD pipeline
+- **Issue:** No CI/CD pipeline configured
+- **Fix:** Set up GitHub Actions for tests, linting, and deployment
+- **Status:** DONE — created `.github/workflows/ci.yml` with backend (Pint + PHPUnit) and frontend (ESLint + build) jobs
 
-- Business-level finances
-- Business Branch-level finances
-
-Financial information should automatically update as users perform normal operations throughout the system.
-
-The Finance module should become the single source of truth for financial reporting.
-
----
-
-# Objectives
-
-Track financial movements generated from:
-
-- Sales
-- Purchases
-- Sales Returns
-- Purchase Returns
-- Expenses
-- Tax Payments
-- Customer Payments
-- Supplier Payments
-- Opening Balances
-- Cash Adjustments
-- Manual Adjustments (Admin only)
-- Future financial transaction types
-
-The module should be extensible for future accounting features.
+### 9. Add production deployment setup
+- **Issue:** No production deployment configuration
+- **Fix:** Docker compose, environment configs, deployment scripts
+- **Status:** DONE — already exists: `docker-compose.prod.yml`, `Dockerfile` (api + ui), `.env.production.example`
 
 ---
 
-# Backend
-
-Implement:
-
-- FinancialTransaction
-- FinancialAccount (if appropriate based on existing architecture)
-
-Every financial event should create a Financial Transaction.
-
-Suggested fields include:
-
-- business_id
-- business_branch_id
-- reference_type
-- reference_id
-- transaction_type
-- direction (Credit / Debit)
-- amount
-- running_balance
-- payment_method_id
-- description
-- notes
-- transaction_date
-- performed_by
-- timestamps
-
-Do not duplicate existing business logic.
-
-Reuse existing Sales, Purchases, Expenses, Returns, and Payment workflows.
-
-Financial transactions should be generated automatically whenever those modules perform actions.
-
----
-
-# Financial Movements
-
-Examples include:
-
-Sales
-
-- Revenue
-- Customer Payments
-
-Purchases
-
-- Inventory Purchases
-- Supplier Payments
-
-Sales Returns
-
-- Customer Refunds
-
-Purchase Returns
-
-- Supplier Refunds
-
-Expenses
-
-- Operational Expenses
-
-Taxes
-
-- Tax Payments
-
-Opening Balance
-
-Manual Cash Adjustment
-
-Any future module that affects finances.
-
----
-
-# Integration
-
-Integrate with the existing:
-
-- Sales
-- Purchases
-- Returns
-- Expenses
-- Payment Methods
-- Business
-- Business Branch
-
-Do not require duplicate data entry.
-
-The module should automatically record financial movements whenever existing operations are performed.
-
----
-
-# Business vs Branch
-
-Track finances at both levels.
-
-Business
-
-Aggregate all branch financial movements.
-
-Business Branch
-
-Track only transactions belonging to that branch.
-
-The Business totals should always reflect the sum of all branch financial activity.
-
----
-
-# Reports
-
-Support generating:
-
-- Cash Flow
-- Revenue Report
-- Expense Report
-- Income Summary
-- Branch Financial Statement
-- Business Financial Statement
-- Financial Transaction History
-- Date Range Reports
-- Payment Method Reports
-
-Reuse existing report architecture where applicable.
-
----
-
-# Dashboard Integration
-
-Update existing dashboards to include financial summaries.
-
-Business Dashboard
-
-- Total Revenue
-- Total Expenses
-- Net Profit
-- Cash Balance
-- Recent Transactions
-
-Branch Dashboard
-
-- Branch Revenue
-- Branch Expenses
-- Branch Cash Balance
-- Recent Transactions
-
----
-
-# Frontend
-
-Implement the complete frontend.
-
-Create all necessary:
-
-- Pages
-- Components
-- Forms
-- Tables
-- Dialogs
-- Filters
-- Search
-- Pagination
-- API hooks/services
-- Types
-- Routes
-- Navigation
-
-Reuse existing reusable components.
-
----
-
-# Pages
-
-Implement:
-
-Finance Dashboard
-
-Financial Transactions
-
-View Transaction
-
-Manual Adjustment (Admin)
-
-Cash Flow
-
-Revenue Report
-
-Expense Report
-
-Branch Financial Statement
-
-Business Financial Statement
-
-Financial Reports
-
----
-
-# Permissions
-
-Use the existing authorization system.
-
-## Admin
-
-Can:
-
-- View business finances
-- View every branch
-- View aggregate business finances
-- Query any financial movement
-- Generate reports
-- Perform manual adjustments
-- View all dashboards
-
-## Branch Manager
-
-Can:
-
-- View only their branch
-- View branch reports
-- View branch transactions
-
-Cannot:
-
-- View other branches
-- View business-wide finances
-
-## Cashier
-
-Can:
-
-- View only their assigned branch financial information where appropriate
-- View transactions related to their work
-
-Cannot:
-
-- View other branches
-- View business-wide reports
-- Perform manual financial adjustments
-
----
-
-# API
-
-Follow existing API conventions.
-
-Implement REST endpoints including:
-
-- index
-- show
-- store (where appropriate)
-- update (where appropriate)
-- destroy (only if project conventions allow)
-
-Use:
-
-- Form Requests
-- Resources
-- Policies
-- Validation
-- Database Transactions
-
-Return responses using the existing API response structure.
-
----
-
-# Navigation
-
-Integrate naturally into the existing sidebar.
-
-Suggested section:
-
-Finance
-
-- Dashboard
-- Transactions
-- Cash Flow
-- Reports
-
-Do not redesign the navigation.
-
-Follow the existing layout.
-
----
-
-# UI
-
-Reuse existing:
-
-- shadcn/ui components
-- lucide-react icons
-- Cards
-- Tables
-- Dialogs
-- Sheets
-- Dropdowns
-- Filters
-- Pagination
-- Empty states
-- Loading states
-- Skeletons
-- Charts already used elsewhere in the project
-
-Maintain complete UI consistency.
-
----
-
-# Constraints
-
-- Maintain the current architecture.
-- Do not duplicate business logic.
-- Follow the existing project structure.
-- Reuse existing services whenever possible.
-- Use database transactions where appropriate.
-- Follow RESTful conventions.
-- Wire the complete backend and frontend.
-- Maintain production-quality code.
-- Reuse existing helpers, utilities, UI components, middleware, and packages instead of introducing unnecessary abstractions.
+## UI Tasks (After API)
+
+### 10. Build Operations Inventory Page
+- **File:** `ui/src/app/pages/dashboards/operations/pages/OperationsInventoryPage.tsx:17`
+- **Issue:** Renders "will be implemented here" placeholder
+- **Fix:** Build real inventory table with tracking components
+- **Status:** DONE — built with summary cards, ProductTable, AdjustStock dialog, and OperationsStockAlerts
+
+### 11. Build Operations Analytics Page
+- **File:** `ui/src/app/pages/dashboards/operations/pages/OperationsAnalyticsPage.tsx:17`
+- **Issue:** Renders "will be implemented here" placeholder
+- **Fix:** Build charts and analytics components
+- **Status:** DONE — built with KPI cards, Doughnut chart (stock status), Bar chart (stock movement), top selling products, low/out of stock lists using real API data
+
+### 12. Build Staff Sales Overview Page
+- **File:** `ui/src/app/pages/dashboards/staff/pages/StaffSalesOverviewPage.tsx:17`
+- **Issue:** Renders "will be implemented here" placeholder
+- **Fix:** Build charts and sales flow visualization
+- **Status:** DONE — built with KPI cards, revenue trend line chart, daily orders bar chart, top selling products, recent sales, low/out of stock alerts using real API data
+
+### 13. Replace Executive dummy-data pages
+- **File:** `ui/src/app/pages/dashboards/executive/pages/executive-placeholder-pages.tsx`
+- **Issue:** 7 pages with hardcoded fake data (Customers, Analytics, Reports, Finances, Suppliers, Promotions, Coupons)
+- **Fix:** Replace with real API-backed components or remove from navigation
+- **Status:** DONE — all 7 pages now use real API queries (customers, suppliers, promotions, analytics, cash flow, reports)
+
+### 14. Fix Executive Messages Page
+- **File:** `ui/src/app/pages/dashboards/executive/pages/ExecutiveMessagesPage.tsx:104`
+- **Issue:** Shows placeholder conversations
+- **Fix:** Wire to real messaging API or remove page
+- **Status:** DONE — wired to `useBranchMessagesQuery` and `useGetNotificationsQuery` with real conversation list, message preview, and mark-all-read
+
+### 15. Remove Loyalty module
+- **Status:** DONE — all loyalty files deleted, references removed from store, routes, sidebars, and API
+
+### 16. Remove console.log statements
+- **Issue:** 96 `console.log` statements in production UI
+- **Fix:** Remove or replace with proper logging
+
+### 17. Polish remaining dashboard placeholders
+- **Issue:** Various "to be implemented later" states remain
+- **Fix:** Complete or remove all placeholder states

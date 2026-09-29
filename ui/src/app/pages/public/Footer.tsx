@@ -1,5 +1,5 @@
 import { Link, Mail } from 'lucide-react';
-import { FaGithub, FaLinkedinIn, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
+import { FaFacebook, FaGithub, FaLinkedinIn, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 
 const socials = [
   {
@@ -23,8 +23,13 @@ const socials = [
     icon: <Mail className='h-4 w-4' />,
   },
   {
+    name: 'Facebook',
+    href: 'https://www.facebook.com/profile.php?id=61594724313686',
+    icon: <FaFacebook className='h-4 w-4' />,
+  },
+  {
     name: 'WhatsApp',
-    href: 'https://wa.me/256781490899/?text=Hello%20Elicom%2C%20auto%20inserted/',
+    href: 'https://wa.me/256731794401/?text=Hello%20Elicom%2C%20auto%20inserted/',
     icon: <FaWhatsapp className='h-4 w-4' />,
   },
   {
