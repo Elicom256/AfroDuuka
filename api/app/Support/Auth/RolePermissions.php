@@ -32,6 +32,17 @@ class RolePermissions
      */
     public const RESTRICTED_ROLES = ['operations'];
 
+    /**
+     * Branch-scoped managers: near-executive powers within their own branch only.
+     *
+     * A BranchManager can do almost everything an Executive can — author the catalogue,
+     * adjust stock, approve purchase orders, remove records — but EffectiveBranchScope
+     * confines every one of those actions to the branch they are assigned to. They
+     * cannot see or touch other branches, and they cannot change business-level
+     * settings that belong to the Executive.
+     */
+    public const BRANCH_MANAGER_ROLES = ['branch_manager'];
+
     public static function roleName(?User $user): string
     {
         return strtolower(trim((string) $user?->role?->name));
@@ -47,20 +58,38 @@ class RolePermissions
         return in_array(static::roleName($user), static::ELEVATED_ROLES, true);
     }
 
+    public static function isBranchManager(?User $user): bool
+    {
+        return in_array(static::roleName($user), static::BRANCH_MANAGER_ROLES, true);
+    }
+
+    /**
+     * May the user exercise executive-level powers within their branch scope?
+     *
+     * True for Elevated roles (unrestricted) and BranchManager (branch-scoped).
+     * Used for stock modifications, purchase-order approval, and catalogue authoring.
+     */
+    public static function canManageBranch(?User $user): bool
+    {
+        return static::isElevated($user) || static::isBranchManager($user);
+    }
+
     /**
      * May the user remove records? Restricted roles may not, on any model.
+     * BranchManager may delete within their branch scope.
      */
     public static function canDelete(?User $user): bool
     {
-        return ! static::isRestricted($user);
+        return static::canManageBranch($user);
     }
 
     /**
      * May the user author new catalogue records (products, categories, tax config)?
+     * BranchManager may author within their branch scope.
      */
     public static function canCreateCatalog(?User $user): bool
     {
-        return ! static::isRestricted($user);
+        return static::canManageBranch($user);
     }
 
     /**
@@ -69,9 +98,56 @@ class RolePermissions
      * Stock levels are excluded on purpose: moving quantity is the one write a
      * restricted role is here to make, and it is routed through InventoryService so
      * it leaves a stock_movements row behind.
+     *
+     * BranchManager may edit catalogue within their branch scope.
      */
     public static function canEditCatalog(?User $user): bool
     {
-        return ! static::isRestricted($user);
+        return static::canManageBranch($user);
+    }
+
+    /**
+     * May the user modify stock levels?
+     *
+     * Elevated roles and BranchManager may adjust stock. Operations may only
+     * adjust through InventoryService (stock counts, adjustments). Procurement
+     * may only increase stock through receiving purchase orders.
+     */
+    public static function canModifyStock(?User $user): bool
+    {
+        return static::canManageBranch($user);
+    }
+
+    /**
+     * May the user approve purchase orders?
+     *
+     * Only Elevated roles and BranchManager may approve. Procurement may create
+     * and receive orders but not approve them.
+     */
+    public static function canApprovePurchaseOrder(?User $user): bool
+    {
+        return static::canManageBranch($user);
+    }
+
+    /**
+     * May the user create purchase orders?
+     *
+     * Elevated roles, BranchManager, and Procurement may create orders.
+     */
+    public static function canCreatePurchaseOrder(?User $user): bool
+    {
+        return static::canManageBranch($user)
+            || static::roleName($user) === 'procurement';
+    }
+
+    /**
+     * May the user receive purchase orders (add stock)?
+     *
+     * Elevated roles, BranchManager, and Procurement may receive orders.
+     */
+    public static function canReceivePurchaseOrder(?User $user): bool
+    {
+        return static::canManageBranch($user)
+            || static::roleName($user) === 'procurement';
     }
 }

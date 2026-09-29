@@ -35,7 +35,14 @@ class QuotationTest extends TestCase
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $this->role = Role::factory()->create(['business_id' => $this->business->id]);
+        // Named explicitly: RoleFactory defaults to 'Operations', which holds no delete
+        // authority, and the destroy test below is about the quotation state machine —
+        // not about who may delete. The role boundary itself is covered by
+        // OperationsRolePermissionsTest.
+        $this->role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,

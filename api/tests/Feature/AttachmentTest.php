@@ -32,7 +32,13 @@ class AttachmentTest extends TestCase
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $role = Role::factory()->create(['business_id' => $this->business->id]);
+        // Named explicitly: RoleFactory defaults to 'Operations', which holds no delete
+        // authority, and the detach case here is about attachment ownership — not about
+        // who may delete. See OperationsRolePermissionsTest for the role boundary.
+        $role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,

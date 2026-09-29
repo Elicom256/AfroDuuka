@@ -34,7 +34,14 @@ class TaxProductIntegrationTest extends TestCase
         $this->otherBranch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $role = Role::factory()->create(['business_id' => $this->business->id]);
+        // Named explicitly: RoleFactory defaults to 'Operations', which may not author
+        // catalogue records, and these cases are about which tax category a product is
+        // allowed to point at — not about who may create the product. See
+        // OperationsRolePermissionsTest for the role boundary.
+        $role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
