@@ -1,3 +1,4 @@
-export const getRolePrefix = (_role: string | undefined): string => {
-  return '/dashboard';
+export const getRolePrefix = (role: string | undefined): string => {
+  if (!role) return '/dashboard';
+  return `/${role.toLowerCase()}`;
 };

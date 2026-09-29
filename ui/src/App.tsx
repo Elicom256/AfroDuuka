@@ -9,7 +9,10 @@ import { Toaster } from '@/components/ui/sonner';
 function App() {
   const location = useLocation();
   const hideFooter =
-    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/executive') ||
+    location.pathname.startsWith('/branchmanager') ||
+    location.pathname.startsWith('/operations') ||
+    location.pathname.startsWith('/procurement') ||
     location.pathname.startsWith('/staff') ||
     location.pathname.startsWith('/coresupport');
 
