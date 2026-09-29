@@ -7,7 +7,6 @@ export const BusinessBranches = () => {
   const { data } = useBranchesQuery();
 
   const branches = data?.branches;
-  console.log('branches==>', branches);
   return (
     <div>
       <div className='px-10 '>

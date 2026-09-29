@@ -38,12 +38,10 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
         reorder_quantity: Number(form.reorder_quantity),
         preferred_supplier_id: form.preferred_supplier_id || null,
       }).unwrap();
-      console.log('response==>', res);
       toast.success('Reorder rule created');
       setOpen(false);
       setForm({ product_id: '', reorder_quantity: '', preferred_supplier_id: '', auto_approve: false });
     } catch (err: any) {
-      console.log('error===>', err);
       toast.error(err?.data?.message || 'Failed');
     }
   };

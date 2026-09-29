@@ -45,7 +45,6 @@ const SalesOrdersTab = () => {
 
   const orders = data?.data ?? [];
   const products = productsData?.products ?? [];
-  console.log('orders=>', data ?? error);
 
   const filteredProducts = searchQuery
     ? products.filter(

@@ -8,7 +8,6 @@ export const customersQuery = createApi({
       const token = localStorage.getItem('token');
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
-        console.log('Available token==>', token);
       }
       return headers;
     },

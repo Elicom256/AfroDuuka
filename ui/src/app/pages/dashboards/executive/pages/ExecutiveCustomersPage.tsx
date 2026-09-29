@@ -11,7 +11,6 @@ export const ExecutiveCustomersPage = () => {
   const navigate = useNavigate();
   const { data, isLoading: fetchingCustomers } = useCustomersQuery();
   const customers = data?.customers || [];
-  console.log('customers==>', customers);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 

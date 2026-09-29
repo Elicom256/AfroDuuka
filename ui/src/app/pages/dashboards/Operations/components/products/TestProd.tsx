@@ -23,7 +23,6 @@ export const TestProd: React.FC = () => {
             });
           }
         });
-        console.log('BsProduct here==>', bsProducts);
       });
       //   sales.map((sale) =>
       //     sale.purchase_items.map((item) => {

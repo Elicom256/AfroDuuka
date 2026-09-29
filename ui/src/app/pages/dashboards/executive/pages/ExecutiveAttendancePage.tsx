@@ -11,7 +11,6 @@ export const ExecutiveAttendancePage = () => {
   const absentCount = data?.absentCount;
   const presentCount = data?.presentCount;
   const employees = workers?.workers;
-  console.log('attendances==>', employees);
   if (isLoading || fetching) return <PageLoadingState />;
 
   return (

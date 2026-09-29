@@ -34,7 +34,6 @@ export const ExecutiveWorkersPage = () => {
     setDialogOpen(true);
   };
   const workers = data?.workers;
-  console.log('workers==>', workers);
 
   const handleDelete = async (worker: WorkerItem) => {
     const confirmed = window.confirm(`Delete ${worker.name ?? 'this worker'}?`);

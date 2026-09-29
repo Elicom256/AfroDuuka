@@ -29,7 +29,6 @@ export const ExecutiveCouponsPage = () => {
       toast.error(err?.data?.message || 'Failed to create coupon');
     }
   };
-console.log("coupons==>", data)
   if (isLoading) return <PageLoadingState />;
 
   return (

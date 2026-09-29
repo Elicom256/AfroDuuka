@@ -88,7 +88,6 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
 
       const res = await addSale(body).unwrap();
       if (res) {
-        console.log('created Sale==>', res);
         toast.success(res.message || 'Sale created successfully');
         setOpen(false);
         setFormData({

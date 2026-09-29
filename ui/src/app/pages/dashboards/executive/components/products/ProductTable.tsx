@@ -49,7 +49,6 @@ export const ProductTable = () => {
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  console.log('branchProducts ==>', branchProducts ?? error);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -80,7 +79,6 @@ export const ProductTable = () => {
   };
 
   if (loadBranchProducts) return <PageLoadingState />;
-  console.log('products==>', products);
   return (
     <div className='space-y-4'>
       <Card className='border-border/60'>
