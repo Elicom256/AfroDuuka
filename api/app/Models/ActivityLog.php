@@ -37,25 +37,9 @@ class ActivityLog extends Activity
         });
     }
 
-    public function getChangesAttribute($value)
+    public function getChangesAttribute(): \Illuminate\Support\Collection
     {
-        $properties = $this->properties;
-
-        if (!$properties) {
-            return null;
-        }
-
-        $changes = [];
-
-        if (isset($properties['attributes'])) {
-            $changes['after'] = $properties['attributes'];
-        }
-
-        if (isset($properties['old'])) {
-            $changes['before'] = $properties['old'];
-        }
-
-        return $changes;
+        return $this->changes;
     }
 
     public function getSensitiveDataAttribute()
