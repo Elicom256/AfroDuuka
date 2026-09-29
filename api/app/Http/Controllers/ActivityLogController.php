@@ -7,73 +7,54 @@ use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
-    /**
-     * GET /activity-logs
-     */
     public function index(Request $request)
     {
         $query = ActivityLog::query()
-            ->with(['user', 'business', 'businessBranch'])
+            ->with(['causer', 'subject'])
             ->latest();
 
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
+        if ($request->filled('log_name')) {
+            $query->where('log_name', $request->log_name);
         }
 
-        if ($request->filled('action')) {
-            $query->where('action', $request->action);
+        if ($request->filled('causer_id')) {
+            $query->where('causer_id', $request->causer_id);
         }
-        $total = (clone $query)->count() ?? 0;
-        $logs = (clone $query)->paginate($request->get('per_page', 10));
-        $distinct = (clone $query)->select("user_id")->distinct()->count() ?? 0;
+
+        if ($request->filled('subject_type')) {
+            $query->where('subject_type', $request->subject_type);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate($request->get('per_page', 20));
+
         return response()->json([
-            "message" => "logs fetched",
-             "logs" => $logs,
-             "total" => $total,
-             "distinct" => $distinct
-         ]);
-    }
-
-    /**
-     * POST /activity-logs
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'business_id' => ['nullable', 'exists:businesses,id'],
-            'business_branch_id' => ['nullable', 'exists:business_branches,id'],
-            'action' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'message' => 'Activity logs fetched',
+            'data' => $logs,
         ]);
-
-        $log = ActivityLog::create($validated);
-
-        return response()->json([
-            'message' => 'Activity log created',
-            'data' => $log->load(['user', 'business', 'branch']),
-        ], 201);
     }
 
-    /**
-     * GET /activity-logs/{id}
-     */
-    public function show(string $id)
+    public function show(ActivityLog $activityLog)
     {
-        $log = ActivityLog::with(['user', 'business', 'branch'])->findOrFail($id);
-
-        return response()->json($log);
+        return response()->json([
+            'message' => 'Activity log fetched',
+            'data' => $activityLog->load(['causer', 'subject']),
+        ]);
     }
 
-    /**
-     * DELETE /activity-logs/{id}
-     */
-    public function destroy(string $id)
+    public function destroy(ActivityLog $activityLog)
     {
-        ActivityLog::findOrFail($id)->delete();
+        $activityLog->delete();
 
         return response()->json([
-            'message' => 'Activity log archieved!'
+            'message' => 'Activity log deleted',
         ]);
     }
 }
