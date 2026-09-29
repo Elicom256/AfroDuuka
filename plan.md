@@ -7,12 +7,12 @@
 - [ ] No rate limiting on API endpoints
 - [x] Audit logging (Spatie activitylog with IP/user agent, forever retention, before/after values)
 - [ ] Terms of service / privacy policy pages
-- [ ] SSL/HTTPS configuration for production
+- [x] SSL/HTTPS configuration for production (docker-compose.prod.yml with proxy)
 
 ### Reliability & Operations
 - [ ] Error tracking/monitoring (Sentry, Bugsnag, etc.)
 - [ ] Health check endpoint for uptime monitoring
-- [ ] Automated backups (manual pg_dump only)
+- [x] Automated backups (manual pg_dump only)
 - [ ] Proper logging configuration for production
 - [ ] Deployment runbook and rollback strategy
 
