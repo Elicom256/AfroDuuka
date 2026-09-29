@@ -190,4 +190,6 @@ Route::middleware('throttle:api')->group(function () {
     Route::prefix("tax-payments")->group(function () {
         require __DIR__."/tax-payments.php";
     });
+
+    Route::get("exports/{type}", [\App\Http\Controllers\ExportController::class, 'export']);
 });

@@ -3,6 +3,7 @@ import { OperationsPageShell, SectionCard } from './components/Operations-page-s
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useBranchCustomersQuery } from '@/app/store/features/branch';
 import { resolveList } from './components/Operations-page-utils';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const OperationsCustomersPage = () => {
   const { data, isLoading } = useBranchCustomersQuery();
@@ -12,7 +13,7 @@ export const OperationsCustomersPage = () => {
 
   return (
     <div className='space-y-6'>
-      <OperationsPageShell title='Customers' description='View customers attached to your branch.'>
+      <OperationsPageShell title='Customers' description='View customers attached to your branch.' actions={<ExportButton type='customers' label='Export' />}>
         <div className='grid gap-4 md:grid-cols-3'>
           <SectionCard title='Total customers' value={customers.length} icon={<Users2 className='h-5 w-5' />} />
           <SectionCard
