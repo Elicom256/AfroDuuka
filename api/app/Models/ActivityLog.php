@@ -2,54 +2,78 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Request;
 
-class ActivityLog extends BaseModel
+class ActivityLog extends Activity
 {
-    use HasFactory, SoftDeletes;
-
     protected $fillable = [
-        'user_id',
-        'business_id',
-        'business_branch_id',
-        'action',
+        'log_name',
         'description',
-        'metadata',
+        'subject_type',
+        'subject_id',
+        'causer_type',
+        'causer_id',
+        'properties',
+        'batch_uuid',
+        'ip_address',
+        'user_agent',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
-
-    public function user(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'properties' => 'array',
+        ];
     }
 
-    public function business(): BelongsTo
+    public static function boot()
     {
-        return $this->belongsTo(Business::class);
+        parent::boot();
+
+        static::saving(function ($activity) {
+            $activity->ip_address = Request::ip();
+            $activity->user_agent = Request::userAgent();
+        });
     }
 
-     public function businessBranch(): BelongsTo
+    public function getChangesAttribute($value)
     {
-        return $this->belongsTo(BusinessBranch::class);
+        $properties = $this->properties;
+
+        if (!$properties) {
+            return null;
+        }
+
+        $changes = [];
+
+        if (isset($properties['attributes'])) {
+            $changes['after'] = $properties['attributes'];
+        }
+
+        if (isset($properties['old'])) {
+            $changes['before'] = $properties['old'];
+        }
+
+        return $changes;
     }
 
-    public static function log($user, string $action, Model $subject, ?string $description = null, array $metadata = []): self
+    public function getSensitiveDataAttribute()
     {
-        return self::create([
-            'user_id' => $user->id,
-            'business_id' => $user->business_id ?? null,
-            'business_branch_id' => $user->business_branch_id ?? null,
-            'subject_type' => get_class($subject),
-            'subject_id' => $subject->getKey(),
-            'action' => $action,
-            'description' => $description,
-            'metadata' => $metadata,
-        ]);
+        $sensitiveFields = ['password', 'token', 'secret', 'credit_card', 'cvv', 'pin'];
+        $properties = $this->properties ?? collect();
+
+        $masked = [];
+
+        foreach ($sensitiveFields as $field) {
+            if ($properties->has("attributes.$field")) {
+                $masked["attributes.$field"] = '******';
+            }
+            if ($properties->has("old.$field")) {
+                $masked["old.$field"] = '******';
+            }
+        }
+
+        return $masked;
     }
 }

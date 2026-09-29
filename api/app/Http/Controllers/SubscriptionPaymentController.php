@@ -13,7 +13,7 @@ class SubscriptionPaymentController extends Controller
 {
     public function index()
     {
-        $payments = SubscriptionPayment::with(['subscription.plan', 'paymentMethod', 'verifiedBy'])->get();
+        $payments = SubscriptionPayment::with(['subscription.plan', 'subscription.business', 'paymentMethod', 'verifiedBy'])->get();
         return response()->json(["subscription_payments" => $payments, "message" => "Subscription payments retrieved"]);
     }
 

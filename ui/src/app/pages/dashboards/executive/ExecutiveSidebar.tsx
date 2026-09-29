@@ -28,6 +28,7 @@ import {
   ArrowLeftToLine,
   Receipt,
   ShoppingCart,
+  Activity,
   Package2,
   Wallet,
   Landmark,
@@ -110,6 +111,12 @@ const navSections: Array<{
     items: [
       { label: 'Promotions', to: '/promotions', icon: Gift, settingKey: 'promotions' },
       { label: 'Coupons', to: '/coupons', icon: Tag },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { label: 'Activity Log', to: '/activity-log', icon: Activity },
     ],
   },
   {

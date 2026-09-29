@@ -1,9 +1,7 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use App\Providers\WhatsAppEventServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    WhatsAppEventServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
+    App\Providers\WhatsAppEventServiceProvider::class,
 ];

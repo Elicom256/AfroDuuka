@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomersSettingsRequest;
 use App\Http\Requests\UpdateCustomersSettingsRequest;
 use App\Models\CoreSettings\CustomersSettings;
+use App\Models\ActivityLog;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class CustomersSettingsController extends Controller
 {
@@ -40,8 +43,23 @@ class CustomersSettingsController extends Controller
     public function update(UpdateCustomersSettingsRequest $request, CustomersSettings $customersSetting)
     {
         $validated = $request->validated();
-        $setting = $customersSetting->update($validated);
-        return response()->json(["message" => "Setting updated", "setting" => $setting]);
+        $oldValues = $customersSetting->getAttributes();
+        $customersSetting->update($validated);
+
+        ActivityLog::create([
+            'log_name' => 'settings',
+            'description' => 'Customer settings updated',
+            'subject_type' => CustomersSettings::class,
+            'subject_id' => $customersSetting->id,
+            'causer_type' => User::class,
+            'causer_id' => Auth::id(),
+            'properties' => [
+                'old' => $oldValues,
+                'attributes' => $validated,
+            ],
+        ]);
+
+        return response()->json(["message" => "Setting updated", "setting" => $customersSetting]);
     }
 
     /**

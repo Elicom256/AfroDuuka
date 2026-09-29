@@ -10,16 +10,25 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('business_id')->nullable()->constrained('businesses')->cascadeOnDelete();
-            $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
-            $table->string('action');
+            $table->string('log_name')->nullable();
             $table->text('description')->nullable();
             $table->string('subject_type')->nullable();
             $table->unsignedBigInteger('subject_id')->nullable();
-            $table->json('metadata')->nullable();
+            $table->string('causer_type')->nullable();
+            $table->unsignedBigInteger('causer_id')->nullable();
+            $table->json('properties')->nullable();
+            $table->uuid('batch_uuid')->nullable();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('business_id')->nullable()->constrained('businesses')->cascadeOnDelete();
+            $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
+            $table->string('action')->nullable();
+            $table->text('metadata')->nullable();
 
             $table->index(['subject_type', 'subject_id']);
+            $table->index(['log_name', 'created_at']);
+            $table->index(['causer_id', 'created_at']);
 
             $table->timestamps();
             $table->softDeletes();
