@@ -51,6 +51,7 @@ import { superAdminBusinessesQuery } from '../features/business/superAdminBusine
 import { expenseCategoriesQuery } from '../features/business/executive/expenseCategoriesQuery';
 import { expenseQuery } from '../features/business/executive/expenseQuery';
 import { activityLogQuery } from '../features/business/executive/activityLogQuery';
+import { reportExportsQuery } from '../features/business/executive/reportExportsQuery';
 import { priceHistoryQuery } from '../features/branch/priceHistory/priceHistoryQuery';
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
 import { posQuery } from '../features/branch/pos/posQuery';
@@ -117,6 +118,7 @@ export const store = configureStore({
     [expenseCategoriesQuery.reducerPath]: expenseCategoriesQuery.reducer,
     [expenseQuery.reducerPath]: expenseQuery.reducer,
     [activityLogQuery.reducerPath]: activityLogQuery.reducer,
+    [reportExportsQuery.reducerPath]: reportExportsQuery.reducer,
     [priceHistoryQuery.reducerPath]: priceHistoryQuery.reducer,
     [receiptsQuery.reducerPath]: receiptsQuery.reducer,
     [posQuery.reducerPath]: posQuery.reducer,
@@ -186,6 +188,7 @@ export const store = configureStore({
       expenseCategoriesQuery.middleware,
       expenseQuery.middleware,
       activityLogQuery.middleware,
+      reportExportsQuery.middleware,
       priceHistoryQuery.middleware,
       receiptsQuery.middleware,
       posQuery.middleware,
