@@ -56,7 +56,6 @@ export const ExecutiveExpensesPage = () => {
   const branches = branchesData?.branches ?? [];
   const monthlySummary = monthlyData?.monthly_summary ?? [];
   const totalsByCategory = categoryTotalsData?.totals_by_category ?? [];
-  console.log('expenses==>', data ?? error);
   const pendingCount = expenses.filter((e: any) => e.status === 'pending').length;
   const approvedCount = expenses.filter((e: any) => e.status === 'approved').length;
 

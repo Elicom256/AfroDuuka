@@ -25,16 +25,13 @@ export const Customer = () => {
 
   const handleDelete = async () => {
     try {
-      console.log('id==>', customer?.id);
       const res = await destroy(customer?.id).unwrap();
-      console.log('response==>', res);
       if (res) {
         toast.success(res.message);
         return navigate('/dashboard/customers');
       }
     } catch (error) {
       toast.error('failed to delete customer');
-      console.log('error==>', error);
     }
   };
 

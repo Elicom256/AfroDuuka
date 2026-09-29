@@ -15,11 +15,9 @@ import { useRolePermissions } from '@/lib/useRolePermissions';
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
-  console.log('id==>', id);
   const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
   const { canManageCatalog } = useRolePermissions();
   const [editOpen, setEditOpen] = useState(false);
-  console.log('product==>', data);
   if (isLoading) return <PageLoadingState />;
   if (error) return <div>Error loading product</div>;
   if (!data) return <div>Product not found</div>;

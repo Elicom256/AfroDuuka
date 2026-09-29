@@ -26,7 +26,6 @@ export const ExecutivePurchasesPage = () => {
   const [editPurchase, setEditPurchase] = useState<any>(null);
   const paymentMethods = methods?.methods;
   const suppliers = sup?.suppliers || [];
-  console.log('suppliers==>', suppliers);
   if (isLoading || loadNewPurchase) return <PageLoadingState />;
 
   const purchases = data?.purchases ?? data ?? [];

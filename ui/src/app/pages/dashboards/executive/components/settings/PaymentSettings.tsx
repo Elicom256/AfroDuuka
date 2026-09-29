@@ -53,7 +53,6 @@ export const PaymentSettings = () => {
     try {
       const payload = { id, body: { status: newStatus } };
       const res = await updateSetting(payload).unwrap();
-      console.log('✅ Success response==>', res);
       toast.success(res.message);
     } catch (error: any) {
       console.error('❌ Full error:', error);

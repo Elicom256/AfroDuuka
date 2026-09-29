@@ -15,7 +15,6 @@ export const Sale = () => {
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;
-  console.log("test saleData==>", saleData ?? error)
   if (!sale) {
     return (
       <div className='flex items-center justify-center h-64'>
@@ -24,7 +23,6 @@ export const Sale = () => {
     );
   }
 
-  console.log('sale==>', sale);
   return (
     <div className='space-y-6'>
       <div className='flex items-center gap-4'>

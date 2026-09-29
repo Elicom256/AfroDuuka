@@ -8,6 +8,32 @@ Route::get("/up", function () {
     ]);
 });
 
+Route::get("/health", function () {
+    $checks = [];
+
+    try {
+        DB::connection()->getPdo();
+        $checks['database'] = 'ok';
+    } catch (\Exception $e) {
+        $checks['database'] = 'error: ' . $e->getMessage();
+    }
+
+    try {
+        $cache = Cache::store()->get('health_check');
+        $checks['cache'] = 'ok';
+    } catch (\Exception $e) {
+        $checks['cache'] = 'error: ' . $e->getMessage();
+    }
+
+    $allOk = !str_contains(implode('', $checks), 'error');
+
+    return response()->json([
+        'status' => $allOk ? 'ok' : 'error',
+        'timestamp' => now(),
+        'checks' => $checks,
+    ], $allOk ? 200 : 503);
+});
+
 Route::post("webhooks/ses", \App\Http\Controllers\Webhooks\SesWebhookController::class)
     ->name("webhooks.ses")
     ->middleware('throttle:webhook');

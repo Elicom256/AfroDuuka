@@ -20,13 +20,11 @@ export const UserProfile = ({ data }: any) => {
   const handleLogout = async () => {
     try {
       const res = await logout().unwrap();
-      console.log('res logout==>', res);
       if (res) {
         toast.success(res.message);
       }
       return (window.location.href = '/login');
     } catch (error) {
-      console.log('error==>', error);
     }
   };
   return (

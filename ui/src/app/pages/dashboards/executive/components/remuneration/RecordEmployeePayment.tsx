@@ -91,7 +91,6 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
       };
 
       const res = await recordRemuneration(payload).unwrap();
-      console.log('Remuneration payment==>', res);
       if (res) {
         toast.success(res.message);
         setOpen(false);

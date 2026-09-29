@@ -31,7 +31,6 @@ interface PurchaseItem {
 
 export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchaseProps) => {
   const { currency } = useCurrency();
-  console.log('products=>', products);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<{
     items: PurchaseItem[];

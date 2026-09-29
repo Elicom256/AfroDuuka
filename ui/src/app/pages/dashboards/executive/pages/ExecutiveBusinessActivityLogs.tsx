@@ -22,7 +22,6 @@ export const ExecutiveBusinessActivityLogs = () => {
   const logs = data?.logs?.data ?? [];
   const total = data?.total;
   const distinct = data?.distinct;
-  console.log('activity logs==>', data ?? error);
 
   return (
     <div className='space-y-6'>

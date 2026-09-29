@@ -24,7 +24,6 @@ export const Worker: React.FC = () => {
   const employee = data?.worker;
   const attendances = employee?.attendances || [];
 
-  console.log('Worker data==>', data);
 
   const handleSuspendWorker = async () => {
     if (!worker) return;

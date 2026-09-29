@@ -15,7 +15,6 @@ export const CustomerSettings = () => {
 
   const [allowCreate, setAllowCreate] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  console.log('setting customers ==>', data);
   useEffect(() => {
     if (data?.settings) {
       setAllowCreate(data.settings.status === 'enabled');
@@ -36,7 +35,6 @@ export const CustomerSettings = () => {
     try {
       const payload = { id: settingId, body: { status } };
       const res = await updateSetting(payload).unwrap();
-      console.log('✅ Success response==>', res);
       toast.success(res.message || 'Customer settings updated successfully');
     } catch (error: any) {
       console.error('❌ Full error:', error);

@@ -46,7 +46,6 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
 
     try {
       const res = await recordAttendance({ attendances }).unwrap();
-      console.log('response==>', res.message);
       toast.success(res.message ?? 'Attendance submitted successfully');
       setAllPresent(false);
       setSelected({});
@@ -55,7 +54,6 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
       console.error('record attendance error', err);
     }
   };
-  console.log('error==>', error);
   if (recording) {
     return <PageLoadingState />;
   }

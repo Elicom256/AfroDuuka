@@ -22,11 +22,9 @@ export const Login: React.FC = () => {
     event.preventDefault();
     try {
       const res = await login(formState).unwrap();
-      console.log('res from login==>', res);
       if (res) {
         const token = await res.data.token;
         const role = res?.data?.user.role.name;
-        console.log('token==>', res.data.user.role.name);
         toast.success(res.message);
         localStorage.setItem('token', token);
         return (window.location.href = `/${role.toLowerCase()}/dashboard`);

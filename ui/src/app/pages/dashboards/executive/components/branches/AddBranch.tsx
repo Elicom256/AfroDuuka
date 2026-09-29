@@ -31,14 +31,12 @@ export const AddBranch = () => {
     e.preventDefault();
     try {
       const res = await addBranch(formData).unwrap();
-      console.log("res==>", res)
       if (res) {
         toast.success(res.message ?? 'Added a new branch');
         setOpen(false);
       }
       return;
     } catch (error) {
-      console.log('Error here==>', error);
       toast.error('Failed to add a branch!');
     }
   };
