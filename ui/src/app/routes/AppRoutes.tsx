@@ -13,6 +13,7 @@ import { StaffDashboard } from './StaffDashboard';
 import { NotFound } from './NotFound';
 import { SuperadminRoutes } from './Superadmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { BranchManagerRoutes } from './BranchManagerRoutes';
 
 export const AppRoutes = () => {
   const { data, isLoading, error } = useLoggedinUserQuery();
@@ -35,7 +36,8 @@ export const AppRoutes = () => {
       <Route path='documentation' element={<Documentation />} />
 
       {/* Role-based protected routes */}
-      {(role === 'Executive' || role === 'BranchManager') && <Route path='/*' element={<ExecutiveRoutes />} />}
+      {role === 'Executive' && <Route path='/*' element={<ExecutiveRoutes />} />}
+      {role === 'BranchManager' && <Route path='/*' element={<BranchManagerRoutes />} />}
       {role === 'CoreSupport' && <Route path='/*' element={<SuperadminRoutes />} />}
       {role === 'Operations' && <Route path='/*' element={<OperationsRoutes />} />}
       {role === 'Procurement' && <Route path='/*' element={<OperationsRoutes />} />}
