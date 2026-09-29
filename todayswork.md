@@ -54,19 +54,22 @@
 ## UI Tasks (After API)
 
 ### 10. Build Operations Inventory Page
-- **File:** `ui/src/app/pages/dashboards/Operations/pages/OperationsInventoryPage.tsx:17`
+- **File:** `ui/src/app/pages/dashboards/operations/pages/OperationsInventoryPage.tsx:17`
 - **Issue:** Renders "will be implemented here" placeholder
 - **Fix:** Build real inventory table with tracking components
+- **Status:** DONE — built with summary cards, ProductTable, AdjustStock dialog, and OperationsStockAlerts
 
 ### 11. Build Operations Analytics Page
 - **File:** `ui/src/app/pages/dashboards/operations/pages/OperationsAnalyticsPage.tsx:17`
 - **Issue:** Renders "will be implemented here" placeholder
 - **Fix:** Build charts and analytics components
+- **Status:** DONE — built with KPI cards, Doughnut chart (stock status), Bar chart (stock movement), top selling products, low/out of stock lists using real API data
 
 ### 12. Build Staff Sales Overview Page
 - **File:** `ui/src/app/pages/dashboards/staff/pages/StaffSalesOverviewPage.tsx:17`
 - **Issue:** Renders "will be implemented here" placeholder
 - **Fix:** Build charts and sales flow visualization
+- **Status:** DONE — built with KPI cards, revenue trend line chart, daily orders bar chart, top selling products, recent sales, low/out of stock alerts using real API data
 
 ### 13. Replace Executive dummy-data pages
 - **File:** `ui/src/app/pages/dashboards/executive/pages/executive-placeholder-pages.tsx`
