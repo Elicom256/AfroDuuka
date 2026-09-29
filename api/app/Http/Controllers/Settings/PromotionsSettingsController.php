@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePromotionsSettingsRequest;
 use App\Http\Requests\UpdatePromotionsSettingsRequest;
 use App\Models\CoreSettings\PromotionsSettings;
+use App\Models\ActivityLog;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class PromotionsSettingsController extends Controller
 {
@@ -39,9 +42,24 @@ class PromotionsSettingsController extends Controller
      */
     public function update(UpdatePromotionsSettingsRequest $request, PromotionsSettings $promotionsSetting)
     {
-         $validated = $request->validated();
-        $setting = $promotionsSetting->update($validated);
-        return response()->json(["message" => "Setting updated", "setting" => $setting]);
+        $validated = $request->validated();
+        $oldValues = $promotionsSetting->getAttributes();
+        $promotionsSetting->update($validated);
+
+        ActivityLog::create([
+            'log_name' => 'settings',
+            'description' => 'Promotions settings updated',
+            'subject_type' => PromotionsSettings::class,
+            'subject_id' => $promotionsSetting->id,
+            'causer_type' => User::class,
+            'causer_id' => Auth::id(),
+            'properties' => [
+                'old' => $oldValues,
+                'attributes' => $validated,
+            ],
+        ]);
+
+        return response()->json(["message" => "Setting updated", "setting" => $promotionsSetting]);
     }
 
     /**

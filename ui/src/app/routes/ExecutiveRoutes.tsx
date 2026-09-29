@@ -75,6 +75,7 @@ import { ExecutiveProductAuditPage } from '../pages/dashboards/executive/pages/E
 import { ExecutiveProductAuditReportPage } from '../pages/dashboards/executive/pages/ExecutiveProductAuditReportPage';
 import { ExecutiveFinancialAuditsPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditsPage';
 import { ExecutiveFinancialAuditPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditPage';
+import { ExecutiveActivityLogPage } from '../pages/dashboards/executive/pages/ExecutiveActivityLogPage';
 import { ExecutiveFinancialAuditReportPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditReportPage';
 import { ExecutiveTaxPage } from '../pages/dashboards/executive/pages/ExecutiveTaxPage';
 import { ProcurementRoutes } from './ProcurementRoutes';
@@ -152,6 +153,7 @@ export const ExecutiveRoutes = () => {
           <Route path='stock-transfers' element={<ExecutiveStockTransfersPage />} />
           <Route path='reorder-rules' element={<ExecutiveReorderRulesPage />} />
           <Route path='report-exports' element={<ExecutiveReportExportsPage />} />
+          <Route path='activity-log' element={<ExecutiveActivityLogPage />} />
           <Route path='products/:id' element={<Product />} />
           <Route path='receipts' element={<ExecutiveReceiptsPage />} />
           <Route path='receipts/:id' element={<ReceiptDetail />} />
