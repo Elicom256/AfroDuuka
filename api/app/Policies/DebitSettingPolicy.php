@@ -46,7 +46,7 @@ class DebitSettingPolicy
     public function delete(User $user, DebitSetting $debitSetting): bool
     {
         $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
+        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -63,6 +63,6 @@ class DebitSettingPolicy
     public function forceDelete(User $user, DebitSetting $debitSetting): bool
     {
         $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
+        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

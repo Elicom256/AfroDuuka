@@ -4,16 +4,37 @@ export const useRolePermissions = () => {
   const { data } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
   const isOperations = role === 'Operations';
+  const isProcurement = role === 'Procurement';
+  const isBranchManager = role === 'BranchManager';
+  const isExecutive = role === 'Executive';
 
-  // Operations runs the floor: it counts stock, records adjustments and sells. It does
-  // not author the catalogue and it does not remove records. The API is the authority
-  // on all of this; these flags only stop the UI offering buttons that would 403.
-  const canDelete = !isOperations;
-  const canCreate = !isOperations;
+  const canManageBranch = isExecutive || isBranchManager;
 
-  // Whether the caller may change a product's identity, pricing or classification, as
-  // opposed to just its stock level. Read-only views are always available.
-  const canManageCatalog = !isOperations;
+  const canDelete = canManageBranch;
+  const canCreate = canManageBranch;
 
-  return { role, isOperations, canDelete, canCreate, canManageCatalog };
+  const canManageCatalog = canManageBranch;
+
+  const canModifyStock = canManageBranch;
+
+  const canCreatePurchaseOrder = canManageBranch || isProcurement;
+
+  const canApprovePurchaseOrder = canManageBranch;
+
+  const canReceivePurchaseOrder = canManageBranch || isProcurement;
+
+  return {
+    role,
+    isOperations,
+    isProcurement,
+    isBranchManager,
+    isExecutive,
+    canDelete,
+    canCreate,
+    canManageCatalog,
+    canModifyStock,
+    canCreatePurchaseOrder,
+    canApprovePurchaseOrder,
+    canReceivePurchaseOrder,
+  };
 };

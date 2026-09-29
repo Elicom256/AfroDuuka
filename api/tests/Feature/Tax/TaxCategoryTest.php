@@ -33,7 +33,14 @@ class TaxCategoryTest extends TestCase
         $this->otherBranch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $role = Role::factory()->create(['business_id' => $this->business->id]);
+        // Named explicitly: RoleFactory defaults to 'Operations', which holds no delete
+        // authority, and the delete cases here are about the foreign key that protects
+        // a category still used by products — not about who may delete. The role
+        // boundary itself is covered by OperationsRolePermissionsTest.
+        $role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,

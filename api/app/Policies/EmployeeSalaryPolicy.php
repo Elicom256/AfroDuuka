@@ -30,6 +30,6 @@ class EmployeeSalaryPolicy
     public function delete(User $user, EmployeeSalary $employeeSalary): bool
     {
         $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
+        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

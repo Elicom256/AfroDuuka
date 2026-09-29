@@ -35,9 +35,10 @@ export const AppRoutes = () => {
       <Route path='documentation' element={<Documentation />} />
 
       {/* Role-based protected routes */}
-      {role === 'Executive' && <Route path='/*' element={<ExecutiveRoutes />} />}
+      {(role === 'Executive' || role === 'BranchManager') && <Route path='/*' element={<ExecutiveRoutes />} />}
       {role === 'CoreSupport' && <Route path='/*' element={<SuperadminRoutes />} />}
       {role === 'Operations' && <Route path='/*' element={<OperationsRoutes />} />}
+      {role === 'Procurement' && <Route path='/*' element={<OperationsRoutes />} />}
       {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}
 
       {/* Fallback */}
