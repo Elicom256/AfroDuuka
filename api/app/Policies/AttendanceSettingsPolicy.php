@@ -46,7 +46,7 @@ class AttendanceSettingsPolicy
     public function delete(User $user, AttendanceSettings $attendanceSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
+        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
     /**
@@ -63,6 +63,6 @@ class AttendanceSettingsPolicy
     public function forceDelete(User $user, AttendanceSettings $attendanceSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'coresupport', 'siteadmin'], true);
+        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

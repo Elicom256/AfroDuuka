@@ -35,7 +35,13 @@ class TaxRateTest extends TestCase
         $this->otherBranch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $role = Role::factory()->create(['business_id' => $this->business->id]);
+        // Named explicitly: RoleFactory defaults to 'Operations', which holds no delete
+        // authority, and the delete case here is about the rate's own rules — not about
+        // who may delete. See OperationsRolePermissionsTest for the role boundary.
+        $role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
