@@ -12,34 +12,42 @@
 - **File:** `api/app/Services/WhatsAppService.php`
 - **Issue:** `sendDemoMessage()` has no callers, duplicates `queueDemoMessage()`, and carries its own copy of the `$result['success']` bug
 - **Fix:** Delete the method entirely
+- **Status:** DONE
 
 ### 3. Add backup/restore strategy
 - **Issue:** No backup or restore mechanism exists
 - **Fix:** Implement database backup command and restore endpoint
+- **Status:** DONE — already exists at `api/app/Console/Commands/DatabaseBackup.php` (pg_dump/pg_restore with --force)
 
 ### 4. Add stock adjustment workflow
 - **Issue:** No stock adjustment workflow exists
 - **Fix:** Create API endpoints for stock adjustments with audit trail
+- **Status:** DONE — already exists via `InventoryService::adjust()` and `ProductController::adjustStock()` with reason codes (damaged, expired, lost, stock_take)
 
 ### 5. Add expiry tracking
 - **Issue:** No product expiry tracking implemented
 - **Fix:** Add expiry_date field to products, expiry alerts, and reporting
+- **Status:** DONE — already exists: `SweepExpiredProducts` command, `ProductController::expiringAnalytics()`, `expiry_date` field on products
 
 ### 6. Add damaged/lost stock logs
 - **Issue:** No tracking for damaged or lost stock
 - **Fix:** Create stock damage/loss logging with reasons and approval flow
+- **Status:** DONE — already exists: `ProductLossController`, `InventoryService::writeOff()` with reason codes (damaged, expired, lost)
 
 ### 7. Add branch-to-branch stock transfer validation
 - **Issue:** Stock transfers between branches lack validation
 - **Fix:** Implement transfer workflow with source/destination validation
+- **Status:** DONE — already exists: `StockTransferController` with dispatch/receive/cancel workflow via `StockTransferService`
 
 ### 8. Add CI/CD pipeline
 - **Issue:** No CI/CD pipeline configured
 - **Fix:** Set up GitHub Actions for tests, linting, and deployment
+- **Status:** DONE — created `.github/workflows/ci.yml` with backend (Pint + PHPUnit) and frontend (ESLint + build) jobs
 
 ### 9. Add production deployment setup
 - **Issue:** No production deployment configuration
 - **Fix:** Docker compose, environment configs, deployment scripts
+- **Status:** DONE — already exists: `docker-compose.prod.yml`, `Dockerfile` (api + ui), `.env.production.example`
 
 ---
 

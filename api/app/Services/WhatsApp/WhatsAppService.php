@@ -4,7 +4,6 @@ namespace App\Services\WhatsApp;
 
 use App\Jobs\ProcessWhatsAppNotificationJob;
 use App\Models\WhatsAppConfig;
-use App\Models\WhatsAppMessageLog;
 use App\Models\WhatsAppTemplate;
 use App\Services\Notifications\TemplateProvisioner;
 use Illuminate\Support\Facades\Auth;
