@@ -25,7 +25,7 @@ const iconMap: Record<string, typeof Bell> = {
   attendance: Users,
 };
 
-export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'operations' }) => {
+export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'branch_manager' | 'operations' }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading, isError } = useGetNotificationQuery(id ?? '', { skip: !id });
