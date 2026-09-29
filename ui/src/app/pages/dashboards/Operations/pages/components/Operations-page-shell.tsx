@@ -5,15 +5,20 @@ export const OperationsPageShell = ({
   title,
   description,
   children,
+  actions,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  actions?: ReactNode;
 }) => (
   <Card className='rounded-3xl border border-border/70 bg-card p-6'>
-    <CardHeader>
-      <CardTitle>{title}</CardTitle>
-      <CardDescription>{description}</CardDescription>
+    <CardHeader className='flex flex-row items-center justify-between'>
+      <div>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </div>
+      {actions && <div className='flex gap-2'>{actions}</div>}
     </CardHeader>
     <CardContent className='space-y-4'>{children}</CardContent>
   </Card>

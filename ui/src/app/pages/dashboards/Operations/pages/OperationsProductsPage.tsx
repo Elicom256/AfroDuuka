@@ -4,6 +4,7 @@ import { AddProduct } from '../components/products/AddProduct';
 import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const OperationsProductsPage = () => {
   const [addProduct, { isLoading }] = useAddProductMutation();
@@ -16,6 +17,7 @@ export const OperationsProductsPage = () => {
         <CardTitle>Products</CardTitle>
         {/* <CardDescription>Manage your products here.</CardDescription> */}
         <div className='flex gap-2'>
+          <ExportButton type='products' label='Export' />
           {canCreate && <AddProduct addProduct={addProduct} />}
         </div>
       </CardHeader>
