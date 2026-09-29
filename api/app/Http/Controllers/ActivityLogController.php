@@ -43,6 +43,14 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('properties', 'like', "%{$search}%");
+            });
+        }
+
         $logs = $query->paginate($request->get('per_page', 20));
 
         return response()->json([
