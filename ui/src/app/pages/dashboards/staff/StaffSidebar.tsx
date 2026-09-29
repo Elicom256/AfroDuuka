@@ -1,26 +1,26 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, DollarSign, AlertTriangle, TrendingUp, PackageCheck, Receipt } from 'lucide-react';
+import { LayoutDashboard, DollarSign, TrendingUp, PackageCheck, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 const navSections = [
   {
     title: 'Overview',
-    items: [{ label: 'Overview', to: '/staff', icon: LayoutDashboard }],
+    items: [{ label: 'Overview', to: '/', icon: LayoutDashboard }],
   },
   {
     title: 'Operations',
     items: [
-      { label: 'Products', to: '/staff/products', icon: PackageCheck },
-      { label: 'Sales', to: '/staff/sales', icon: DollarSign },
-      { label: 'Receipts', to: '/staff/receipts', icon: Receipt },
-      { label: 'Inventory', to: '/staff/inventory', icon: AlertTriangle },
+      { label: 'Products', to: '/products', icon: PackageCheck },
+      { label: 'Sales', to: '/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/receipts', icon: Receipt },
     ],
   },
   {
     title: 'Sales Flow',
-    items: [{ label: 'Sales Overview', to: '/staff/sales-overview', icon: TrendingUp }],
+    items: [{ label: 'Sales Overview', to: '/sales-overview', icon: TrendingUp }],
   },
 ];
 
@@ -30,6 +30,9 @@ type StaffSidebarProps = {
 
 export const StaffSidebar = ({ onNavigate }: StaffSidebarProps) => {
   const { data } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
+
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -47,10 +50,12 @@ export const StaffSidebar = ({ onNavigate }: StaffSidebarProps) => {
 
               {section.items.map((item) => {
                 const Icon = item.icon;
+                const itemPath = `${prefix}${item.to}`;
+
                 return (
                   <NavLink
                     key={item.to}
-                    to={item.to}
+                    to={!role ? '/login' : itemPath}
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(

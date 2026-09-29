@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 const navSections: Array<{
   title: string;
@@ -31,46 +32,46 @@ const navSections: Array<{
 }> = [
   {
     title: 'Overview',
-    items: [{ label: 'Overview', to: '/dashboard', icon: LayoutDashboard }],
+    items: [{ label: 'Overview', to: '/', icon: LayoutDashboard }],
   },
   {
     title: 'Operations',
     items: [
-      { label: 'POS', to: '/dashboard/pos', icon: ShoppingCart },
-      { label: 'Products', to: '/dashboard/products', icon: PackageCheck },
-      { label: 'Sales', to: '/dashboard/sales', icon: DollarSign },
-      { label: 'Receipts', to: '/dashboard/receipts', icon: FileText },
-      { label: 'Purchases', to: '/dashboard/purchases', icon: Truck },
-      { label: 'Sale Returns', to: '/dashboard/sale-returns', icon: Undo2 },
-      { label: 'Purchase Returns', to: '/dashboard/purchase-returns', icon: ArrowLeftToLine },
-      { label: 'Orders', to: '/dashboard/orders', icon: Package2 },
-      { label: 'Quotations', to: '/dashboard/quotations', icon: FileText },
-      { label: 'Inventory', to: '/dashboard/inventory', icon: AlertTriangle },
-      { label: 'Workers', to: '/dashboard/workers', icon: Users },
-      { label: 'Customers', to: '/dashboard/customers', icon: Users2, settingKey: 'customers' },
-      { label: 'Suppliers', to: '/dashboard/suppliers', icon: Truck, settingKey: 'suppliers' },
+      { label: 'POS', to: '/pos', icon: ShoppingCart },
+      { label: 'Products', to: '/products', icon: PackageCheck },
+      { label: 'Sales', to: '/sales', icon: DollarSign },
+      { label: 'Receipts', to: '/receipts', icon: FileText },
+      { label: 'Purchases', to: '/purchases', icon: Truck },
+      { label: 'Sale Returns', to: '/sale-returns', icon: Undo2 },
+      { label: 'Purchase Returns', to: '/purchase-returns', icon: ArrowLeftToLine },
+      { label: 'Orders', to: '/orders', icon: Package2 },
+      { label: 'Quotations', to: '/quotations', icon: FileText },
+      { label: 'Inventory', to: '/inventory', icon: AlertTriangle },
+      { label: 'Workers', to: '/workers', icon: Users },
+      { label: 'Customers', to: '/customers', icon: Users2, settingKey: 'customers' },
+      { label: 'Suppliers', to: '/suppliers', icon: Truck, settingKey: 'suppliers' },
     ],
   },
   {
     title: 'Financials',
     items: [
-      { label: 'Dashboard', to: '/dashboard/finance', icon: Wallet },
+      { label: 'Dashboard', to: '/finance', icon: Wallet },
     ],
   },
   {
     title: 'Performance',
     items: [
-      { label: 'Analytics', to: '/dashboard/analytics', icon: BarChart3 },
-      { label: 'Reports', to: '/dashboard/reports', icon: TrendingUp, settingKey: 'reports' },
+      { label: 'Analytics', to: '/analytics', icon: BarChart3 },
+      { label: 'Reports', to: '/reports', icon: TrendingUp, settingKey: 'reports' },
     ],
   },
   {
     title: 'System',
     items: [
-      { label: 'Notifications', to: '/dashboard/notifications', icon: Bell },
-      { label: 'Messages', to: '/dashboard/messages', icon: MessageSquare },
-      { label: 'Promotions', to: '/dashboard/promotions', icon: Gift, settingKey: 'promotions' },
-      { label: 'Attendance', to: '/dashboard/attendance', icon: CalendarCheck, settingKey: 'attendance' },
+      { label: 'Notifications', to: '/notifications', icon: Bell },
+      { label: 'Messages', to: '/messages', icon: MessageSquare },
+      { label: 'Promotions', to: '/promotions', icon: Gift, settingKey: 'promotions' },
+      { label: 'Attendance', to: '/attendance', icon: CalendarCheck, settingKey: 'attendance' },
     ],
   },
 ];
@@ -82,6 +83,9 @@ type OperationsSidebarProps = {
 export const OperationsSidebar = ({ onNavigate }: OperationsSidebarProps) => {
   const { data } = useLoggedinUserQuery();
   const features = useFeatureSettings();
+
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
 
   const filteredSections = navSections
     .map((section) => ({
@@ -110,10 +114,12 @@ export const OperationsSidebar = ({ onNavigate }: OperationsSidebarProps) => {
 
               {section.items.map((item) => {
                 const Icon = item.icon;
+                const itemPath = `${prefix}${item.to}`;
+
                 return (
                   <NavLink
                     key={item.to}
-                    to={item.to}
+                    to={!role ? '/login' : itemPath}
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(

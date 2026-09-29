@@ -29,7 +29,7 @@ export const Login: React.FC = () => {
         console.log('token==>', res.data.user.role.name);
         toast.success(res.message);
         localStorage.setItem('token', token);
-        return (window.location.href = `/${role.toLowerCase()}`);
+        return (window.location.href = `/${role.toLowerCase()}/dashboard`);
       }
     } catch (error) {
       console.error('Login failed:', error);
