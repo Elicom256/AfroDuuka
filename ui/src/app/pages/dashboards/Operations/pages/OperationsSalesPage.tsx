@@ -7,6 +7,7 @@ import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const OperationsSalesPage = () => {
   const { currency } = useCurrency();
@@ -58,7 +59,10 @@ export const OperationsSalesPage = () => {
             <CardTitle>Sales entries</CardTitle>
             {/* <CardDescription>Manage sales records linked to products.</CardDescription> */}
           </div>
-          <AddSale addSale={addSale} products={products} />
+          <div className='flex gap-2'>
+            <ExportButton type='sales' label='Export' withDateRange />
+            <AddSale addSale={addSale} products={products} />
+          </div>
         </CardHeader>
         <CardContent>
           <SalesTable sales={sales} products={products} />
