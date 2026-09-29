@@ -20,7 +20,7 @@ class RoleTableSeeder extends Seeder
         // Get business safely
         $business = $this->fixtureBusiness();
 
-        $roles = [ "Executive", "Operations", "editor", "supplier", "customer"];
+        $roles = [ "Executive", "BranchManager", "Operations", "Procurement", "editor", "supplier", "customer"];
         $systemroles = [ "CoreSupport", "siteadmin"];
         // ============ seed system roles =============
         foreach($systemroles as $role){
