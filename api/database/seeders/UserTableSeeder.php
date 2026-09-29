@@ -81,7 +81,7 @@ class UserTableSeeder extends Seeder
             ],
             "Martin Odegaard" => [
                 "email" => "odegaard@gmail.com",
-                "role" => "Operations",
+                "role" => "BranchManager",
                 "phone" => "0781490811"
             ],
             "Bukayo Saka" => [
@@ -93,6 +93,11 @@ class UserTableSeeder extends Seeder
                 "email" => "rice@gmail.com",
                 "role" => "Operations",
                 "phone" => "0781490822"
+            ],
+            "Gabriel Martinelli" => [
+                "email" => "martinelli@gmail.com",
+                "role" => "BranchManager",
+                "phone" => "0781490844"
             ],
         ];
         $branchId = BusinessBranch::where("business_id", $business_id)->where("name", "Main Branch")->value("id")
