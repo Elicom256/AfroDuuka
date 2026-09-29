@@ -11,20 +11,19 @@ class PlanSeeder extends Seeder
     public function run(): void
     {
         $plans = [
-
             [
-                'name' => 'Essentials',
-                'slug' => 'essentials',
+                'name' => 'Basic',
+                'slug' => 'basic',
                 'mark' => 'Affordable',
                 'description' => 'A simple starting point for small shops that need reliable stock and sales control.',
-                'monthly_price' => 12.00,
-                'yearly_price' => 120.00,
+                'monthly_price' => 50000,
+                'yearly_price' => 500000,
                 'billing_cycle' => 'monthly',
                 'discount_percentage' => 0,
                 'features' => [
                     'Up to 500 products',
                     '1 business branch',
-                    '2 users',
+                    '3 users',
                     'Inventory management',
                     'Sales & purchase management',
                     'Customer management',
@@ -37,21 +36,20 @@ class PlanSeeder extends Seeder
                 'limits' => [
                     'max_products' => 500,
                     'max_branches' => 1,
-                    'max_users' => 2,
+                    'max_users' => 3,
                 ],
                 'status' => 'active',
                 'is_active' => true,
                 'sort_order' => 1,
-                'currency' => 'USD',
+                'currency' => 'UGX',
             ],
-
             [
-                'name' => 'Professional',
-                'slug' => 'professional',
+                'name' => 'Pro',
+                'slug' => 'pro',
                 'mark' => 'Most Popular',
                 'description' => 'For established businesses that need deeper reporting and control across their teams.',
-                'monthly_price' => 39.00,
-                'yearly_price' => 390.00,
+                'monthly_price' => 100000,
+                'yearly_price' => 1000000,
                 'billing_cycle' => 'monthly',
                 'discount_percentage' => 0,
                 'features' => [
@@ -76,16 +74,15 @@ class PlanSeeder extends Seeder
                 'status' => 'active',
                 'is_active' => true,
                 'sort_order' => 2,
-                'currency' => 'USD',
+                'currency' => 'UGX',
             ],
-
             [
                 'name' => 'Enterprise',
                 'slug' => 'enterprise',
-                'mark' => 'Enterprise',
+                'mark' => 'Best Value',
                 'description' => 'For larger organizations that need unlimited scale, integrations and hands-on support.',
-                'monthly_price' => 99.00,
-                'yearly_price' => 990.00,
+                'monthly_price' => 200000,
+                'yearly_price' => 2000000,
                 'billing_cycle' => 'monthly',
                 'discount_percentage' => 0,
                 'features' => [
@@ -112,22 +109,20 @@ class PlanSeeder extends Seeder
                 'status' => 'active',
                 'is_active' => true,
                 'sort_order' => 3,
-                'currency' => 'USD',
+                'currency' => 'UGX',
             ],
-
         ];
 
         foreach ($plans as $plan) {
-            Plan::updateOrCreate(
-                ['slug' => $plan['slug']],
-                $plan
-            );
+            Plan::updateOrCreate(['slug' => $plan['slug']], $plan);
         }
 
         $legacyPlanMap = [
-            'starter' => 'essentials',
-            'business' => 'professional',
-            'growth' => 'professional',
+            'starter' => 'basic',
+            'essentials' => 'basic',
+            'business' => 'pro',
+            'growth' => 'pro',
+            'professional' => 'pro',
         ];
 
         foreach ($legacyPlanMap as $legacySlug => $currentSlug) {
@@ -140,7 +135,5 @@ class PlanSeeder extends Seeder
                 $legacyPlan->delete();
             }
         }
-
-        $this->command->info('✅ Seeded ' . count($plans) . ' plans successfully!');
     }
 }
