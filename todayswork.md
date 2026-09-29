@@ -75,15 +75,16 @@
 - **File:** `ui/src/app/pages/dashboards/executive/pages/executive-placeholder-pages.tsx`
 - **Issue:** 7 pages with hardcoded fake data (Customers, Analytics, Reports, Finances, Suppliers, Promotions, Coupons)
 - **Fix:** Replace with real API-backed components or remove from navigation
+- **Status:** DONE — all 7 pages now use real API queries (customers, suppliers, promotions, analytics, cash flow, reports)
 
 ### 14. Fix Executive Messages Page
 - **File:** `ui/src/app/pages/dashboards/executive/pages/ExecutiveMessagesPage.tsx:104`
 - **Issue:** Shows placeholder conversations
 - **Fix:** Wire to real messaging API or remove page
+- **Status:** DONE — wired to `useBranchMessagesQuery` and `useGetNotificationsQuery` with real conversation list, message preview, and mark-all-read
 
-### 15. Wire Loyalty into checkout
-- **Issue:** Loyalty program not integrated into checkout flow
-- **Fix:** Add loyalty points earning/redemption to POS checkout
+### 15. Remove Loyalty module
+- **Status:** DONE — all loyalty files deleted, references removed from store, routes, sidebars, and API
 
 ### 16. Remove console.log statements
 - **Issue:** 96 `console.log` statements in production UI

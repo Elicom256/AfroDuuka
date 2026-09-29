@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
+import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
+import { useBranchPromotionsQuery } from '@/app/store/features/branch/promotions/promotionsQuery';
+import { useProductAnalyticsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useGetCashFlowsQuery } from '@/app/store/features/business/executive/cashFlowQuery';
+import { useBranchReportsQuery, useLowStockQuery, useOutOfStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
+import { PageLoadingState } from '@/utils/PageLoadingState';
+import { useCurrency } from '@/app/hooks/useCurrency';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PageShell = ({ title, description, children }: { title: string; description: string; children: ReactNode }) => (
   <Card className='rounded-3xl border border-border/70 bg-card p-6'>
@@ -11,38 +21,65 @@ const PageShell = ({ title, description, children }: { title: string; descriptio
   </Card>
 );
 
+const CardSkeleton = () => (
+  <div className='space-y-3'>
+    <Skeleton className='h-4 w-32' />
+    <Skeleton className='h-4 w-full' />
+    <Skeleton className='h-4 w-3/4' />
+  </div>
+);
+
 export const ExecutiveCustomersPage = () => {
-  const customers = [
-    { name: 'Amina K.', phone: '+254 710 000 001', location: 'Nairobi' },
-    { name: 'Juma O.', phone: '+254 720 000 002', location: 'Mombasa' },
-    { name: 'Grace N.', phone: '+254 730 000 003', location: 'Kisumu' },
-  ];
+  const { data, isLoading } = useCustomersQuery();
+
+  if (isLoading) return <PageShell title='Customers' description='Review your customer base and contact information.'><CardSkeleton /></PageShell>;
+
+  const customers = data?.customers ?? data ?? [];
 
   return (
     <PageShell title='Customers' description='Review your customer base and contact information.'>
       <div className='space-y-4'>
-        {customers.map((customer) => (
-          <div key={customer.phone} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <p className='font-semibold'>{customer.name}</p>
-            <p className='text-sm text-muted-foreground'>{customer.phone}</p>
-            <p className='text-sm text-muted-foreground'>{customer.location}</p>
-          </div>
-        ))}
+        {customers.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No customers yet.</p>
+        ) : (
+          customers.slice(0, 10).map((customer: any) => (
+            <div key={customer.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
+              <p className='font-semibold'>{customer.name}</p>
+              <p className='text-sm text-muted-foreground'>{customer.phone}</p>
+              <p className='text-sm text-muted-foreground'>{customer.email}</p>
+            </div>
+          ))
+        )}
       </div>
     </PageShell>
   );
 };
 
 export const ExecutiveAnalyticsPage = () => {
+  const { data: analytics, isLoading: analyticsLoading } = useProductAnalyticsQuery();
+  const { data: restocking, isLoading: restockingLoading } = useProductRestockingQuery();
+  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30');
+  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30');
+
+  const isLoading = analyticsLoading || restockingLoading || lowLoading || outLoading;
+
+  if (isLoading) return <PageShell title='Analytics' description='See the business trends and team performance at a glance.'><CardSkeleton /></PageShell>;
+
+  const totalProducts = analytics?.data?.total_products ?? 0;
+  const lowStockCount = restocking?.data?.low_stock_count ?? 0;
+  const atRiskCount = restocking?.data?.at_risk_count ?? 0;
+  const outOfStockCount = (outOfStock?.data ?? []).length;
+
   const metrics = [
-    { label: 'Sales this week', value: 'KSH 148,000' },
-    { label: 'New customers', value: '68' },
-    { label: 'Stock alerts', value: '4' },
+    { label: 'Total Products', value: String(totalProducts) },
+    { label: 'Low Stock Items', value: String(lowStockCount) },
+    { label: 'Out of Stock', value: String(outOfStockCount) },
+    { label: 'At Risk', value: String(atRiskCount) },
   ];
 
   return (
     <PageShell title='Analytics' description='See the business trends and team performance at a glance.'>
-      <div className='grid gap-4 md:grid-cols-3'>
+      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {metrics.map((metric) => (
           <div key={metric.label} className='rounded-3xl border border-border/70 bg-muted p-4'>
             <p className='text-sm text-muted-foreground'>{metric.label}</p>
@@ -55,35 +92,51 @@ export const ExecutiveAnalyticsPage = () => {
 };
 
 export const ExecutiveReportsPage = () => {
-  const reports = [
-    { title: 'Weekly inventory review', status: 'Ready' },
-    { title: 'Sales performance snapshot', status: 'Draft' },
-    { title: 'Customer satisfaction summary', status: 'Ready' },
-  ];
+  const { data, isLoading } = useBranchReportsQuery();
+
+  if (isLoading) return <PageShell title='Reports' description='Browse recent business reports and export summaries.'><CardSkeleton /></PageShell>;
+
+  const reports = data?.reports ?? data ?? [];
 
   return (
     <PageShell title='Reports' description='Browse recent business reports and export summaries.'>
       <div className='space-y-3'>
-        {reports.map((report) => (
-          <div key={report.title} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <div className='flex items-center justify-between gap-4'>
-              <p className='font-semibold'>{report.title}</p>
-              <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
-                {report.status}
-              </span>
+        {reports.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No reports available.</p>
+        ) : (
+          reports.slice(0, 10).map((report: any) => (
+            <div key={report.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
+              <div className='flex items-center justify-between gap-4'>
+                <p className='font-semibold'>{report.title ?? report.name}</p>
+                <Badge variant='secondary'>{report.status ?? 'Ready'}</Badge>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </PageShell>
   );
 };
 
 export const ExecutiveFinancesPage = () => {
+  const { currency } = useCurrency();
+  const { data, isLoading } = useGetCashFlowsQuery();
+
+  if (isLoading) return <PageShell title='Finances' description='Review your current finances and available cash flow.'><CardSkeleton /></PageShell>;
+
+  const transactions = data?.data ?? [];
+  const revenue = transactions
+    .filter((t: any) => ['sale', 'payment_in'].includes(t.type))
+    .reduce((sum: number, t: any) => sum + Number(t.amount ?? 0), 0);
+  const expenses = transactions
+    .filter((t: any) => ['purchase', 'expense', 'payment_out'].includes(t.type))
+    .reduce((sum: number, t: any) => sum + Number(t.amount ?? 0), 0);
+  const profit = revenue - expenses;
+
   const finances = [
-    { label: 'Revenue', value: 'KSH 480,000' },
-    { label: 'Expenses', value: 'KSH 210,000' },
-    { label: 'Profit', value: 'KSH 270,000' },
+    { label: 'Revenue', value: `${currency} ${revenue.toLocaleString()}` },
+    { label: 'Expenses', value: `${currency} ${expenses.toLocaleString()}` },
+    { label: 'Profit', value: `${currency} ${profit.toLocaleString()}` },
   ];
 
   return (
@@ -101,56 +154,80 @@ export const ExecutiveFinancesPage = () => {
 };
 
 export const ExecutiveSuppliersPage = () => {
-  // return (
-  //   <PageShell title='Suppliers' description='Manage supplier relationships and inventory partners.'>
-  //     <div className='space-y-4'>
-  //       {suppliers.map((supplier) => (
-  //         <div key={supplier.name} className='rounded-3xl border border-border/70 bg-muted p-4'>
-  //           <p className='font-semibold'>{supplier.name}</p>
-  //           <p className='text-sm text-muted-foreground'>{supplier.product}</p>
-  //         </div>
-  //       ))}
-  //     </div>
-  //   </PageShell>
-  // );
+  const { data, isLoading } = useSuppliersQuery();
+
+  if (isLoading) return <PageShell title='Suppliers' description='Manage supplier relationships and inventory partners.'><CardSkeleton /></PageShell>;
+
+  const suppliers = data?.suppliers ?? data ?? [];
+
+  return (
+    <PageShell title='Suppliers' description='Manage supplier relationships and inventory partners.'>
+      <div className='space-y-4'>
+        {suppliers.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No suppliers yet.</p>
+        ) : (
+          suppliers.slice(0, 10).map((supplier: any) => (
+            <div key={supplier.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
+              <p className='font-semibold'>{supplier.name}</p>
+              <p className='text-sm text-muted-foreground'>{supplier.phone}</p>
+              <p className='text-sm text-muted-foreground'>{supplier.email}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </PageShell>
+  );
 };
 
 export const ExecutivePromotionsPage = () => {
-  const promotions = [
-    { title: 'Holiday bundle', expires: '3 days' },
-    { title: 'Free delivery', expires: '1 week' },
-  ];
+  const { data, isLoading } = useBranchPromotionsQuery();
+
+  if (isLoading) return <PageShell title='Promotions' description='Create and review current marketing promotions.'><CardSkeleton /></PageShell>;
+
+  const promotions = data?.promotions ?? data ?? [];
 
   return (
     <PageShell title='Promotions' description='Create and review current marketing promotions.'>
       <div className='space-y-4'>
-        {promotions.map((promo) => (
-          <div key={promo.title} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <p className='font-semibold'>{promo.title}</p>
-            <p className='text-sm text-muted-foreground'>Expires in {promo.expires}</p>
-          </div>
-        ))}
+        {promotions.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No active promotions.</p>
+        ) : (
+          promotions.slice(0, 10).map((promo: any) => (
+            <div key={promo.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
+              <div className='flex items-center justify-between'>
+                <p className='font-semibold'>{promo.name ?? promo.title}</p>
+                <Badge variant={promo.status === 'active' ? 'default' : 'secondary'}>{promo.status}</Badge>
+              </div>
+              <p className='text-sm text-muted-foreground'>{promo.description}</p>
+            </div>
+          ))
+        )}
       </div>
     </PageShell>
   );
 };
 
 export const ExecutiveCouponsPage = () => {
-  const coupons = [
-    { code: 'SAVE15', discount: '15%', status: 'Active' },
-    { code: 'FREESHIP', discount: 'Free shipping', status: 'Active' },
-  ];
+  const { data, isLoading } = useBranchPromotionsQuery();
+
+  if (isLoading) return <PageShell title='Coupons' description='Track your coupon codes and current usage status.'><CardSkeleton /></PageShell>;
+
+  const coupons = data?.coupons ?? [];
 
   return (
     <PageShell title='Coupons' description='Track your coupon codes and current usage status.'>
       <div className='space-y-4'>
-        {coupons.map((coupon) => (
-          <div key={coupon.code} className='rounded-3xl border border-border/70 bg-muted p-4'>
-            <p className='font-semibold'>{coupon.code}</p>
-            <p className='text-sm text-muted-foreground'>{coupon.discount}</p>
-            <p className='text-sm text-muted-foreground'>{coupon.status}</p>
-          </div>
-        ))}
+        {coupons.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No coupons available.</p>
+        ) : (
+          coupons.slice(0, 10).map((coupon: any) => (
+            <div key={coupon.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
+              <p className='font-semibold'>{coupon.code}</p>
+              <p className='text-sm text-muted-foreground'>{coupon.discount}</p>
+              <Badge variant='outline'>{coupon.status}</Badge>
+            </div>
+          ))
+        )}
       </div>
     </PageShell>
   );

@@ -39,7 +39,6 @@ import { ReceiptDetail } from '../pages/dashboards/executive/components/receipts
 import { ExecutiveExpenseCategoriesPage } from '../pages/dashboards/executive/pages/ExecutiveExpenseCategoriesPage';
 import { ExecutiveExpensesPage } from '../pages/dashboards/executive/pages/ExecutiveExpensesPage';
 import { ExecutiveReorderRulesPage } from '../pages/dashboards/executive/pages/ExecutiveReorderRulesPage';
-import { ExecutiveLoyaltyPage } from '../pages/dashboards/executive/pages/ExecutiveLoyaltyPage';
 import { ExecutiveReportExportsPage } from '../pages/dashboards/executive/pages/ExecutiveReportExportsPage';
 import { ExecutiveProductAuditsPage } from '../pages/dashboards/executive/pages/ExecutiveProductAuditsPage';
 import { ExecutiveProductAuditPage } from '../pages/dashboards/executive/pages/ExecutiveProductAuditPage';
@@ -102,7 +101,6 @@ export const BranchManagerRoutes = () => {
           <Route path='printers' element={<ExecutivePrintersPage />} />
           <Route path='stock-transfers' element={<ExecutiveStockTransfersPage />} />
           <Route path='reorder-rules' element={<ExecutiveReorderRulesPage />} />
-          <Route path='loyalty' element={<ExecutiveLoyaltyPage />} />
           <Route path='report-exports' element={<ExecutiveReportExportsPage />} />
           <Route path='receipts' element={<ExecutiveReceiptsPage />} />
           <Route path='receipts/:id' element={<ReceiptDetail />} />

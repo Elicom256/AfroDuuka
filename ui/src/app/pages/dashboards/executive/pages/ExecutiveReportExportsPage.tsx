@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useReportExportsQuery } from '@/app/store/features/business/executive/loyaltyQuery';
 import { FileDown, CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLoadingState } from '@/utils/PageLoadingState';

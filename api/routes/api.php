@@ -81,10 +81,6 @@ Route::prefix("reorder-rules")->group(function () {
     require __DIR__."/reorder-rules.php";
 });
 
-Route::prefix("loyalty")->group(function () {
-    require __DIR__."/loyalty.php";
-});
-
 Route::prefix("report-exports")->group(function () {
     require __DIR__."/report-exports.php";
 });
