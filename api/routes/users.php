@@ -6,8 +6,8 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public auth routes
-Route::post('/login', [UserController::class, 'login']);
-Route::post('/signup', [UserController::class, 'signup']);
+Route::post('/login', [UserController::class, 'login'])->middleware('throttle:auth');
+Route::post('/signup', [UserController::class, 'signup'])->middleware('throttle:auth');
 // Protected user routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserController::class, 'index']);
