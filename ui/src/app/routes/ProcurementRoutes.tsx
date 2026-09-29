@@ -9,9 +9,13 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const ProcurementRoutes = () => {
+  const { data } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
+
   return (
     <Routes>
-      <Route path='/dashboard/procurement' element={<ProcurementLayout />}>
+      <Route path={prefix} element={<ProcurementLayout />}>
         <Route index element={<ProcurementOverviewPage />} />
         <Route path='reorder-suggestions' element={<ReorderSuggestionsPage />} />
         <Route path='purchase-orders' element={<PurchaseOrdersPage />} />

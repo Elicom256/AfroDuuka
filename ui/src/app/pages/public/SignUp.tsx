@@ -70,7 +70,8 @@ export const SignUp: React.FC = () => {
         if (res) {
           toast.success(res.message);
         }
-        return (window.location.href = '/dashboard');
+        const role = data?.data?.user?.role?.name ?? data?.role?.name;
+        return (window.location.href = `/${role?.toLowerCase() ?? 'executive'}/dashboard`);
       } else {
         await register(formState).unwrap();
         toast.success('Account created successfully');

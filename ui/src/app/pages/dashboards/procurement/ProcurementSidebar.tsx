@@ -7,20 +7,26 @@ import {
   History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import { getRolePrefix } from '@/lib/rolePrefix';
+
+const navItems = [
+  { label: 'Overview', to: '/', icon: LayoutDashboard, end: true },
+  { label: 'Reorder Suggestions', to: '/reorder-suggestions', icon: PackageSearch },
+  { label: 'Purchase Orders', to: '/purchase-orders', icon: ClipboardList },
+  { label: 'Suppliers', to: '/suppliers', icon: Truck },
+  { label: 'History', to: '/history', icon: History },
+];
 
 type ProcurementSidebarProps = {
   onNavigate?: () => void;
 };
 
-const navItems = [
-  { label: 'Overview', to: '/dashboard/procurement', icon: LayoutDashboard, end: true },
-  { label: 'Reorder Suggestions', to: '/dashboard/procurement/reorder-suggestions', icon: PackageSearch },
-  { label: 'Purchase Orders', to: '/dashboard/procurement/purchase-orders', icon: ClipboardList },
-  { label: 'Suppliers', to: '/dashboard/procurement/suppliers', icon: Truck },
-  { label: 'History', to: '/dashboard/procurement/history', icon: History },
-];
-
 export const ProcurementSidebar = ({ onNavigate }: ProcurementSidebarProps) => {
+  const { data } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
+
   return (
     <nav className='flex flex-col h-full'>
       <div className='px-4 py-2 border-b border-border'>
@@ -31,10 +37,12 @@ export const ProcurementSidebar = ({ onNavigate }: ProcurementSidebarProps) => {
       <div className='flex-1 overflow-y-auto p-3 space-y-1'>
         {navItems.map((item) => {
           const Icon = item.icon;
+          const itemPath = `${prefix}${item.to}`;
+
           return (
             <NavLink
               key={item.to}
-              to={item.to}
+              to={!role ? '/login' : itemPath}
               end={item.end}
               onClick={onNavigate}
               className={({ isActive }) =>
