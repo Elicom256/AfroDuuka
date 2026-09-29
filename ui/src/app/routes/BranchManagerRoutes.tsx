@@ -92,7 +92,6 @@ export const BranchManagerRoutes = () => {
           <Route path='attendance' element={<ExecutiveAttendancePage />} />
           <Route path='employee-salaries' element={<ExecutiveEmployeeSalaryPage />} />
           <Route path='remuneration' element={<ExecutiveEmployeeRemunerationPage />} />
-          <Route path='activity-logs' element={<ExecutiveBusinessActivityLogs />} />
           <Route path='activity-log' element={<ActivityLogPage />} />
           <Route path='promotions' element={<ExecutivePromotionsPage />} />
           <Route path='coupons' element={<ExecutiveCouponsPage />} />

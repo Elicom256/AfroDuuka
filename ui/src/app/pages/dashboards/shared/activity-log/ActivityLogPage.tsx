@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetActivityLogsQuery } from '@/app/store/features/business/executive/activityLogQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { Activity, Filter, RefreshCw } from 'lucide-react';
+import { Activity, Filter, RefreshCw, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 const LOG_NAME_COLORS: Record<string, string> = {
@@ -20,9 +20,10 @@ const LOG_NAME_COLORS: Record<string, string> = {
 
 export const ActivityLogPage = () => {
   const [filters, setFilters] = useState({
-    log_name: '',
+    log_name: 'all',
     date_from: '',
     date_to: '',
+    search: '',
   });
 
   const { data, isLoading, refetch } = useGetActivityLogsQuery(filters);
@@ -30,6 +31,7 @@ export const ActivityLogPage = () => {
   if (isLoading) return <PageLoadingState />;
 
   const logs = data?.data?.data ?? [];
+  const total = data?.data?.total ?? 0;
 
   return (
     <div className='space-y-6'>
@@ -52,7 +54,7 @@ export const ActivityLogPage = () => {
                 <SelectValue placeholder='All categories' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value=''>All</SelectItem>
+                <SelectItem value='all'>All</SelectItem>
                 <SelectItem value='auth'>Auth</SelectItem>
                 <SelectItem value='permission'>Permission</SelectItem>
                 <SelectItem value='settings'>Settings</SelectItem>
@@ -73,6 +75,15 @@ export const ActivityLogPage = () => {
               className='w-40'
               placeholder='To'
             />
+            <div className='relative flex-1 min-w-48'>
+              <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+              <Input
+                value={filters.search}
+                onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+                className='pl-9'
+                placeholder='Search description...'
+              />
+            </div>
             <Button variant='outline' size='sm' onClick={() => refetch()}>
               <RefreshCw className='h-4 w-4' />
             </Button>
