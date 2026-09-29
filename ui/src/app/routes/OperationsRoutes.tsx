@@ -32,18 +32,21 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const OperationsRoutes = () => {
-  const { isLoading } = useLoggedinUserQuery();
+  const { data, isLoading } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path='/dashboard/pos' element={<PosPage />} />
+        <Route path={`${prefix}/pos`} element={<PosPage />} />
       </Route>
-      <Route path='/dashboard' element={<OperationsLayout />}>
+      <Route path={prefix} element={<OperationsLayout />}>
         <Route index element={<OperationsDashboardPage />} />
         <Route path='sales' element={<OperationsSalesPage />} />
         <Route path='sales/:id' element={<Sale />} />
