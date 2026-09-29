@@ -53,17 +53,20 @@ import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const BranchManagerRoutes = () => {
-  const { isLoading } = useLoggedinUserQuery();
+  const { data, isLoading } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path='/dashboard/pos' element={<PosPage />} />
-        <Route path='/dashboard' element={<BranchManagerLayout />}>
+        <Route path={`${prefix}/pos`} element={<PosPage />} />
+        <Route path={prefix} element={<BranchManagerLayout />}>
           <Route index element={<ExecutiveDashboardPage />} />
           <Route path='workers' element={<ExecutiveWorkersPage />} />
           <Route path='suppliers' element={<ExecutiveProductsPage />} />

@@ -81,15 +81,17 @@ import { ExecutiveTaxPage } from '../pages/dashboards/executive/pages/ExecutiveT
 import { ProcurementRoutes } from './ProcurementRoutes';
 
 export const ExecutiveRoutes = () => {
-  const { isLoading } = useLoggedinUserQuery();
+  const { data, isLoading } = useLoggedinUserQuery();
+  const role = data?.data?.role?.name;
+  const prefix = getRolePrefix(role);
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path='/dashboard/pos' element={<PosPage />} />
-        <Route path='/dashboard' element={<ExecutiveLayout />}>
+        <Route path={`${prefix}/pos`} element={<PosPage />} />
+        <Route path={prefix} element={<ExecutiveLayout />}>
           <Route index element={<ExecutiveDashboardPage />} />
 
           <Route path='workers' element={<ExecutiveWorkersPage />} />
