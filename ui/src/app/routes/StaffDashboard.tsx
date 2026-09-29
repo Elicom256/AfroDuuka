@@ -6,6 +6,7 @@ import { StaffProductsPage } from '../pages/dashboards/staff/pages/StaffProducts
 import { StaffSalesOverviewPage } from '../pages/dashboards/staff/pages/StaffSalesOverviewPage';
 import { ExecutiveReceiptsPage } from '../pages/dashboards/executive/pages/ExecutiveReceiptsPage';
 import { ReceiptDetail } from '../pages/dashboards/executive/components/receipts/Receipt';
+import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 
@@ -23,6 +24,7 @@ export const StaffDashboard = () => {
         <Route path='sales-overview' element={<StaffSalesOverviewPage />} />
         <Route path='receipts' element={<ExecutiveReceiptsPage />} />
         <Route path='receipts/:id' element={<ReceiptDetail />} />
+        <Route path='activity-log' element={<ActivityLogPage />} />
       </Route>
       {/* unmatched */}
       {/* <Route path='*' element={<NotFound />} /> */}

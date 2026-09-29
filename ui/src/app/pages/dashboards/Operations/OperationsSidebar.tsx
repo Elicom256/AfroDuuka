@@ -13,6 +13,7 @@ import {
   CalendarCheck,
   Bell,
   MessageSquare,
+  Activity,
   Undo2,
   FileText,
   ArrowLeftToLine,
@@ -72,6 +73,7 @@ const navSections: Array<{
       { label: 'Messages', to: '/messages', icon: MessageSquare },
       { label: 'Promotions', to: '/promotions', icon: Gift, settingKey: 'promotions' },
       { label: 'Attendance', to: '/attendance', icon: CalendarCheck, settingKey: 'attendance' },
+      { label: 'My Activity', to: '/activity-log', icon: Activity },
     ],
   },
 ];

@@ -13,6 +13,7 @@ import {
   History,
   Gift,
   Bell,
+  Activity,
   MessageSquare,
   Globe,
   Printer,
@@ -130,6 +131,10 @@ const navSections: Array<{
   {
     title: 'Taxes',
     items: [{ label: 'Tax Management', to: '/tax', icon: Percent }],
+  },
+  {
+    title: 'System',
+    items: [{ label: 'My Activity', to: '/activity-log', icon: Activity }],
   },
   {
     title: 'System',
