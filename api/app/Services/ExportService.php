@@ -7,6 +7,7 @@ use App\Models\Sale;
 use App\Models\Purchase;
 use App\Models\Customer;
 use App\Models\Supplier;
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 
@@ -26,9 +27,14 @@ class ExportService
 
     private function exportProducts()
     {
-        $products = Product::with('productCategory')
-            ->where('business_branch_id', Auth::user()->business_branch_id)
-            ->get();
+        $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+        $branchIds = $resolved !== null ? $resolved[1] : null;
+
+        $query = Product::with('productCategory');
+        if ($branchIds !== null) {
+            $query->whereIn('business_branch_id', $branchIds);
+        }
+        $products = $query->get();
 
         $headers = ['ID', 'Name', 'SKU', 'Category', 'Quantity', 'Reorder Level', 'Cost Price', 'Selling Price', 'Status'];
         $rows = $products->map(fn ($p) => [
@@ -41,8 +47,13 @@ class ExportService
 
     private function exportSales(array $filters)
     {
-        $query = Sale::with(['saleItems.product', 'customer'])
-            ->where('business_branch_id', Auth::user()->business_branch_id);
+        $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+        $branchIds = $resolved !== null ? $resolved[1] : null;
+
+        $query = Sale::with(['saleItems.product', 'customer']);
+        if ($branchIds !== null) {
+            $query->whereIn('business_branch_id', $branchIds);
+        }
 
         if (!empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
@@ -64,8 +75,13 @@ class ExportService
 
     private function exportPurchases(array $filters)
     {
-        $query = Purchase::with(['purchaseItems.product', 'supplier'])
-            ->where('business_branch_id', Auth::user()->business_branch_id);
+        $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+        $branchIds = $resolved !== null ? $resolved[1] : null;
+
+        $query = Purchase::with(['purchaseItems.product', 'supplier']);
+        if ($branchIds !== null) {
+            $query->whereIn('business_branch_id', $branchIds);
+        }
 
         if (!empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
