@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportsSettingsRequest;
 use App\Http\Requests\UpdateReportsSettingsRequest;
 use App\Models\CoreSettings\ReportsSettings;
+use App\Models\ActivityLog;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 
 class ReportsSettingsController extends Controller
@@ -40,9 +43,24 @@ class ReportsSettingsController extends Controller
      */
     public function update(UpdateReportsSettingsRequest $request, ReportsSettings $reportsSetting)
     {
-         $validated = $request->validated();
-        $setting = $reportsSetting->update($validated);
-        return response()->json(["message" => "Setting updated", "setting" => $setting]);
+        $validated = $request->validated();
+        $oldValues = $reportsSetting->getAttributes();
+        $reportsSetting->update($validated);
+
+        ActivityLog::create([
+            'log_name' => 'settings',
+            'description' => 'Reports settings updated',
+            'subject_type' => ReportsSettings::class,
+            'subject_id' => $reportsSetting->id,
+            'causer_type' => User::class,
+            'causer_id' => Auth::id(),
+            'properties' => [
+                'old' => $oldValues,
+                'attributes' => $validated,
+            ],
+        ]);
+
+        return response()->json(["message" => "Setting updated", "setting" => $reportsSetting]);
     }
 
     /**

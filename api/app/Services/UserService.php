@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Worker;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +59,18 @@ class UserService
         Worker::create([
             "user_id" => $user->id,
         ]);
+
+        $role = Role::find($data['role_id']);
+        ActivityLog::create([
+            'log_name' => 'permission',
+            'description' => 'User role assigned',
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'causer_type' => User::class,
+            'causer_id' => $executive->id,
+            'properties' => ['attributes' => ['role_id' => $data['role_id'], 'role_name' => $role?->name]],
+        ]);
+
         return $user;
     }
 
@@ -93,7 +106,9 @@ class UserService
      */
     public function updateUser(User $user, array $validated)
     {
-       $user->update([
+        $oldRoleId = $user->role_id;
+
+        $user->update([
             'email' => $validated['email'] ?? $user->email,
             'username' => $validated['username'] ?? $user->username,
             'role_id' => $validated['role_id'] ?? $user->role_id,
@@ -106,7 +121,24 @@ class UserService
                 "nin" => $validated["nin"] ?? $worker->nin
             ]);
         }
-            
+
+        if (isset($validated['role_id']) && $validated['role_id'] != $oldRoleId) {
+            $oldRole = Role::find($oldRoleId);
+            $newRole = Role::find($validated['role_id']);
+            ActivityLog::create([
+                'log_name' => 'permission',
+                'description' => 'User role changed',
+                'subject_type' => User::class,
+                'subject_id' => $user->id,
+                'causer_type' => User::class,
+                'causer_id' => Auth::id(),
+                'properties' => [
+                    'old' => ['role_id' => $oldRoleId, 'role_name' => $oldRole?->name],
+                    'attributes' => ['role_id' => $validated['role_id'], 'role_name' => $newRole?->name],
+                ],
+            ]);
+        }
+
         return $user->load('business', 'role');
     }
 
