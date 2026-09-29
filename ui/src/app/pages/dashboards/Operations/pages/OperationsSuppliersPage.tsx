@@ -3,6 +3,7 @@ import { OperationsPageShell, SectionCard } from './components/Operations-page-s
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useBranchSuppliersQuery } from '@/app/store/features/branch';
 import { resolveList } from './components/Operations-page-utils';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const OperationsSuppliersPage = () => {
   const { data, isLoading } = useBranchSuppliersQuery();
@@ -12,7 +13,7 @@ export const OperationsSuppliersPage = () => {
 
   return (
     <div className='space-y-6'>
-      <OperationsPageShell title='Suppliers' description='Track your branch supplier relationships and contact details.'>
+      <OperationsPageShell title='Suppliers' description='Track your branch supplier relationships and contact details.' actions={<ExportButton type='suppliers' label='Export' />}>
         <div className='grid gap-4 md:grid-cols-3'>
           <SectionCard title='Total suppliers' value={suppliers.length} icon={<Truck className='h-5 w-5' />} />
           <SectionCard
