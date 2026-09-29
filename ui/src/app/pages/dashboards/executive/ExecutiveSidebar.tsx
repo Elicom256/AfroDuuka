@@ -114,12 +114,6 @@ const navSections: Array<{
     ],
   },
   {
-    title: 'System',
-    items: [
-      { label: 'Activity Log', to: '/activity-log', icon: Activity },
-    ],
-  },
-  {
     title: 'Integrations',
     items: [
       { label: 'Currency Rates', to: '/currency-rates', icon: Globe },
@@ -150,7 +144,7 @@ const navSections: Array<{
     items: [
       { label: 'Notifications', to: '/notifications', icon: Bell },
       { label: 'Messages', to: '/messages', icon: MessageSquare },
-      { label: 'Activity Logs', to: '/activity-logs', icon: History },
+      { label: 'Activity Log', to: '/activity-log', icon: Activity },
       { label: 'Settings', to: '/settings', icon: Settings },
     ],
   },

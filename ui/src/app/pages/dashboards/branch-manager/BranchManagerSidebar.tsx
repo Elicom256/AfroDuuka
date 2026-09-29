@@ -134,14 +134,10 @@ const navSections: Array<{
   },
   {
     title: 'System',
-    items: [{ label: 'My Activity', to: '/activity-log', icon: Activity }],
-  },
-  {
-    title: 'System',
     items: [
       { label: 'Notifications', to: '/notifications', icon: Bell },
       { label: 'Messages', to: '/messages', icon: MessageSquare },
-      { label: 'Activity Logs', to: '/activity-logs', icon: History },
+      { label: 'My Activity', to: '/activity-log', icon: Activity },
     ],
   },
 ];
