@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, DollarSign, TrendingUp, PackageCheck, Receipt } from 'lucide-react';
+import { LayoutDashboard, DollarSign, TrendingUp, PackageCheck, Receipt, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
@@ -21,6 +21,10 @@ const navSections = [
   {
     title: 'Sales Flow',
     items: [{ label: 'Sales Overview', to: '/sales-overview', icon: TrendingUp }],
+  },
+  {
+    title: 'System',
+    items: [{ label: 'My Activity', to: '/activity-log', icon: Activity }],
   },
 ];
 
