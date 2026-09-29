@@ -15,7 +15,7 @@ export const useRolePermissions = () => {
 
   const canManageCatalog = canManageBranch;
 
-  const canModifyStock = canManageBranch;
+  const canModifyStock = canManageBranch || isOperations;
 
   const canCreatePurchaseOrder = canManageBranch || isProcurement;
 
