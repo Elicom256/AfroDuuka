@@ -101,7 +101,6 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
         reference: formData.reference || null,
         note: formData.note,
       };
-      console.log('Data to be sent==>', formData);
       const res = await addPurchase(body).unwrap();
       if (res) {
         toast.success(res.message || 'Purchase recorded successfully');

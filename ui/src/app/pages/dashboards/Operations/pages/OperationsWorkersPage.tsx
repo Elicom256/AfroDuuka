@@ -9,7 +9,6 @@ export const OperationsWorkersPage = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useBranchWorkersQuery();
   const workers = data?.data;
-  console.log('workers==>', workers);
 
   const activeCount = workers?.filter((worker: any) => worker.status === 'active' || worker.is_active).length;
 

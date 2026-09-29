@@ -66,7 +66,6 @@ export const SignUp: React.FC = () => {
       if (data) {
         // TODO: replace with update mutation when ready
         const res = await updateUser(formState).unwrap();
-        console.log('update res==>', res);
         if (res) {
           toast.success(res.message);
         }

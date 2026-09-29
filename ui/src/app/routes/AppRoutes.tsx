@@ -4,6 +4,8 @@ import { Home } from '../pages/public/Home';
 import { PricingPage } from '../pages/public/PricingPage';
 import { About } from '../pages/public/About';
 import { Documentation } from '../pages/public/Documentation';
+import { TermsOfService } from '../pages/public/TermsOfService';
+import { PrivacyPolicy } from '../pages/public/PrivacyPolicy';
 import { Login } from '../pages/public/Login';
 import { SignUp } from '../pages/public/SignUp';
 import { ExecutiveRoutes } from './ExecutiveRoutes';
@@ -19,7 +21,6 @@ import { getRolePrefix } from '@/lib/rolePrefix';
 export const AppRoutes = () => {
   const { data, isLoading, error } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-  console.log('user error==>', error);
   if (isLoading) {
     return <PageLoadingState />;
   }
@@ -33,8 +34,10 @@ export const AppRoutes = () => {
       </Route>
       <Route path='login' element={<Login />} />
       <Route path='signup' element={<SignUp />} />
-      <Route path='about' element={<About />} />
-      <Route path='documentation' element={<Documentation />} />
+        <Route path='about' element={<About />} />
+        <Route path='documentation' element={<Documentation />} />
+        <Route path='terms' element={<TermsOfService />} />
+        <Route path='privacy' element={<PrivacyPolicy />} />
 
       {/* Redirect legacy /dashboard to role-based dashboard */}
       <Route path='dashboard' element={<Navigate to={getRolePrefix(role)} replace />} />

@@ -36,7 +36,6 @@ export const ReportsSettings = () => {
     try {
       const payload = { id: settingId, body: { status } };
       const res = await updateSetting(payload).unwrap();
-      console.log('✅ Success response==>', res);
       toast.success(res.message || 'Reports settings updated successfully');
     } catch (error: any) {
       console.error('❌ Full error:', error);

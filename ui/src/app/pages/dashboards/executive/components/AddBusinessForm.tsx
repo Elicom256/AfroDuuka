@@ -20,7 +20,6 @@ export const AddBusinessForm: React.FC = () => {
   const [registerBusiness, { isLoading }] = useRegisterBusinessMutation();
 
   const { data: categories, isLoading: isCategoriesLoading } = useGetBusinessCategoriesQuery();
-  console.log('categories data==>', categories);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setBusinessData((prev) => ({ ...prev, [name]: value }));

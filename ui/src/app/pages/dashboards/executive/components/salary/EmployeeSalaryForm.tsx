@@ -120,11 +120,9 @@ export const EmployeeSalaryForm = ({
 
       if (isEdit) {
         const res = await updateSalary({ id: editItem.id, body: payload }).unwrap();
-        console.log('create res==>', res);
         toast.success(res.message);
       } else {
         const res = await storeSalary(payload).unwrap();
-        console.log('update res==>', res);
         toast.success(res.message);
       }
 

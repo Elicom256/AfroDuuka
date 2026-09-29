@@ -63,7 +63,6 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
         items: [{ product_id: '', quantity_expected: '' }],
       });
     } catch (err: any) {
-      console.log('error==>', err);
       toast.error(err?.data?.message || 'Failed');
     }
   };

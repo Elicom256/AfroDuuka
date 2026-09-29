@@ -8,7 +8,6 @@ interface SummaryCardContentProps {
 export const SummaryCardContent = ({ analytics, currency: propCurrency }: SummaryCardContentProps) => {
   const { currency: hookCurrency } = useCurrency();
   const currency = propCurrency ?? hookCurrency;
-  console.log('analytics here==>', analytics);
   const stats = [
     {
       label: analytics.lable === 'sales' ? 'Total Sales' : 'Total Purchases',

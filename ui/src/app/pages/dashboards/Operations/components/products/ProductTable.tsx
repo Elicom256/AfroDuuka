@@ -31,7 +31,6 @@ export const ProductTable = () => {
   const { canDelete } = useRolePermissions();
   const [remove, { isLoading }] = useDeleteProductMutation();
   const [prodId, setProdId] = useState<string>('');
-  console.log('branchProds available==>', branchProds);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -53,7 +52,6 @@ export const ProductTable = () => {
       setProdId('');
       return;
     } catch (error) {
-      console.log('Error on del==>', error);
       toast.error('Failed to delete product');
     }
   };
