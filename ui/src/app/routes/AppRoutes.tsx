@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { HomeLayout } from '../pages/public/HomeLayout';
 import { Home } from '../pages/public/Home';
 import { PricingPage } from '../pages/public/PricingPage';
@@ -14,6 +14,7 @@ import { NotFound } from './NotFound';
 import { SuperadminRoutes } from './Superadmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { BranchManagerRoutes } from './BranchManagerRoutes';
+import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const AppRoutes = () => {
   const { data, isLoading, error } = useLoggedinUserQuery();
@@ -34,6 +35,9 @@ export const AppRoutes = () => {
       <Route path='signup' element={<SignUp />} />
       <Route path='about' element={<About />} />
       <Route path='documentation' element={<Documentation />} />
+
+      {/* Redirect legacy /dashboard to role-based dashboard */}
+      <Route path='dashboard' element={<Navigate to={getRolePrefix(role)} replace />} />
 
       {/* Role-based protected routes */}
       {role === 'Executive' && <Route path='/*' element={<ExecutiveRoutes />} />}

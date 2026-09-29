@@ -5,13 +5,13 @@ import { UserProfile } from '../auth/UserProfile';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 
 const navItems = [
-  { label: 'Overview', to: '/coresupport', icon: LayoutDashboard },
-  { label: 'Plans', to: '/coresupport/plans', icon: CreditCard },
-  { label: 'Businesses', to: '/coresupport/businesses', icon: Building2 },
-  { label: 'Subscriptions', to: '/coresupport/subscriptions', icon: Crown },
-  { label: 'Subscription Payments', to: '/coresupport/subscription-payments', icon: Wallet },
-  { label: 'Payment Gateways', to: '/coresupport/payment-gateways', icon: Wallet },
-  { label: 'Settings', to: '/coresupport/settings', icon: Settings },
+  { label: 'Overview', to: '/coresupport/dashboard', icon: LayoutDashboard },
+  { label: 'Plans', to: '/coresupport/dashboard/plans', icon: CreditCard },
+  { label: 'Businesses', to: '/coresupport/dashboard/businesses', icon: Building2 },
+  { label: 'Subscriptions', to: '/coresupport/dashboard/subscriptions', icon: Crown },
+  { label: 'Subscription Payments', to: '/coresupport/dashboard/subscription-payments', icon: Wallet },
+  { label: 'Payment Gateways', to: '/coresupport/dashboard/payment-gateways', icon: Wallet },
+  { label: 'Settings', to: '/coresupport/dashboard/settings', icon: Settings },
 ];
 
 type SuperadminSidebarProps = {
