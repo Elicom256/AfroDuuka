@@ -10,6 +10,7 @@ import { ProductTable } from '../components/products/ProductTable';
 import { useAddProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const ExecutiveProductsPage = () => {
   const [addProduct] = useAddProductMutation();
@@ -47,6 +48,7 @@ export const ExecutiveProductsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            <ExportButton type='products' label='Export' />
             {canCreate && <AddProduct addProduct={addProduct} />}
             {canCreate && <AddProductCategory />}
           </div>

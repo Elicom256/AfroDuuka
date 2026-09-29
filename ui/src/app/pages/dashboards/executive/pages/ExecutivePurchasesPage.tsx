@@ -13,6 +13,7 @@ import { useSuppliersQuery } from '@/app/store/features/business/suppliers/suppl
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const ExecutivePurchasesPage = () => {
   const { currency } = useCurrency();
@@ -76,12 +77,15 @@ export const ExecutivePurchasesPage = () => {
             <CardTitle>Purchase entries</CardTitle>
             <CardDescription>Manage purchase orders linked to suppliers.</CardDescription>
           </div>
-          <AddPurchase
-            addPurchase={addPurchase}
-            products={products}
-            suppliers={suppliers}
-            paymentMethods={paymentMethods}
-          />
+          <div className='flex gap-2'>
+            <ExportButton type='purchases' label='Export' withDateRange />
+            <AddPurchase
+              addPurchase={addPurchase}
+              products={products}
+              suppliers={suppliers}
+              paymentMethods={paymentMethods}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <PurchasesTable purchases={purchases} products={products} />
