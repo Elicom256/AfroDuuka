@@ -20,19 +20,26 @@ class FinanceController extends Controller
 
     private function resolveBranchId(?string $branchId, ?\App\Models\User $user): ?string
     {
-        if (! $branchId) {
+        $resolved = EffectiveBranchScope::branchesFor($user);
+
+        if ($resolved === null) {
             return null;
         }
 
-        $resolved = EffectiveBranchScope::branchesFor($user);
-        if ($resolved !== null) {
-            [, $branchIds] = $resolved;
+        [, $branchIds] = $resolved;
+
+        if ($branchId) {
             if (! in_array($branchId, $branchIds, true)) {
                 abort(403, 'Branch is not within your allowed scope');
             }
+            return $branchId;
         }
 
-        return $branchId;
+        if (count($branchIds) === 1) {
+            return (string) $branchIds[0];
+        }
+
+        return null;
     }
 
     private function authorizeSensitiveFinance(): void
