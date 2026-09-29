@@ -4,14 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $isExecutive = strtolower($user->role->name) === 'executive';
+
         $query = ActivityLog::query()
             ->with(['causer', 'subject'])
             ->latest();
+
+        if ($isExecutive) {
+            $query->where('business_id', $user->business_id);
+        } else {
+            $query->where('causer_id', $user->id);
+        }
 
         if ($request->filled('log_name')) {
             $query->where('log_name', $request->log_name);
@@ -43,6 +53,17 @@ class ActivityLogController extends Controller
 
     public function show(ActivityLog $activityLog)
     {
+        $user = Auth::user();
+        $isExecutive = strtolower($user->role->name) === 'executive';
+
+        if (!$isExecutive && $activityLog->causer_id !== $user->id) {
+            abort(403, 'You do not have access to this log entry.');
+        }
+
+        if ($isExecutive && $activityLog->business_id !== $user->business_id) {
+            abort(403, 'You do not have access to this log entry.');
+        }
+
         return response()->json([
             'message' => 'Activity log fetched',
             'data' => $activityLog->load(['causer', 'subject']),
@@ -51,6 +72,17 @@ class ActivityLogController extends Controller
 
     public function destroy(ActivityLog $activityLog)
     {
+        $user = Auth::user();
+        $isExecutive = strtolower($user->role->name) === 'executive';
+
+        if (!$isExecutive && $activityLog->causer_id !== $user->id) {
+            abort(403, 'You do not have access to this log entry.');
+        }
+
+        if ($isExecutive && $activityLog->business_id !== $user->business_id) {
+            abort(403, 'You do not have access to this log entry.');
+        }
+
         $activityLog->delete();
 
         return response()->json([
