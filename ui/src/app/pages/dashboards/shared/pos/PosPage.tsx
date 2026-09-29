@@ -329,7 +329,6 @@ export const PosPage = () => {
       setShowReceiptModal(true);
       clearCart();
     } catch (err: any) {
-      console.log("error=>", err)
       toast.error(err?.data?.error || err?.data?.message || 'Checkout failed');
     }
   };

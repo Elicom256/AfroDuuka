@@ -30,7 +30,6 @@ export const Worker: React.FC = () => {
     const user = { ...worker, status: 'suspended' };
     const res = await suspend({ body: user, id: worker.id }).unwrap();
     toast.success(res.message || 'Worker Suspended');
-    console.log('Response==>', res);
     return;
   };
 
@@ -38,11 +37,9 @@ export const Worker: React.FC = () => {
   const handleDeleteWorker = async () => {
     const res = await destroy(worker.id).unwrap();
     toast.success(res.message || 'Worker Deleted');
-    console.log('Response==>', res);
     return;
   };
 
-  console.log('worker==>', worker);
   if (!id) return null;
 
   if (isUpdating || isDeleting) {

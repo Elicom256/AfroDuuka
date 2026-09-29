@@ -22,16 +22,13 @@ export const Supplier = () => {
     return <div className='p-6 text-red-500'>Failed to load supplier, {(error as any)?.data.message}</div>;
   const handleDelete = async () => {
     try {
-      console.log('id==>', supplier?.id);
       const res = await destroy(supplier?.id).unwrap();
-      console.log('response==>', res);
       if (res) {
         toast.success(res.message);
         return navigate('/dashboard/suppliers');
       }
     } catch (error) {
       toast.error('failed to delete supplier');
-      console.log('error==>', error);
     }
   };
   return (

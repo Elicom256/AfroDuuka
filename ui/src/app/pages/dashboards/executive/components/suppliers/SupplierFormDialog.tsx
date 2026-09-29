@@ -55,7 +55,6 @@ export const SupplierFormDialog = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log('selectedSupplier==>', selectedSupplier);
   const supplier = selectedSupplier?.user;
   useEffect(() => {
     if (selectedSupplier) {
@@ -103,7 +102,6 @@ export const SupplierFormDialog = ({
 
       setDialogOpen(false);
     } catch (error: any) {
-      console.log('Error==>', error);
       const message = error?.data?.message || 'Failed to save supplier';
       toast.error(message);
     } finally {

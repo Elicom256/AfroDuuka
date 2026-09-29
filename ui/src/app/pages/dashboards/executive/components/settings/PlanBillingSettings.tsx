@@ -17,16 +17,13 @@ export const PlanBillingSettings = () => {
   const plans = plansData?.plans ?? [];
   const mysubscriptions = subscriptions?.subscriptions;
   const current_subscribed_plan = mysubscriptions?.find((sub: any) => sub.status === 'active');
-  console.log('current_subscribed_plan here==>', current_subscribed_plan);
 
   const handleChoosePlan = async (planId: number, planName: string) => {
     try {
       const res = await createSubscription({ plan_id: planId }).unwrap();
-      console.log('res==>', res);
       toast.success(`Subscribed to ${planName}`);
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to subscribe');
-      console.log('error==>', err);
     }
   };
 

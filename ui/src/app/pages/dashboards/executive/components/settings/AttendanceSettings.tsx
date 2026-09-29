@@ -36,7 +36,6 @@ export const AttendanceSettings = () => {
     try {
       const payload = { id: settingId, body: { status } };
       const res = await updateSetting(payload).unwrap();
-      console.log('✅ Success response==>', res);
       toast.success(res.message || 'Attendance updated successfully');
     } catch (error: any) {
       console.error('❌ Full error:', error);

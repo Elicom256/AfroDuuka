@@ -27,7 +27,6 @@ export const ProductCategories = () => {
   if (isLoading) return <PageLoadingState />;
 
   const categories = data?.categories || [];
-  console.log('Categories==>', data ?? error);
 
   return (
     <div className='p-6'>

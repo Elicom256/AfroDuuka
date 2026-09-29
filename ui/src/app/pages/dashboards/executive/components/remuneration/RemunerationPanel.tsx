@@ -25,7 +25,6 @@ export const RemunerationPanel = ({
   const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
   const { data, isLoading } = useGetWorkersInfoQuery();
   const workers = data?.workers;
-  console.log('workers==>', workers);
   const statusVariant = (status?: string) => {
     if (status === 'paid') return 'default';
     if (status === 'failed') return 'destructive';

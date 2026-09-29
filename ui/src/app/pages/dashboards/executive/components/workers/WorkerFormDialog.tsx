@@ -49,7 +49,6 @@ export const WorkerFormDialog = ({
   const [updateWorker, { error }] = useUpdateWorkerMutation();
   const worker = selectedWorker?.user;
 
-  console.log('selectedWorker==>', worker);
   const [formData, setFormData] = useState<WorkerFormData>({
     firstname: '',
     lastname: '',
@@ -83,7 +82,6 @@ export const WorkerFormDialog = ({
       });
     }
   }, [worker, open]);
-  console.log('error==>', error);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -112,7 +110,6 @@ export const WorkerFormDialog = ({
         toast.success(res.message || 'Worker updated successfully');
       } else {
         // Create
-        console.log('now creating...');
         const res = await registerWorker(payload).unwrap();
         toast.success(res.message || 'Worker created successfully');
       }

@@ -97,13 +97,11 @@ export const CustomerFormDialog = ({
         toast.success(res.message || 'Customer updated successfully');
       } else {
         const res = await registerCustomer(formData).unwrap();
-        console.log('customer Response==>', res);
         toast.success(res.message || 'Customer created successfully');
       }
 
       setDialogOpen(false);
     } catch (error: any) {
-      console.log('error==>', error);
       const message = error?.data?.message || 'Failed to save customer';
       toast.error(message);
     } finally {

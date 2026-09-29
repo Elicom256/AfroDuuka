@@ -16,7 +16,6 @@ export const OperationsSalesPage = () => {
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
   if (isLoading) return <PageLoadingState />;
-  console.log('productData==>', productData);
   const sales = data?.sales ?? data ?? [];
   const products = productData?.products ?? [];
   const totalSalesAmount = sales.reduce((sum: number, sale: any) => {
