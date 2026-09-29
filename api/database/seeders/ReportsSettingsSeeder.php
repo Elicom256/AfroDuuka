@@ -2,16 +2,24 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\CoreSettings\ReportsSettings;
 use Illuminate\Database\Seeder;
 
 class ReportsSettingsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        $businessId = \App\Models\Business::where('email', 'testbusinessone@gmail.com')->value('id');
+
+        if (!$businessId) {
+            return;
+        }
+
+        foreach (['enabled', 'disabled'] as $status) {
+            ReportsSettings::updateOrCreate(
+                ['business_id' => $businessId, 'status' => $status],
+                ['business_id' => $businessId, 'status' => $status]
+            );
+        }
     }
 }
