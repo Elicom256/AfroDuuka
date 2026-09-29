@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Plus } from 'lucide-react';
 import { SupplierFormDialog } from '../components/suppliers/SupplierFormDialog';
 import { useNavigate } from 'react-router-dom';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const ExecutiveSuppliersPage = () => {
   const navigate = useNavigate();
@@ -28,10 +29,13 @@ export const ExecutiveSuppliersPage = () => {
     <div className='space-y-6'>
       <div className='flex justify-between items-center'>
         <h1 className='text-3xl font-bold'>Suppliers</h1>
-        <Button onClick={handleAddNew}>
-          <Plus className='mr-2 h-4 w-4' />
-          Add Supplier
-        </Button>
+        <div className='flex gap-2'>
+          <ExportButton type='suppliers' label='Export' />
+          <Button onClick={handleAddNew}>
+            <Plus className='mr-2 h-4 w-4' />
+            Add Supplier
+          </Button>
+        </div>
       </div>
 
       <div className='grid gap-4'>

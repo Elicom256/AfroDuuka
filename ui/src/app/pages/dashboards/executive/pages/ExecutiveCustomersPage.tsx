@@ -6,6 +6,7 @@ import { Edit, Plus } from 'lucide-react';
 import { CustomerFormDialog } from '../components/customers/CustomerFormDialog';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useNavigate } from 'react-router-dom';
+import { ExportButton } from '@/app/components/ExportButton';
 
 export const ExecutiveCustomersPage = () => {
   const navigate = useNavigate();
@@ -28,10 +29,13 @@ export const ExecutiveCustomersPage = () => {
     <div className='space-y-6'>
       <div className='flex justify-between items-center'>
         <h1 className='text-3xl font-bold'>Customers</h1>
-        <Button onClick={handleAddNew}>
-          <Plus className='mr-2 h-4 w-4' />
-          Add Customer
-        </Button>
+        <div className='flex gap-2'>
+          <ExportButton type='customers' label='Export' />
+          <Button onClick={handleAddNew}>
+            <Plus className='mr-2 h-4 w-4' />
+            Add Customer
+          </Button>
+        </div>
       </div>
 
       {/* You can replace this with a proper table later */}
