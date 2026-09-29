@@ -9,7 +9,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
 
 export const notificationTypeLabel = (type: string): string => NOTIFICATION_TYPE_LABELS[type] ?? type.replace('_', ' ');
 
-export const notificationRouteForType = (type: string, scope: 'executive' | 'operations' | 'staff'): string | null => {
+export const notificationRouteForType = (type: string, scope: 'executive' | 'branch_manager' | 'operations' | 'staff'): string | null => {
   const module: Record<string, string> = {
     low_stock: 'products',
     new_sale: 'sales',
