@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('log_name')->nullable();
             $table->text('description')->nullable();
+            $table->string('event')->nullable()->after('description');
             $table->string('subject_type')->nullable();
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->string('causer_type')->nullable();
@@ -25,6 +26,11 @@ return new class extends Migration
             $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
             $table->string('action')->nullable();
             $table->text('metadata')->nullable();
+
+            $table->index(['user_id', 'created_at']);
+            $table->index(['business_id', 'created_at']);
+            $table->index(['business_branch_id', 'created_at']);
+            $table->index(['action', 'created_at']);
 
             $table->index(['subject_type', 'subject_id']);
             $table->index(['log_name', 'created_at']);
