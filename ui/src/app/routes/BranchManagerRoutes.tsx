@@ -27,7 +27,6 @@ import { ExecutiveFinanceCashFlowPage } from '../pages/dashboards/executive/page
 import { ExecutiveEmployeeRemunerationPage } from '../pages/dashboards/executive/pages/ExecutiveEmployeeRemunerationPage';
 import { ExecutiveEmployeeSalaryPage } from '../pages/dashboards/executive/pages/ExecutiveEmployeeSalaryPage';
 import { ExecutiveAttendancePage } from '../pages/dashboards/executive/pages/ExecutiveAttendancePage';
-import { ExecutiveBusinessActivityLogs } from '../pages/dashboards/executive/pages/ExecutiveBusinessActivityLogs';
 import { ExecutivePromotionsPage } from '../pages/dashboards/executive/pages/ExecutivePromotionsPage';
 import { ExecutiveCouponsPage } from '../pages/dashboards/executive/pages/ExecutiveCouponsPage';
 import { ExecutiveCurrencyRatesPage } from '../pages/dashboards/executive/pages/ExecutiveCurrencyRatesPage';
