@@ -27,8 +27,15 @@ class ActivityLogController extends Controller
 
         $this->scopeVisibility($query, $user);
 
+        // The UI sends "business" as a sentinel for "all categories except auth".
+        $logName = $request->validated('log_name');
+        if ($logName === 'business') {
+            $query->where('log_name', '!=', 'auth');
+        } else {
+            $query->inLogNames($logName);
+        }
+
         $query
-            ->inLogNames($request->validated('log_name'))
             ->when($request->filled('causer_id'), fn ($q) => $q
                 ->where('causer_type', $user->getMorphClass())
                 ->where('causer_id', $request->integer('causer_id')))

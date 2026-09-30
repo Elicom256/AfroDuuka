@@ -89,11 +89,6 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
       return;
     }
 
-    if (!formData.supplier_id) {
-      toast.error('Please select a supplier.');
-      return;
-    }
-
     try {
       // Calculate subtotals for each item
       const itemsWithSubtotals = validItems.map((item) => ({
@@ -107,7 +102,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
       const total_amount = itemsWithSubtotals.reduce((sum, item) => sum + item.subtotal, 0);
 
       const body = {
-        supplier_id: Number(formData.supplier_id),
+        supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
         total_amount,
         note: formData.note,
         items: itemsWithSubtotals,
@@ -149,8 +144,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
                 value={formData.supplier_id}
                 onChange={(e) => handleChange('supplier_id', e.target.value)}
                 className='col-span-3'
-                placeholder='Supplier ID'
-                required
+                placeholder='Supplier ID (optional)'
               />
             </div>
 
