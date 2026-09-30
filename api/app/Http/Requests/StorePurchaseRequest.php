@@ -74,7 +74,6 @@ class StorePurchaseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'supplier_id.required' => 'Supplier is required for every purchase.',
             'items.required' => 'At least one product is required.',
             'items.min' => 'You must add at least one item to this purchase.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',

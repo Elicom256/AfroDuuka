@@ -12,10 +12,11 @@ import {
 } from '@/app/store/features/business/executive/activityLogQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PaginationComponent } from '@/app/utils/Pagination';
-import { Activity, Filter, RefreshCw, Search, ChevronDown, ChevronRight, Radio } from 'lucide-react';
+import { Activity, Filter, RefreshCw, Search, ChevronDown, ChevronRight, Radio, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ALL_CATEGORIES = 'all';
+const BUSINESS_CATEGORIES = 'business';
 
 const LOG_NAME_COLORS: Record<string, string> = {
   auth: 'bg-blue-500/10 text-blue-600',
@@ -26,35 +27,58 @@ const LOG_NAME_COLORS: Record<string, string> = {
   default: 'bg-gray-500/10 text-gray-600',
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  auth: 'Security (logins)',
+};
+
 const humanize = (value: string) =>
   value
     .replace(/[_-]+/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-const isEmptyDiff = (values: Record<string, unknown>) => Object.keys(values ?? {}).length === 0;
+const humanizeField = (field: string) =>
+  field
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .replace(/\bId\b/g, 'ID');
 
-const DiffBlock = ({ label, values, tone }: { label: string; values: Record<string, unknown>; tone: string }) => {
-  if (isEmptyDiff(values)) return null;
-
-  return (
-    <div>
-      <p className={`font-medium ${tone}`}>{label}</p>
-      <pre className='mt-1 overflow-x-auto rounded bg-muted p-2 text-xs'>{JSON.stringify(values, null, 2)}</pre>
-    </div>
-  );
+const formatFieldValue = (value: unknown): string => {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
 };
 
 const ChangesDisplay = ({ log }: { log: ActivityLog }) => {
   const { before, after } = log.changes ?? { before: {}, after: {} };
+  const beforeEntries = before ?? {};
+  const afterEntries = after ?? {};
 
-  if (isEmptyDiff(before) && isEmptyDiff(after)) {
-    return <span className='text-muted-foreground'>-</span>;
+  const fields = Array.from(new Set([...Object.keys(beforeEntries), ...Object.keys(afterEntries)]));
+  const changedFields = fields.filter(
+    (field) => JSON.stringify(beforeEntries[field]) !== JSON.stringify(afterEntries[field]),
+  );
+
+  if (changedFields.length === 0) {
+    return <span className='text-muted-foreground'>No changes recorded</span>;
   }
 
   return (
-    <div className='space-y-2 text-xs'>
-      <DiffBlock label='Before' values={before} tone='text-red-600' />
-      <DiffBlock label='After' values={after} tone='text-green-600' />
+    <div className='space-y-1.5'>
+      {changedFields.map((field) => (
+        <div key={field} className='flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs'>
+          <span className='font-medium text-muted-foreground'>{humanizeField(field)}</span>
+          <span className='text-red-600 dark:text-red-400'>{formatFieldValue(beforeEntries[field])}</span>
+          <ArrowRight className='h-3 w-3 text-muted-foreground' />
+          <span className='text-green-600 dark:text-green-400'>{formatFieldValue(afterEntries[field])}</span>
+        </div>
+      ))}
     </div>
   );
 };
@@ -74,7 +98,9 @@ export const ActivityLogPage = ({
   subtitle = 'Track your actions and changes',
   live = false,
 }: ActivityLogPageProps) => {
-  const [category, setCategory] = useState<string>(ALL_CATEGORIES);
+  // Business scope (executives) defaults to "All business" — auth logins are hidden
+  // behind the explicit "Security (logins)" category. Personal scope shows everything.
+  const [category, setCategory] = useState<string>(scope === 'business' ? BUSINESS_CATEGORIES : ALL_CATEGORIES);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -158,10 +184,13 @@ export const ActivityLogPage = ({
                 <SelectValue placeholder='All categories' />
               </SelectTrigger>
               <SelectContent>
+                {scope === 'business' && (
+                  <SelectItem value={BUSINESS_CATEGORIES}>All business</SelectItem>
+                )}
                 <SelectItem value={ALL_CATEGORIES}>All</SelectItem>
                 {categoryOptions.map((name) => (
                   <SelectItem key={name} value={name}>
-                    {humanize(name)}
+                    {CATEGORY_LABELS[name] ?? humanize(name)}
                   </SelectItem>
                 ))}
               </SelectContent>
