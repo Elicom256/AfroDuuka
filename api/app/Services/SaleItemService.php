@@ -141,7 +141,8 @@ class SaleItemService
         $query = Sale::where('status', 'completed');
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
-        $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));
+        $startDate = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
+        $query->where('created_at', '>=', $startDate);
 
         $sales = $query->get();
 

@@ -105,7 +105,8 @@ class PurchaseService
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
 
-        $query->where('created_at', '>=', Carbon::now()->subDays($days - 1));
+        $startDate = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
+        $query->where('created_at', '>=', $startDate);
         $purchases = $query->get();
         $totalPurchases = $purchases->sum("total_amount");
         $totalTransactions = $purchases->count();
