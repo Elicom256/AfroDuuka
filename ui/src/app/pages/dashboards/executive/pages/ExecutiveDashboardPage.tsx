@@ -4,15 +4,19 @@ import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { StockHealth } from '@/app/pages/dashboards/executive/components/stock-health/StockHealth';
 import { SalesPurchasesSummary } from '@/app/pages/dashboards/executive/components/sales-purchases/SalesPurchasesSummary';
 import { SalesStatCards } from '@/app/pages/dashboards/executive/components/sales-purchases/SalesStatCards';
+import { RevenueChart } from '@/app/pages/dashboards/executive/components/overview/RevenueChart';
+import { CashPosition } from '@/app/pages/dashboards/executive/components/overview/CashPosition';
+import { RecentActivity } from '@/app/pages/dashboards/executive/components/overview/RecentActivity';
+import { TopProducts } from '@/app/pages/dashboards/executive/components/overview/TopProducts';
+import { RecentSales } from '@/app/pages/dashboards/executive/components/overview/RecentSales';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CalendarDays, MessageSquareText } from 'lucide-react';
-
-type DashboardPeriod = 'today' | 'last_7_days' | 'last_30_days' | 'this_month' | 'last_month';
+import type { LandingPeriod } from '@/app/pages/dashboards/executive/components/landingPeriods';
 
 export const ExecutiveDashboardPage = () => {
   const [assistantOpen, setAssistantOpen] = useState(false);
-  const [period, setPeriod] = useState<DashboardPeriod>('last_7_days');
+  const [period, setPeriod] = useState<LandingPeriod>('last_7_days');
   const { data: userData } = useLoggedinUserQuery();
   const username = userData?.data?.username ?? 'there';
   const businessName = userData?.data?.business?.name ?? 'your business';
@@ -59,8 +63,19 @@ export const ExecutiveDashboardPage = () => {
       <SalesStatCards period={period} />
 
       <div className='grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]'>
+        <RevenueChart period={period} />
+        <CashPosition period={period} />
+      </div>
+
+      <div className='grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]'>
         <SalesPurchasesSummary period={period} onPeriodChange={setPeriod} />
         <StockHealth />
+      </div>
+
+      <div className='grid gap-3 lg:grid-cols-3'>
+        <RecentActivity />
+        <TopProducts period={period} />
+        <RecentSales />
       </div>
     </div>
   );
