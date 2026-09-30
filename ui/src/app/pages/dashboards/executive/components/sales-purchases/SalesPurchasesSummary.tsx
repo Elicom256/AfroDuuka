@@ -18,9 +18,16 @@ const periods: { label: string; value: DashboardPeriod }[] = [
   { label: 'Last month', value: 'last_month' },
 ];
 
-export const SalesPurchasesSummary = () => {
+interface SalesPurchasesSummaryProps {
+  period?: DashboardPeriod;
+  onPeriodChange?: (period: DashboardPeriod) => void;
+}
+
+export const SalesPurchasesSummary = ({ period: controlledPeriod, onPeriodChange }: SalesPurchasesSummaryProps = {}) => {
   const { currency, currencySymbol } = useCurrency();
-  const [period, setPeriod] = useState<DashboardPeriod>('last_7_days');
+  const [internalPeriod, setInternalPeriod] = useState<DashboardPeriod>('last_7_days');
+  const period = controlledPeriod ?? internalPeriod;
+  const setPeriod = onPeriodChange ?? setInternalPeriod;
   const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery(period);
   const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseAnalyticsQuery(period);
 

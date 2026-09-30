@@ -30,7 +30,7 @@ export const salesQuery = createApi({
     }),
     getSalesAnalytics: builder.query({
       query: (period = 'last_7_days') => ({
-        url: '/analytics?period=last_7_days',
+        url: '/analytics',
         method: 'GET',
         params: { period },
       }),
