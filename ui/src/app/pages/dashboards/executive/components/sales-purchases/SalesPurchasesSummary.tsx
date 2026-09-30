@@ -1,16 +1,28 @@
+import { useState } from 'react';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { usePurchaseAnalyticsQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 
 type TrendPoint = { date: string; amount: number; count: number };
+type DashboardPeriod = 'today' | 'last_7_days' | 'last_30_days' | 'this_month' | 'last_month';
+
+const periods: { label: string; value: DashboardPeriod }[] = [
+  { label: 'Today', value: 'today' },
+  { label: 'Last 7 days', value: 'last_7_days' },
+  { label: 'Last 30 days', value: 'last_30_days' },
+  { label: 'This month', value: 'this_month' },
+  { label: 'Last month', value: 'last_month' },
+];
 
 export const SalesPurchasesSummary = () => {
   const { currency, currencySymbol } = useCurrency();
-  const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery('last_7_days');
-  const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseAnalyticsQuery('last_7_days');
+  const [period, setPeriod] = useState<DashboardPeriod>('last_7_days');
+  const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery(period);
+  const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseAnalyticsQuery(period);
 
   const isLoading = salesLoading || purchaseLoading;
   const sales = salesData?.data;
@@ -36,12 +48,23 @@ export const SalesPurchasesSummary = () => {
 
   return (
     <Card className='overflow-hidden'>
-      <CardHeader className='flex flex-row items-center justify-between pb-3'>
+      <CardHeader className='flex flex-row flex-wrap items-center justify-between gap-2 pb-3'>
         <CardTitle className='flex items-center gap-2 text-sm'>
           <ChartNoAxesColumnIncreasing className='h-4 w-4 text-primary' />
           Sales overview
         </CardTitle>
-        <span className='text-xs text-muted-foreground'>Last 7 days · {currency ?? ''}</span>
+        <Select value={period} onValueChange={(value) => setPeriod(value as DashboardPeriod)}>
+          <SelectTrigger size='sm' className='w-36' aria-label='Sales date range'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {periods.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <div className='mb-4 grid grid-cols-3 divide-x divide-border border-y border-border'>
