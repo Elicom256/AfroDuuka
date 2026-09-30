@@ -49,6 +49,17 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * The users table stores the name in two columns; this gives call sites a
+     * single display name without each one rebuilding it.
+     */
+    public function getNameAttribute(): string
+    {
+        $name = trim(sprintf('%s %s', $this->firstname ?? '', $this->lastname ?? ''));
+
+        return $name !== '' ? $name : (string) $this->email;
+    }
+
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);

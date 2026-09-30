@@ -41,7 +41,6 @@ import { ExecutiveFinanceCashFlowPage } from '../pages/dashboards/executive/page
 import { ExecutiveEmployeeRemunerationPage } from '../pages/dashboards/executive/pages/ExecutiveEmployeeRemunerationPage';
 import { ExecutiveEmployeeSalaryPage } from '../pages/dashboards/executive/pages/ExecutiveEmployeeSalaryPage';
 import { ExecutiveAttendancePage } from '../pages/dashboards/executive/pages/ExecutiveAttendancePage';
-import { ExecutiveBusinessActivityLogs } from '../pages/dashboards/executive/pages/ExecutiveBusinessActivityLogs';
 import { ExecutivePromotionsPage } from '../pages/dashboards/executive/pages/ExecutivePromotionsPage';
 import { ExecutiveCouponsPage } from '../pages/dashboards/executive/pages/ExecutiveCouponsPage';
 
@@ -75,9 +74,9 @@ import { ExecutiveProductAuditPage } from '../pages/dashboards/executive/pages/E
 import { ExecutiveProductAuditReportPage } from '../pages/dashboards/executive/pages/ExecutiveProductAuditReportPage';
 import { ExecutiveFinancialAuditsPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditsPage';
 import { ExecutiveFinancialAuditPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditPage';
-import { ExecutiveActivityLogPage } from '../pages/dashboards/executive/pages/ExecutiveActivityLogPage';
 import { ExecutiveFinancialAuditReportPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditReportPage';
 import { ExecutiveTaxPage } from '../pages/dashboards/executive/pages/ExecutiveTaxPage';
+import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProcurementRoutes } from './ProcurementRoutes';
 
 export const ExecutiveRoutes = () => {
@@ -152,7 +151,12 @@ export const ExecutiveRoutes = () => {
           <Route path='stock-transfers' element={<ExecutiveStockTransfersPage />} />
           <Route path='reorder-rules' element={<ExecutiveReorderRulesPage />} />
           <Route path='report-exports' element={<ExecutiveReportExportsPage />} />
-          <Route path='activity-log' element={<ExecutiveActivityLogPage />} />
+          <Route
+            path='activity-log'
+            element={
+              <ActivityLogPage scope='business' title='Activity Log' subtitle='Track all business activity and changes' live />
+            }
+          />
           <Route path='products/:id' element={<Product />} />
           <Route path='receipts' element={<ExecutiveReceiptsPage />} />
           <Route path='receipts/:id' element={<ReceiptDetail />} />

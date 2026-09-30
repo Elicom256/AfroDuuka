@@ -31,7 +31,6 @@ import { reportsSettingsQuery } from '../features/business/settings/reports';
 import { supplierSettingsQuery } from '../features/business/settings/supplier';
 import { executiveAttendanceQuery } from '../features/business/executive/attendanceQuery';
 import { executiveEmployeeRemunerationQuery } from '../features/business/executive/employeeRemunerationQuery';
-import { executiveBusinessActivityLogsQuery } from '../features/business/executive/businessActivityLogsQuery';
 import { currencyRatesQuery } from '../features/business/executive/currencyRatesQuery';
 import { paymentGatewaysQuery } from '../features/business/executive/paymentGatewaysQuery';
 import { whatsappQuery } from '../features/business/executive/whatsappQuery';
@@ -91,7 +90,6 @@ export const store = configureStore({
     [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
     [executiveAttendanceQuery.reducerPath]: executiveAttendanceQuery.reducer,
     [executiveEmployeeRemunerationQuery.reducerPath]: executiveEmployeeRemunerationQuery.reducer,
-    [executiveBusinessActivityLogsQuery.reducerPath]: executiveBusinessActivityLogsQuery.reducer,
     [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
     [paymentGatewaysQuery.reducerPath]: paymentGatewaysQuery.reducer,
     [whatsappQuery.reducerPath]: whatsappQuery.reducer,
@@ -161,7 +159,6 @@ export const store = configureStore({
       attachmentsQuery.middleware,
       executiveAttendanceQuery.middleware,
       executiveEmployeeRemunerationQuery.middleware,
-      executiveBusinessActivityLogsQuery.middleware,
       currencyRatesQuery.middleware,
       paymentGatewaysQuery.middleware,
       whatsappQuery.middleware,

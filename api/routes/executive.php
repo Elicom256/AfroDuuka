@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
       // ============== employee salary ===================
      Route::apiResource("employee-salary", EmployeeSalaryController::class);
      // ============== activity logs ===================
+     Route::get("activity-logs/categories", [ActivityLogController::class, "categories"]);
      Route::apiResource("activity-logs", ActivityLogController::class)->only(["index", "show", "destroy"]);
 
 });
