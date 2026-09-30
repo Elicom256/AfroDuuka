@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileDown, CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { useGetReportExportsQuery } from '@/app/store/features/business/executive/reportExportsQuery';
 
 const statusIcons: Record<string, any> = {
   pending: Clock,
@@ -11,7 +12,7 @@ const statusIcons: Record<string, any> = {
 };
 
 export const ExecutiveReportExportsPage = () => {
-  const { data, isLoading } = useReportExportsQuery();
+  const { data, isLoading } = useGetReportExportsQuery();
   const exports = data?.data || [];
 
   if (isLoading) return <PageLoadingState />;
