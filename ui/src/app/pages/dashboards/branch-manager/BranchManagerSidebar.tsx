@@ -1,43 +1,40 @@
 import { Link, NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Users,
-  PackageCheck,
-  TrendingUp,
-  Users2,
-  Truck,
-  DollarSign,
-  Tag,
-  BarChart3,
-  AlertTriangle,
-  History,
-  Gift,
-  Bell,
   Activity,
-  MessageSquare,
-  Globe,
-  Printer,
-  ArrowLeftRight,
-  PackageSearch,
-  FileText,
-  Award,
-  FileDown,
-  CheckSquare,
-  Undo2,
+  AlertTriangle,
   ArrowLeftToLine,
+  ArrowLeftRight,
+  BarChart3,
+  Bell,
+  Calculator,
+  CheckSquare,
+  ClipboardList,
+  DollarSign,
+  FileDown,
+  FileText,
+  Gift,
+  Globe,
+  Landmark,
+  LayoutDashboard,
+  MessageSquare,
+  Package2,
+  PackageCheck,
+  PackageSearch,
+  Percent,
+  PieChart,
+  Printer,
   Receipt,
   ShoppingCart,
-  Package2,
+  Tag,
+  TrendingUp,
+  Truck,
+  Undo2,
+  Users,
+  Users2,
   Wallet,
-  Landmark,
-  PieChart,
-  ClipboardList,
-  Calculator,
-  Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
-import { UserProfile } from '../auth/UserProfile';
 import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
 import { getRolePrefix } from '@/lib/rolePrefix';
@@ -46,14 +43,11 @@ type BranchManagerSidebarProps = {
   onNavigate?: () => void;
 };
 
-const navSections: Array<{
-  title: string;
-  items: Array<{ label: string; to: string; icon: any; settingKey?: string }>;
-}> = [
-  {
-    title: 'Dashboard',
-    items: [{ label: 'Overview', to: '/', icon: LayoutDashboard }],
-  },
+type NavigationItem = { label: string; to: string; icon: typeof LayoutDashboard; settingKey?: string };
+type NavigationSection = { title: string; items: NavigationItem[] };
+
+const navSections: NavigationSection[] = [
+  { title: 'Dashboard', items: [{ label: 'Overview', to: '/', icon: LayoutDashboard }] },
   {
     title: 'Operations',
     items: [
@@ -68,10 +62,7 @@ const navSections: Array<{
       { label: 'Quotations', to: '/quotations', icon: FileText },
     ],
   },
-  {
-    title: 'Tasks',
-    items: [{ label: 'Todos', to: '/todos', icon: CheckSquare }],
-  },
+  { title: 'Tasks', items: [{ label: 'Todos', to: '/todos', icon: CheckSquare }] },
   {
     title: 'People',
     items: [
@@ -128,10 +119,7 @@ const navSections: Array<{
       { label: 'Financial Audits', to: '/financial-audits', icon: Calculator },
     ],
   },
-  {
-    title: 'Taxes',
-    items: [{ label: 'Tax Management', to: '/tax', icon: Percent }],
-  },
+  { title: 'Taxes', items: [{ label: 'Tax Management', to: '/tax', icon: Percent }] },
   {
     title: 'System',
     items: [
@@ -146,7 +134,6 @@ export const BranchManagerSidebar = ({ onNavigate }: BranchManagerSidebarProps) 
   const { data: userData } = useLoggedinUserQuery();
   const { data: unreadData } = useGetUnreadCountQuery(undefined, { pollingInterval: 60000 });
   const features = useFeatureSettings();
-
   const role = userData?.data?.role?.name;
   const prefix = getRolePrefix(role);
   const unreadCount = unreadData?.unread_count ?? 0;
@@ -162,60 +149,52 @@ export const BranchManagerSidebar = ({ onNavigate }: BranchManagerSidebarProps) 
     .filter((section) => section.items.length > 0);
 
   return (
-    <nav className='flex flex-col h-full'>
-      <div className='px-4 py-2 border-b border-border'>
-        <h2 className='text-lg font-semibold tracking-tight'>{role ?? 'Dashboard'}</h2>
-        <p className='text-xs text-muted-foreground mt-1'>Branch Management</p>
-      </div>
+    <nav className='flex h-full flex-col'>
+      <div className='flex-1 overflow-y-auto p-3'>
+        {userData?.data?.business ? (
+          <div className='space-y-5'>
+            {filteredSections.map((section) => (
+              <div key={section.title} className='space-y-1'>
+                <h4 className='mb-1 px-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground'>
+                  {section.title}
+                </h4>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const itemPath = `${prefix}${item.to}`;
 
-      <div className='flex-1 overflow-y-auto p-3 space-y-8'>
-        {userData && userData?.data.business ? (
-          filteredSections.map((section) => (
-            <div key={section.title} className='space-y-1'>
-              <h4 className='px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2'>
-                {section.title}
-              </h4>
-
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const isNotifications = item.to === '/notifications';
-                const itemPath = `${prefix}${item.to}`;
-
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={!role ? '/login' : itemPath}
-                    onClick={onNavigate}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 relative',
-                        isActive && item.label.toLowerCase() !== 'overview'
-                          ? 'bg-mutedd uppercase text-green-400 text-xs'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                      )
-                    }
-                  >
-                    <Icon className='h-4 w-4' />
-                    {item.label}
-
-                    {isNotifications && unreadCount > 0 && (
-                      <div className='ml-auto flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-medium bg-red-500 text-white rounded-full'>
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </div>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </div>
-          ))
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={!role ? '/login' : itemPath}
+                      onClick={onNavigate}
+                      className={({ isActive }) =>
+                        cn(
+                          'relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        )
+                      }
+                    >
+                      <Icon className='h-4 w-4' />
+                      {item.label}
+                      {item.to === '/notifications' && unreadCount > 0 && (
+                        <span className='ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-medium text-destructive-foreground'>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         ) : (
           <Link to='/create-business' className='hover:underline'>
             Add Business
           </Link>
         )}
       </div>
-
-      <div className='p-4 border-t border-border mt-auto'>{userData && <UserProfile data={userData} />}</div>
     </nav>
   );
 };
