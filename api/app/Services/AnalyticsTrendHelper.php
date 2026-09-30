@@ -12,6 +12,7 @@ class AnalyticsTrendHelper
     public function getDaysFromPeriod(string $period): int
     {
         return match (strtolower($period)) {
+            'today'       => 1,
             'last_7_days'  => 7,
             'last_30_days' => 30,
             'this_month'   => Carbon::now()->daysInMonth,
