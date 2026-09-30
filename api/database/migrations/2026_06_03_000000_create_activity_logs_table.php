@@ -21,17 +21,11 @@ return new class extends Migration
             $table->uuid('batch_uuid')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('business_id')->nullable()->constrained('businesses')->cascadeOnDelete();
             $table->foreignId('business_branch_id')->nullable()->constrained('business_branches')->cascadeOnDelete();
-            $table->string('action')->nullable();
-            $table->text('metadata')->nullable();
 
-            $table->index(['user_id', 'created_at']);
             $table->index(['business_id', 'created_at']);
             $table->index(['business_branch_id', 'created_at']);
-            $table->index(['action', 'created_at']);
-
             $table->index(['subject_type', 'subject_id']);
             $table->index(['log_name', 'created_at']);
             $table->index(['causer_id', 'created_at']);
