@@ -55,7 +55,7 @@ public function salesAnalytics()
     try {
         // $period = request()->query('period', 'last_7_days');
         $period = request()->query("period", "last_7_days");
-        $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month'];
+        $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
         if (!in_array($period, $allowedPeriods)) {
             $period = 'last_7_days'; // fallback
         }
