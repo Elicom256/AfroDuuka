@@ -37,13 +37,13 @@ export const StockHealth = () => {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-5 w-32" />
+        <CardHeader className='pb-3'>
+          <Skeleton className='h-5 w-32' />
         </CardHeader>
-        <CardContent className="space-y-3">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-5/6" />
+        <CardContent className='space-y-3'>
+          <Skeleton className='h-4 w-full' />
+          <Skeleton className='h-4 w-3/4' />
+          <Skeleton className='h-4 w-5/6' />
         </CardContent>
       </Card>
     );
@@ -83,7 +83,10 @@ export const StockHealth = () => {
         {watchItems.length > 0 ? (
           <div className='divide-y divide-border'>
             {watchItems.map((item, index) => (
-              <div key={`${item.id}-${item.status}-${index}`} className='flex items-center justify-between gap-3 py-2.5'>
+              <div
+                key={`${item.id}-${item.status}-${index}`}
+                className='flex items-center justify-between gap-3 py-2.5'
+              >
                 <div className='flex min-w-0 items-center gap-2'>
                   {item.status === 'Out of stock' ? (
                     <PackageSearch className='h-3.5 w-3.5 shrink-0 text-destructive' />
@@ -92,7 +95,9 @@ export const StockHealth = () => {
                   )}
                   <span className='truncate text-xs font-medium'>{item.name}</span>
                 </div>
-                <span className={`shrink-0 text-[10px] ${item.status === 'Out of stock' ? 'text-destructive' : 'text-amber-500'}`}>
+                <span
+                  className={`shrink-0 text-[10px] ${item.status === 'Out of stock' ? 'text-destructive' : 'text-amber-500'}`}
+                >
                   {item.status === 'Out of stock' ? item.status : `${item.quantity} left`}
                 </span>
               </div>
