@@ -98,6 +98,4 @@ class WhatsAppService
             'dedupe_key' => $notification['dedupe_key'],
         ];
     }
-
-}
 }
