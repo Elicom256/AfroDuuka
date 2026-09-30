@@ -1,23 +1,38 @@
-import { useLowStockQuery, useOutOfStockQuery, useDeadStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
+import { useLowStockQuery, useOutOfStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useProductExpiringQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, PackageX, TrendingDown, Clock } from 'lucide-react';
+import { AlertTriangle, PackageSearch } from 'lucide-react';
+
+type StockWatchItem = {
+  id: number | string;
+  name: string;
+  quantity?: number | string;
+  status: string;
+};
 
 export const StockHealth = () => {
   const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30');
   const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30');
-  const { data: deadStock, isLoading: deadLoading } = useDeadStockQuery('30');
   const { data: expiring, isLoading: expiringLoading } = useProductExpiringQuery();
 
-  const isLoading = lowLoading || outLoading || deadLoading || expiringLoading;
+  const isLoading = lowLoading || outLoading || expiringLoading;
 
-  const lowItems = lowStock?.data ?? [];
-  const outItems = outOfStock?.data ?? [];
-  const deadItems = deadStock?.data ?? [];
+  const lowItems: Omit<StockWatchItem, 'status'>[] = Array.isArray(lowStock?.data?.products)
+    ? lowStock.data.products
+    : [];
+  const outItems: Omit<StockWatchItem, 'status'>[] = Array.isArray(outOfStock?.data?.products)
+    ? outOfStock.data.products
+    : [];
+  const lowCount = Number(lowStock?.data?.low_stock_count ?? lowItems.length);
+  const outCount = Number(outOfStock?.data?.out_of_stock_count ?? outItems.length);
   const expiringData = expiring?.data;
   const expiringCount = (expiringData?.expiring_count ?? 0) + (expiringData?.expired_count ?? 0);
+  const watchItems = [
+    ...outItems.map((item) => ({ ...item, status: 'Out of stock' })),
+    ...lowItems.map((item) => ({ ...item, status: 'Low stock' })),
+  ].slice(0, 5);
 
   if (isLoading) {
     return (
@@ -34,82 +49,63 @@ export const StockHealth = () => {
     );
   }
 
-  const totalAlerts = lowItems.length + outItems.length + expiringCount;
+  const totalAlerts = lowCount + outCount + expiringCount;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <PackageX className="h-4 w-4 text-amber-500" />
-          Stock Health
+    <Card className='h-full'>
+      <CardHeader className='flex flex-row items-center justify-between pb-3'>
+        <CardTitle className='flex items-center gap-2 text-sm'>
+          <PackageSearch className='h-4 w-4 text-primary' />
+          Stock to watch
           {totalAlerts > 0 && (
-            <Badge variant="destructive" className="ml-auto text-xs">
-              {totalAlerts} alerts
+            <Badge variant='secondary' className='ml-auto text-xs'>
+              {totalAlerts} items
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {outItems.length > 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900/50 dark:bg-red-950/20">
-            <div className="flex items-center gap-2">
-              <PackageX className="h-3.5 w-3.5 text-red-500" />
-              <span className="text-sm font-medium text-red-700 dark:text-red-400">Out of Stock</span>
-            </div>
-            <Badge variant="destructive" className="text-xs">{outItems.length}</Badge>
+      <CardContent>
+        <div className='mb-3 grid grid-cols-3 divide-x divide-border border-y border-border py-2 text-center'>
+          <div>
+            <p className='text-lg font-semibold'>{outCount}</p>
+            <p className='text-[10px] text-muted-foreground'>Out of stock</p>
           </div>
-        )}
-
-        {lowItems.length > 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900/50 dark:bg-amber-950/20">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Low Stock</span>
-            </div>
-            <Badge variant="outline" className="border-amber-300 text-xs text-amber-700 dark:border-amber-700 dark:text-amber-400">
-              {lowItems.length}
-            </Badge>
+          <div>
+            <p className='text-lg font-semibold'>{lowCount}</p>
+            <p className='text-[10px] text-muted-foreground'>Low stock</p>
           </div>
-        )}
-
-        {expiringCount > 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 dark:border-orange-900/50 dark:bg-orange-950/20">
-            <div className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-orange-500" />
-              <span className="text-sm font-medium text-orange-700 dark:text-orange-400">Expiring Soon</span>
-            </div>
-            <Badge variant="outline" className="border-orange-300 text-xs text-orange-700 dark:border-orange-700 dark:text-orange-400">
-              {expiringCount}
-            </Badge>
+          <div>
+            <p className='text-lg font-semibold'>{expiringCount}</p>
+            <p className='text-[10px] text-muted-foreground'>Expiring</p>
           </div>
-        )}
+        </div>
 
-        {deadItems.length > 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-            <div className="flex items-center gap-2">
-              <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Dead Stock (30d no sales)</span>
-            </div>
-            <Badge variant="secondary" className="text-xs">{deadItems.length}</Badge>
-          </div>
-        )}
-
-        {totalAlerts === 0 && deadItems.length === 0 && (
-          <p className="text-xs text-muted-foreground">All stock levels are healthy.</p>
-        )}
-
-        {lowItems.length > 0 && (
-          <div className="mt-2 space-y-1.5 border-t pt-2">
-            <p className="text-xs font-medium text-muted-foreground">Top low-stock items</p>
-            {lowItems.slice(0, 3).map((item: any) => (
-              <div key={item.id} className="flex items-center justify-between text-xs">
-                <span className="truncate">{item.name}</span>
-                <span className="ml-2 shrink-0 font-medium text-amber-600 dark:text-amber-400">
-                  {item.quantity} left
+        {watchItems.length > 0 ? (
+          <div className='divide-y divide-border'>
+            {watchItems.map((item, index) => (
+              <div key={`${item.id}-${item.status}-${index}`} className='flex items-center justify-between gap-3 py-2.5'>
+                <div className='flex min-w-0 items-center gap-2'>
+                  {item.status === 'Out of stock' ? (
+                    <PackageSearch className='h-3.5 w-3.5 shrink-0 text-destructive' />
+                  ) : (
+                    <AlertTriangle className='h-3.5 w-3.5 shrink-0 text-amber-500' />
+                  )}
+                  <span className='truncate text-xs font-medium'>{item.name}</span>
+                </div>
+                <span className={`shrink-0 text-[10px] ${item.status === 'Out of stock' ? 'text-destructive' : 'text-amber-500'}`}>
+                  {item.status === 'Out of stock' ? item.status : `${item.quantity} left`}
                 </span>
               </div>
             ))}
           </div>
+        ) : (
+          <p className='py-4 text-center text-xs text-muted-foreground'>No low or out-of-stock items.</p>
+        )}
+
+        {expiringCount > 0 && (
+          <p className='mt-2 border-t border-border pt-2 text-xs text-amber-500'>
+            {expiringCount} product{expiringCount === 1 ? '' : 's'} expiring or expired
+          </p>
         )}
       </CardContent>
     </Card>
