@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSalesQuery, useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useLowStockQuery, useOutOfStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -19,9 +20,19 @@ import {
   Filler,
 } from 'chart.js';
 import { TrendingUp, DollarSign, ShoppingCart, Package, AlertTriangle, Clock } from 'lucide-react';
-import { format, subDays, isAfter } from 'date-fns';
+import { format } from 'date-fns';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler);
+
+type SalesPeriod = 'today' | 'last_7_days' | 'last_30_days' | 'this_month' | 'last_month';
+
+const periodOptions: { label: string; value: SalesPeriod }[] = [
+  { label: 'Today', value: 'today' },
+  { label: 'Last 7 days', value: 'last_7_days' },
+  { label: 'Last 30 days', value: 'last_30_days' },
+  { label: 'This month', value: 'this_month' },
+  { label: 'Last month', value: 'last_month' },
+];
 
 const chartColors = {
   blue: 'rgba(59, 130, 246, 0.8)',
@@ -41,41 +52,35 @@ const baseOptions = {
 
 export const StaffSalesOverviewPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useSalesQuery();
+  const [period, setPeriod] = useState<SalesPeriod>('last_7_days');
+  const { data: analyticsData, isLoading: analyticsLoading } = useGetSalesAnalyticsQuery(period);
+  const { data, isLoading: salesLoading } = useSalesQuery();
   const { data: productData } = useProductsQuery();
   const { data: lowStock } = useLowStockQuery('30');
   const { data: outOfStock } = useOutOfStockQuery('30');
 
+  const isLoading = analyticsLoading || salesLoading;
   if (isLoading) return <PageLoadingState />;
+
+  const analytics = analyticsData?.data;
+  const trend = analytics?.sales_trend ?? [];
+  const periodLabel = periodOptions.find((o) => o.value === period)?.label ?? '';
 
   const sales = data?.sales ?? data ?? [];
   const products = productData?.products ?? [];
   const lowItems = lowStock?.data ?? [];
   const outItems = outOfStock?.data ?? [];
 
-  const totalRevenue = sales.reduce((sum: number, sale: any) => sum + Number(sale.total_amount ?? 0), 0);
-  const totalOrders = sales.length;
-  const totalItemsSold = sales.reduce((sum: number, sale: any) => {
-    return sum + (sale.sale_items ?? []).reduce((acc: number, item: any) => acc + Number(item.quantity ?? 0), 0);
-  }, 0);
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = subDays(new Date(), 6 - i);
-    const dayLabel = format(date, 'EEE');
-    const daySales = sales.filter((sale: any) => {
-      const saleDate = new Date(sale.created_at);
-      return isAfter(saleDate, subDays(new Date(), 7)) && format(saleDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-    });
-    const revenue = daySales.reduce((sum: number, sale: any) => sum + Number(sale.total_amount ?? 0), 0);
-    return { label: dayLabel, revenue, orders: daySales.length };
-  });
+  const totalRevenue = Number(analytics?.total_sales ?? 0);
+  const totalOrders = Number(analytics?.total_transactions ?? 0);
+  const totalItemsSold = Number(analytics?.items_sold ?? 0);
+  const avgOrderValue = Number(analytics?.avg_sale ?? 0);
 
   const salesTrendData = {
-    labels: last7Days.map((d) => d.label),
+    labels: trend.map((p: any) => p.date),
     datasets: [{
       label: 'Revenue',
-      data: last7Days.map((d) => d.revenue),
+      data: trend.map((p: any) => Number(p.amount) || 0),
       borderColor: chartColors.blue,
       backgroundColor: chartColors.blueLight,
       fill: true,
@@ -84,10 +89,10 @@ export const StaffSalesOverviewPage = () => {
   };
 
   const ordersBarData = {
-    labels: last7Days.map((d) => d.label),
+    labels: trend.map((p: any) => p.date),
     datasets: [{
       label: 'Orders',
-      data: last7Days.map((d) => d.orders),
+      data: trend.map((p: any) => Number(p.count) || 0),
       backgroundColor: chartColors.green,
       borderRadius: 8,
     }],
@@ -112,9 +117,23 @@ export const StaffSalesOverviewPage = () => {
 
   return (
     <div className='space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold'>Sales Overview</h1>
-        <p className='text-muted-foreground'>View sales flow and trends</p>
+      <div className='flex flex-wrap items-center justify-between gap-3'>
+        <div>
+          <h1 className='text-2xl font-bold'>Sales Overview</h1>
+          <p className='text-muted-foreground'>View sales flow and trends</p>
+        </div>
+        <Select value={period} onValueChange={(value) => setPeriod(value as SalesPeriod)}>
+          <SelectTrigger size='sm' className='w-40' aria-label='Sales date range'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {periodOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
@@ -169,9 +188,9 @@ export const StaffSalesOverviewPage = () => {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <TrendingUp className='h-4 w-4' />
-              Revenue Trend (7 days)
+              Revenue Trend
             </CardTitle>
-            <CardDescription>Daily revenue over the last week</CardDescription>
+            <CardDescription>Daily revenue · {periodLabel}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='h-64'>
@@ -184,9 +203,9 @@ export const StaffSalesOverviewPage = () => {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <ShoppingCart className='h-4 w-4' />
-              Daily Orders (7 days)
+              Daily Orders
             </CardTitle>
-            <CardDescription>Number of orders per day</CardDescription>
+            <CardDescription>Number of orders per day · {periodLabel}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='h-64'>

@@ -141,14 +141,35 @@ class SaleItemService
         $query = Sale::where('status', 'completed');
 
         $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
-        $startDate = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
-        $query->where('created_at', '>=', $startDate);
+        $currentStart = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
+        $query->where('created_at', '>=', $currentStart);
 
-        $sales = $query->get();
+        $sales = $query->with('saleItems')->get();
 
         $totalSales = $sales->sum('total_amount');
         $totalTransactions = $sales->count();
         $avgSale = $totalTransactions > 0 ? $totalSales / $totalTransactions : 0;
+        $itemsSold = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
+
+        $previousStart = match ($period) {
+            'today'       => Carbon::yesterday(),
+            'last_7_days'  => Carbon::now()->subDays(13),
+            'last_30_days' => Carbon::now()->subDays(59),
+            'this_month'  => Carbon::now()->subMonth()->startOfMonth(),
+            'last_month'  => Carbon::now()->subMonths(2)->startOfMonth(),
+            default       => Carbon::now()->subDays(13),
+        };
+
+        $previousSales = Sale::where('status', 'completed')
+            ->where('created_at', '>=', $previousStart)
+            ->where('created_at', '<', $currentStart)
+            ->with('saleItems')
+            ->get();
+
+        $previousTotalSales = $previousSales->sum('total_amount');
+        $previousTransactions = $previousSales->count();
+        $previousAvg = $previousTransactions > 0 ? $previousTotalSales / $previousTransactions : 0;
+        $previousItemsSold = $previousSales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
 
         $salesTrend = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('M d');
@@ -157,6 +178,7 @@ class SaleItemService
                 'date'   => $group->first()->created_at->format('M d'),
                 'amount' => $group->sum('total_amount'),
                 'count'  => $group->count(),
+                'items'  => $group->sum(fn ($sale) => $sale->saleItems->sum('quantity')),
             ];
         })->values();
 
@@ -166,8 +188,15 @@ class SaleItemService
             'total_sales'        => round($totalSales, 2),
             'avg_sale'           => round($avgSale, 2),
             'total_transactions' => $totalTransactions,
+            'items_sold'         => $itemsSold,
             'sales_trend'        => $salesTrend,
             'period'             => $period,
+            'previous'           => [
+                'total_sales'        => round($previousTotalSales, 2),
+                'avg_sale'           => round($previousAvg, 2),
+                'total_transactions' => $previousTransactions,
+                'items_sold'         => $previousItemsSold,
+            ],
             "lable"              => "sales"
         ];
     }
