@@ -91,7 +91,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
 
     try {
       const body = {
-        supplier_id: Number(formData.supplier_id),
+        supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
         items: validItems.map((item) => ({
           product_id: Number(item.product_id),
           quantity: Number(item.quantity),
@@ -144,7 +144,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           {/* Supplier Selection */}
           <div className='grid grid-cols-4 items-center gap-4'>
             <Label htmlFor='supplier_id' className='text-right'>
-              Supplier <span className='text-red-500'>*</span>
+              Supplier <span className='text-muted-foreground'>(optional)</span>
             </Label>
             <Select value={formData.supplier_id} onValueChange={(v) => handleChange('supplier_id', v)}>
               <SelectTrigger className='col-span-3'>

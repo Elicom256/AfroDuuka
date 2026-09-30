@@ -77,11 +77,6 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
       return;
     }
 
-    if (!formData.supplier_id) {
-      toast.error('Please select a supplier.');
-      return;
-    }
-
     try {
       const itemsPayload = validItems.map((item) => ({
         product_id: item.product_id,
@@ -90,7 +85,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
       }));
 
       const body = {
-        supplier_id: Number(formData.supplier_id),
+        supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
         note: formData.note,
         items: itemsPayload,
       };
@@ -137,7 +132,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='supplier_id' className='text-right'>
-                Supplier
+                Supplier <span className='text-muted-foreground'>(optional)</span>
               </Label>
               <Select value={formData.supplier_id} onValueChange={(value) => handleChange('supplier_id', value)}>
                 <SelectTrigger className='col-span-3'>
