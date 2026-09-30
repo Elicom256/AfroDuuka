@@ -11,6 +11,43 @@ button {
   text-decoration: underline;
 }
 
+.marketing-home {
+  --background: oklch(0.975 0.012 94);
+  --foreground: oklch(0.22 0.025 151);
+  --card: oklch(0.995 0.004 94);
+  --card-foreground: oklch(0.22 0.025 151);
+  --popover: oklch(0.995 0.004 94);
+  --popover-foreground: oklch(0.22 0.025 151);
+  --primary: oklch(0.48 0.12 150);
+  --primary-foreground: oklch(0.99 0.005 94);
+  --secondary: oklch(0.92 0.025 105);
+  --secondary-foreground: oklch(0.28 0.035 151);
+  --muted: oklch(0.94 0.014 105);
+  --muted-foreground: oklch(0.48 0.025 151);
+  --accent: oklch(0.89 0.07 90);
+  --accent-foreground: oklch(0.25 0.04 80);
+  --border: oklch(0.88 0.018 110);
+  --input: oklch(0.88 0.018 110);
+  --ring: oklch(0.48 0.12 150);
+  --chart-1: oklch(0.48 0.12 150);
+  --chart-2: oklch(0.68 0.1 85);
+  --chart-3: oklch(0.58 0.09 35);
+  --chart-4: oklch(0.62 0.06 195);
+  --chart-5: oklch(0.55 0.07 260);
+  background-color: var(--background);
+  color: var(--foreground);
+  position: relative;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  padding-inline: max(1rem, calc((100vw - 80rem) / 2));
+}
+
+.marketing-home > section {
+  max-width: 80rem;
+  margin-inline: auto;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
