@@ -3,77 +3,92 @@ import { usePurchaseAnalyticsQuery } from '@/app/store/features/branch/purchases
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+
+type TrendPoint = { date: string; amount: number; count: number };
 
 export const SalesPurchasesSummary = () => {
-  const { currencySymbol } = useCurrency();
+  const { currency, currencySymbol } = useCurrency();
   const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery('last_7_days');
   const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseAnalyticsQuery('last_7_days');
 
   const isLoading = salesLoading || purchaseLoading;
+  const sales = salesData?.data;
+  const purchases = purchaseData?.data;
+  const salesTrend: TrendPoint[] = sales?.sales_trend ?? [];
+  const maxSales = Math.max(...salesTrend.map((point) => Number(point.amount) || 0), 0);
 
-  const sales = salesData?.data ?? salesData;
-  const purchases = purchaseData?.data ?? purchaseData;
-
-  const totalSales = sales?.total_revenue ?? sales?.total ?? 0;
-  const totalPurchases = purchases?.total_expenses ?? purchases?.total ?? 0;
-  const salesCount = sales?.sales_count ?? sales?.count ?? 0;
-  const purchaseCount = purchases?.purchase_count ?? purchases?.count ?? 0;
-
-  const formatAmount = (amount: number) => `${currencySymbol} ${Math.round(amount).toLocaleString()}`;
+  const formatAmount = (amount: number) => `${currencySymbol ?? currency ?? ''} ${Math.round(amount).toLocaleString()}`;
 
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-5 w-40" />
+        <CardHeader className='pb-3'>
+          <Skeleton className='h-5 w-40' />
         </CardHeader>
-        <CardContent className="space-y-3">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
+        <CardContent className='space-y-4'>
+          <Skeleton className='h-16 w-full' />
+          <Skeleton className='h-32 w-full' />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <DollarSign className="h-4 w-4 text-emerald-500" />
-          Sales & Purchases
+    <Card className='overflow-hidden'>
+      <CardHeader className='flex flex-row items-center justify-between pb-3'>
+        <CardTitle className='flex items-center gap-2 text-sm'>
+          <ChartNoAxesColumnIncreasing className='h-4 w-4 text-primary' />
+          Sales overview
         </CardTitle>
+        <span className='text-xs text-muted-foreground'>Last 7 days · {currency ?? ''}</span>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 text-emerald-500" />
-              Sales (7d)
-            </div>
-            <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-              {formatAmount(totalSales)}
+        <div className='mb-4 grid grid-cols-3 divide-x divide-border border-y border-border'>
+          <div className='min-w-0 py-3 pr-2 sm:pr-4'>
+            <p className='text-[11px] text-muted-foreground'>Sales</p>
+            <p className='mt-1 truncate text-sm font-semibold sm:text-base'>
+              {formatAmount(Number(sales?.total_sales ?? 0))}
             </p>
-            <p className="text-xs text-muted-foreground">{salesCount} transactions</p>
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ShoppingCart className="h-3 w-3 text-amber-500" />
-              Purchases (7d)
-            </div>
-            <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
-              {formatAmount(totalPurchases)}
+          <div className='min-w-0 px-2 py-3 sm:px-4'>
+            <p className='text-[11px] text-muted-foreground'>Purchases</p>
+            <p className='mt-1 truncate text-sm font-semibold sm:text-base'>
+              {formatAmount(Number(purchases?.total_purchases ?? 0))}
             </p>
-            <p className="text-xs text-muted-foreground">{purchaseCount} transactions</p>
+          </div>
+          <div className='min-w-0 py-3 pl-2 sm:pl-4'>
+            <p className='text-[11px] text-muted-foreground'>Transactions</p>
+            <p className='mt-1 truncate text-sm font-semibold sm:text-base'>
+              {Number(sales?.total_transactions ?? 0).toLocaleString()}
+            </p>
           </div>
         </div>
-        <div className="mt-3 border-t pt-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Net (Sales - Purchases)</span>
-            <span className={`font-medium ${totalSales - totalPurchases >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-              {formatAmount(totalSales - totalPurchases)}
-            </span>
-          </div>
+
+        <div className='flex min-h-32 items-stretch gap-2 border-b border-border px-1 sm:gap-3'>
+          {salesTrend.length > 0 ? (
+            salesTrend.map((point) => {
+              const amount = Number(point.amount) || 0;
+              const height = maxSales > 0 ? Math.max((amount / maxSales) * 100, 3) : 0;
+
+              return (
+                <div key={point.date} className='group flex min-w-0 flex-1 flex-col'>
+                  <div className='flex h-24 items-end'>
+                    <div
+                      title={`${point.date}: ${formatAmount(amount)}`}
+                      className='w-full bg-primary/25 transition-colors group-hover:bg-primary/50'
+                      style={{ height: `${height}%` }}
+                    />
+                  </div>
+                  <span className='py-2 text-center text-[9px] text-muted-foreground sm:text-[10px]'>{point.date}</span>
+                </div>
+              );
+            })
+          ) : (
+            <p className='flex min-h-32 w-full items-center justify-center text-xs text-muted-foreground'>
+              No sales data for this period.
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

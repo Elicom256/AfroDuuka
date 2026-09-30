@@ -6,34 +6,34 @@
 button {
   cursor: pointer;
 }
-.active{
+.active {
   color: #2ae619;
   text-decoration: underline;
 }
 
 .marketing-home {
-  --background: oklch(0.975 0.012 94);
-  --foreground: oklch(0.22 0.025 151);
-  --card: oklch(0.995 0.004 94);
-  --card-foreground: oklch(0.22 0.025 151);
-  --popover: oklch(0.995 0.004 94);
-  --popover-foreground: oklch(0.22 0.025 151);
-  --primary: oklch(0.48 0.12 150);
-  --primary-foreground: oklch(0.99 0.005 94);
-  --secondary: oklch(0.92 0.025 105);
-  --secondary-foreground: oklch(0.28 0.035 151);
-  --muted: oklch(0.94 0.014 105);
-  --muted-foreground: oklch(0.48 0.025 151);
-  --accent: oklch(0.89 0.07 90);
-  --accent-foreground: oklch(0.25 0.04 80);
-  --border: oklch(0.88 0.018 110);
-  --input: oklch(0.88 0.018 110);
-  --ring: oklch(0.48 0.12 150);
-  --chart-1: oklch(0.48 0.12 150);
-  --chart-2: oklch(0.68 0.1 85);
-  --chart-3: oklch(0.58 0.09 35);
-  --chart-4: oklch(0.62 0.06 195);
-  --chart-5: oklch(0.55 0.07 260);
+  --background: oklch(0.13 0.018 165);
+  --foreground: oklch(0.96 0.012 150);
+  --card: oklch(0.18 0.02 165);
+  --card-foreground: oklch(0.96 0.012 150);
+  --popover: oklch(0.18 0.02 165);
+  --popover-foreground: oklch(0.96 0.012 150);
+  --primary: oklch(0.73 0.15 145);
+  --primary-foreground: oklch(0.16 0.025 160);
+  --secondary: oklch(0.24 0.025 160);
+  --secondary-foreground: oklch(0.94 0.015 150);
+  --muted: oklch(0.22 0.02 165);
+  --muted-foreground: oklch(0.72 0.025 155);
+  --accent: oklch(0.73 0.12 90);
+  --accent-foreground: oklch(0.18 0.02 80);
+  --border: oklch(0.3 0.025 160);
+  --input: oklch(0.24 0.025 160);
+  --ring: oklch(0.73 0.15 145);
+  --chart-1: oklch(0.73 0.15 145);
+  --chart-2: oklch(0.77 0.12 90);
+  --chart-3: oklch(0.68 0.13 45);
+  --chart-4: oklch(0.68 0.09 195);
+  --chart-5: oklch(0.67 0.09 260);
   background-color: var(--background);
   color: var(--foreground);
   position: relative;
@@ -41,6 +41,7 @@ button {
   width: 100vw;
   transform: translateX(-50%);
   padding-inline: max(1rem, calc((100vw - 80rem) / 2));
+  color-scheme: dark;
 }
 
 .marketing-home > section {

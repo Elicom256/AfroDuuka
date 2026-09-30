@@ -1,16 +1,15 @@
 import { AiChat } from '@/components/ai/AiChat';
-import { useCurrency } from '@/app/hooks/useCurrency';
+import { useState } from 'react';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
-import { OverviewCards } from '@/app/pages/dashboards/executive/components/overview/OverviewCards';
-import { SmartRestocking } from '@/app/pages/dashboards/executive/components/restocking/SmartRestocking';
 import { StockHealth } from '@/app/pages/dashboards/executive/components/stock-health/StockHealth';
 import { SalesPurchasesSummary } from '@/app/pages/dashboards/executive/components/sales-purchases/SalesPurchasesSummary';
 import { RecentAlerts } from '@/app/pages/dashboards/executive/components/alerts/RecentAlerts';
-import { FinanceOverview } from '@/app/pages/dashboards/executive/components/finance-overview/FinanceOverview';
-import { LayoutDashboard, CalendarDays } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { CalendarDays, MessageSquareText } from 'lucide-react';
 
 export const ExecutiveDashboardPage = () => {
-  const { flagEmoji } = useCurrency();
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const { data: userData } = useLoggedinUserQuery();
   const username = userData?.data?.username ?? 'there';
   const businessName = userData?.data?.business?.name ?? 'your business';
@@ -24,51 +23,42 @@ export const ExecutiveDashboardPage = () => {
   });
 
   return (
-    <div className='space-y-6'>
-      <div className='relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/5 via-primary/10 to-primary/5 p-6 border border-primary/10'>
-        <div className='absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl' />
-        <div className='relative flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
+    <div className='space-y-5'>
+      <div className='flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <div className='flex items-center gap-2 text-sm font-medium text-muted-foreground'>
-              <LayoutDashboard className='h-4 w-4' />
-              Dashboard
+            <h1 className='text-2xl font-semibold tracking-tight'>Welcome back, {username}</h1>
+            <p className='mt-1 text-sm text-muted-foreground'>A business overview for {businessName}.</p>
+          </div>
+          <div className='flex flex-wrap items-center gap-3'>
+            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <CalendarDays className='h-4 w-4' />
+              {dateStr}
             </div>
-            <h1 className='text-2xl font-bold tracking-tight mt-1'>
-              Welcome back, {username}
-            </h1>
-            <p className='text-sm text-muted-foreground mt-0.5'>
-              Here's what's happening with {businessName} today.
-            </p>
+            <Sheet open={assistantOpen} onOpenChange={setAssistantOpen}>
+              <SheetTrigger asChild>
+                <Button variant='outline' size='sm'>
+                  <MessageSquareText className='mr-2 h-4 w-4' />
+                  Ask assistant
+                </Button>
+              </SheetTrigger>
+              <SheetContent side='right' className='w-full sm:max-w-md'>
+                <SheetHeader>
+                  <SheetTitle>Business assistant</SheetTitle>
+                </SheetHeader>
+                <div className='h-[calc(100%-4rem)] pt-4'>
+                  <AiChat />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-          <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>
-            <CalendarDays className='h-4 w-4' />
-            {dateStr}
-            {flagEmoji && <span className='ml-1 text-base'>{flagEmoji}</span>}
-          </div>
-        </div>
       </div>
 
-      <div className='grid gap-6 xl:grid-cols-[1fr_380px]'>
-        <div className='space-y-6'>
-          <OverviewCards />
-
-          <div className='grid gap-4 ssm:grid-cols-2'>
-            <StockHealth />
-            <FinanceOverview />
-          </div>
-
-          <div className='grid gap-4 ssm:grid-cols-2'>
-            <SalesPurchasesSummary />
-            <RecentAlerts />
-          </div>
-
-          <SmartRestocking />
-        </div>
-
-        <div className='h-[calc(100vh-16rem)] sticky top-6'>
-          <AiChat />
-        </div>
+      <div className='grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]'>
+        <SalesPurchasesSummary />
+        <StockHealth />
       </div>
+
+      <RecentAlerts />
     </div>
   );
 };

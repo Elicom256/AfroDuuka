@@ -19,15 +19,15 @@ export const NavBar: React.FC = () => {
   const { data } = useLoggedinUserQuery();
   const role = data?.data.role.name;
   const dashboardLink = getRolePrefix(role);
+
   return (
-    <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 backdrop-blur-xl shadow-sm shadow-slate-950/40'>
+    <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 shadow-sm shadow-slate-950/40 backdrop-blur-xl'>
       <div className='container mx-auto flex items-center justify-between gap-4 px-4 py-4'>
         <Link
           to='/'
           className='group inline-flex items-center gap-3 text-lg font-semibold tracking-tight text-foreground'
         >
           <img src={logo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
-          {/* <Sparkles className='h-6 w-6 text-primary' /> */}
           <span>DuukaFlow</span>
         </Link>
 
@@ -55,8 +55,8 @@ export const NavBar: React.FC = () => {
           {data && role ? (
             <Link to={dashboardLink}>Dashboard</Link>
           ) : (
-            <Button asChild size='sm'>
-              <Link to='/login'>Try It</Link>
+            <Button asChild size='sm' className='bg-[#356b42] text-white hover:bg-[#285837]'>
+              <Link to='/login'>Try it</Link>
             </Button>
           )}
         </div>
@@ -92,8 +92,8 @@ export const NavBar: React.FC = () => {
                 {item.label}
               </NavLink>
             ))}
-            <Button asChild size='sm' className='w-full'>
-              <Link to='/documentation'>Get started</Link>
+            <Button asChild size='sm' className='w-full bg-[#356b42] text-white hover:bg-[#285837]'>
+              <Link to='/signup'>Get started</Link>
             </Button>
           </div>
         </div>

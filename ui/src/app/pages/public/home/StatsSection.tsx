@@ -1,56 +1,47 @@
-import { PackageCheck, TrendingUp, Clock, Shield } from 'lucide-react';
+import { BarChart3, Boxes, GitBranch, MessageSquareText } from 'lucide-react';
 
-const stats = [
+const capabilities = [
   {
-    icon: <PackageCheck className='h-6 w-6' />,
-    value: '50,000+',
-    label: 'Products managed',
-    description: 'Items tracked across all businesses on DuukaFlow',
+    icon: <Boxes className='h-5 w-5' />,
+    label: 'Know what is on your shelves',
+    description: 'Track stock, sales and reorder levels from one place.',
   },
   {
-    icon: <TrendingUp className='h-6 w-6' />,
-    value: '30%',
-    label: 'Average savings',
-    description: 'Reduction in stock losses after switching to DuukaFlow',
+    icon: <BarChart3 className='h-5 w-5' />,
+    label: 'See how the shop is doing',
+    description: 'Follow sales and margins without a spreadsheet.',
   },
   {
-    icon: <Clock className='h-6 w-6' />,
-    value: '15 min',
-    label: 'Setup time',
-    description: 'Get your shop up and running in minutes, not days',
+    icon: <MessageSquareText className='h-5 w-5' />,
+    label: 'Keep your team in the loop',
+    description: 'Send useful stock updates through familiar channels.',
   },
   {
-    icon: <Shield className='h-6 w-6' />,
-    value: '99.9%',
-    label: 'Uptime',
-    description: 'Reliable cloud infrastructure you can count on',
+    icon: <GitBranch className='h-5 w-5' />,
+    label: 'Grow beyond one location',
+    description: 'Keep branches and their inventory connected.',
   },
 ];
 
 export const StatsSection = () => {
   return (
     <section className='py-16 sm:py-20'>
-      <div className='rounded-[2rem] bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-12'>
-        <div className='text-center'>
-          <h2 className='text-3xl font-bold tracking-tight text-foreground sm:text-4xl'>
-            Trusted by businesses across Uganda
-          </h2>
-          <p className='mx-auto mt-3 max-w-2xl text-muted-foreground'>
-            Join hundreds of shop owners who have transformed the way they manage inventory.
+      <div className='border-y border-border py-10 sm:py-12'>
+        <div className='max-w-2xl'>
+          <p className='text-xs font-semibold uppercase tracking-widest text-primary'>One system, more room to grow</p>
+          <h2 className='mt-3 text-3xl font-semibold text-foreground sm:text-4xl'>Built around the way retail works</h2>
+          <p className='mt-3 text-muted-foreground'>
+            From the counter to the next branch, keep the moving parts of your shop in view.
           </p>
         </div>
-        <div className='mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className='rounded-xl border border-border/60 bg-card/60 p-6 text-center backdrop-blur-sm'
-            >
-              <div className='mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary'>
-                {stat.icon}
+        <div className='mt-8 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4'>
+          {capabilities.map((capability) => (
+            <div key={capability.label} className='border-t border-border py-5'>
+              <div className='flex items-center gap-3 text-primary'>
+                {capability.icon}
+                <h3 className='text-sm font-semibold text-foreground'>{capability.label}</h3>
               </div>
-              <p className='mt-4 text-3xl font-bold text-foreground'>{stat.value}</p>
-              <p className='mt-1 font-medium text-foreground/80'>{stat.label}</p>
-              <p className='mt-1 text-sm text-muted-foreground'>{stat.description}</p>
+              <p className='mt-3 text-sm leading-6 text-muted-foreground'>{capability.description}</p>
             </div>
           ))}
         </div>
