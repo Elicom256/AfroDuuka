@@ -15,7 +15,16 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
-export const UserProfile = ({ data }: any) => {
+type ProfileData = {
+  data?: {
+    name?: string;
+    username?: string;
+    email?: string;
+    phone?: string;
+  };
+};
+
+export const UserProfile = ({ data, compact = false }: { data: ProfileData; compact?: boolean }) => {
   const [logout, { isLoading }] = useLogoutMutation();
   const handleLogout = async () => {
     try {
@@ -24,54 +33,58 @@ export const UserProfile = ({ data }: any) => {
         toast.success(res.message);
       }
       return (window.location.href = '/login');
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className='flex items-center gap-3 px-4 py-3 rounded-2xl bg-muted/70 cursor-pointer'>
-          <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center'>
-            <UserRound />
-          </div>
-          <div className='text-sm'>
-            <p className='font-medium'>{data.data.name}</p>
-            <p className='text-xs text-green-400 text-center'>Online</p>
-          </div>
-        </div>
+        <Button
+          type='button'
+          variant={compact ? 'ghost' : 'outline'}
+          size={compact ? 'icon' : 'default'}
+          className={compact ? 'h-9 w-9 rounded-full border border-border/70' : 'gap-3 px-3'}
+          aria-label='Open profile and account actions'
+          title='Profile and account'
+        >
+          {compact ? (
+            <UserRound className='h-4 w-4' />
+          ) : (
+            <>
+              <span className='grid h-8 w-8 place-items-center rounded-full bg-primary/15 text-primary'>
+                <UserRound className='h-4 w-4' />
+              </span>
+              <span className='text-left'>
+                <span className='block text-sm font-medium'>{data?.data?.name ?? data?.data?.username}</span>
+                <span className='block text-xs text-muted-foreground'>Account</span>
+              </span>
+            </>
+          )}
+        </Button>
       </DialogTrigger>
 
       <DialogContent className='sm:max-w-sm '>
         <DialogHeader className='flex items-center'>
           <DialogTitle>
-            <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center'>
+            <div className='mx-auto grid h-10 w-10 place-items-center rounded-full bg-primary/15 text-primary'>
               <UserRound />
             </div>
           </DialogTitle>
-          <DialogDescription>{data.data.username}</DialogDescription>
+          <DialogDescription>{data?.data?.username ?? 'Account'}</DialogDescription>
         </DialogHeader>
 
-        <div className='space-y-3 text-sm text-gray-300'>
-          <div className='flex items-center gap-2'>
-            {/* <p className='text-muted-foreground'>Name</p> */}
-            {/* <p className='font-medium'>{data.data.name}</p> */}
-          </div>
-
-          <div className='flex items-center gap-2'>
-            {/* <p className='text-muted-foreground'>Username</p> */}
-            <p className='font-medium text-lg '>{data.data.email}</p>
-          </div>
-
-          <div className='flex items-center gap-2'>
-            {/* <p className='text-muted-foreground'>Phone</p> */}
-            <p className='font-medium'>{data.data.phone}</p>
-          </div>
+        <div className='space-y-2 text-sm'>
+          <p className='font-medium'>{data?.data?.name ?? data?.data?.username ?? 'User'}</p>
+          {data?.data?.email && <p className='text-muted-foreground'>{data.data.email}</p>}
+          {data?.data?.phone && <p className='text-muted-foreground'>{data.data.phone}</p>}
         </div>
 
         <DialogFooter className='flex items-center'>
-          <Link to='/signup' className='bg-green-500 flex items-center gap-1 py-1 px-2 rounded-lg'>
+          <Link
+            to='/signup'
+            className='inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary hover:bg-primary/10'
+          >
             <span>Edit</span>
-            <SquarePen />
+            <SquarePen className='h-4 w-4' />
           </Link>
           {/* <DialogClose asChild> */}
           <Button variant='outline' onClick={handleLogout}>

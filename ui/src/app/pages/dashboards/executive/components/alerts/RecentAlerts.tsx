@@ -37,9 +37,9 @@ export const RecentAlerts = () => {
   const alerts: Array<{ id: number | string; title: string; description: string }> = notifications
     .slice(0, 5)
     .map((notification: DashboardNotification) => ({
-    id: notification.id,
-    title: notification.title ?? notification.message ?? 'Notification',
-    description: notification.body ?? '',
+      id: notification.id,
+      title: notification.title ?? notification.message ?? 'Notification',
+      description: notification.body ?? '',
     }));
 
   return (
@@ -58,7 +58,7 @@ export const RecentAlerts = () => {
               {alert.description && <p className='mt-1 truncate text-xs text-muted-foreground'>{alert.description}</p>}
             </div>
           ))}
-          </div>
+        </div>
       )}
     </section>
   );
