@@ -16,6 +16,7 @@ class AuthObserver
 
         ActivityLog::create([
             'log_name' => 'auth',
+            'event' => 'logged_in',
             'description' => 'User logged in',
             'subject_type' => get_class($user),
             'subject_id' => $user->id,
@@ -37,6 +38,7 @@ class AuthObserver
 
         ActivityLog::create([
             'log_name' => 'auth',
+            'event' => 'logged_out',
             'description' => 'User logged out',
             'subject_type' => get_class($user),
             'subject_id' => $user->id,
@@ -54,6 +56,7 @@ class AuthObserver
 
         ActivityLog::create([
             'log_name' => 'auth',
+            'event' => 'failed',
             'description' => 'Failed login attempt',
             'subject_type' => $user ? get_class($user) : null,
             'subject_id' => $user?->id,
