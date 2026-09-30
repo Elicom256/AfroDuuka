@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '../../../public/afroduuka.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { getRolePrefix } from '@/lib/rolePrefix';
@@ -21,7 +22,7 @@ export const NavBar: React.FC = () => {
   const dashboardLink = getRolePrefix(role);
 
   return (
-    <header className='sticky top-0 z-50 border-b border-border/70 bg-slate-950/90 shadow-sm shadow-slate-950/40 backdrop-blur-xl'>
+    <header className='sticky top-0 z-50 border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl'>
       <div className='container mx-auto flex items-center justify-between gap-4 px-4 py-4'>
         <Link
           to='/'
@@ -51,11 +52,12 @@ export const NavBar: React.FC = () => {
           ))}
         </nav>
 
-        <div className='hidden items-center gap-2 md:flex'>
+        <div className='hidden items-center gap-4 md:flex'>
+          <ThemeToggle compact />
           {data && role ? (
             <Link to={dashboardLink}>Dashboard</Link>
           ) : (
-            <Button asChild size='sm' className='bg-[#356b42] text-white hover:bg-[#285837]'>
+            <Button asChild size='sm'>
               <Link to='/login'>Try it</Link>
             </Button>
           )}
@@ -72,7 +74,7 @@ export const NavBar: React.FC = () => {
       </div>
 
       {open ? (
-        <div className='border-t border-border/50 bg-slate-950/95 px-4 pb-4 md:hidden'>
+        <div className='border-t border-border/50 bg-background px-4 pb-4 md:hidden'>
           <div className='space-y-2'>
             {navLinks.map((item) => (
               <NavLink
@@ -92,7 +94,11 @@ export const NavBar: React.FC = () => {
                 {item.label}
               </NavLink>
             ))}
-            <Button asChild size='sm' className='w-full bg-[#356b42] text-white hover:bg-[#285837]'>
+            <div className='flex items-center justify-between py-2'>
+              <span className='text-sm text-muted-foreground'>Appearance</span>
+              <ThemeToggle compact />
+            </div>
+            <Button asChild size='sm' className='w-full'>
               <Link to='/signup'>Get started</Link>
             </Button>
           </div>
