@@ -17,6 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\BlockRestrictedRoleActions::class,
         ]);
 
+        // Runs after auth:sanctum so the caller is resolved before the tenant check.
+        // currentUser() resolves the guard defensively either way, but ordering it last
+        // means the common path reads $request->user() directly instead of re-driving
+        // the guard.
+        $middleware->api(append: [
+            \App\Http\Middleware\RequireBusiness::class,
+        ]);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\RequireRole::class,
         ]);

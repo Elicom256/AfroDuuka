@@ -19,7 +19,7 @@ const navLinks = [
 export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { data } = useLoggedinUserQuery();
-  const role = data?.data.role.name;
+  const role = data?.data?.role?.name;
   const dashboardLink = getRolePrefix(role);
   const businessName = data?.data?.business?.name ?? 'DuukaFlow';
   const businessLogo = data?.data?.business?.logo ?? logo;

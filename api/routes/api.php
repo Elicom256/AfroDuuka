@@ -38,6 +38,10 @@ Route::post("webhooks/ses", \App\Http\Controllers\Webhooks\SesWebhookController:
     ->name("webhooks.ses")
     ->middleware('throttle:webhook');
 
+// Public, read-only reference data for the signup form. BusinessCategory is a global
+// table with no tenant column, so this leaks nothing about any business.
+Route::get("business-categories", [\App\Http\Controllers\BusinessCategoryController::class, "index"]);
+
 Route::middleware('throttle:api')->group(function () {
     Route::prefix("users")->group(function () {
         require __DIR__."/users.php";

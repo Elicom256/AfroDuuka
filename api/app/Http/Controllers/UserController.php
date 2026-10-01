@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Country;
@@ -24,7 +25,7 @@ class UserController extends Controller
     /**
      * Authenticate user and generate token (Login)
      */
-    public function login(StoreUserRequest $request)
+    public function login(LoginRequest $request)
     {
         try {
             $result = $this->userService->login($request->validated());
@@ -48,10 +49,23 @@ class UserController extends Controller
         // Return currently authenticated user with relations
         $user = $request->user()->load("business.country", "businessBranch", "role");
         $country = $user->business ? Country::find($user->business->country_id) : null;
+
+        // The client uses this to decide whether to send a brand-new signup to the
+        // onboarding screen or into the app. Without it the UI has to infer the state
+        // from a missing role, which is exactly the guess that produced a 404 on login.
+        $onboarding = [
+            'complete' => $user->business_id !== null,
+        ];
+
+        if ($user->business_id === null) {
+            $onboarding['next'] = '/api/dashboard/business';
+        }
+
         return response()->json([
             'message' => 'User retrieved successfully',
             'data' => $user,
-            "country" => $country ?? "N/A"
+            "country" => $country ?? "N/A",
+            "onboarding" => $onboarding,
         ], 200);
     }
 
@@ -147,17 +161,19 @@ class UserController extends Controller
         try {
             $validated = $request->validated();
             
-            // Create the user account first
+            // Create the user account first. business_id stays null on purpose: the
+            // person exists before they are a tenant. The account is immediately
+            // restricted to onboarding by RequireBusiness until BusinessService::create()
+            // links it to a business.
             $user = $this->userService->createAccount($validated);
-            
-            // If plan_id is provided, create subscription
-            // if (isset($validated['plan_id'])) {
-            //     $this->createUserSubscription($user, $validated['plan_id']);
-            // }
             
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user->load('business', 'role'),
+                'onboarding' => [
+                    'complete' => false,
+                    'next' => '/api/dashboard/business',
+                ],
             ], 201);
         } catch (\Exception $e) {
             return response()->json([

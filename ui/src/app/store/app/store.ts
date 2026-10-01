@@ -9,6 +9,7 @@ import { purchaseReturnsQuery } from '../features/branch/purchase-returns/purcha
 import { customersQuery } from '../features/business/customers/customersQuery';
 import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
+import { onboardingQuery } from '../features/business/setup/onboardingQuery';
 import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
 import { branchesQuery } from '../features/business/branches/branchesQuery';
@@ -130,6 +131,7 @@ export const store = configureStore({
     [taxCategoriesQuery.reducerPath]: taxCategoriesQuery.reducer,
     [taxRatesQuery.reducerPath]: taxRatesQuery.reducer,
     [taxPaymentsQuery.reducerPath]: taxPaymentsQuery.reducer,
+    [onboardingQuery.reducerPath]: onboardingQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -199,6 +201,7 @@ export const store = configureStore({
       taxRatesQuery.middleware,
       taxPaymentsQuery.middleware,
       quotationsQuery.middleware,
+      onboardingQuery.middleware,
     ),
 });
 

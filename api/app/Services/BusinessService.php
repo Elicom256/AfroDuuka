@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
 use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Notifications\RecipientProvisioner;
@@ -18,32 +17,24 @@ class BusinessService
         //
     }
 
-    /**
-     * businesses.country_id is NOT NULL but the registration form does not collect a
-     * country, so it has to be resolved here or business creation fails outright.
-     * Uganda is the primary market (it is also the +256 default used across the
-     * codebase); fall back to the first seeded country if Uganda is absent.
-     */
-    private function resolveDefaultCountryId(): ?int
-    {
-        return Country::query()
-            ->where('iso_alpha2', 'UG')
-            ->orWhere('name', 'Uganda')
-            ->orderBy('id')
-            ->value('id')
-            ?? Country::query()->orderBy('id')->value('id');
-    }
-
     public function create(array $data, User $user): Business
     {
-        // Create the business with the user's phone
+        // Create the business with the user's phone.
+        // Optional fields are read with ?? rather than []. A nullable validation rule
+        // means the key is simply absent from validated() when the client omits it, so
+        // $data['address'] raised "Undefined array key" and turned business creation
+        // into a 500 — which is exactly the call self-serve onboarding depends on.
+        //
+        // country_id is not optional: the column is NOT NULL and StoreBusinessRequest
+        // now requires it, replacing a fallback that wrote Uganda onto businesses that
+        // never chose a country.
         $business = Business::create([
             'name' => $data['name'],
             'email' => $data['email'] ?? $user->email,
             'phone' => $user->phone,
-            'address' => $data['address'],
+            'address' => $data['address'] ?? null,
             'business_category_id' => $data['business_category_id'],
-            'country_id' => $data['country_id'] ?? $this->resolveDefaultCountryId(),
+            'country_id' => $data['country_id'],
         ]);
 
         // Dispatch business registration event
@@ -78,9 +69,54 @@ class BusinessService
 
         // ======================= set starter plan ================= to create a plan based on what the user picked
 
+        $this->attachTrialSubscription($business);
+
         $this->provisionRecipients($business, $user);
 
         return $business;
+    }
+
+    /**
+     * Attach a free trial subscription to a newly created business.
+     *
+     * The product wants a 30-day free period before payments are required, which
+     * already has infrastructure in place: subscriptions.trial_ends_at, a FreeTrialExpired
+     * event and listener, and notification templates. Rather than shipping the
+     * onboarding flow without a subscription record — which leaves the business in a
+     * state that billing screens cannot reason about — we attach a trial to the
+     * "Basic" plan if one exists, falling back to the oldest active plan. The trial
+     * starts now, ends in 30 days and is marked as active, matching the pattern of
+     * StoreSubscriptionRequest's trial defaults.
+     */
+    private function attachTrialSubscription(Business $business): void
+    {
+        try {
+            $plan = \App\Models\Plan::where('is_active', true)
+                ->orWhere('status', 'active')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->first();
+
+            if ($plan === null) {
+                return;
+            }
+
+            $now = now();
+
+            \App\Models\Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'starts_at' => $now,
+                'ends_at' => $now->copy()->addDays(30),
+                'trial_ends_at' => $now->copy()->addDays(30),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Could not attach free trial subscription', [
+                'business_id' => $business->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
