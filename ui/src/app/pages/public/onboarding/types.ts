@@ -3,9 +3,9 @@ export interface AccountData {
   lastname: string;
   email: string;
   phone: string;
-  country_id: string;
   password: string;
   confirmPassword: string;
+  username: string; // generated as @firstname
 }
 
 export interface BusinessData {
@@ -28,9 +28,9 @@ export const initialAccountData: AccountData = {
   lastname: '',
   email: '',
   phone: '',
-  country_id: '',
   password: '',
   confirmPassword: '',
+  username: '', // will be generated as @firstname
 };
 
 export const initialBusinessData: BusinessData = {
