@@ -19,7 +19,6 @@ export const BranchManagerDashboardPage = () => {
   const [period, setPeriod] = useState<LandingPeriod>('last_7_days');
   const { data: userData } = useLoggedinUserQuery();
   const username = userData?.data?.username ?? 'there';
-  const branchName = userData?.data?.businessBranch?.name ?? 'your branch';
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -29,12 +28,18 @@ export const BranchManagerDashboardPage = () => {
     day: 'numeric',
   });
 
+  const getGreeting = () => {
+    const hour = now.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
     <div className='space-y-3'>
       <div className='flex flex-col gap-2 border-b border-border/70 pb-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className='text-lg font-medium'>Welcome back, {username}</h1>
-          <p className='mt-0.5 text-xs text-muted-foreground'>{branchName}</p>
+          <h1 className='text-lg font-medium'>{getGreeting()}, {username}</h1>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
           <div className='flex items-center gap-2 text-xs text-muted-foreground'>

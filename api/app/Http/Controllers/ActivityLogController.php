@@ -6,6 +6,7 @@ use App\Http\Requests\IndexActivityLogRequest;
 use App\Http\Resources\ActivityLogResource;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -99,6 +100,14 @@ class ActivityLogController extends Controller
             return;
         }
 
+        // A branch manager oversees one branch: it sees that branch's activity,
+        // not the whole business's and not only its own.
+        if (RolePermissions::isBranchManager($user)) {
+            $query->where('business_branch_id', $user->business_branch_id);
+
+            return;
+        }
+
         $query->causedByUser($user);
     }
 
@@ -107,6 +116,16 @@ class ActivityLogController extends Controller
         if ($this->isSupervisory($user)) {
             abort_unless(
                 $activityLog->business_id === $user->business_id,
+                403,
+                'You do not have access to this log entry.'
+            );
+
+            return;
+        }
+
+        if (RolePermissions::isBranchManager($user)) {
+            abort_unless(
+                (int) $activityLog->business_branch_id === (int) $user->business_branch_id,
                 403,
                 'You do not have access to this log entry.'
             );

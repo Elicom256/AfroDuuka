@@ -41,11 +41,14 @@ class RolePermissions
      * cannot see or touch other branches, and they cannot change business-level
      * settings that belong to the Executive.
      */
-    public const BRANCH_MANAGER_ROLES = ['branch_manager'];
+    public const BRANCH_MANAGER_ROLES = ['branchmanager'];
 
     public static function roleName(?User $user): string
     {
-        return strtolower(trim((string) $user?->role?->name));
+        // Role names are stored inconsistently ("BranchManager", "branch_manager",
+        // "Branch Manager"), so every comparison lowercases first, then strips
+        // separators entirely.
+        return preg_replace('/[^a-z0-9]/', '', strtolower((string) $user?->role?->name));
     }
 
     public static function isRestricted(?User $user): bool

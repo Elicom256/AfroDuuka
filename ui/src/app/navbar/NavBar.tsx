@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '../../../public/afroduuka.png';
@@ -20,6 +21,9 @@ export const NavBar: React.FC = () => {
   const { data } = useLoggedinUserQuery();
   const role = data?.data.role.name;
   const dashboardLink = getRolePrefix(role);
+  const businessName = data?.data?.business?.name ?? 'DuukaFlow';
+  const businessLogo = data?.data?.business?.logo ?? logo;
+  const branchName = data?.data?.businessBranch?.name;
 
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl'>
@@ -28,8 +32,13 @@ export const NavBar: React.FC = () => {
           to='/'
           className='group inline-flex items-center gap-3 text-lg font-semibold tracking-tight text-foreground'
         >
-          <img src={logo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
-          <span>DuukaFlow</span>
+          <img src={businessLogo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
+          <span className='hidden md:inline'>{businessName}</span>
+          {branchName && (
+            <Badge variant="outline" className="ml-2 text-xs">
+              {branchName}
+            </Badge>
+          )}
         </Link>
 
         <nav className='hidden items-center gap-2 md:flex'>

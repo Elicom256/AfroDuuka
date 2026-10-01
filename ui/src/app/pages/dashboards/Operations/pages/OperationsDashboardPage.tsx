@@ -13,8 +13,6 @@ export const OperationsDashboardPage = () => {
   const { data: userData } = useLoggedinUserQuery();
 
   const username = userData?.data?.username ?? 'there';
-  const businessName = userData?.data?.business?.name ?? 'your business';
-  const branchName = userData?.data?.business_branch?.name ?? 'your branch';
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -46,9 +44,6 @@ export const OperationsDashboardPage = () => {
             <h1 className='text-2xl font-bold tracking-tight mt-1'>
               {getGreeting()}, {username} 👋
             </h1>
-            <p className='text-sm text-muted-foreground mt-0.5'>
-              {businessName} &middot; {branchName}
-            </p>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>
             <CalendarDays className='h-4 w-4' />
