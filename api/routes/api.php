@@ -51,7 +51,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/sales.php";
     });
 
-    Route::prefix("dashboard")->group(function () {
+    Route::prefix("dashboard")->middleware('role')->group(function () {
         require __DIR__."/executive.php";
     });
 
@@ -63,7 +63,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/returns.php";
     });
 
-    Route::prefix("settings")->group(function () {
+    Route::prefix("settings")->middleware('role')->group(function () {
         require __DIR__."/settings.php";
     });
 
@@ -87,7 +87,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/printers.php";
     });
 
-    Route::prefix("expenses")->group(function () {
+    Route::prefix("expenses")->middleware('role')->group(function () {
         require __DIR__."/expenses.php";
     });
 
@@ -103,7 +103,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/report-exports.php";
     });
 
-    Route::prefix("price-history")->group(function () {
+    Route::prefix("price-history")->middleware('role')->group(function () {
         require __DIR__."/price-history.php";
     });
 
@@ -159,7 +159,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/coupons.php";
     });
 
-    Route::prefix("product-audits")->group(function () {
+    Route::prefix("product-audits")->middleware('role')->group(function () {
         require __DIR__."/product-audits.php";
     });
 
@@ -167,7 +167,7 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/product-losses.php";
     });
 
-    Route::prefix("financial-audits")->group(function () {
+    Route::prefix("financial-audits")->middleware('role')->group(function () {
         require __DIR__."/financial-audits.php";
     });
 
@@ -179,17 +179,17 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/super-admin.php";
     });
 
-    Route::prefix("tax-categories")->group(function () {
+    Route::prefix("tax-categories")->middleware('role')->group(function () {
         require __DIR__."/tax-categories.php";
     });
 
-    Route::prefix("tax-rates")->group(function () {
+    Route::prefix("tax-rates")->middleware('role')->group(function () {
         require __DIR__."/tax-rates.php";
     });
 
-    Route::prefix("tax-payments")->group(function () {
+    Route::prefix("tax-payments")->middleware('role')->group(function () {
         require __DIR__."/tax-payments.php";
     });
 
-    Route::get("exports/{type}", [\App\Http\Controllers\ExportController::class, 'export']);
+    Route::get("exports/{type}", [\App\Http\Controllers\ExportController::class, 'export'])->middleware('role');
 });

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('phone')->nullable()->unique();
             $table->string('address')->nullable()->unique();
             $table->enum("status", ["active", "deactivated", "banned"])->default("active");
+            $table->string('logo')->nullable();
             $table->decimal("subscription_balance")->default(0);
             $table->timestamps();
         });
