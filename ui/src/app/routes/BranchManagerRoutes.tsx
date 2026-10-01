@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
+import { NotFound } from './NotFound';
 import { BranchManagerLayout } from '../pages/dashboards/branch-manager/BranchManagerLayout';
 import { BranchManagerDashboardPage } from '../pages/dashboards/branch-manager/BranchManagerDashboardPage';
 import { ExecutiveWorkersPage } from '../pages/dashboards/executive/pages/ExecutiveWorkersPage';
@@ -52,20 +53,17 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
-import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const BranchManagerRoutes = () => {
-  const { data, isLoading } = useLoggedinUserQuery();
-  const role = data?.data?.role?.name;
-  const prefix = getRolePrefix(role);
+  const { isLoading } = useLoggedinUserQuery();
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path={`${prefix}/pos`} element={<PosPage />} />
-        <Route path={prefix} element={<BranchManagerLayout />}>
+        <Route path='pos' element={<PosPage />} />
+        <Route element={<BranchManagerLayout />}>
           <Route index element={<BranchManagerDashboardPage />} />
           <Route path='workers' element={<ExecutiveWorkersPage />} />
           <Route path='suppliers' element={<ExecutiveProductsPage />} />
@@ -115,6 +113,7 @@ export const BranchManagerRoutes = () => {
           <Route path='tax' element={<ExecutiveTaxPage />} />
           <Route path='procurement/*' element={<ProcurementRoutes />} />
         </Route>
+        <Route path='*' element={<NotFound />} />
       </Route>
     </Routes>
   );

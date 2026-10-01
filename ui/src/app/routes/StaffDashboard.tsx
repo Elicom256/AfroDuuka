@@ -1,4 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
+import { NotFound } from './NotFound';
+import { ProtectedRoutes } from './ProtectedRoutes';
 import { StaffLayout } from '../pages/dashboards/staff/StaffLayout';
 import { StaffDashboardPage } from '../pages/dashboards/staff/pages/StaffDashboardPage';
 import { StaffSalesPage } from '../pages/dashboards/staff/pages/StaffSalesPage';
@@ -17,17 +19,18 @@ export const StaffDashboard = () => {
   }
   return (
     <Routes>
-      <Route path='staff/dashboard' element={<StaffLayout />}>
-        <Route index element={<StaffDashboardPage />} />
-        <Route path='sales' element={<StaffSalesPage />} />
-        <Route path='products' element={<StaffProductsPage />} />
-        <Route path='sales-overview' element={<StaffSalesOverviewPage />} />
-        <Route path='receipts' element={<ExecutiveReceiptsPage />} />
-        <Route path='receipts/:id' element={<ReceiptDetail />} />
-        <Route path='activity-log' element={<ActivityLogPage />} />
+      <Route element={<ProtectedRoutes />}>
+        <Route element={<StaffLayout />}>
+          <Route index element={<StaffDashboardPage />} />
+          <Route path='sales' element={<StaffSalesPage />} />
+          <Route path='products' element={<StaffProductsPage />} />
+          <Route path='sales-overview' element={<StaffSalesOverviewPage />} />
+          <Route path='receipts' element={<ExecutiveReceiptsPage />} />
+          <Route path='receipts/:id' element={<ReceiptDetail />} />
+          <Route path='activity-log' element={<ActivityLogPage />} />
+          <Route path='*' element={<NotFound />} />
+        </Route>
       </Route>
-      {/* unmatched */}
-      {/* <Route path='*' element={<NotFound />} /> */}
     </Routes>
   );
 };

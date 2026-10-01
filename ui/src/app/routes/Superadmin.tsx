@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
+import { NotFound } from './NotFound';
 import { SuperadminLayout } from '../pages/dashboards/superadmin/SuperadminLayout';
 import { SuperadminDashboardPage } from '../pages/dashboards/superadmin/pages/SuperadminDashboardPage';
 import { SuperadminPlansPage } from '../pages/dashboards/superadmin/pages/SuperadminPlansPage';
@@ -12,7 +13,7 @@ import { ExecutivePaymentGatewaysPage } from '../pages/dashboards/executive/page
 
 export const SuperadminRoutes = () => (
   <Routes>
-    <Route path='coresupport/dashboard' element={<SuperadminLayout />}>
+    <Route element={<SuperadminLayout />}>
       <Route index element={<SuperadminDashboardPage />} />
       <Route path='plans' element={<SuperadminPlansPage />} />
       <Route path='businesses' element={<SuperadminBusinessesPage />} />
@@ -22,6 +23,7 @@ export const SuperadminRoutes = () => (
       <Route path='subscription-payments/:id' element={<SuperadminSubscriptionPaymentShow />} />
       <Route path='payment-gateways' element={<ExecutivePaymentGatewaysPage />} />
       <Route path='settings' element={<SuperadminSettingsPage />} />
+      <Route path='*' element={<NotFound />} />
     </Route>
   </Routes>
 );
