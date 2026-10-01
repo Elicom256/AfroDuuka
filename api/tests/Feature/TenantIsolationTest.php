@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
@@ -108,6 +109,47 @@ class TenantIsolationTest extends TestCase
             ->assertStatus(404);
 
         $this->assertDatabaseHas('products', ['id' => $foreignProduct->id]);
+    }
+
+    public function test_sale_item_service_rejects_products_belonging_to_a_different_branch(): void
+    {
+        $business = Business::factory()->create();
+        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
+
+        $user = $this->branchUser($business, $branchA);
+        $foreignProduct = Product::factory()->create([
+            'business_branch_id' => $branchB->id,
+            'quantity' => 10,
+            'selling_price' => 1500,
+            'status' => 'active',
+        ]);
+
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $service = app(\App\Services\SaleItemService::class);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('selected branch');
+
+        $service->handleSaveSaleItem([
+            'business_branch_id' => $branchA->id,
+            'customer_id' => null,
+            'note' => 'Branch mismatch attempt',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => $paymentMethod->id,
+            'items' => [[
+                'product_id' => $foreignProduct->id,
+                'quantity' => 1,
+                'unit_price' => 1500,
+            ]],
+        ], $branchA->id);
     }
 
     public function test_branch_user_index_only_contains_own_branch_products(): void

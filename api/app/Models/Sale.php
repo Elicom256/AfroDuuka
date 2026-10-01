@@ -41,9 +41,9 @@ class Sale extends BaseModel
         return $this->belongsTo(BusinessBranch::class);
     }
 
-     public function salePayment(): BelongsTo
+     public function salePayments(): HasMany
     {
-        return $this->belongsTo(SalePayment::class);
+        return $this->hasMany(SalePayment::class);
     }
 
     public function receipt(): HasOne
