@@ -4,7 +4,9 @@ services:
       context: ./ui
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      # ui/nginx.conf listens on 8080. Mapping 80:80 published a port nothing was
+      # listening on, so this stack served no frontend either.
+      - "8080:8080"
     env_file:
       - ./ui/.env
 

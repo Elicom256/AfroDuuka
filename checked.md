@@ -2,9 +2,9 @@
 
 > ## ✅ RE-VERIFICATION PASS — 2026-10-01 (branch `oct` @ `4346dcf`)
 >
-> Every P0/P1/P2/P3 item below was re-checked against the live code. **17 were already fixed**; a further **1 has now been fixed** (P0 #6), plus the 4-error `tsc` regression. **18 of 47 done, 29 open.**
+> Every P0/P1/P2/P3 item below was re-checked against the live code. **17 were already fixed**; **2 have now been fixed** (P0 #6 navigation, P0 #9 production serving), plus the 4-error `tsc` regression. **19 of 47 done, 28 open.**
 >
-> **P0 launch blockers: 5 of 9 fixed (#1, #2, #3, #5, #6). 4 remain open: #4, #7, #8, #9.**
+> **P0 launch blockers: 6 of 9 fixed (#1, #2, #3, #5, #6, #9). 3 remain open: #4, #7, #8.**
 >
 > | # | P0 blocker | Status |
 > |---|---|---|
@@ -16,7 +16,7 @@
 > | 6 | 41 nav targets 404/blank | ✅ **FIXED — verified in a real browser, 1/26 → 26/26 routes** |
 > | 7 | Auth failure renders homepage | ❌ **OPEN** — `error` still destructured and unused; no 401 interceptor |
 > | 8 | `.env.prod` committed with real `APP_KEY` | ❌ **OPEN** — still tracked, still not in `.gitignore` |
-> | 9 | Production compose cannot serve | ⚠️ **PARTIAL** — 443 claim removed, but upstream still `frontend:5173` and still 0 security headers |
+> | 9 | Production compose cannot serve | ✅ **FIXED — verified 502 → 200 against a live nginx** |
 >
 > ### ✅ #6 FIXED — the navigation layer now works
 >
@@ -48,6 +48,22 @@
 > The 4 `tsc` errors flagged as a regression above are fixed, so `npm run build` passes again. `Preview.tsx` was reading `account.country_id` for its "Country" row, but country is collected on the **business** step — it now reads `business.country_id`. `countriesQuery` was typed `builder.query<any, void>`, which is what made `BusinessSetup`'s filter callback an implicit `any`; it now has a real `Country` type. `tsc -b` exits 0 and ESLint is net −1 error.
 >
 > **Next up:** #4 (receipt sequence table — the last data-loss defect), then #7 (auth error handling), then #8 (untrack + rotate `.env.prod`).
+>
+> ### ✅ #9 FIXED — production can serve traffic
+>
+> Seven defects, not the three documented. Beyond the wrong upstream port and the missing security headers: **`docker-compose.prod.yml` never parsed** (no build context for `backend`, no `pgsql`/`redis`), the proxy sent Vite HMR upgrade headers to a static file server, **`client_max_body_size` was unset** so nginx's 1 MB default 413'd uploads before Laravel ever saw them, and **there was no `queue-worker`** — so in production every queued job was silently dropped, taking WhatsApp notifications and subscription lifecycle processing with it. `docker-compose.yml` had the same port bug (`80:80` vs 8080) and `ui/Dockerfile` declared `EXPOSE 80`.
+>
+> Verified by running the real config in a container on the live Docker network against a real static frontend and the real Laravel backend, with the **pre-fix config from `git archive HEAD` side by side**:
+>
+> | Request | Before | After |
+> |---|---|---|
+> | `GET /` | **502** | 200 |
+> | `GET /dashboard/products` (SPA fallback) | **502** | 200 |
+> | `GET /api/health` | 200 | 200 (`database: ok`, `cache: ok`) |
+> | Security headers emitted | **0** | 4 |
+> | `POST` 3 MB body | **413** | 302 (reaches Laravel) |
+>
+> TLS is now documented rather than faked: no cert was available to mount, so 443 is no longer published (a published port that drops every request is worse than an absent one) and `nginx.prod.conf` states exactly what to add to terminate it in place.
 
 **Date:** 2026-10-01
 **Branch:** `oct` @ `b718ad0` (original) · `4346dcf` (re-verification)
@@ -273,17 +289,40 @@ Anyone with repo access can decrypt every encrypted column in the production dat
 
 **Action:** rotate `APP_KEY`, untrack the file, add `.env.prod` to `.gitignore`, purge from history. `APP_KEY` rotation invalidates all encrypted columns — plan a re-encrypt migration.
 
-### 9. Production compose cannot serve traffic — ⚠️ **PARTIAL**
+### 9. Production compose cannot serve traffic — ✅ **FIXED (verified end-to-end)**
 
-**Improved:** the `listen 443:443` block with no `ssl_certificate` is gone. `nginx.prod.conf` now listens on `80` only, so the specific "port 443 accepts nothing" failure is no longer *claimed* — there is simply no TLS.
+**Was worse than documented.** The documented three defects were real, and there were three more on top:
 
-**Still broken:**
+| # | Defect | Fix |
+|---|---|---|
+| a | `upstream frontend { server frontend:5173; }` — the Vite **dev** port, while the prod image serves a static bundle from `ui/nginx.conf` on **8080** | `frontend:8080` |
+| b | **0** `add_header` directives in prod vs 3 in dev | 4 headers ported from `nginx.dev.conf`, plus `Permissions-Policy` |
+| c | compose published `443:443` with no `ssl_certificate` and no `listen 443 ssl` — port accepted connections and served nothing | stopped publishing 443; documented the TLS arrangement in the conf |
+| d | **`docker-compose.prod.yml` did not parse at all** — `docker compose config` failed with *"service backend has neither an image nor a build context specified"*; `pgsql` and `redis` were absent entirely | rewritten as a self-contained, valid stack |
+| e | prod proxy sent Vite HMR `Upgrade`/`Connection: upgrade` headers to a static file server on every request | removed (no websocket to upgrade to) |
+| f | **`client_max_body_size` unset** → nginx's 1 MB default rejected uploads with a bare 413 *before Laravel ran*, so no application-level error ever surfaced | `8m`, matched to PHP's `post_max_size` in this image |
+| g | **No `queue-worker` in the prod stack** — every queued job was silently dropped: no WhatsApp notifications, no subscription lifecycle, no SES suppression handling | added |
 
-- **Upstream still points at the Vite dev port.** `proxy/nginx.prod.conf:2` is still `server frontend:5173;`, but `ui/Dockerfile` builds a static bundle served from `ui/nginx.conf` on **port 8080** (`listen 8080;`). The production frontend is still completely unreachable. **One-word fix: `5173` → `8080`.**
-- **Still 0 `add_header` directives in prod**, while `nginx.dev.conf` correctly sets 3. Production remains less protected than development.
-- **Still no TLS** — just moved to being absent rather than broken. Behind a load balancer that terminates TLS this is fine; as a standalone compose it is not.
+Also fixed the same port-contract bug elsewhere: `docker-compose.yml` mapped the frontend `80:80` while the container listens on 8080 (this is why nothing answered on `:80` locally), and `ui/Dockerfile` declared `EXPOSE 80`.
 
-**Action:** `frontend:8080`, port the 3 dev security headers into prod, and add a real TLS block or document that TLS terminates upstream.
+**Port contract is now consistent at 8080** across `ui/nginx.conf` (listen), `ui/Dockerfile` (EXPOSE), `docker-compose.prod.yml` (expose) and `proxy/nginx.prod.conf` (upstream).
+
+**TLS decision:** no certificate was available to mount, so this config terminates plain HTTP on `:80` only and 443 is no longer published — a published port that silently drops every request is worse than an absent one. Terminating TLS at a load balancer in front of the container is the supported arrangement, and `proxy/nginx.prod.conf` documents exactly what to add if you would rather terminate it here.
+
+**Verification** — the real `nginx.prod.conf` was run in a container on the live Docker network against a real static frontend on 8080 and the real Laravel backend, with the **pre-fix config from `git archive HEAD` run side by side**:
+
+| Request | Before (`git HEAD`) | After |
+|---|---|---|
+| `GET /` | **502** | 200 |
+| `GET /dashboard/products` (SPA fallback) | **502** | 200 |
+| `GET /api/health` | 200 | 200 (`database: ok`, `cache: ok`) |
+| Security headers emitted | **0** | 4 |
+| `POST` 3 MB body to `/api/...` | **413** | 302 (reaches Laravel) |
+| `POST` 0.9 MB body | 302 | 302 |
+
+`nginx -t` passes, and all three compose files now pass `docker compose config`.
+
+**Still open, found while doing this:** Laravel has **no `TrustProxies` middleware registered** (`api/bootstrap/app.php`). Behind a TLS-terminating load balancer every generated URL will come out as `http://`, and `$request->secure()` will be wrong. That is a one-line registration but it needs to know the proxy's CIDR, so it was left for a decision rather than guessed.
 
 ---
 
@@ -420,10 +459,9 @@ The most valuable single line in this document is `DB_DATABASE=inventory_test` i
 - **Receipt numbering is the last data-loss defect and it is untouched.** Worse than the original analysis: the count is not per-business, so this collides *across tenants* on the same day, not just under concurrency.
 - **`.env.prod` with a live `APP_KEY` is still in git.** Severity scales with audience and time; it does not improve.
 - **Cache invalidation is still zero across 67 slices.** Staff see stale stock after every sale.
-- **Production still cannot serve the frontend.** `proxy/nginx.prod.conf` points at `frontend:5173` while the built bundle listens on 8080, and prod still has 0 security headers where dev has 3.
 
-**Recommendation: do not launch, but the remaining P0 list is a few hours of work.** In order: #4 receipt sequence table (the last data-loss risk) → #7 the 15-line auth-error branch → #9 the one-word nginx upstream fix → #8 untrack and rotate `.env.prod`.
+**Recommendation: do not launch, but only three P0 items stand between here and a running production stack.** In order: #4 receipt sequence table (the last data-loss risk) → #7 the 15-line auth-error branch → #8 untrack and rotate `.env.prod`. One decision is outstanding and needs your input rather than a guess: Laravel has no `TrustProxies` middleware, so behind a TLS-terminating load balancer every generated URL will be `http://`.
 
-The navigation fix is the reason this reads as *days* rather than *weeks*: the most-clicked controls in the product — the row handlers on Sales, Purchases, Products, Workers, Customers, Suppliers — all worked again after a single constant and a switch to relative child paths, verified at 51/51 routes across all six role trees.
+The two structural fixes are the reason this reads as *days* rather than *weeks*. The navigation fix returned the most-clicked controls in the product — the row handlers on Sales, Purchases, Products, Workers, Customers, Suppliers — to working order with a single constant and a switch to relative child paths, verified at 51/51 routes across all six role trees. The proxy fix took production from a 502 on every page to serving the SPA and the API correctly, and it uncovered a queue worker that was missing entirely, without which the notification layer the product is built around would never have fired in production.
 
 The largest untouched surfaces are all *revenue-shaped* rather than *security-shaped*: stale stock after a sale, no mobile-money collection, receipts that reach nobody, and no payment gateway. Those are Phase 2, and they are what will decide whether this is a business — but none of them require touching the code that was fixed, and none of them get worse while it stays as it is.
