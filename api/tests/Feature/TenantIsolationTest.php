@@ -152,6 +152,40 @@ class TenantIsolationTest extends TestCase
         ], $branchA->id);
     }
 
+    public function test_sale_item_service_rejects_invalid_payment_method_id(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'quantity' => 25,
+            'reorder_level' => 1,
+            'selling_price' => 1500,
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $service = app(\App\Services\SaleItemService::class);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Selected payment method is invalid.');
+
+        $service->handleSaveSaleItem([
+            'business_branch_id' => $branch->id,
+            'customer_id' => null,
+            'note' => 'Invalid payment method',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => 999999,
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'unit_price' => 1500,
+            ]],
+        ], $branch->id);
+    }
+
     public function test_branch_user_index_only_contains_own_branch_products(): void
     {
         $business = Business::factory()->create();
