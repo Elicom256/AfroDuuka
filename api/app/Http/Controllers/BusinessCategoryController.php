@@ -6,6 +6,18 @@ use App\Http\Requests\StoreBusinessCategoryRequest;
 use App\Http\Requests\UpdateBusinessCategoryRequest;
 use App\Models\BusinessCategory;
 
+/**
+ * Read-only catalogue of business categories.
+ *
+ * The signup form has to show this dropdown before an account exists, but the
+ * dashboard route that exposes it sits behind auth:sanctum and the role middleware.
+ * A business cannot be created without a category (businesses.business_category_id is
+ * NOT NULL), so the public /api/business-categories route is what lets self-serve
+ * onboarding collect the field at all.
+ *
+ * BusinessCategory is a global reference table — it has no business_id and carries no
+ * tenant scope — so exposing it publicly discloses nothing about any tenant.
+ */
 class BusinessCategoryController extends Controller
 {
     /**
