@@ -58,8 +58,19 @@ class BusinessContext
      * The tenant for the current context, falling back to the authenticated user's
      * business. Null means unrestricted (a genuine system role).
      */
+    public static int $probe = 0;
+
     public function businessId(): ?int
     {
+        self::$probe++;
+        if (self::$probe > 6) {
+            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 30);
+            $out = [];
+            foreach ($bt as $f) { $out[] = ($f['class'] ?? '').($f['type'] ?? '').($f['function'] ?? '?'); }
+            file_put_contents('/tmp/recursion.txt', implode("\n", $out));
+            throw new \RuntimeException('businessId() recursion detected');
+        }
+        try {
         if ($this->businessId !== null) {
             return $this->businessId;
         }
@@ -83,6 +94,7 @@ class BusinessContext
         // All other authenticated users have no business context
         // (omitting the clause would grant cross-tenant access)
         return $user->business_id !== null ? (int) $user->business_id : null;
+        } finally { self::$probe--; }
     }
 
     public function branchId(): ?int
