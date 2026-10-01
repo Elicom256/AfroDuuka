@@ -96,6 +96,21 @@ class BusinessContext
         return $branchId !== null ? (int) $branchId : null;
     }
 
+    public function isSiteAdmin(): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        $roleName = $user->role_id !== null
+            ? \App\Models\Role::query()->whereKey($user->role_id)->value('name')
+            : null;
+
+        return strtolower((string) $roleName) === 'siteadmin';
+    }
+
     public function hasBusiness(): bool
     {
         return $this->businessId !== null;

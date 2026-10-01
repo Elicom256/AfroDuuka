@@ -9,6 +9,7 @@ use App\Models\Country;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\UserService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -225,7 +226,11 @@ class UserController extends Controller
     public function destroy(User $worker)
     {
         try {
+            abort_unless(Auth::check(), 403, 'Authentication required.');
+            abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You do not have permission to delete users.');
             abort_unless($worker->business_id === Auth::user()?->business_id, 404);
+            abort_unless($worker->id !== Auth::id(), 403, 'You cannot delete your own account.');
+
             $worker->delete();
             return response()->json([
                 'message' => 'User deleted successfully',

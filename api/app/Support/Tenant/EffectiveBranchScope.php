@@ -107,10 +107,15 @@ class EffectiveBranchScope
     public static function apply(EloquentBuilder $builder): void
     {
         if (Auth::check()) {
-            $resolved = static::branchesFor(Auth::user());
+            $user = Auth::user();
+            $resolved = static::branchesFor($user);
 
             // unrestricted (system role)
             if ($resolved === null) {
+                if (! app(BusinessContext::class)->isSiteAdmin()) {
+                    $builder->whereRaw('0 = 1');
+                }
+
                 return;
             }
 

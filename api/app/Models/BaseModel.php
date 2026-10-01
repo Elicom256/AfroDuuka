@@ -32,13 +32,21 @@ class BaseModel extends Model
 
             // Fall back to BusinessContext when there is no authenticated user.
             // Previously this scope was gated on Auth::check() alone, so every queued
-            // and scheduled job read across all tenants.
-            $businessId = app(BusinessContext::class)->businessId()
-                ?? (Auth::check() ? Auth::user()?->business_id : null);
+            // and scheduled job read across all tenants. A non-siteadmin user without a
+            // business must never see rows from any business; fail closed instead of
+            // omitting the filter and turning a missing tenant into unrestricted access.
+            $context = app(BusinessContext::class);
+            $businessId = $context->businessId() ?? (Auth::check() ? Auth::user()?->business_id : null);
 
-            if ($businessId !== null) {
-                $builder->where('business_id', $businessId);
+            if ($businessId === null) {
+                if (Auth::check() && ! $context->isSiteAdmin()) {
+                    $builder->whereRaw('0 = 1');
+                }
+
+                return;
             }
+
+            $builder->where('business_id', $businessId);
         });
 
         static::addGlobalScope('branch', function ($builder) {
