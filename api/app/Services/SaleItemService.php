@@ -47,6 +47,7 @@ class SaleItemService
             $productIds = collect($validated["items"])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
+                ->where('business_branch_id', $branchId)
                 ->get()
                 ->keyBy('id');
 
