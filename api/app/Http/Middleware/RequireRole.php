@@ -32,6 +32,15 @@ class RequireRole
             return $next($request);
         }
 
+        // A user who has not created their business yet has no role, because roles are
+        // provisioned with the business. Without this they would be refused here before
+        // RequireBusiness could route them to onboarding, and self-serve signup would
+        // dead end on a 403. Letting them through is safe: RequireBusiness refuses every
+        // tenant route until onboarding completes.
+        if ($user && $user->business_id === null && $user->role_id === null) {
+            return $next($request);
+        }
+
         return response()->json([
             'message' => 'Your role is not permitted to access this resource.',
         ], 403);

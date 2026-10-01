@@ -19,13 +19,23 @@ class UserService
     {
         // Find user by email or username
         $user = User::where('email', $credentials['email'])
-            ->orWhere('username', $credentials['email'])
+            ->orWhere('username', ltrim((string) $credentials['email'], '@'))
+            ->orWhere('username', (string) $credentials['email'])
             ->first();
 
         // Verify user exists and password matches
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are invalid.'],
+            ]);
+        }
+
+        // A suspended or removed account must not be able to authenticate. Without this
+        // check the status column is decorative: deactivating someone leaves their
+        // existing token working and still lets them sign in again.
+        if ($user->status !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => ['This account is not active.'],
             ]);
         }
 
@@ -77,16 +87,54 @@ class UserService
 
     // create account for executive
     public function createAccount(array $data){
+        // The signup form historically posted a single `name` field while the columns
+        // are firstname/lastname, and the validation rules for those two were commented
+        // out — so $request->validated() dropped them and every signup stored a NULL
+        // name. Both are handled here so the account is named correctly either way.
+        [$firstName, $lastName] = $this->splitName($data);
+
         return User::create([
-            "firstname" => $data['firstname'] ?? $data['name'] ?? null,
-            "lastname" => $data['lastname'] ?? null,
+            "firstname" => $firstName,
+            "lastname" => $lastName,
             'email' => $data['email'],
-            'username' => "@" . ($data['name'] ?? $data['username'] ?? $data['email']),
-            'phone' => $data['phone'] ?? null,
-            'password' => Hash::make($data['password'] ?? "password"),
-            // 'business_id' => $data['business_id'] ?? null,
-            // 'role_id' => $executiveRoleId,
+            'username' => "@" . ($data['username'] ?? $data['name'] ?? $data['email']),
+            'phone' => $data['phone'],
+            'password' => Hash::make($data['password']),
+            // business_id and role_id are deliberately absent. A self-serve signup
+            // creates the person first and the business second; RequireBusiness blocks
+            // every tenant route until BusinessService::create() links them.
         ]);
+    }
+
+    /**
+     * Resolve the first and last name from whichever shape the caller sent.
+     *
+     * Explicit firstname/lastname win. Otherwise a single `name` is split on the last
+     * space, so "Jane Doe" becomes firstname Jane / lastname Doe and a mononym like
+     * "Kato" becomes firstname Kato / lastname null rather than being lost.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function splitName(array $data): array
+    {
+        $first = trim((string) ($data['firstname'] ?? ''));
+        $last = trim((string) ($data['lastname'] ?? ''));
+
+        if ($first !== '') {
+            return [$first, $last !== '' ? $last : null];
+        }
+
+        $full = trim((string) ($data['name'] ?? ''));
+
+        if ($full === '') {
+            return [null, null];
+        }
+
+        $parts = preg_split('/\s+/', $full);
+        $last = array_pop($parts);
+
+        return [implode(' ', $parts) ?: $last, count($parts) ? $last : null];
     }
     /**
      * Get all users with relations
