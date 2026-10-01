@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { BranchManagerLayout } from '../pages/dashboards/branch-manager/BranchManagerLayout';
-import { ExecutiveDashboardPage } from '../pages/dashboards/executive/pages/ExecutiveDashboardPage';
+import { BranchManagerDashboardPage } from '../pages/dashboards/branch-manager/BranchManagerDashboardPage';
 import { ExecutiveWorkersPage } from '../pages/dashboards/executive/pages/ExecutiveWorkersPage';
 import { ExecutiveProductsPage } from '../pages/dashboards/executive/pages/ExecutiveProductsPage';
 import { ExecutiveOrdersPage } from '../pages/dashboards/executive/pages/ExecutiveOrdersPage';
@@ -66,7 +66,7 @@ export const BranchManagerRoutes = () => {
       <Route element={<ProtectedRoutes />}>
         <Route path={`${prefix}/pos`} element={<PosPage />} />
         <Route path={prefix} element={<BranchManagerLayout />}>
-          <Route index element={<ExecutiveDashboardPage />} />
+          <Route index element={<BranchManagerDashboardPage />} />
           <Route path='workers' element={<ExecutiveWorkersPage />} />
           <Route path='suppliers' element={<ExecutiveProductsPage />} />
           <Route path='products' element={<ExecutiveProductsPage />} />
