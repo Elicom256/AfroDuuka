@@ -72,6 +72,54 @@ class RequireRoleMiddlewareTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_operations_cannot_delete_another_user(): void
+    {
+        $token = $this->bearerTokenFor('Operations');
+        $ownerRole = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Executive',
+        ]);
+        $owner = User::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => $ownerRole->id,
+        ]);
+
+        $this->withToken($token)
+            ->deleteJson("/api/users/workers/{$owner->id}")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('users', ['id' => $owner->id]);
+    }
+
+    public function test_tenant_cannot_enumerate_or_ban_businesses(): void
+    {
+        $token = $this->bearerTokenFor('Executive');
+        $otherBusiness = Business::factory()->create();
+
+        $this->withToken($token)
+            ->getJson('/api/super-admin/businesses')
+            ->assertStatus(403);
+
+        $this->withToken($token)
+            ->patchJson("/api/super-admin/businesses/{$otherBusiness->id}/status", [
+                'status' => 'banned',
+            ])
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('businesses', [
+            'id' => $otherBusiness->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_site_admin_can_enumerate_businesses(): void
+    {
+        $this->withToken($this->bearerTokenFor('siteadmin'))
+            ->getJson('/api/super-admin/businesses')
+            ->assertOk();
+    }
+
     public function test_operations_is_refused_the_executive_dashboard_api(): void
     {
         $this->withToken($this->bearerTokenFor('Operations'))

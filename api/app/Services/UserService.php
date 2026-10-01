@@ -60,7 +60,7 @@ class UserService
             "lastname" => $data["lastname"] ?? null,
             'username' => "@" . ($data['name'] ?? $data['firstname'] ?? $data['email']),
             'phone' => $data['phone'],
-            'password' => Hash::make("password"),
+            'password' => Hash::make($data['password']),
             'business_id' => $executive->business_id,
             'role_id' => $data['role_id'],
             "nin" => $data["nin"] ?? null

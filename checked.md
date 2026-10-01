@@ -12,13 +12,15 @@
 
 DuukaFlow is a genuinely substantial application. Feature breadth is not the problem: multi-branch inventory, POS, procurement, expenses, credit ledgers, attendance/payroll, URA tax invoices, quotations, loyalty, stock transfers and audit logging are all materially implemented. Money is stored as `decimal`, POS checkout correctly uses `DB::transaction` + `lockForUpdate()`, stock movements are idempotent via a unique `movement_key`, and there are ~370 passing tests including a genuinely good WhatsApp delivery suite with dedupe, suppression and signature verification.
 
+`Public business signup is intentionally allowed.` Any business may register itself; this is not treated as a security defect in the review.
+
 **But it is not launch-ready, and the blockers are more serious than the previous review suggested.**
 
-The previous review (`review.md`) scored this 7/10 and framed the remaining work as "operational hardening." That framing is wrong. Three problems are *not* hardening — they are active security and correctness failures:
+The previous review (`review.md`) scored this 7/10 and framed the remaining work as "operational hardening." That framing is wrong. Two problems are *not* hardening — they are active security and correctness failures:
 
 
-2. **Any authenticated user can ban any tenant** and **any staff member can delete the owner**. Both routes sit outside the `role` middleware group. Verified.
-3. **The test suite runs against the development database.** `phpunit.xml` and `.env.testing` both point at `inventory` — the live dev DB — while a fully-migrated `inventory_test` database exists and is referenced by nothing. This is how the schema got truncated mid-run below.
+1. **Any authenticated user can ban any tenant** and **any staff member can delete the owner**. Both routes sit outside the `role` middleware group. Verified.
+2. **The test suite runs against the development database.** `phpunit.xml` and `.env.testing` both point at `inventory` — the live dev DB — while a fully-migrated `inventory_test` database exists and is referenced by nothing. This is how the schema got truncated mid-run below.
 
 The frontend has an equally concrete problem: **41 of ~50 primary row-click handlers navigate to URLs that resolve to a 404 or a blank screen.** `AppRoutes.tsx:43` matches the literal path `/dashboard`, so `/dashboard/sales/5` does not match. The entire Procurement module renders nothing because `procurementApi` is defined but never registered in the Redux store. Four of nine seeded roles have no route branch at all.
 
@@ -44,26 +46,7 @@ The frontend has an equally concrete problem: **41 of ~50 primary row-click hand
 
 ## P0 — Launch Blockers
 
-### 1. Public sign-up mints an unscoped, cross-tenant account — **CONFIRMED LIVE**
-
-`api/app/Services/UserService.php:79-90` creates the user with the tenant columns commented out:
-
-```php
-'password' => Hash::make($data['password'] ?? "password"),
-// 'business_id' => $data['business_id'] ?? null,
-// 'role_id' => $executiveRoleId,
-```
-
-`business_id` is nullable, and both scope resolvers treat NULL as *unrestricted*:
-
-- `api/app/Support/Tenant/BusinessContext.php:61-70` returns `null` → `BaseModel.php:39` never emits `where business_id = ?`
-- `api/app/Support/Tenant/EffectiveBranchScope.php:27-29` returns `null` → branch restriction skipped
-
-I wrote a probe test against the running app: it asserted the created user has `business_id === null`. **Confirmed.** The follow-up probe that would have read another tenant's products could not complete because the dev DB was truncated by the test run (finding #3), but the static path is unambiguous — `GET /api/products` is `auth:sanctum` only with no `role` gate, and `ProductController::restocking()` (`ProductController.php:110-126`) filters raw `sale_items` by branch only, skipping the filter entirely when `branchesFor()` returns `null`.
-
-**Action:** Remove the public `/signup` route or gate it behind an invite token. Independently, make `BaseModel` **fail closed** — NULL `business_id` should return zero rows unless the caller is on an explicit `siteadmin` allow-list.
-
-### 2. Any authenticated user can ban any tenant — **CONFIRMED**
+### 1. Any authenticated user can ban any tenant — **CONFIRMED**
 
 `api/routes/super-admin.php` — the entire file is `auth:sanctum` with **no** role check and **no** policy:
 
@@ -92,7 +75,7 @@ Route::middleware("auth:sanctum")->group(function () {
 - `curl -s -X PATCH -H "Authorization: Bearer <tenant-token>" http://localhost:8000/api/super-admin/businesses/42/status -d '{"status":"banned"}'` should return **403**
 - `curl -s -X GET -H "Authorization: Bearer <siteadmin-token>" http://localhost:8000/api/super-admin/businesses` should return **200**
 
-### 3. Tests run against the **development database** — **FIXED**
+### 2. Tests run against the **development database** — **FIXED**
 
 `api/phpunit.xml:26-31` and `api/.env.testing` both set `DB_DATABASE=inventory` — the same database the dev stack uses. **This has been resolved** by pointing both to `inventory_test` (a fully-migrated database with 89 migrations, referenced in the `phpunit.xml` and `.env.testing` files as of this review). `RefreshDatabase` then drops and recreates the test schema on every run.
 
@@ -102,7 +85,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
 This unblocks reliable test execution and prevents the test suite from destroying development data.
 
-### 4. Any staff member can delete the owner — **CONFIRMED**
+### 3. Any staff member can delete the owner — **CONFIRMED**
 
 `api/routes/users.php:24` sits **outside** the `role` group that wraps lines 15-18:
 
@@ -114,7 +97,7 @@ Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
 
 **Action:** Move the route inside the `role` group; invert `BlockRestrictedRoleActions` from a denylist to an allow-list.
 
-### 5. Receipt number collisions roll back the whole checkout
+### 4. Receipt number collisions roll back the whole checkout
 
 `receipts.receipt_number` is `UNIQUE` (`2026_07_15_000001_create_receipts_table.php:13`), but both generators count-then-increment with no lock:
 
@@ -125,7 +108,7 @@ Two concurrent checkouts compute the same number; the second insert violates the
 
 **Action:** Per-business/per-day sequence table, or `MAX+1` inside `lockForUpdate()` on a counter row, with retry on unique violation.
 
-### 6. The entire Procurement module renders nothing — **CONFIRMED**
+### 5. The entire Procurement module renders nothing — **CONFIRMED**
 
 `procurementApi` is defined at `ui/src/app/store/features/procurement/procurementQuery.ts:75` with `reducerPath: 'procurementApi'`, but `ui/src/app/store/app/store.ts` contains **zero** references. Of 66 `createApi` instances, 65 are registered and this one is not.
 
@@ -133,7 +116,7 @@ RTK Query logs `No data found at state.procurementApi` and — because the **mid
 
 **Action:** Add `procurementApi.reducer` + `.middleware` to the store; use relative paths in the nested routes.
 
-### 7. 41 navigation targets 404 or render blank — **CONFIRMED**
+### 6. 41 navigation targets 404 or render blank — **CONFIRMED**
 
 `AppRoutes.tsx:43` matches only the exact path:
 
@@ -145,7 +128,7 @@ React Router does not match sub-paths without `/*`. I counted **35 hardcoded `/d
 
 **Action:** Derive every path from `useRolePrefix()`, or use relative `<Link>`. Add `<Route path='*' element={<NotFound/>}/>` to each role tree as a safety net.
 
-### 8. Auth failure silently renders the marketing homepage
+### 7. Auth failure silently renders the marketing homepage
 
 `AppRoutes.tsx:22` destructures `error` and never uses it:
 
@@ -158,13 +141,13 @@ If `/me` 401s, `role` is `undefined`, no role branch mounts, and the user gets t
 
 **Action:** Handle `error` → clear token, redirect to `/login`. Add a global 401 interceptor.
 
-### 9. `.env.prod` is committed to git with a real `APP_KEY`
+### 8. `.env.prod` is committed to git with a real `APP_KEY`
 
 `api/.env.prod` is tracked (`git log` shows commits `db090e1`, `c788f7c`) and contains a populated `APP_KEY`, `DB_PASSWORD`, and `WHATSAPP_ACCESS_TOKEN`. It also has `APP_ENV=local` and `APP_DEBUG=true`. Separately, `.env.prod` is **not** in `api/.gitignore` (which lists `.env`, `.env.backup`, `.env.production` — a different filename).
 
 **Action:** Rotate `APP_KEY`, untrack the file, add `.env.prod` to `.gitignore`, and purge from history. `APP_KEY` rotation invalidates all encrypted columns — plan a re-encrypt migration.
 
-### 10. Production compose cannot serve traffic
+### 9. Production compose cannot serve traffic
 
 Three compounding defects:
 
@@ -240,24 +223,23 @@ Three compounding defects:
 
 ### Day 1 — stop the bleeding (≈3 hours)
 1. Point `phpunit.xml` at `inventory_test` → suite becomes trustworthy. **Unblocks everything else.**
-2. Delete/gate `POST /api/users/signup`; make `BaseModel` fail closed on NULL `business_id`.
-3. Gate `SuperAdminBusinessController` on `siteadmin`; move `DELETE /workers/{worker}` inside the `role` group.
-4. Enforce `status` in `UserService::login()`; remove the `"password"` fallback.
-5. Register `procurementApi` in the store (2 lines — un-blanks 10 routes).
+2. Gate `SuperAdminBusinessController` on `siteadmin`; move `DELETE /workers/{worker}` inside the `role` group.
+3. Enforce `status` in `UserService::login()`; remove the `"password"` fallback.
+4. Register `procurementApi` in the store (2 lines — un-blanks 10 routes).
 
 ### Day 2 — correctness
-6. `lockForUpdate()` in `SaleItemService`; branch-match products in that service.
-7. Locked receipt numbering + retry on conflict.
-8. Fix `AppRoutes` path matching + the 35 hardcoded `/dashboard/` links; add `path='*'` to every role tree.
-9. Handle `error` in `AppRoutes`; add a 401 interceptor that clears the token.
-10. Map `siteadmin`/`editor`/`supplier`/`customer` roles or seed only what the UI serves.
+5. `lockForUpdate()` in `SaleItemService`; branch-match products in that service.
+6. Locked receipt numbering + retry on conflict.
+7. Fix `AppRoutes` path matching + the 35 hardcoded `/dashboard/` links; add `path='*'` to every role tree.
+8. Handle `error` in `AppRoutes`; add a 401 interceptor that clears the token.
+9. Map `siteadmin`/`editor`/`supplier`/`customer` roles or seed only what the UI serves.
 
 ### Day 3 — production readiness
-11. Fix the prod compose upstream (`frontend:8080`), add TLS, port the dev security headers.
-12. Untrack + rotate `.env.prod`; purge `APP_KEY` from history.
-13. Add global cache invalidation (a single `onQueryStarted` matcher) — stale stock after a sale is a revenue bug.
-14. Add an error boundary + `React.lazy` route splitting.
-15. Darken `--muted-foreground` to 4.5:1.
+10. Fix the prod compose upstream (`frontend:8080`), add TLS, port the dev security headers.
+11. Untrack + rotate `.env.prod`; purge `APP_KEY` from history.
+12. Add global cache invalidation (a single `onQueryStarted` matcher) — stale stock after a sale is a revenue bug.
+13. Add an error boundary + `React.lazy` route splitting.
+14. Darken `--muted-foreground` to 4.5:1.
 
 ### Week 2
 16. Fix the 36 failing tests — note that 33 are **harness bugs, not product bugs**: 32 call `LogTransport::flush()`, which no longer exists in this Laravel version, and 4 hit the truncated DB. Rewrite against `Mail::fake()` / `Event::fake()`.
