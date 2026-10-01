@@ -65,15 +65,24 @@ class BusinessContext
         }
 
         $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
 
-        // Site admins have unrestricted access
-        if ($user?->role?->name === 'siteadmin') {
+        // Site admins have unrestricted access. Resolve the role by id rather than
+        // relying on a dynamic relationship property, since some code paths can hit
+        // this before the relation is explicitly eager-loaded.
+        $roleName = $user->role_id !== null
+            ? \App\Models\Role::query()->whereKey($user->role_id)->value('name')
+            : null;
+
+        if (strtolower((string) $roleName) === 'siteadmin') {
             return null;
         }
 
         // All other authenticated users have no business context
         // (omitting the clause would grant cross-tenant access)
-        return $user?->business_id !== null ? (int) $user->business_id : null;
+        return $user->business_id !== null ? (int) $user->business_id : null;
     }
 
     public function branchId(): ?int

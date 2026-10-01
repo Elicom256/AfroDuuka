@@ -234,6 +234,49 @@ class PosCheckoutTest extends TestCase
         ]);
     }
 
+    public function test_checkout_rejects_a_held_sale_owned_by_another_user(): void
+    {
+        $firstUser = User::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => Role::factory()->create(['business_id' => $this->business->id, 'name' => 'Executive'])->id,
+        ]);
+
+        $held = Sale::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $firstUser->id,
+            'customer_id' => $this->customer->id,
+            'subtotal' => 10000,
+            'tax_amount' => 0,
+            'total_amount' => 10000,
+            'status' => 'held',
+            'note' => 'Held by another user',
+        ]);
+
+        $secondUser = User::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => Role::factory()->create(['business_id' => $this->business->id, 'name' => 'Executive'])->id,
+        ]);
+
+        Sanctum::actingAs($secondUser);
+
+        $this->postJson('/api/pos/checkout', [
+            'sale_id' => $held->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 1,
+                    'unit_price' => 10000,
+                ],
+            ],
+            'payments' => [
+                ['method' => 'cash', 'amount' => 10000],
+            ],
+        ])->assertStatus(404);
+    }
+
     public function test_checkout_requires_auth(): void
     {
         $this->postJson('/api/pos/checkout', [])

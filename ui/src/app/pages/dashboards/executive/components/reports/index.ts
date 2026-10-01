@@ -7,3 +7,4 @@ export { default as DeadStockReport } from './DeadStockReport';
 export { default as InventoryValuationReport } from './InventoryValuationReport';
 export { default as SalesByProductReport } from './SalesByProductReport';
 export { default as StockMovementReport } from './StockMovementReport';
+export { default as ScheduledReports } from './ScheduledReports';

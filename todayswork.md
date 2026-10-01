@@ -53,4 +53,78 @@ Fix the branch-scoping bug by matching the safe pattern already used in `PosServ
 
 ## Notes
 
-This is a tightly scoped fix: do not broaden into unrelated medium items. The goal is branch safety and inventory integrity only.
+## This is a tightly scoped fix: do not broaden into unrelated medium items. The goal is branch safety and inventory integrity only.
+
+# Today's Work — Task 3 (Low)
+
+## Issue
+
+`SaleItemService` still dereferences a missing payment method record and turns an invalid `payment_status_id` into a 500 while the transaction is running.
+
+This is the low-priority follow-up from the same sale service: invalid payment metadata should fail cleanly with a validation error instead of crashing inside the checkout flow.
+
+## Goal
+
+Protect the sale write path from invalid payment method IDs and confirm the request fails with a 422 instead of a 500.
+
+## Implementation plan ✅
+
+- [x] 1. Reproduce the bug with a focused regression test
+  - Submit a checkout with a non-existent `payment_status_id`.
+  - Assert the endpoint returns 422 and does not crash with a server error.
+
+- [x] 2. Guard the payment lookup in `SaleItemService`
+  - Resolve the payment method record before reading its `method` value.
+  - Throw a clear `Exception` with a 422 if the record is missing.
+  - Keep the error in the normal validation path rather than leaving a null dereference.
+
+- [x] 3. Verify the fix with the targeted test
+  - Re-run the checkout regression to confirm the API responds cleanly for invalid payment IDs.
+
+## Acceptance criteria
+
+- [x] An invalid `payment_status_id` returns a 422 instead of a 500.
+- [x] No partial sale record is created when the payment method is invalid.
+- [x] The rest of the sale flow remains unchanged for valid payment methods.
+
+## Files to touch
+
+- `api/app/Services/SaleItemService.php`
+- `api/tests/Feature/POS/PosCheckoutTest.php`
+
+---
+
+# Today's Work — Task 4 (Low)
+
+## Issue
+
+The held-sale checkout path accepts a `sale_id` for any held sale in the same branch, even when it belongs to another user. This is a cross-user authorization gap and matches the review's low-priority issue around `PosService.php`.
+
+## Goal
+
+Require `sale_id` completions to match both the branch and the current authenticated user, mirroring the ownership guard already used by `resumeHeldSale()`.
+
+## Implementation plan ✅
+
+- [x] 1. Reproduce the bug with a focused regression test
+  - Create a held sale owned by User A.
+  - Authenticate as User B in the same branch and complete checkout using User A's `sale_id`.
+  - Assert the request is rejected with 404 instead of completing the other user's held sale.
+
+- [x] 2. Enforce ownership in the checkout path
+  - Add `user_id` to the held-sale query in `PosService::checkout()`.
+  - Keep the existing branch + status checks intact.
+
+- [x] 3. Verify the fix with the targeted test
+  - Re-run the targeted POS checkout regression to confirm cross-user completion is blocked.
+
+## Acceptance criteria
+
+- [x] A held sale can only be completed by its owning user.
+- [x] A cross-user `sale_id` completion is rejected.
+- [x] Valid same-user retry checkout behavior remains unchanged.
+
+## Files to touch
+
+- `api/app/Services/PosService.php`
+- `api/tests/Feature/POS/PosCheckoutTest.php`
