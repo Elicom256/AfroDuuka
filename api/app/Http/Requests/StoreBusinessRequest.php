@@ -34,9 +34,13 @@ class StoreBusinessRequest extends FormRequest
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|min:1|max:255',
             'business_category_id' => 'required|exists:business_categories,id',
-            // Optional: the registration form does not collect a country, so the
-            // service resolves a default when this is absent.
-            'country_id' => 'nullable|exists:countries,id',
+            // Required, because businesses.country_id is a foreignId()->constrained()
+            // column and therefore NOT NULL. It was previously optional with the service
+            // silently defaulting to Uganda, which both wrote the wrong country onto
+            // businesses that never chose one and 500'd outright when the countries table
+            // had no rows to default to. A 422 is the correct failure for a missing
+            // country.
+            'country_id' => 'required|exists:countries,id',
         ];
     }
 }

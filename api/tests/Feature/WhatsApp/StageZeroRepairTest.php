@@ -56,6 +56,14 @@ class StageZeroRepairTest extends TestCase
             'name' => 'Acme Traders',
             'address' => 'Kampala',
             'business_category_id' => BusinessCategory::factory()->create()->id,
+            // country_id is required (businesses.country_id is NOT NULL). Callers that
+            // care about which country pass one explicitly; the rest inherit the seeded
+            // default rather than relying on a server-side guess. firstOrCreate because
+            // countries.name is unique and seedDefaultCountry() may already have made it.
+            'country_id' => Country::firstOrCreate(
+                ['name' => 'Uganda', 'iso_alpha2' => 'UG'],
+                ['currency_code' => 'UGX', 'currency_symbol' => 'USh']
+            )->id,
         ], $overrides);
     }
 

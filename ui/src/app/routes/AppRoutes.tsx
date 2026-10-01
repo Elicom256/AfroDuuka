@@ -8,6 +8,7 @@ import { TermsOfService } from '../pages/public/TermsOfService';
 import { PrivacyPolicy } from '../pages/public/PrivacyPolicy';
 import { Login } from '../pages/public/Login';
 import { SignUp } from '../pages/public/SignUp';
+import { Onboarding } from '../pages/public/Onboarding';
 import { ExecutiveRoutes } from './ExecutiveRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { OperationsRoutes } from './OperationsRoutes';
@@ -34,6 +35,7 @@ export const AppRoutes = () => {
       </Route>
       <Route path='login' element={<Login />} />
       <Route path='signup' element={<SignUp />} />
+      <Route path='onboarding' element={<Onboarding />} />
         <Route path='about' element={<About />} />
         <Route path='documentation' element={<Documentation />} />
         <Route path='terms' element={<TermsOfService />} />
