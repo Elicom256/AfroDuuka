@@ -10,10 +10,15 @@ Route::post('/login', [UserController::class, 'login'])->middleware('throttle:au
 Route::post('/signup', [UserController::class, 'signup'])->middleware('throttle:auth');
 // Protected user routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/', [UserController::class, 'index']);
+    // User directory and worker management are executive-level: the index exposes
+    // every user's role, and a worker update is how a role gets reassigned.
+    Route::middleware('role')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::put('/workers/{worker}', [UserController::class, 'update']);
+    });
+
     Route::get('/me', [UserController::class, 'me']);
-    Route::post('/logout', [UserController::class, 'logout']);    
-    Route::put('/workers/{worker}', [UserController::class, 'update']);
+    Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/workers', [UserController::class, 'workers']);
     Route::get('/workers/{worker}', [UserController::class, 'worker']);
     Route::delete('/workers/{worker}', [UserController::class, 'destroy']);

@@ -10,8 +10,6 @@ export const StaffDashboardPage = () => {
   const { data: userData } = useLoggedinUserQuery();
 
   const username = userData?.data?.username ?? 'there';
-  const businessName = userData?.data?.business?.name ?? 'your business';
-  const branchName = userData?.data?.business_branch?.name ?? 'your branch';
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -20,6 +18,13 @@ export const StaffDashboardPage = () => {
     month: 'long',
     day: 'numeric',
   });
+
+  const getGreeting = () => {
+    const hour = now.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   return (
     <div className='space-y-6'>
@@ -32,11 +37,8 @@ export const StaffDashboardPage = () => {
               Staff Dashboard
             </div>
             <h1 className='text-2xl font-bold tracking-tight mt-1'>
-              Welcome back, {username}
+              {getGreeting()}, {username}
             </h1>
-            <p className='text-sm text-muted-foreground mt-0.5'>
-              {businessName} &middot; {branchName}
-            </p>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>
             <CalendarDays className='h-4 w-4' />
