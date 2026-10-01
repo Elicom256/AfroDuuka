@@ -9,32 +9,36 @@ use Illuminate\Support\Facades\Gate;
 
 class SuperAdminBusinessController extends Controller
 {
-    public function __construct()
+    protected function ensureSiteAdmin(): void
     {
-        Gate::before(function ($user, $ability, ...$args) {
-            if (in_array($user->role->name ?? [], ['siteadmin'])) {
-                return true;
-            }
-        });
+        $user = auth()->user();
+
+        abort_unless(
+            $user && strtolower((string) ($user->role?->name ?? '')) === 'siteadmin',
+            403,
+            'Only the site administrator can manage businesses.'
+        );
     }
 
     public function index()
     {
-        Gate::allows('viewAny', Business::class);
+        $this->ensureSiteAdmin();
+
         $businesses = Business::with(['country', 'users'])->orderBy('created_at', 'desc')->get();
         return response()->json(["businesses" => $businesses, "message" => "Businesses retrieved"]);
     }
 
     public function show(Business $business)
     {
-        Gate::allows('view', $business);
+        $this->ensureSiteAdmin();
+
         $business->load(['country', 'users', 'productCategories']);
         return response()->json(["business" => $business, "message" => "Business retrieved"]);
     }
 
     public function updateStatus(UpdateBusinessStatusRequest $request, Business $business)
     {
-        Gate::allows('updateStatus', $business);
+        $this->ensureSiteAdmin();
 
         $request->validate([
             'status' => 'required|in:active,deactivated,banned',
