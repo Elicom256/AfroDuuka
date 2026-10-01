@@ -44,12 +44,22 @@ class SaleItemService
                     throw new Exception("Branch is not within your allowed scope", 403);
                 }
             }
-            $productIds = collect($validated["items"])->pluck('product_id')->unique()->values()->all();
+
+            if (! $branchId) {
+                throw new Exception('A valid business branch is required to complete this sale.', 422);
+            }
+
+            $productIds = collect($validated["items"])->pluck('product_id')->filter()->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
                 ->where('business_branch_id', $branchId)
+                ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
+
+            if (count($products) !== count($productIds)) {
+                throw new Exception('One or more selected products do not belong to the selected branch.', 422);
+            }
 
             $lineTaxes = [];
             $totalSubtotal = 0;
