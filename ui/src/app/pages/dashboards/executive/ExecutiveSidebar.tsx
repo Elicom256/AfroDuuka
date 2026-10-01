@@ -41,7 +41,7 @@ import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
-import { getRolePrefix } from '@/lib/rolePrefix';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 type ExecutiveSidebarProps = {
   onNavigate?: () => void;
@@ -155,7 +155,7 @@ export const ExecutiveSidebar = ({ onNavigate }: ExecutiveSidebarProps) => {
   const features = useFeatureSettings();
 
   const role = userData?.data?.role?.name;
-  const prefix = getRolePrefix(role);
+  const prefix = DASHBOARD_PREFIX;
   const unreadCount = unreadData?.unread_count ?? 0;
 
   const filteredSections = navSections

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '../../../public/afroduuka.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
-import { getRolePrefix } from '@/lib/rolePrefix';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -20,7 +20,7 @@ export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { data } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-  const dashboardLink = getRolePrefix(role);
+  const dashboardLink = DASHBOARD_PREFIX;
   const businessName = data?.data?.business?.name ?? 'DuukaFlow';
   const businessLogo = data?.data?.business?.logo ?? logo;
   const branchName = data?.data?.businessBranch?.name;

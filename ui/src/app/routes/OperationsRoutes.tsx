@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
+import { NotFound } from './NotFound';
 import { OperationsLayout } from '../pages/dashboards/Operations/OperationsLayout';
 import { OperationsDashboardPage } from '../pages/dashboards/Operations/pages/OperationsDashboardPage';
 import { OperationsSalesPage } from '../pages/dashboards/Operations/pages/OperationsSalesPage';
@@ -33,52 +34,51 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
-import { getRolePrefix } from '@/lib/rolePrefix';
 
 export const OperationsRoutes = () => {
-  const { data, isLoading } = useLoggedinUserQuery();
-  const role = data?.data?.role?.name;
-  const prefix = getRolePrefix(role);
+  const { isLoading } = useLoggedinUserQuery();
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path={`${prefix}/pos`} element={<PosPage />} />
-      </Route>
-      <Route path={prefix} element={<OperationsLayout />}>
-        <Route index element={<OperationsDashboardPage />} />
-        <Route path='sales' element={<OperationsSalesPage />} />
-        <Route path='sales/:id' element={<Sale />} />
-        <Route path='receipts' element={<ExecutiveReceiptsPage />} />
-        <Route path='receipts/:id' element={<ReceiptDetail />} />
-        <Route path='purchases' element={<OperationsPurchasesPage />} />
-        <Route path='purchases/:id' element={<Purchase />} />
-        <Route path='sale-returns' element={<OperationsSaleReturnsPage />} />
-        <Route path='sale-returns/:id' element={<SaleReturn />} />
-        <Route path='purchase-returns' element={<OperationsPurchaseReturnsPage />} />
-        <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
-        <Route path='products' element={<OperationsProductsPage />} />
-        <Route path='products/:id' element={<Product />} />
-        <Route path='inventory' element={<OperationsInventoryPage />} />
-        <Route path='analytics' element={<OperationsAnalyticsPage />} />
-        <Route path='workers' element={<OperationsWorkersPage />} />
-        <Route path='workers/:id' element={<Worker />} />
-        <Route path='customers' element={<OperationsCustomersPage />} />
-        <Route path='suppliers' element={<OperationsSuppliersPage />} />
-        <Route path='reports' element={<OperationsReportsPage />} />
-        <Route path='finances' element={<OperationsFinancesPage />} />
-        <Route path='finance' element={<OperationsFinancesPage />} />
-        <Route path='notifications' element={<OperationsNotificationsPage />} />
-        <Route path='notifications/:id' element={<NotificationDetailPage scope='operations' />} />
-        <Route path='messages' element={<OperationsMessagesPage />} />
-        <Route path='orders' element={<OperationsOrdersPage />} />
-        <Route path='quotations' element={<QuotationsPage />} />
-        <Route path='promotions' element={<OperationsPromotionsPage />} />
-        <Route path='attendance' element={<OperationsAttendancePage />} />
-        <Route path='activity-log' element={<ActivityLogPage />} />
+        <Route path='pos' element={<PosPage />} />
+        <Route element={<OperationsLayout />}>
+          <Route index element={<OperationsDashboardPage />} />
+          <Route path='sales' element={<OperationsSalesPage />} />
+          <Route path='sales/:id' element={<Sale />} />
+          <Route path='receipts' element={<ExecutiveReceiptsPage />} />
+          <Route path='receipts/:id' element={<ReceiptDetail />} />
+          <Route path='purchases' element={<OperationsPurchasesPage />} />
+          <Route path='purchases/:id' element={<Purchase />} />
+          <Route path='sale-returns' element={<OperationsSaleReturnsPage />} />
+          <Route path='sale-returns/:id' element={<SaleReturn />} />
+          <Route path='purchase-returns' element={<OperationsPurchaseReturnsPage />} />
+          <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
+          <Route path='products' element={<OperationsProductsPage />} />
+          <Route path='products/:id' element={<Product />} />
+          <Route path='inventory' element={<OperationsInventoryPage />} />
+          <Route path='analytics' element={<OperationsAnalyticsPage />} />
+          <Route path='workers' element={<OperationsWorkersPage />} />
+          <Route path='workers/:id' element={<Worker />} />
+          <Route path='customers' element={<OperationsCustomersPage />} />
+          <Route path='suppliers' element={<OperationsSuppliersPage />} />
+          <Route path='reports' element={<OperationsReportsPage />} />
+          <Route path='finances' element={<OperationsFinancesPage />} />
+          <Route path='finance' element={<OperationsFinancesPage />} />
+          <Route path='notifications' element={<OperationsNotificationsPage />} />
+          <Route path='notifications/:id' element={<NotificationDetailPage scope='operations' />} />
+          <Route path='messages' element={<OperationsMessagesPage />} />
+          <Route path='orders' element={<OperationsOrdersPage />} />
+          <Route path='quotations' element={<QuotationsPage />} />
+          <Route path='promotions' element={<OperationsPromotionsPage />} />
+          <Route path='attendance' element={<OperationsAttendancePage />} />
+          <Route path='activity-log' element={<ActivityLogPage />} />
+        </Route>
+        <Route path='*' element={<NotFound />} />
       </Route>
     </Routes>
   );
 };
+
