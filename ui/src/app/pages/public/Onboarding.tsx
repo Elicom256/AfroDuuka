@@ -169,7 +169,7 @@ export const Onboarding: React.FC = () => {
 
           {currentStep === 4 && (
             <Preview
-              account={{ ...account, country_id: getCountryName(account.country_id) }}
+              account={account}
               business={{
                 ...business,
                 country_id: getCountryName(business.country_id),

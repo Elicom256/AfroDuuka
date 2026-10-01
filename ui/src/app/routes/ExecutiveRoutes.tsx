@@ -22,6 +22,7 @@ import { ExecutiveSaleReturnsPage } from '../pages/dashboards/executive/pages/Ex
 import { ExecutivePurchaseReturnsPage } from '../pages/dashboards/executive/pages/ExecutivePurchaseReturnsPage';
 import { BusinessBranches } from '../pages/dashboards/executive/pages/BusinessBranches';
 import { Route, Routes } from 'react-router-dom';
+import { NotFound } from './NotFound';
 import { ExecutiveMessagesPage } from '../pages/dashboards/executive/pages/ExecutiveMessagesPage';
 import { ExecutiveNotificationsPage } from '../pages/dashboards/executive/pages/ExecutiveNotificationsPage';
 import { NotificationDetailPage } from '../pages/dashboards/shared/notifications/NotificationDetailPage';
@@ -46,7 +47,6 @@ import { ExecutiveCouponsPage } from '../pages/dashboards/executive/pages/Execut
 
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { getRolePrefix } from '@/lib/rolePrefix';
 import { Attendance } from '../pages/dashboards/executive/components/attendance/Attendance';
 import { Worker } from '../pages/dashboards/executive/components/workers/Worker';
 import { Supplier } from '../pages/dashboards/executive/components/suppliers/Supplier';
@@ -80,17 +80,15 @@ import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/Activit
 import { ProcurementRoutes } from './ProcurementRoutes';
 
 export const ExecutiveRoutes = () => {
-  const { data, isLoading } = useLoggedinUserQuery();
-  const role = data?.data?.role?.name;
-  const prefix = getRolePrefix(role);
+  const { isLoading } = useLoggedinUserQuery();
   if (isLoading) {
     return <PageLoadingState />;
   }
   return (
     <Routes>
       <Route element={<ProtectedRoutes />}>
-        <Route path={`${prefix}/pos`} element={<PosPage />} />
-        <Route path={prefix} element={<ExecutiveLayout />}>
+        <Route path='pos' element={<PosPage />} />
+        <Route element={<ExecutiveLayout />}>
           <Route index element={<ExecutiveDashboardPage />} />
 
           <Route path='workers' element={<ExecutiveWorkersPage />} />
@@ -173,6 +171,7 @@ export const ExecutiveRoutes = () => {
           <Route path='tax' element={<ExecutiveTaxPage />} />
           <Route path='procurement/*' element={<ProcurementRoutes />} />
         </Route>
+        <Route path='*' element={<NotFound />} />
       </Route>
     </Routes>
   );

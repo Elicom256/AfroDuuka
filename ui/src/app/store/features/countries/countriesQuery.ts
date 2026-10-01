@@ -1,5 +1,15 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+export interface Country {
+  id: number;
+  name: string;
+  flag_emoji: string;
+}
+
+interface CountriesResponse {
+  data: Country[];
+}
+
 export const countriesQuery = createApi({
   reducerPath: 'countriesApi',
   baseQuery: fetchBaseQuery({
@@ -7,7 +17,7 @@ export const countriesQuery = createApi({
   }),
   tagTypes: ['Countries'],
   endpoints: (builder) => ({
-    countries: builder.query<any, void>({
+    countries: builder.query<CountriesResponse, void>({
       query: () => ({
         url: '/',
         method: 'GET',

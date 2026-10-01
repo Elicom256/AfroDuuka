@@ -4,7 +4,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserProfile } from '../auth/UserProfile';
 import { Bell, Menu } from 'lucide-react';
 import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
-import { getRolePrefix } from '@/lib/rolePrefix';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 type DashboardTopBarProps = {
   role: string;
@@ -53,7 +53,7 @@ export const DashboardTopBar = ({ role, userData, onMenuClick }: DashboardTopBar
           aria-label='Notifications'
           title='Notifications'
         >
-          <Link to={`${getRolePrefix(role)}/notifications`}>
+          <Link to={`${DASHBOARD_PREFIX}/notifications`}>
             <Bell className='h-4 w-4' />
             {unreadCount > 0 && (
               <span className='absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground'>

@@ -63,6 +63,7 @@ import { financeQuery } from '../features/finance/financeQuery';
 import { productAuditQuery } from '../features/audit/productAuditQuery';
 import { financialAuditQuery } from '../features/audit/financialAuditQuery';
 import { taxCategoriesQuery, taxPaymentsQuery, taxRatesQuery } from '../features/business/tax/taxQuery';
+import { procurementApi } from '../features/procurement/procurementQuery';
 
 export const store = configureStore({
   reducer: {
@@ -131,6 +132,7 @@ export const store = configureStore({
     [taxCategoriesQuery.reducerPath]: taxCategoriesQuery.reducer,
     [taxRatesQuery.reducerPath]: taxRatesQuery.reducer,
     [taxPaymentsQuery.reducerPath]: taxPaymentsQuery.reducer,
+    [procurementApi.reducerPath]: procurementApi.reducer,
     [onboardingQuery.reducerPath]: onboardingQuery.reducer,
   },
 
@@ -200,6 +202,7 @@ export const store = configureStore({
       taxCategoriesQuery.middleware,
       taxRatesQuery.middleware,
       taxPaymentsQuery.middleware,
+      procurementApi.middleware,
       quotationsQuery.middleware,
       onboardingQuery.middleware,
     ),
