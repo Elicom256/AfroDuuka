@@ -1,28 +1,56 @@
-# Today's Work — P3 Problem 1: StoreUserRequest role_id unscoped exists
+# Today's Work — Task 2 (Medium)
 
-**Issue:** `StoreUserRequest.php:63` — `role_id` uses an unscoped `exists` rule (`exists:roles,id`). A cross-tenant role named `Executive` would grant elevated rights.
+## Issue
 
-**Evidence:**
-- `StoreUserRequest.php:63`: `'role_id' => 'nullable|exists:roles,id'`
-- This only checks that a role with that ID exists globally, without scoping to the user's business
-- `UserService.php:73`: `$role = Role::find($data['role_id'])` — fetches role globally
-- If a role named `Executive` exists in another tenant's context, it could be selected and grant elevated permissions
-- This connects to Finding #1 (cross-tenant account) and Finding #2 (cross-tenant ban) — role scoping is part of the same auth boundary problem
+Prevent cross-branch stock deductions in the non-POS sale flow.
 
-**Action:**
-1. Change `exists:roles,id` to a scoped exists that checks the role belongs to the same business
-2. The `role_id` on users is nullable and linked to `business_id` via the users table
-3. The exists clause should be: `exists:roles,id,business_id,${user->business_id}` (Laravel 11+ syntax) or use a raw subquery
-4. In `UserService.php`, when setting the role, verify the role belongs to the same business
+The risk is in `SaleItemService`: a sale can be validated against the wrong branch context, allowing a user with access to one branch to reduce stock belonging to another branch. The review notes this as a medium-severity integrity bug because it can silently drain inventory across tenant branches if the branch check is bypassed.
 
-**Files to modify:**
-- `api/app/Http/Requests/StoreUserRequest.php` — fix the exists rule for role_id
-- `api/app/Services/UserService.php` — add business scoping when assigning role
+## Goal
 
-**Effort:** 20 minutes
-**Priority:** P3 — Low (cross-tenant role escalation, lower impact than P0/P1 but still a security concern)
-**Blocking:** None — independent fix
+Fix the branch-scoping bug by matching the safe pattern already used in `PosService`, then verify the sale flow fails closed when branch ownership does not match.
 
-**Verification:**
-- A user cannot assign a role that belongs to another business/tenant
-- The exists validation correctly rejects role_ids that don't belong to the user's business
+## Implementation plan ✅
+
+- [x] 1. Reproduce the bug with a focused regression test
+  - Create or extend a sale/stock test that submits a product from Branch A while the request is scoped to Branch B.
+  - Assert the request is rejected with a 403/422 and that no stock is decremented.
+  - Include a second case where branch and product match, and the sale still succeeds normally.
+
+- [x] 2. Align `SaleItemService` with the safe branch pattern from `PosService`
+  - Resolve the active `business_branch_id` from the validated request or the current user.
+  - Re-check the user's allowed branch scope before any stock mutation.
+  - Load products using a branch-scoped query, then fail if any requested product is missing from that branch.
+  - Use a locked read (`lockForUpdate()`) before decrementing stock in the same transaction to avoid race conditions.
+
+- [x] 3. Guard against branch mismatch before decrementing stock
+  - Validate every product in the request against the target branch before calculating totals or updating quantities.
+  - Explicitly reject items whose `business_branch_id` does not equal the active branch ID.
+  - Keep the failure inside the database transaction so no partial stock update is committed.
+
+- [x] 4. Keep the stock mutation atomic
+  - After validating quantities, decrement each product with the same branch context used to fetch it.
+  - Ensure the decrement and any sale item creation occur in one transaction, mirroring the safer path in `PosService`.
+  - Preserve existing sale totals, payment creation, and receipt generation logic after the stock validation passes.
+
+- [x] 5. Add targeted verification
+  - Run the focused sale/stock test that covers cross-branch mismatch.
+  - Run the existing sale-related test subset to confirm no regression in normal branch sales.
+  - Confirm the branch validation error is deterministic and not dependent on sales order or concurrent requests.
+
+## Acceptance criteria
+
+- [x] A sale request for a product outside the selected branch is rejected.
+- [x] No stock is decremented on branch mismatch.
+- [x] Valid branch sales continue to work without behavior change.
+- [x] The implementation follows the same locking and branch validation pattern as `PosService`.
+
+## Files to touch
+
+- `api/app/Services/SaleItemService.php`
+- `api/app/Services/PosService.php` (reference implementation)
+- Relevant sale-stock feature tests in the API test suite
+
+## Notes
+
+This is a tightly scoped fix: do not broaden into unrelated medium items. The goal is branch safety and inventory integrity only.
