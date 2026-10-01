@@ -115,6 +115,11 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__."/reports.php";
     });
 
+    // Scheduled report definitions (Report model). Registered after the reports
+    // prefix group above so the static stats paths (e.g. /reports/branch-performance)
+    // win over the {report} wildcard in the resource routes.
+    Route::apiResource("reports", \App\Http\Controllers\ReportController::class);
+
     Route::prefix("countries")->group(function () {
         require __DIR__."/countries.php";
     });

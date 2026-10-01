@@ -153,4 +153,16 @@ class RolePermissions
         return static::canManageBranch($user)
             || static::roleName($user) === 'procurement';
     }
+
+    /**
+     * May the user author or edit scheduled report definitions?
+     *
+     * Reports are business-level configuration — they carry business_id and no
+     * branch column — so this is Executive territory, not branch-scoped work:
+     * BranchManager must not rewrite how the whole business reports.
+     */
+    public static function canManageReports(?User $user): bool
+    {
+        return static::isElevated($user);
+    }
 }

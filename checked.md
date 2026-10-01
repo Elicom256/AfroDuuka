@@ -197,7 +197,7 @@ Three compounding defects:
 
 ---
 
-## P2 — Medium
+## ✅ P2 — Medium
 
 **Backend**
 - `Sale::salePayment()` is declared `BelongsTo` but multiple `SalePayment` rows per sale are normal (split payments). Returns an arbitrary row; the API response silently omits split payments. → make it `HasMany`. (`Sale.php:44`)
