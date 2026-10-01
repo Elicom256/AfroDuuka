@@ -67,7 +67,7 @@ export const NavBar: React.FC = () => {
             <Link to={dashboardLink}>Dashboard</Link>
           ) : (
             <Button asChild size='sm'>
-              <Link to='/login'>Try it</Link>
+              <Link to='/onboarding'>Start onboarding</Link>
             </Button>
           )}
         </div>
@@ -108,7 +108,7 @@ export const NavBar: React.FC = () => {
               <ThemeToggle compact />
             </div>
             <Button asChild size='sm' className='w-full'>
-              <Link to='/signup'>Get started</Link>
+              <Link to='/onboarding'>Get started with onboarding</Link>
             </Button>
           </div>
         </div>

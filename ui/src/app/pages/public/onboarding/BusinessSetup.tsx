@@ -1,4 +1,5 @@
-import { Building2, Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, Globe, Search } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
 import { useGetPublicBusinessCategoriesQuery } from '@/app/store/features/business/setup/onboardingQuery';
+import { cn } from '@/lib/utils';
 import type { BusinessData } from './types';
 
 interface BusinessSetupProps {
@@ -30,10 +32,22 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({
   const { data: countriesData } = useCountriesQuery();
   const { data: businessCategories } = useGetPublicBusinessCategoriesQuery();
   const countries = countriesData?.data || [];
-  const categories = businessCategories?.data || [];
+  const categories = businessCategories || [];
+
+  // State for country search/filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredCountries = countries.filter(
+    (country) =>
+      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      country.flag_emoji.includes(searchQuery)
+  );
 
   const handleChange = (field: keyof BusinessData, value: string) => {
     onChange({ ...data, [field]: value });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -84,24 +98,40 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({
           <Globe className='h-4 w-4 text-muted-foreground' />
           Country
         </Label>
-        <Select
-          value={data.country_id}
-          onValueChange={(value) => handleChange('country_id', value)}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Select business country' />
-          </SelectTrigger>
-          <SelectContent>
-            {countries.map((country: any) => (
-              <SelectItem key={country.id} value={String(country.id)}>
-                <span className='flex items-center gap-2'>
-                  <span className='text-lg'>{country.flag_emoji}</span>
-                  <span>{country.name}</span>
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className='space-y-2'>
+          <Input
+            type='text'
+            placeholder='Type to filter countries'
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className='w-full rounded-lg border border-border/50 px-3 py-2 text-sm transition-colors focus:outline-none focus:border-primary'
+          />
+          <Select
+            value={data.country_id}
+            onValueChange={(value) => handleChange('country_id', value)}
+          >
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder={filteredCountries.length > 0 ? 'Select your country' : 'Select your country'} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredCountries.map((country: any) => (
+                <SelectItem key={country.id} value={String(country.id)}>
+                  <span className='flex items-center gap-2'>
+                    <span className='text-lg'>{country.flag_emoji}</span>
+                    <span>{country.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+              {filteredCountries.length === 0 && !searchQuery && (
+                <SelectItem value=''>
+                  <span className='text-muted-foreground text-sm'>
+                    Start typing to select your country
+                  </span>
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className='space-y-2'>

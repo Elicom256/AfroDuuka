@@ -1,15 +1,7 @@
-import { UserPlus, Mail, Phone, Lock, Globe } from 'lucide-react';
+import { UserPlus, Mail, Phone, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
 import { toast } from 'sonner';
 import type { AccountData } from './types';
 
@@ -20,11 +12,16 @@ interface AccountSetupProps {
 }
 
 export const AccountSetup: React.FC<AccountSetupProps> = ({ data, onChange, onNext }) => {
-  const { data: countriesData } = useCountriesQuery();
-  const countries = countriesData?.data || [];
+  // Auto-generate username from firstname
+  const generatedUsername = `@${data.firstname.toLowerCase().replace(/\s/g, '')}`;
 
   const handleChange = (field: keyof AccountData, value: string) => {
-    onChange({ ...data, [field]: value });
+    // Re-generate username when firstname changes
+    if (field === 'firstname') {
+      onChange({ ...data, [field]: value, username: `@${value.toLowerCase().replace(/\s/g, '')}` });
+    } else {
+      onChange({ ...data, [field]: value });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -109,31 +106,6 @@ export const AccountSetup: React.FC<AccountSetupProps> = ({ data, onChange, onNe
       </div>
 
       <div className='space-y-2'>
-        <Label htmlFor='country'>
-          <Globe className='h-4 w-4 text-muted-foreground' />
-          Country
-        </Label>
-        <Select
-          value={data.country_id}
-          onValueChange={(value) => handleChange('country_id', value)}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Select your country' />
-          </SelectTrigger>
-          <SelectContent>
-            {countries.map((country: any) => (
-              <SelectItem key={country.id} value={String(country.id)}>
-                <span className='flex items-center gap-2'>
-                  <span className='text-lg'>{country.flag_emoji}</span>
-                  <span>{country.name}</span>
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className='space-y-2'>
         <Label htmlFor='password'>
           <Lock className='h-4 w-4 text-muted-foreground' />
           Password
@@ -170,6 +142,12 @@ export const AccountSetup: React.FC<AccountSetupProps> = ({ data, onChange, onNe
         {data.confirmPassword.length > 0 && data.password !== data.confirmPassword && (
           <p className='text-xs text-destructive'>Passwords do not match.</p>
         )}
+      </div>
+
+      <div className='space-y-2'>
+        <p className='text-sm text-muted-foreground'>
+          Suggested username: <strong className='text-primary'>{generatedUsername}</strong>
+        </p>
       </div>
 
       <Button type='submit' className='w-full'>
