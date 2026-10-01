@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { HomeLayout } from '../pages/public/HomeLayout';
 import { Home } from '../pages/public/Home';
 import { PricingPage } from '../pages/public/PricingPage';
@@ -17,7 +17,7 @@ import { NotFound } from './NotFound';
 import { SuperadminRoutes } from './Superadmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { BranchManagerRoutes } from './BranchManagerRoutes';
-import { getRolePrefix } from '@/lib/rolePrefix';
+import { ProcurementRoutes } from './ProcurementRoutes';
 
 export const AppRoutes = () => {
   const { data, isLoading, error } = useLoggedinUserQuery();
@@ -41,16 +41,15 @@ export const AppRoutes = () => {
         <Route path='terms' element={<TermsOfService />} />
         <Route path='privacy' element={<PrivacyPolicy />} />
 
-      {/* Redirect legacy /dashboard to role-based dashboard */}
-      <Route path='dashboard' element={<Navigate to={getRolePrefix(role)} replace />} />
-
-      {/* Role-based protected routes */}
-      {role === 'Executive' && <Route path='/*' element={<ExecutiveRoutes />} />}
-      {role === 'BranchManager' && <Route path='/*' element={<BranchManagerRoutes />} />}
-      {role === 'CoreSupport' && <Route path='/*' element={<SuperadminRoutes />} />}
-      {role === 'Operations' && <Route path='/*' element={<OperationsRoutes />} />}
-      {role === 'Procurement' && <Route path='/*' element={<OperationsRoutes />} />}
-      {role === 'staff' && <Route path='/*' element={<StaffDashboard />} />}
+      {/* Role-based protected routes, all mounted at /dashboard/* so that the
+          hardcoded '/dashboard/...' links throughout the app resolve. The tree
+          is chosen from the role, so the URL does not need to repeat it. */}
+      {role === 'Executive' && <Route path='dashboard/*' element={<ExecutiveRoutes />} />}
+      {role === 'BranchManager' && <Route path='dashboard/*' element={<BranchManagerRoutes />} />}
+      {role === 'CoreSupport' && <Route path='dashboard/*' element={<SuperadminRoutes />} />}
+      {role === 'Operations' && <Route path='dashboard/*' element={<OperationsRoutes />} />}
+      {role === 'Procurement' && <Route path='dashboard/*' element={<ProcurementRoutes />} />}
+      {role === 'staff' && <Route path='dashboard/*' element={<StaffDashboard />} />}
 
       {/* Fallback */}
       <Route path='*' element={<NotFound />} />

@@ -3,7 +3,7 @@ import { LayoutDashboard, DollarSign, TrendingUp, PackageCheck, Receipt, Activit
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
-import { getRolePrefix } from '@/lib/rolePrefix';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 const navSections = [
   {
@@ -35,7 +35,7 @@ type StaffSidebarProps = {
 export const StaffSidebar = ({ onNavigate }: StaffSidebarProps) => {
   const { data } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-  const prefix = getRolePrefix(role);
+  const prefix = DASHBOARD_PREFIX;
 
   return (
     <nav className='flex flex-col h-full'>

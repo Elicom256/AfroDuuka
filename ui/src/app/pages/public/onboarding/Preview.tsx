@@ -62,7 +62,7 @@ export const Preview: React.FC<PreviewProps> = ({
           <Separator />
           <div className='grid grid-cols-2 gap-2'>
             <span className='text-muted-foreground'>Country</span>
-            <span className='font-medium'>{account.country_id}</span>
+            <span className='font-medium'>{business.country_id}</span>
           </div>
         </CardContent>
       </Card>
