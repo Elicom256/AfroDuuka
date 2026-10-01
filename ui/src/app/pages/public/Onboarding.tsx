@@ -22,6 +22,7 @@ import {
   type BusinessData,
   type BranchData,
 } from './onboarding/types';
+import { setToken } from '@/lib/session';
 
 const STEPS = [
   { label: 'Account' },
@@ -70,7 +71,7 @@ export const Onboarding: React.FC = () => {
       }).then((r) => r.json());
 
       if (login?.data?.token) {
-        localStorage.setItem('token', login.data.token);
+        setToken(login.data.token);
         return login.data.token as string;
       }
     } catch {

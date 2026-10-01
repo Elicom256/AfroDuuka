@@ -2,9 +2,9 @@
 
 > ## ✅ RE-VERIFICATION PASS — 2026-10-01 (branch `oct` @ `4346dcf`)
 >
-> Every P0/P1/P2/P3 item below was re-checked against the live code. **17 were already fixed**; **2 have now been fixed** (P0 #6 navigation, P0 #9 production serving), plus the 4-error `tsc` regression. **19 of 47 done, 28 open.**
+> Every P0/P1/P2/P3 item below was re-checked against the live code. **17 were already fixed**; **3 have now been fixed** (P0 #6 navigation, P0 #7 auth failure, P0 #9 production serving), plus the 4-error `tsc` regression. **20 of 47 done, 27 open.**
 >
-> **P0 launch blockers: 6 of 9 fixed (#1, #2, #3, #5, #6, #9). 3 remain open: #4, #7, #8.**
+> **P0 launch blockers: 7 of 9 fixed (#1, #2, #3, #5, #6, #7, #9). 2 remain open: #4, #8.**
 >
 > | # | P0 blocker | Status |
 > |---|---|---|
@@ -14,7 +14,7 @@
 > | 4 | Receipt number collisions | ❌ **OPEN** — both generators still count-then-increment unlocked |
 > | 5 | Procurement module renders nothing | ✅ **FIXED** — reducer + middleware registered |
 > | 6 | 41 nav targets 404/blank | ✅ **FIXED — verified in a real browser, 1/26 → 26/26 routes** |
-> | 7 | Auth failure renders homepage | ❌ **OPEN** — `error` still destructured and unused; no 401 interceptor |
+> | 7 | Auth failure renders homepage | ✅ **FIXED — verified, 12/12 browser checks** |
 > | 8 | `.env.prod` committed with real `APP_KEY` | ❌ **OPEN** — still tracked, still not in `.gitignore` |
 > | 9 | Production compose cannot serve | ✅ **FIXED — verified 502 → 200 against a live nginx** |
 >
@@ -47,7 +47,18 @@
 >
 > The 4 `tsc` errors flagged as a regression above are fixed, so `npm run build` passes again. `Preview.tsx` was reading `account.country_id` for its "Country" row, but country is collected on the **business** step — it now reads `business.country_id`. `countriesQuery` was typed `builder.query<any, void>`, which is what made `BusinessSetup`'s filter callback an implicit `any`; it now has a real `Country` type. `tsc -b` exits 0 and ESLint is net −1 error.
 >
-> **Next up:** #4 (receipt sequence table — the last data-loss defect), then #7 (auth error handling), then #8 (untrack + rotate `.env.prod`).
+> ### ✅ #7 FIXED — a dead session is now a dead session
+>
+> Added a store-level 401 handler (`authListener.ts`), made `authQuery`'s `baseQuery` refuse to call `/users/me` without a token (30 components read the logged-in user, including the public navbar, and each was firing a request that could only 401), and `AppRoutes` now reads the `error` it used to discard.
+>
+> Two things worth calling out:
+>
+> - **The redirect is a hard navigation on purpose.** The RTK cache still holds data fetched with the dead token, so a client-side redirect would re-issue every mounted query, 401 again, and loop. A full page load discards the store.
+> - **This uncovered two regressions I had introduced in #6.** `Login.tsx` and `SignUp.tsx` both redirected to `` `/${role.toLowerCase()}/dashboard` `` — the exact URL #6 removed — so **every successful login and signup was landing on a 404**. My #6 browser test missed it because it injected the token directly and never exercised the login form. Both now use `DASHBOARD_PREFIX`.
+>
+> Verified 12/12 in headless Chrome (dead token, logged-out visitor, mid-session expiry, loop safety, valid session), and the #6 route suite re-run clean at 51/51.
+>
+> **Next up:** #4 (receipt sequence table — the last data-loss defect), then #8 (untrack + rotate `.env.prod`).
 >
 > ### ✅ #9 FIXED — production can serve traffic
 >
@@ -64,6 +75,23 @@
 > | `POST` 3 MB body | **413** | 302 (reaches Laravel) |
 >
 > TLS is now documented rather than faked: no cert was available to mount, so 443 is no longer published (a published port that drops every request is worse than an absent one) and `nginx.prod.conf` states exactly what to add to terminate it in place.
+>
+> ### ✅ Also fixed — `TrustProxies` (found during #9, not one of the 47)
+>
+> Laravel had **no `TrustProxies` middleware**, so behind a TLS-terminating load balancer every generated URL came out as `http://` and `$request->secure()` returned `false`. Registered in `api/bootstrap/app.php:25` with `at: '*'`.
+>
+> `'*'` is safe in this topology and was checked before choosing it: **no compose file publishes a host port for the backend** — `docker-compose.yml`, `docker-compose.prod.yml` and `docker-compose.dev.yml` all use `expose: 8000` only. The nginx edge is therefore the only thing on the `app` network that can reach Laravel, so an `X-Forwarded-*` header cannot have been supplied by anyone else.
+>
+> **Verified with a temporary probe test** (written, run, then deleted — the same technique the original review used), asserting both directions:
+>
+> | Request headers | `secure` | `scheme` | `url('/')` |
+> |---|---|---|---|
+> | `X-Forwarded-Proto: https` | `true` | `https` | `https://localhost` |
+> | none | `false` | `http` | `http://localhost` |
+>
+> The test was then re-run with the middleware commented out and **failed**, confirming it actually exercises the fix. Live stack re-checked afterwards: `/api/health` 200, `/api/super-admin/businesses` 401, `/api/users/me` 401, unknown route 404 — all unchanged.
+>
+> `bootstrap/app.php` was also failing `pint --test` at `git HEAD` (identical fixers, `fully_qualified_strict_types` + `ordered_imports`) — a pre-existing CI red. Since the file was already open, it is now formatted and passes.
 
 **Date:** 2026-10-01
 **Branch:** `oct` @ `b718ad0` (original) · `4346dcf` (re-verification)
@@ -263,18 +291,31 @@ React Router rejects that outright, and the invariant is present in the **produc
 
 All 19 unique hardcoded `/dashboard` links in the source resolve for the role that owns them, zero router-invariant crashes, and a bad path renders the 404 page rather than a white screen. `tsc -b` exits 0.
 
-### 7. Auth failure silently renders the marketing homepage — ❌ **STILL OPEN**
+### 7. Auth failure silently renders the marketing homepage — ✅ **FIXED (verified)**
 
-`AppRoutes.tsx:23` still destructures `error` and never reads it:
+**Fix, in three parts:**
 
-```tsx
-const { data, isLoading, error } = useLoggedinUserQuery();
-if (isLoading) { return <PageLoadingState />; }
-```
+1. **Global 401 handler** — `ui/src/app/store/app/authListener.ts`. Each of the 67 slices configures its own `fetchBaseQuery`, so the only place that sees every rejection is a listener on the store. It matches `isRejectedWithValue` with `status === 401` and calls `endSessionAndRedirect()`. A **hard** `window.location.replace('/login')` is deliberate: the RTK cache still holds whatever was fetched with the dead token, so a client-side redirect would re-issue every mounted component's query, get another 401, and loop. A full navigation discards the store with the page. This mirrors what the logout button in `UserProfile.tsx` already did.
+2. **No pointless `/me` request** — `authQuery`'s `baseQuery` now refuses to call `/users/me` without a token and answers `{ success: true, data: null }` locally. **30 components** read the logged-in user, including the public `NavBar`, so each was firing a request that could only ever 401 — and on the marketing site that 401 is what made a logged-out visitor look broken. One base query fixes all 30; per-component `skip` flags would not.
+3. **`AppRoutes` now reads `error`** — a rejected `/me` sends the user to `/login`. A logged-out visitor with no token and no error still reaches the marketing site, and a tokenless visitor on `/dashboard/*` is sent to `/login` instead of a 404 dead end.
 
-No 401 interceptor exists anywhere — zero matches for `401` / `UNAUTHORIZED` across `src/app/store/`, `src/lib/`, `src/utils/`. Every slice uses a bare `fetchBaseQuery`, so no shared failure handling exists to hook into.
+`/users/login` and `/users/signup` are exempt from the 401 handler so a wrong password cannot sign you out from under the login form. The listener also refuses to navigate when it is already on `/login`, which is the backstop against a reload loop (`AppRoutes` mounts on every page, `/login` included).
 
-**This is a ~15-line fix and it is the cheapest item on this list.** Add a `baseQuery` wrapper (`fetchBaseQuery` → check `result.error.status === 401` → dispatch `logOut()`), and branch on `error` in `AppRoutes` to redirect to `/login`. Worth doing before #6: a user whose token expired currently sees the public homepage, which reads as "the app logged me out", not "the app is broken".
+**Two regressions from the #6 rework were found and fixed here.** `Login.tsx:30` and `SignUp.tsx:119` redirected to `` `/${role.toLowerCase()}/dashboard` `` — the exact URL #6 removed, so **every successful login and signup landed on a 404**. The #6 browser test missed it because it set the token directly and never went through the login form. Both now use `DASHBOARD_PREFIX`, and token writes are centralised in `ui/src/lib/session.ts` alongside the 401 handler's `clearToken()`.
+
+**Verification** — 12 checks in headless Chrome against the production bundle, with `/api/users/me` and the data endpoints stubbed per scenario:
+
+| Scenario | Result |
+|---|---|
+| Dead token + `/dashboard/products` | → `/login`, token cleared, no reload loop |
+| Dead token on `/` | → `/login` (was: marketing homepage) |
+| Logged out on `/` | marketing site renders, **0** calls to `/users/me` |
+| Logged out on `/dashboard/sales` | → `/login`, not a 404 |
+| Valid session on `/dashboard/products` | renders, token kept |
+| `/login` with no token | does not loop |
+| Token expires mid-session (data endpoint 401s) | → `/login`, token cleared |
+
+The #6 route suite was re-run afterwards: **51/51 across all six role trees**, no regression. `tsc -b` exits 0, ESLint net −1 (1089).
 
 ### 8. `.env.prod` is committed to git with a real `APP_KEY` — ❌ **STILL OPEN**
 
@@ -322,7 +363,7 @@ Also fixed the same port-contract bug elsewhere: `docker-compose.yml` mapped the
 
 `nginx -t` passes, and all three compose files now pass `docker compose config`.
 
-**Still open, found while doing this:** Laravel has **no `TrustProxies` middleware registered** (`api/bootstrap/app.php`). Behind a TLS-terminating load balancer every generated URL will come out as `http://`, and `$request->secure()` will be wrong. That is a one-line registration but it needs to know the proxy's CIDR, so it was left for a decision rather than guessed.
+**Still open, found while doing this:** — none outstanding from this finding. The `TrustProxies` gap noted during the #9 rework has since been closed (see below).
 
 ---
 
@@ -460,7 +501,7 @@ The most valuable single line in this document is `DB_DATABASE=inventory_test` i
 - **`.env.prod` with a live `APP_KEY` is still in git.** Severity scales with audience and time; it does not improve.
 - **Cache invalidation is still zero across 67 slices.** Staff see stale stock after every sale.
 
-**Recommendation: do not launch, but only three P0 items stand between here and a running production stack.** In order: #4 receipt sequence table (the last data-loss risk) → #7 the 15-line auth-error branch → #8 untrack and rotate `.env.prod`. One decision is outstanding and needs your input rather than a guess: Laravel has no `TrustProxies` middleware, so behind a TLS-terminating load balancer every generated URL will be `http://`.
+**Recommendation: do not launch, but only two P0 items stand between here and a running production stack:** #4, the receipt sequence table — the last data-loss risk — then #8, untracking and rotating `.env.prod`.
 
 The two structural fixes are the reason this reads as *days* rather than *weeks*. The navigation fix returned the most-clicked controls in the product — the row handlers on Sales, Purchases, Products, Workers, Customers, Suppliers — to working order with a single constant and a switch to relative child paths, verified at 51/51 routes across all six role trees. The proxy fix took production from a 502 on every page to serving the SPA and the API correctly, and it uncovered a queue worker that was missing entirely, without which the notification layer the product is built around would never have fired in production.
 

@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { HomeLayout } from '../pages/public/HomeLayout';
 import { Home } from '../pages/public/Home';
 import { PricingPage } from '../pages/public/PricingPage';
@@ -18,12 +18,31 @@ import { SuperadminRoutes } from './Superadmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { BranchManagerRoutes } from './BranchManagerRoutes';
 import { ProcurementRoutes } from './ProcurementRoutes';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
+import { getToken } from '@/lib/session';
 
 export const AppRoutes = () => {
   const { data, isLoading, error } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-  if (isLoading) {
+  const hasToken = Boolean(getToken());
+  const onDashboard = window.location.pathname.startsWith(DASHBOARD_PREFIX);
+
+  if (hasToken && isLoading) {
     return <PageLoadingState />;
+  }
+
+  // A rejected /me means the token is dead. Without this the role stayed
+  // undefined, no role branch mounted, and a signed-in user with an expired
+  // token was shown the public marketing homepage with the dead token still in
+  // localStorage.
+  if (error) {
+    return <Navigate to='/login' replace />;
+  }
+
+  // No token and a dashboard URL: there is nothing to render but a 404, so send
+  // them to the login screen instead of a dead end.
+  if (!hasToken && onDashboard) {
+    return <Navigate to='/login' replace />;
   }
 
   return (
