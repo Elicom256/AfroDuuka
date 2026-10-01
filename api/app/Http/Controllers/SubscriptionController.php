@@ -8,6 +8,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\WhatsApp\WhatsAppNotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionController extends Controller
 {
@@ -23,12 +24,17 @@ class SubscriptionController extends Controller
         $validated = $request->validated();
         $businessId = $validated['business_id'];
 
-        // Enforce one active subscription per business
-        Subscription::where('business_id', $businessId)
-            ->where('status', 'active')
-            ->update(['status' => 'cancelled']);
+        // Enforce one active subscription per business. The cancel + create pair must
+        // be atomic: a failure between the two statements would otherwise leave the
+        // business with no active subscription at all.
+        $subscription = DB::transaction(function () use ($validated, $businessId) {
+            Subscription::where('business_id', $businessId)
+                ->where('status', 'active')
+                ->update(['status' => 'cancelled']);
 
-        $subscription = Subscription::create($validated);
+            return Subscription::create($validated);
+        });
+
         $plan = Plan::find($subscription->plan_id);
 
         (new WhatsAppNotificationService)->queueBusinessNotification([

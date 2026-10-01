@@ -124,10 +124,15 @@ class SaleItemService
                 $product->update(['last_sold_at' => now()]);
             }
 
-            $method = PaymentMethod::find($validated["payment_status_id"])->value("method");
+            $paymentMethod = PaymentMethod::find($validated["payment_status_id"] ?? null);
+            if (! $paymentMethod) {
+                throw new Exception('Selected payment method is invalid.', 422);
+            }
+
+            $method = $paymentMethod->method;
             SalePayment::create([
                 "sale_id" => $sale->id,
-                "method" => $method ?? "cash",
+                "method" => $method,
                 "amount" => $totalAmount,
                 "paymentStatus" => $validated["paymentStatus"],
             ]);

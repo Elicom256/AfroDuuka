@@ -191,6 +191,7 @@ class PosService
             if (isset($validated['sale_id'])) {
                 $sale = Sale::where('id', $validated['sale_id'])
                     ->where('business_branch_id', $branchId)
+                    ->where('user_id', $user->id)
                     ->where('status', 'held')
                     ->firstOrFail();
                 $sale->update(['status' => 'completed', 'note' => $validated['note'] ?? $sale->note]);
