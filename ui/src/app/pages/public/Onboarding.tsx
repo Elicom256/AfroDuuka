@@ -33,7 +33,10 @@ const STEPS = [
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [account, setAccount] = useState<AccountData>(initialAccountData);
+  const [account, setAccount] = useState<AccountData>(() => ({
+    ...initialAccountData,
+    username: `@${initialAccountData.firstname.toLowerCase().replace(/\s/g, '')}`,
+  }));
   const [business, setBusiness] = useState<BusinessData>(initialBusinessData);
   const [branches, setBranches] = useState<BranchData[]>([{ ...initialBranchData }]);
 
@@ -84,6 +87,7 @@ export const Onboarding: React.FC = () => {
         email: account.email,
         phone: account.phone,
         password: account.password,
+        username: account.username,
       }).unwrap();
 
       const token = await authenticate(account.email, account.password);

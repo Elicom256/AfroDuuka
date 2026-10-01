@@ -56,6 +56,11 @@ export const Preview: React.FC<PreviewProps> = ({
           </div>
           <Separator />
           <div className='grid grid-cols-2 gap-2'>
+            <span className='text-muted-foreground'>Username</span>
+            <span className='font-medium'>{account.username}</span>
+          </div>
+          <Separator />
+          <div className='grid grid-cols-2 gap-2'>
             <span className='text-muted-foreground'>Country</span>
             <span className='font-medium'>{account.country_id}</span>
           </div>
