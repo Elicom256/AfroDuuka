@@ -66,6 +66,13 @@ class BusinessContext
 
         $user = Auth::user();
 
+        // Site admins have unrestricted access
+        if ($user?->role?->name === 'siteadmin') {
+            return null;
+        }
+
+        // All other authenticated users have no business context
+        // (omitting the clause would grant cross-tenant access)
         return $user?->business_id !== null ? (int) $user->business_id : null;
     }
 
