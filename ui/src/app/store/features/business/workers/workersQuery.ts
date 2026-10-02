@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const workersQuery = createApi({
   reducerPath: 'workerPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/workers`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/workers`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
