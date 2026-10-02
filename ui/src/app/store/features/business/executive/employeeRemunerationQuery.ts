@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const executiveEmployeeRemunerationQuery = createApi({
   reducerPath: 'executiveEmployeeRemunerationPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/employee-remuneration`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/employee-remuneration`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
