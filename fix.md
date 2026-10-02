@@ -1,17 +1,18 @@
 # Fix bugs found
 
-Baseline: `php artisan test` in docker = **8 failed, 527 passed**. None of the 8 are caused by
-the supplier/product-category work; all predate it. Each entry below gives the proven root
-cause, a verdict on the proposal in this file, and the recommended fix.
+Baseline: `php artisan test` in docker = **4 failed, 531 passed** (was 8 failed, 527 passed).
+None of the original 8 are caused by the supplier/product-category work; all predate it.
+Each entry below gives the proven root cause, a verdict on the proposal in this file, and
+the recommended fix.
 
-| # | Failing test(s) | Root cause | Owner |
+| # | Failing test(s) | Root cause | Status |
 |---|---|---|---|
-| 1 | `AttachmentTest > customer can hold documents` | stale `/api/admin/*` prefix | frontend + test |
-| 2 | `OnboardingFlowTest` ×3 (username prefix, duplicate handle, sign-in) | `UserService` double-prefixes `@`; `uniqueUsername()` never implemented | backend |
-| 3 | `PosCheckoutTest > checkout rejects a held sale owned by another user` | `PosController` maps exception code `0` → 500 | backend |
-| 4 | `PosCheckoutTest > credit sale is added to customer ledger…` | test fixture omits `business_id` | test |
-| 5 | `ProbeHeldTest > probe` | scratch test; `Sale::create` drops `business_id` | delete it |
-| 6 | `SignupTest > business creation rejects a missing country` | persistent test DB + absolute `assertSame(0, …)` | test |
+| 1 | `AttachmentTest > customer can hold documents` | stale `/api/admin/*` prefix | **fixed** |
+| 2 | `OnboardingFlowTest` ×3 (username prefix, duplicate handle, sign-in) | `UserService` double-prefixes `@`; `uniqueUsername()` never implemented; login lookup misses bare handles | **fixed** |
+| 3 | `PosCheckoutTest > checkout rejects a held sale owned by another user` | `PosController` maps exception code `0` → 500 | pending |
+| 4 | `PosCheckoutTest > credit sale is added to customer ledger…` | test fixture omits `business_id` | pending |
+| 5 | `ProbeHeldTest > probe` | scratch test; `Sale::create` drops `business_id` | pending |
+| 6 | `SignupTest > business creation rejects a missing country` | persistent test DB + absolute `assertSame(0, …)` | pending |
 
 ---
 
@@ -321,10 +322,12 @@ Five test classes also opt out of transactions entirely:
 
 1. ~~**Fix 1a**~~ — **done.** 7 baseUrls rewritten, typecheck green.
 2. ~~**Fix 1a-2**~~ — **done.** `updateCustomer` DELETE → PATCH.
-3. **Fix 2** — 3 tests green; also fixes real signup handles.
-4. **Fix 3** — 1 test green; prevents a class of 500s.
-5. **Fix 4, 5, 6** — test-suite hygiene, no app behaviour at risk.
-6. **Fix 1b** — the guard that stops 1a recurring. Land it *after* 1a so it starts green, and
+3. ~~**Fix 1c**~~ — **done.** `AttachmentTest` URL corrected.
+4. ~~**Fix 2**~~ — **done.** `normalizeUsername()` + `uniqueUsername()` added; all three write
+   paths routed through them; login lookup fixed to match bare handles.
+5. **Fix 3** — 1 test green; prevents a class of 500s.
+6. **Fix 4, 5, 6** — test-suite hygiene, no app behaviour at risk.
+7. **Fix 1b** — the guard that stops 1a recurring. Land it *after* 1a so it starts green, and
    have it check verbs as well as paths.
 
 Deliberately excluded: renaming `/api/dashboard/*` to role-prefixed groups. See the verdict
