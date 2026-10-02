@@ -73,6 +73,24 @@ Note the last one: singular `attendance` → plural `attendances`. A blind searc
 
 `business/suppliers/supplierQuery.ts` is already corrected to `/dashboard/suppliers`.
 
+**Status: applied.** All 7 rewritten; `npx tsc -b` green; no `/admin` API base remains in
+`ui/src/`.
+
+### Fix 1a-2 — `updateCustomer` was deleting customers
+
+While verifying the above, one genuine verb bug surfaced in the same file:
+
+`ui/src/app/store/features/business/customers/customersQuery.ts:46` sent
+`method: 'DELETE'` from `updateCustomer`. `DELETE /api/dashboard/customers/{id}` resolves to
+`customers.destroy`, so **editing a customer deleted it**. Changed to `PATCH`.
+
+Do **not** "fix" the other `PUT` senders. Every `.update` route is registered via
+`Route::apiResource`, which maps `update` to `match(['PUT','PATCH'])` — `PUT` works everywhere.
+Verified against `routes/executive.php:35-44` (`workers`, `roles`, `suppliers`, `customers` are
+all `apiResource`) and `php artisan route:list`, where all 17 `.update` routes read `PUT|PATCH`.
+An earlier reading of `route:list` that suggested `PATCH`-only was a faulty regex on my side, not
+a backend fact — worth remembering before trusting a one-off `grep` of route output.
+
 ### Fix 1b — stop the class of bug (the real fix)
 
 The underlying defect is that API paths are duplicated as free-text strings in two repos with
@@ -85,6 +103,11 @@ tests/Feature/FrontendApiPathsTest.php
 - read every `baseUrl: \`${import.meta.env.VITE_BASE_URL}…\`` out of `ui/src/app/store/features/`
 - substitute a concrete origin, strip the `{param}` segments each query appends
 - assert a matching route exists in `Route::getRoutes()`
+
+**Also assert the HTTP method, not just the path.** `Route::apiResource` maps `update` to
+`PUT|PATCH`, so a path-only check passes while a `DELETE` sent to an update endpoint still
+resolves to `destroy` — which is exactly how `updateCustomer` came to delete customers. Compare
+each mutation's verb against the registered verbs for that URI.
 
 No codegen infrastructure, no build coupling, and it catches every future rename — the check
 that would have failed CI on `76dc0c4`. If the team later wants compile-time safety, generate
@@ -296,11 +319,13 @@ Five test classes also opt out of transactions entirely:
 
 ## Suggested order
 
-1. **Fix 1a** — 7 broken features restored, mechanical, zero risk.
-2. **Fix 2** — 3 tests green; also fixes real signup handles.
-3. **Fix 3** — 1 test green; prevents a class of 500s.
-4. **Fix 4, 5, 6** — test-suite hygiene, no app behaviour at risk.
-5. **Fix 1b** — the guard that stops 1a recurring. Land it *after* 1a so it starts green.
+1. ~~**Fix 1a**~~ — **done.** 7 baseUrls rewritten, typecheck green.
+2. ~~**Fix 1a-2**~~ — **done.** `updateCustomer` DELETE → PATCH.
+3. **Fix 2** — 3 tests green; also fixes real signup handles.
+4. **Fix 3** — 1 test green; prevents a class of 500s.
+5. **Fix 4, 5, 6** — test-suite hygiene, no app behaviour at risk.
+6. **Fix 1b** — the guard that stops 1a recurring. Land it *after* 1a so it starts green, and
+   have it check verbs as well as paths.
 
 Deliberately excluded: renaming `/api/dashboard/*` to role-prefixed groups. See the verdict
 above — it is the change that caused this class of bug.
