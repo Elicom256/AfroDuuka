@@ -45,6 +45,9 @@ services:
       - ./api:/app
       # Mount the entrypoint so edits apply without rebuilding the image.
       - ./api/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      # Read-only mount of the frontend so FrontendApiPathsTest can verify
+      # that every RTK Query endpoint resolves to a real backend route.
+      - ./ui:/frontend:ro
     depends_on:
       pgsql:
         condition: service_healthy
