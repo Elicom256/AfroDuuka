@@ -33,7 +33,7 @@ export const SuperadminSidebar = ({ onNavigate }: SuperadminSidebarProps) => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/coresupport'}
+              end={item.to === '/dashboard'}
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
