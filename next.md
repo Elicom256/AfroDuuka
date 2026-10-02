@@ -186,7 +186,6 @@ you debug the next "login is broken" report.
 
 ## Morning checklist
 
-- [ ] Read the diff of the 5 uncommitted files, then commit them
 - [ ] Decide on the 60 test failures: fix the factories, or `migrate:fresh` in CI
 - [ ] P0 #8 — rotate `APP_KEY`, untrack `.env.prod`
 - [ ] Bring the prod stack up once: `docker compose -f docker-compose.prod.yml up -d --build`

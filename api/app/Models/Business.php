@@ -13,7 +13,7 @@ class Business extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', 'timezone', "status", "subscription_balance"
+        'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', 'timezone', "status", "subscription_balance", "logo"
         ];
 
     public function users(): HasMany

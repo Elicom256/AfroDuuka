@@ -20,7 +20,7 @@ export const CtaSection = () => {
 
           <div className='mt-7 flex flex-col gap-3 sm:flex-row'>
             <Button size='lg' asChild className='bg-[#e1e89f] px-6 text-[#203d2c] hover:bg-[#edf1c0]'>
-              <Link to='/signup'>
+              <Link to='/onboarding'>
                 Get started
                 <ArrowRight className='ml-2 h-5 w-5' />
               </Link>

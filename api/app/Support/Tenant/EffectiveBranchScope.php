@@ -4,6 +4,7 @@ namespace App\Support\Tenant;
 
 use App\Models\BusinessBranch;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -110,9 +111,19 @@ class EffectiveBranchScope
             $user = Auth::user();
             $resolved = static::branchesFor($user);
 
-            // unrestricted (system role)
+            // A user with no business is one of two things: a system role that
+            // operates across every tenant by design (siteadmin, CoreSupport — the
+            // latter is elevated in RolePermissions for exactly that reason), or an
+            // account that has not finished creating its business. Only the first may
+            // see everything; the second must see nothing. RequireBusiness already
+            // refuses the second at the route layer, but the model layer has to fail
+            // closed on its own for jobs and console commands.
+            //
+            // This used to test isSiteAdmin() alone, so a CoreSupport account was
+            // given `0 = 1` and could read nothing at all — the opposite of the
+            // cross-tenant access its role exists to provide.
             if ($resolved === null) {
-                if (! app(BusinessContext::class)->isSiteAdmin()) {
+                if (! RolePermissions::isElevated($user)) {
                     $builder->whereRaw('0 = 1');
                 }
 
