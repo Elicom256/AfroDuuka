@@ -35,6 +35,13 @@
         compose service on the internal network. This matches .env.testing.
     -->
     <php>
+        <!--
+            dompdf rendering a real report exhausts the container's 128M default and
+            takes the whole run down with "Premature end of PHP process", which
+            looks like a crash in whatever test happened to be running rather than
+            an out-of-memory error. Raised here so the suite reports its own results.
+        -->
+        <ini name="memory_limit" value="1500M"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file" force="true"/>
         <env name="BCRYPT_ROUNDS" value="4" force="true"/>

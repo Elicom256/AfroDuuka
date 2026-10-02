@@ -2,6 +2,8 @@
 
 namespace App\Support\Tenant;
 
+use App\Models\Role;
+use App\Models\User;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,6 +28,16 @@ class BusinessContext
     protected ?int $businessId = null;
 
     protected ?int $branchId = null;
+
+    /**
+     * The caller's role name, memoised against the user it was read for.
+     *
+     * Keyed on the user id rather than just cached, so switching the acting user
+     * inside one process — which tests do — cannot serve a stale role.
+     */
+    protected ?int $roleNameUserId = null;
+
+    protected string $roleName = '';
 
     /**
      * Run a callback with the given tenant active.
@@ -58,19 +70,8 @@ class BusinessContext
      * The tenant for the current context, falling back to the authenticated user's
      * business. Null means unrestricted (a genuine system role).
      */
-    public static int $probe = 0;
-
     public function businessId(): ?int
     {
-        self::$probe++;
-        if (self::$probe > 6) {
-            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 30);
-            $out = [];
-            foreach ($bt as $f) { $out[] = ($f['class'] ?? '').($f['type'] ?? '').($f['function'] ?? '?'); }
-            file_put_contents('/tmp/recursion.txt', implode("\n", $out));
-            throw new \RuntimeException('businessId() recursion detected');
-        }
-        try {
         if ($this->businessId !== null) {
             return $this->businessId;
         }
@@ -80,21 +81,52 @@ class BusinessContext
             return null;
         }
 
-        // Site admins have unrestricted access. Resolve the role by id rather than
-        // relying on a dynamic relationship property, since some code paths can hit
-        // this before the relation is explicitly eager-loaded.
-        $roleName = $user->role_id !== null
-            ? \App\Models\Role::query()->whereKey($user->role_id)->value('name')
-            : null;
-
-        if (strtolower((string) $roleName) === 'siteadmin') {
+        // Site admins have unrestricted access.
+        if ($this->roleNameFor($user) === 'siteadmin') {
             return null;
         }
 
         // All other authenticated users have no business context
         // (omitting the clause would grant cross-tenant access)
         return $user->business_id !== null ? (int) $user->business_id : null;
-        } finally { self::$probe--; }
+    }
+
+    /**
+     * The caller's role name, lowercased for comparison.
+     *
+     * The Role query is deliberately unscoped. `roles` carries a business_id, so
+     * a *scoped* Role query re-enters this method through BaseModel's `business`
+     * global scope, which asks for the business id to build the very scope that
+     * is asking — and the two call each other until the process runs out of
+     * memory. It happened on every authenticated query against any tenant table,
+     * which is also why the test suite died with "Premature end of PHP process"
+     * the moment it created a record as an Executive.
+     *
+     * A global scope must never issue a query against a model carrying that same
+     * scope; this is the one place that needed the role, and it reads it raw.
+     *
+     * Memoised because this sits on the hot path: it used to add a SELECT to
+     * every single tenant query, and the value cannot change under a given user
+     * within a request.
+     */
+    protected function roleNameFor(?User $user): string
+    {
+        if (! $user) {
+            return '';
+        }
+
+        if ($this->roleNameUserId === $user->id) {
+            return $this->roleName;
+        }
+
+        $this->roleNameUserId = $user->id;
+        $this->roleName = strtolower((string) (
+            $user->role_id !== null
+                ? Role::withoutGlobalScopes()->whereKey($user->role_id)->value('name')
+                : null
+        ));
+
+        return $this->roleName;
     }
 
     public function branchId(): ?int
@@ -110,17 +142,7 @@ class BusinessContext
 
     public function isSiteAdmin(): bool
     {
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        $roleName = $user->role_id !== null
-            ? \App\Models\Role::query()->whereKey($user->role_id)->value('name')
-            : null;
-
-        return strtolower((string) $roleName) === 'siteadmin';
+        return $this->roleNameFor(Auth::user()) === 'siteadmin';
     }
 
     public function hasBusiness(): bool
@@ -142,5 +164,7 @@ class BusinessContext
     {
         $this->businessId = null;
         $this->branchId = null;
+        $this->roleNameUserId = null;
+        $this->roleName = '';
     }
 }
