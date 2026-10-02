@@ -181,4 +181,20 @@ public static function roleName(?User $user): string
     {
         return static::isElevated($user);
     }
+
+    /**
+     * May the user create, edit or delete suppliers?
+     *
+     * A supplier is who the *business* buys from, not something a branch owns:
+     * SupplierService never stamps business_branch_id on create, so the row lands
+     * with a NULL branch and EffectiveBranchScope keeps it visible to every branch
+     * of the business. A BranchManager may read that list — their purchases need it
+     * to render a supplier name — but authoring it is Executive territory, for the
+     * same reason as canManageReports: one counterparty and one supplier_code for the
+     * whole business, which a branch manager must not fork per branch.
+     */
+    public static function canManageSuppliers(?User $user): bool
+    {
+        return static::isElevated($user);
+    }
 }
