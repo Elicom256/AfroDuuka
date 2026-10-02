@@ -125,7 +125,12 @@ class PosSearchTest extends TestCase
 
     public function test_search_requires_auth(): void
     {
+        // setUp() authenticates every test in this class, including this one, so the
+        // session has to be dropped before the request means anything. Without it this
+        // test asserted against an authenticated call and passed for the wrong reason.
+        $this->app['auth']->forgetGuards();
+
         $this->getJson('/api/pos/products/search?q=test')
-            ->assertStatus(302);
+            ->assertStatus(401);
     }
 }

@@ -52,7 +52,8 @@ export const SignUp: React.FC = () => {
   const { data: countriesData } = useCountriesQuery();
   const { data: businessCategories } = useGetPublicBusinessCategoriesQuery();
   const countries = countriesData?.data || [];
-  const categories = businessCategories?.data || [];
+  // The categories endpoint returns the collection bare, not under a `data` key.
+  const categories = businessCategories || [];
 
   // Prefill when editing
   useEffect(() => {

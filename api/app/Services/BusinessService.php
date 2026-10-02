@@ -8,6 +8,7 @@ use App\Models\BusinessBranch;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Notifications\RecipientProvisioner;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BusinessService
@@ -19,61 +20,151 @@ class BusinessService
 
     public function create(array $data, User $user): Business
     {
-        // Create the business with the user's phone.
-        // Optional fields are read with ?? rather than []. A nullable validation rule
-        // means the key is simply absent from validated() when the client omits it, so
-        // $data['address'] raised "Undefined array key" and turned business creation
-        // into a 500 — which is exactly the call self-serve onboarding depends on.
+        // The business, its roles, its first branch and the caller's own tenant
+        // assignment are one fact: either the tenant exists and is reachable, or none
+        // of it happened. The onboarding form sends its branch list in this same
+        // payload, so a failure in any part of it has to leave nothing behind — a
+        // business with no owner role is a tenant nobody can administer.
         //
-        // country_id is not optional: the column is NOT NULL and StoreBusinessRequest
-        // now requires it, replacing a fallback that wrote Uganda onto businesses that
-        // never chose a country.
-        $business = Business::create([
-            'name' => $data['name'],
-            'email' => $data['email'] ?? $user->email,
-            'phone' => $user->phone,
-            'address' => $data['address'] ?? null,
-            'business_category_id' => $data['business_category_id'],
-            'country_id' => $data['country_id'],
-        ]);
+        // The notification event is fired inside the transaction deliberately. It
+        // queues a job on the same connection, so the job row is only visible once the
+        // transaction commits: nobody is told they were registered for a business that
+        // does not exist.
+        return DB::transaction(function () use ($data, $user) {
+            // Create the business with the user's phone.
+            // Optional fields are read with ?? rather than []. A nullable validation rule
+            // means the key is simply absent from validated() when the client omits it, so
+            // $data['address'] raised "Undefined array key" and turned business creation
+            // into a 500 — which is exactly the call self-serve onboarding depends on.
+            //
+            // country_id is not optional: the column is NOT NULL and StoreBusinessRequest
+            // now requires it, replacing a fallback that wrote Uganda onto businesses that
+            // never chose a country.
+            $business = Business::create([
+                'name' => $data['name'],
+                // A business can be reachable on its own contact details — that is what
+                // the onboarding form asks for. Both fall back to the owner's, which is
+                // what the one-screen signup relies on since it never collects them.
+                'email' => $data['email'] ?? $user->email,
+                'phone' => $this->normalisePhone($data['phone'] ?? null) ?? $user->phone,
+                'address' => $data['address'] ?? null,
+                'business_category_id' => $data['business_category_id'],
+                'country_id' => $data['country_id'],
+            ]);
 
-        // Dispatch business registration event
-        event(new BusinessRegistered($business));
+            // Dispatch business registration event
+            event(new BusinessRegistered($business));
 
-        // Create the Executive role for this business
-        $executiveRole = Role::create([
-            'name' => 'Executive',
-            'business_id' => $business->id,
-        ]);
-
-        $existingRoleNames = Role::where('business_id', $business->id)->pluck('name')->all();
-        $new_roles = ['Operations', 'editor', 'customer', 'supplier'];
-        foreach ($new_roles as $new_role) {
-            if (in_array($new_role, $existingRoleNames, true)) {
-                continue;
-            }
-            Role::create([
-                'name' => $new_role,
+            // Create the Executive role for this business
+            $executiveRole = Role::create([
+                'name' => 'Executive',
                 'business_id' => $business->id,
             ]);
-            $existingRoleNames[] = $new_role;
+
+            $existingRoleNames = Role::where('business_id', $business->id)->pluck('name')->all();
+            $new_roles = ['Operations', 'editor', 'customer', 'supplier'];
+            foreach ($new_roles as $new_role) {
+                if (in_array($new_role, $existingRoleNames, true)) {
+                    continue;
+                }
+                Role::create([
+                    'name' => $new_role,
+                    'business_id' => $business->id,
+                ]);
+                $existingRoleNames[] = $new_role;
+            }
+
+            $branch = $this->createBranches($business, $data['branches'] ?? []);
+
+            // Update the user's profile with business_id and role_id
+            $user->update([
+                'business_id' => $business->id,
+                'role_id' => $executiveRole->id,
+                // The owner belongs to the business's first branch. Without this the
+                // owner had no business_branch_id at all, so the branch badge in the
+                // navbar never rendered for anyone who signed themselves up, and every
+                // branch-scoped read had to fall back to "all branches of the business".
+                'business_branch_id' => $branch->id,
+            ]);
+
+            // ======================= set starter plan ================= to create a plan based on what the user picked
+
+            $this->attachTrialSubscription($business);
+
+            $this->provisionRecipients($business, $user);
+
+            return $business;
+        });
+    }
+
+    /**
+     * Create the business's branches and return the first of them.
+     *
+     * Onboarding collects branches as its own step, so they arrive with the business
+     * instead of as a follow-up request per branch. Previously a branch named "Main
+     * Branch" — the name the column defaults to, and the obvious thing an owner types
+     * for their first branch — collided with the branch this method used to create
+     * unconditionally, and the second insert died on the unique (business_id, name)
+     * index with the business already written.
+     *
+     * @param  array<int, array<string, mixed>>  $branches
+     */
+    private function createBranches(Business $business, array $branches): BusinessBranch
+    {
+        $branches = array_values(array_filter(
+            $branches,
+            fn ($branch) => is_array($branch) && trim((string) ($branch['name'] ?? '')) !== ''
+        ));
+
+        if ($branches === []) {
+            // No branch was collected, so the business still needs one: most branch-scoped
+            // tables hang off business_branch_id and a business with none of its own has
+            // nowhere to record a sale.
+            return BusinessBranch::create([
+                'business_id' => $business->id,
+                'name' => 'Main Branch',
+            ]);
         }
-        // Update the user's profile with business_id and role_id
-        $user->update([
-            'business_id' => $business->id,
-            'role_id' => $executiveRole->id,
-        ]);
-        BusinessBranch::create([
-            'business_id' => $business->id,
-        ]);
 
-        // ======================= set starter plan ================= to create a plan based on what the user picked
+        $first = null;
 
-        $this->attachTrialSubscription($business);
+        foreach ($branches as $branch) {
+            $created = BusinessBranch::create([
+                'business_id' => $business->id,
+                'name' => trim((string) $branch['name']),
+                'address' => trim((string) ($branch['address'] ?? '')) ?: null,
+                'phone' => $this->normalisePhone($branch['phone'] ?? null),
+            ]);
 
-        $this->provisionRecipients($business, $user);
+            $first ??= $created;
+        }
 
-        return $business;
+        return $first;
+    }
+
+    /**
+     * Strip formatting from a phone number the way StoreUserRequest does for a user.
+     *
+     * The branch form asks for a human-typed number and its placeholder shows a
+     * formatted one, so the value that reaches here is routinely "+256 700 000 000".
+     *
+     * This is not cosmetic for the business phone in particular: BusinessRegisteredListener
+     * hands it to the notification pipeline as the delivery address, and a number with
+     * spaces in it is rejected by the channel.
+     */
+    private function normalisePhone(mixed $phone): ?string
+    {
+        if (! is_string($phone)) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if ($digits === '' || $digits === null) {
+            return null;
+        }
+
+        return str_starts_with(ltrim($phone), '+') ? '+'.$digits : $digits;
     }
 
     /**
@@ -112,7 +203,7 @@ class BusinessService
                 'trial_ends_at' => $now->copy()->addDays(30),
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Could not attach free trial subscription', [
+            Log::error('Could not attach free trial subscription', [
                 'business_id' => $business->id,
                 'exception' => $e->getMessage(),
             ]);

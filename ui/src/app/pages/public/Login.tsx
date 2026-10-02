@@ -91,7 +91,7 @@ export const Login: React.FC = () => {
 
       <p className='text-center text-sm text-muted-foreground mt-6'>
         Don&apos;t have an account?{' '}
-        <Link to='/signup' className='font-semibold text-primary hover:underline'>
+        <Link to='/onboarding' className='font-semibold text-primary hover:underline'>
           Sign up
         </Link>
       </p>

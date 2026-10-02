@@ -23,7 +23,9 @@ export const NavBar: React.FC = () => {
   const dashboardLink = DASHBOARD_PREFIX;
   const businessName = data?.data?.business?.name ?? 'DuukaFlow';
   const businessLogo = data?.data?.business?.logo ?? logo;
-  const branchName = data?.data?.businessBranch?.name;
+  // Eloquent serialises the businessBranch() relation under its snake_case key, so
+  // businessBranch is always undefined here and the badge could never render.
+  const branchName = data?.data?.business_branch?.name;
 
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl'>
@@ -33,12 +35,14 @@ export const NavBar: React.FC = () => {
           className='group inline-flex items-center gap-3 text-lg font-semibold tracking-tight text-foreground'
         >
           <img src={businessLogo} alt='' className='h-14 w-auto object-contain drop-shadow-sm' />
-          <span className='hidden md:inline'>{businessName}</span>
-          {branchName && (
-            <Badge variant="outline" className="ml-2 text-xs">
-              {branchName}
-            </Badge>
-          )}
+          <span className='flex flex-col items-start leading-tight'>
+            <span className='hidden md:inline'>{businessName}</span>
+            {branchName && (
+              <Badge variant='outline' className='mt-1 text-xs font-normal'>
+                {branchName}
+              </Badge>
+            )}
+          </span>
         </Link>
 
         <nav className='hidden items-center gap-2 md:flex'>

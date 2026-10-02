@@ -1,157 +1,150 @@
-import { UserPlus, Mail, Phone, Lock } from 'lucide-react';
+import { Building, Lock, Mail, Phone, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import type { AccountData } from './types';
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import type { AccountData, StepErrors } from './types';
 
 interface AccountSetupProps {
   data: AccountData;
+  errors: StepErrors;
   onChange: (data: AccountData) => void;
   onNext: () => void;
 }
 
-export const AccountSetup: React.FC<AccountSetupProps> = ({ data, onChange, onNext }) => {
-  // Auto-generate username from firstname
-  const generatedUsername = `@${data.firstname.toLowerCase().replace(/\s/g, '')}`;
-
-  const handleChange = (field: keyof AccountData, value: string) => {
-    // Re-generate username when firstname changes
-    if (field === 'firstname') {
-      onChange({ ...data, [field]: value, username: `@${value.toLowerCase().replace(/\s/g, '')}` });
-    } else {
-      onChange({ ...data, [field]: value });
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (data.password !== data.confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
-    }
-
-    onNext();
-  };
+/**
+ * Step 1 — the owner's own account.
+ *
+ * Isolated: it holds no state of its own, only the account slice of the draft, so the
+ * owner can leave for step 2 and come back without retyping.
+ */
+export const AccountSetup: React.FC<AccountSetupProps> = ({ data, errors, onChange, onNext }) => {
+  const set = (field: keyof AccountData, value: string) => onChange({ ...data, [field]: value });
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-5'>
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <div className='space-y-2'>
-          <Label htmlFor='firstname'>
-            <UserPlus className='h-4 w-4 text-muted-foreground' />
-            First name
-          </Label>
-          <Input
-            id='firstname'
-            name='firstname'
-            type='text'
-            autoComplete='given-name'
-            value={data.firstname}
-            onChange={(e) => handleChange('firstname', e.target.value)}
-            placeholder='Jane'
-            required
-            minLength={2}
-          />
+    <form
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault();
+        onNext();
+      }}
+      className='space-y-6'
+    >
+      <FieldGroup className='gap-5'>
+        <div className='grid gap-5 sm:grid-cols-2'>
+          <Field data-invalid={Boolean(errors.firstname)}>
+            <FieldLabel htmlFor='firstname'>
+              <UserIcon className='h-4 w-4 text-muted-foreground' aria-hidden />
+              First name
+            </FieldLabel>
+            <Input
+              id='firstname'
+              name='firstname'
+              autoComplete='given-name'
+              value={data.firstname}
+              onChange={(e) => set('firstname', e.target.value)}
+              placeholder='Jane'
+              aria-invalid={Boolean(errors.firstname)}
+            />
+            {errors.firstname && <FieldError>{errors.firstname}</FieldError>}
+          </Field>
+
+          <Field data-invalid={Boolean(errors.lastname)}>
+            <FieldLabel htmlFor='lastname'>Last name</FieldLabel>
+            <Input
+              id='lastname'
+              name='lastname'
+              autoComplete='family-name'
+              value={data.lastname}
+              onChange={(e) => set('lastname', e.target.value)}
+              placeholder='Doe'
+              aria-invalid={Boolean(errors.lastname)}
+            />
+            {errors.lastname && <FieldError>{errors.lastname}</FieldError>}
+          </Field>
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='lastname'>Last name</Label>
+        <Field data-invalid={Boolean(errors.email)}>
+          <FieldLabel htmlFor='email'>
+            <Mail className='h-4 w-4 text-muted-foreground' aria-hidden />
+            Email
+          </FieldLabel>
           <Input
-            id='lastname'
-            name='lastname'
-            type='text'
-            autoComplete='family-name'
-            value={data.lastname}
-            onChange={(e) => handleChange('lastname', e.target.value)}
-            placeholder='Doe'
-            required
+            id='email'
+            name='email'
+            type='email'
+            autoComplete='email'
+            value={data.email}
+            onChange={(e) => set('email', e.target.value)}
+            placeholder='you@example.com'
+            aria-invalid={Boolean(errors.email)}
           />
-        </div>
-      </div>
+          {errors.email && <FieldError>{errors.email}</FieldError>}
+        </Field>
 
-      <div className='space-y-2'>
-        <Label htmlFor='email'>
-          <Mail className='h-4 w-4 text-muted-foreground' />
-          Email
-        </Label>
-        <Input
-          id='email'
-          name='email'
-          type='email'
-          autoComplete='email'
-          value={data.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          placeholder='you@example.com'
-          required
-        />
-      </div>
+        <Field data-invalid={Boolean(errors.phone)}>
+          <FieldLabel htmlFor='phone'>
+            <Phone className='h-4 w-4 text-muted-foreground' aria-hidden />
+            Phone
+          </FieldLabel>
+          <Input
+            id='phone'
+            name='phone'
+            type='tel'
+            autoComplete='tel'
+            value={data.phone}
+            onChange={(e) => set('phone', e.target.value)}
+            placeholder='+256 700 000 000'
+            aria-invalid={Boolean(errors.phone)}
+          />
+          {errors.phone ? (
+            <FieldError>{errors.phone}</FieldError>
+          ) : (
+            <FieldDescription>Used to sign in and to reach you about your business.</FieldDescription>
+          )}
+        </Field>
 
-      <div className='space-y-2'>
-        <Label htmlFor='phone'>
-          <Phone className='h-4 w-4 text-muted-foreground' />
-          Phone
-        </Label>
-        <Input
-          id='phone'
-          name='phone'
-          type='tel'
-          autoComplete='tel'
-          value={data.phone}
-          onChange={(e) => handleChange('phone', e.target.value)}
-          placeholder='+256 700 000 000'
-          required
-        />
-      </div>
+        <Field data-invalid={Boolean(errors.password)}>
+          <FieldLabel htmlFor='password'>
+            <Lock className='h-4 w-4 text-muted-foreground' aria-hidden />
+            Password
+          </FieldLabel>
+          <Input
+            id='password'
+            name='password'
+            type='password'
+            autoComplete='new-password'
+            value={data.password}
+            onChange={(e) => set('password', e.target.value)}
+            aria-invalid={Boolean(errors.password)}
+          />
+          {errors.password && <FieldError>{errors.password}</FieldError>}
+        </Field>
 
-      <div className='space-y-2'>
-        <Label htmlFor='password'>
-          <Lock className='h-4 w-4 text-muted-foreground' />
-          Password
-        </Label>
-        <Input
-          id='password'
-          name='password'
-          type='password'
-          autoComplete='new-password'
-          value={data.password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          placeholder='Enter a secure password'
-          required
-          minLength={6}
-        />
-      </div>
+        <Field data-invalid={Boolean(errors.confirmPassword)}>
+          <FieldLabel htmlFor='confirmPassword'>Confirm password</FieldLabel>
+          <Input
+            id='confirmPassword'
+            name='confirmPassword'
+            type='password'
+            autoComplete='new-password'
+            value={data.confirmPassword}
+            onChange={(e) => set('confirmPassword', e.target.value)}
+            aria-invalid={Boolean(errors.confirmPassword)}
+          />
+          {errors.confirmPassword && <FieldError>{errors.confirmPassword}</FieldError>}
+        </Field>
+      </FieldGroup>
 
-      <div className='space-y-2'>
-        <Label htmlFor='confirmPassword'>Confirm password</Label>
-        <Input
-          id='confirmPassword'
-          name='confirmPassword'
-          type='password'
-          autoComplete='new-password'
-          value={data.confirmPassword}
-          onChange={(e) => handleChange('confirmPassword', e.target.value)}
-          placeholder='Re-enter your password'
-          required
-          minLength={6}
-          aria-invalid={
-            data.confirmPassword.length > 0 && data.password !== data.confirmPassword
-          }
-        />
-        {data.confirmPassword.length > 0 && data.password !== data.confirmPassword && (
-          <p className='text-xs text-destructive'>Passwords do not match.</p>
-        )}
-      </div>
-
-      <div className='space-y-2'>
-        <p className='text-sm text-muted-foreground'>
-          Suggested username: <strong className='text-primary'>{generatedUsername}</strong>
+      <div className='rounded-lg border border-border/60 bg-muted/40 p-3'>
+        <p className='flex items-start gap-2 text-xs text-muted-foreground'>
+          <Building className='mt-0.5 h-3.5 w-3.5 shrink-0' aria-hidden />
+          This account will own the business you set up next, so it is the one that can
+          invite staff and change settings later.
         </p>
       </div>
 
-      <Button type='submit' className='w-full'>
-        Continue
+      <Button type='submit' className='w-full sm:w-auto'>
+        Continue to business details
       </Button>
     </form>
   );

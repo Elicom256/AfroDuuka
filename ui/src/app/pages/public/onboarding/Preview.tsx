@@ -1,140 +1,143 @@
-import { Pencil, User, Building2, MapPin } from 'lucide-react';
+import { Building2, MapPin, Pencil, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { LoadingState } from '@/utils/LoadingState';
+import { Badge } from '@/components/ui/badge';
 import type { AccountData, BusinessData, BranchData } from './types';
+
+export interface ResolvedNames {
+  country: string;
+  category: string;
+}
 
 interface PreviewProps {
   account: AccountData;
   business: BusinessData;
   branches: BranchData[];
+  /**
+   * The country and category as text.
+   *
+   * Passed separately rather than substituted into `business` the way the previous
+   * version did it. Overwriting country_id with the country's name left the draft
+   * holding a string where the API wants an id, so editing anything on this step and
+   * saving afterwards sent "Uganda" as a foreign key.
+   */
+  names: ResolvedNames;
+  showAccount: boolean;
   onEdit: (step: number) => void;
   onSave: () => void;
-  isLoading: boolean;
+  isSaving: boolean;
 }
 
+const SummaryRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className='grid grid-cols-[minmax(0,9rem)_1fr] gap-3 py-2'>
+    <dt className='text-muted-foreground'>{label}</dt>
+    <dd className='min-w-0 break-words font-medium'>{value || '—'}</dd>
+  </div>
+);
+
+/**
+ * Step 4 — nothing is written until this is confirmed.
+ *
+ * Every section can be sent back for editing, which is the point of the step: the
+ * owner has not created an account yet, so a typo noticed here is free to fix and one
+ * noticed afterwards is not.
+ */
 export const Preview: React.FC<PreviewProps> = ({
   account,
   business,
   branches,
+  names,
+  showAccount,
   onEdit,
   onSave,
-  isLoading,
+  isSaving,
 }) => {
   return (
-    <div className='space-y-5'>
-      <Card>
-        <CardHeader className='pb-3'>
-          <div className='flex items-center justify-between'>
+    <div className='space-y-6'>
+      {showAccount && (
+        <Card>
+          <CardHeader className='flex-row items-center justify-between space-y-0 pb-4'>
             <CardTitle className='flex items-center gap-2 text-sm font-medium'>
-              <User className='h-4 w-4' />
-              Account
+              <UserIcon className='h-4 w-4' aria-hidden />
+              Your account
             </CardTitle>
-            <Button variant='ghost' size='sm' onClick={() => onEdit(1)}>
-              <Pencil className='mr-1 h-3 w-3' />
+            <Button type='button' variant='ghost' size='sm' onClick={() => onEdit(1)}>
+              <Pencil className='mr-1 h-3 w-3' aria-hidden />
               Edit
             </Button>
-          </div>
+          </CardHeader>
+          <CardContent>
+            <dl className='divide-y'>
+              <SummaryRow label='Name' value={`${account.firstname} ${account.lastname}`.trim()} />
+              <SummaryRow label='Email' value={account.email} />
+              <SummaryRow label='Phone' value={account.phone} />
+            </dl>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader className='flex-row items-center justify-between space-y-0 pb-4'>
+          <CardTitle className='flex items-center gap-2 text-sm font-medium'>
+            <Building2 className='h-4 w-4' aria-hidden />
+            Business
+          </CardTitle>
+          <Button type='button' variant='ghost' size='sm' onClick={() => onEdit(2)}>
+            <Pencil className='mr-1 h-3 w-3' aria-hidden />
+            Edit
+          </Button>
         </CardHeader>
-        <CardContent className='space-y-2 text-sm'>
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Name</span>
-            <span className='font-medium'>
-              {account.firstname} {account.lastname}
-            </span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Email</span>
-            <span className='font-medium'>{account.email}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Phone</span>
-            <span className='font-medium'>{account.phone}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Username</span>
-            <span className='font-medium'>{account.username}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Country</span>
-            <span className='font-medium'>{business.country_id}</span>
-          </div>
+        <CardContent>
+          <dl className='divide-y'>
+            <SummaryRow label='Name' value={business.name} />
+            <SummaryRow label='Category' value={names.category} />
+            <SummaryRow label='Country' value={names.country} />
+            <SummaryRow label='Email' value={business.email} />
+            <SummaryRow label='Phone' value={business.phone} />
+            <SummaryRow label='Address' value={business.address} />
+          </dl>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className='pb-3'>
-          <div className='flex items-center justify-between'>
-            <CardTitle className='flex items-center gap-2 text-sm font-medium'>
-              <Building2 className='h-4 w-4' />
-              Business
-            </CardTitle>
-            <Button variant='ghost' size='sm' onClick={() => onEdit(2)}>
-              <Pencil className='mr-1 h-3 w-3' />
-              Edit
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className='space-y-2 text-sm'>
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Name</span>
-            <span className='font-medium'>{business.name}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Category</span>
-            <span className='font-medium'>{business.business_category_id}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Email</span>
-            <span className='font-medium'>{business.email}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Phone</span>
-            <span className='font-medium'>{business.phone}</span>
-          </div>
-          <Separator />
-          <div className='grid grid-cols-2 gap-2'>
-            <span className='text-muted-foreground'>Address</span>
-            <span className='font-medium'>{business.address}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className='pb-3'>
-          <div className='flex items-center justify-between'>
-            <CardTitle className='flex items-center gap-2 text-sm font-medium'>
-              <MapPin className='h-4 w-4' />
-              Branches ({branches.length})
-            </CardTitle>
-            <Button variant='ghost' size='sm' onClick={() => onEdit(3)}>
-              <Pencil className='mr-1 h-3 w-3' />
-              Edit
-            </Button>
-          </div>
+        <CardHeader className='flex-row items-center justify-between space-y-0 pb-4'>
+          <CardTitle className='flex items-center gap-2 text-sm font-medium'>
+            <MapPin className='h-4 w-4' aria-hidden />
+            Branches
+            <Badge variant='secondary'>{branches.length}</Badge>
+          </CardTitle>
+          <Button type='button' variant='ghost' size='sm' onClick={() => onEdit(3)}>
+            <Pencil className='mr-1 h-3 w-3' aria-hidden />
+            Edit
+          </Button>
         </CardHeader>
         <CardContent className='space-y-3'>
           {branches.map((branch, index) => (
-            <div key={index} className='rounded-lg border border-border/50 p-3'>
+            <div key={index} className='rounded-lg border border-border/60 p-3'>
               <p className='text-sm font-medium'>{branch.name}</p>
+              <Separator className='my-2' />
               <p className='text-xs text-muted-foreground'>{branch.address}</p>
-              <p className='text-xs text-muted-foreground'>{branch.phone}</p>
+              {branch.phone && <p className='text-xs text-muted-foreground'>{branch.phone}</p>}
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Button onClick={onSave} className='w-full' disabled={isLoading}>
-        {isLoading ? <LoadingState /> : 'Save and continue'}
-      </Button>
+      <div className='space-y-3'>
+        <Button type='button' onClick={onSave} disabled={isSaving} className='w-full'>
+          {isSaving ? 'Creating your business…' : 'Save and go to dashboard'}
+        </Button>
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => onEdit(3)}
+          disabled={isSaving}
+          className='w-full'
+        >
+          Back to branches
+        </Button>
+      </div>
     </div>
   );
 };

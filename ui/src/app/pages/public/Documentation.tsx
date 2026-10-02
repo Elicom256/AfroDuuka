@@ -359,7 +359,7 @@ export const Documentation: React.FC = () => {
               </p>
               <div className='mt-6 flex flex-wrap items-center justify-center gap-3'>
                 <a
-                  href='/signup'
+                  href='/onboarding'
                   className='inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg'
                 >
                   Start Free Trial
