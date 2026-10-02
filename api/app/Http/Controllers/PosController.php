@@ -6,6 +6,7 @@ use App\Http\Requests\PosCheckoutRequest;
 use App\Http\Requests\PosCustomerSearchRequest;
 use App\Http\Requests\PosProductSearchRequest;
 use App\Services\PosService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -79,6 +80,8 @@ class PosController extends Controller
                 'message' => 'Sale completed successfully!',
                 'sale'    => $sale,
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Not found'], 404);
         } catch (\Exception $e) {
             Log::error($e);
             $status = $e->getCode();
@@ -113,6 +116,8 @@ class PosController extends Controller
                 $request->input('business_branch_id')
             );
             return response()->json(['message' => 'Sale held successfully', 'data' => $sale], 201);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Not found'], 404);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to hold sale', 'error' => $e->getMessage()], 500);
         }
@@ -123,6 +128,8 @@ class PosController extends Controller
         try {
             $sales = $this->posService->getHeldSales();
             return response()->json(['message' => 'Held sales fetched', 'data' => $sales]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Not found'], 404);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to fetch held sales', 'error' => $e->getMessage()], 500);
         }
