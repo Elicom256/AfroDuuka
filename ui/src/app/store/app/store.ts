@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { authListenerMiddleware } from './authListener';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
 import { productCategoriesQuery } from '../features/business/products/productsQuery';
@@ -205,6 +206,10 @@ export const store = configureStore({
       procurementApi.middleware,
       quotationsQuery.middleware,
       onboardingQuery.middleware,
+      // Last: it matches on the `rejected` action that the RTK Query middlewares
+      // above dispatch, and `endSessionAndRedirect()` navigates the page away,
+      // so nothing after it ever needs to run.
+      authListenerMiddleware.middleware,
     ),
 });
 

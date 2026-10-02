@@ -11,19 +11,17 @@ use Illuminate\Support\Facades\DB;
 
 class ReceiptService
 {
-    public function generateReceiptNumber(): string
-    {
-        $prefix = 'RCP-';
-        $date = now()->format('Ymd');
-        $last = Receipt::whereDate('created_at', today())->count();
-        return $prefix . $date . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
-    }
+    public function __construct(
+        protected ReceiptNumberGenerator $receiptNumberGenerator
+    ) {}
 
     public function createReceiptForSale(Sale $sale, array $validated): Receipt
     {
-        return DB::transaction(function () use ($sale, $validated) {
-            $user = Auth::user();
+        $user = Auth::user();
 
+        $receiptNumber = $this->receiptNumberGenerator->next(ReceiptNumberGenerator::RECEIPT_PREFIX);
+
+        return DB::transaction(function () use ($sale, $validated, $receiptNumber, $user) {
             $subtotal = (float) $sale->subtotal ?? $sale->total_amount;
             $tax = (float) $sale->tax_amount ?? 0;
             $total = (float) $sale->total_amount;
@@ -31,7 +29,7 @@ class ReceiptService
             $changeGiven = $validated['change_given'] ?? max(0, $amountPaid - $total);
 
             $receipt = Receipt::create([
-                'receipt_number' => $this->generateReceiptNumber(),
+                'receipt_number' => $receiptNumber,
                 'customer_id' => $sale->customer_id,
                 'user_id' => $user->id,
                 'business_id' => $user->business_id,
