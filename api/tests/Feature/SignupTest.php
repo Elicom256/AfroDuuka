@@ -271,6 +271,8 @@ class SignupTest extends TestCase
             'password' => 'password123',
         ])->json('data.token');
 
+        $before = Business::count();
+
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/dashboard/business', [
                 'name' => 'Jane Retail',
@@ -279,7 +281,7 @@ class SignupTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors('country_id');
 
-        $this->assertSame(0, Business::count());
+        $this->assertSame($before, Business::count());
     }
 
     public function test_business_creation_starts_a_thirty_day_trial(): void
