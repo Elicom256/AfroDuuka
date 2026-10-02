@@ -8,13 +8,10 @@ import { Toaster } from '@/components/ui/sonner';
 
 function App() {
   const location = useLocation();
-  const hideFooter =
-    location.pathname.startsWith('/executive') ||
-    location.pathname.startsWith('/branchmanager') ||
-    location.pathname.startsWith('/operations') ||
-    location.pathname.startsWith('/procurement') ||
-    location.pathname.startsWith('/staff') ||
-    location.pathname.startsWith('/coresupport');
+  // Every role mounts under /dashboard/* (see AppRoutes), so that prefix is the only
+  // signal needed. The old per-role prefixes (/executive, /branchmanager, /coresupport,
+  // …) no longer have routes and never matched.
+  const isDashboard = location.pathname.startsWith('/dashboard');
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -22,11 +19,11 @@ function App() {
 
   return (
     <div className='flex min-h-screen flex-col bg-background text-foreground'>
-      {!hideFooter && <NavBar />}
+      {!isDashboard && <NavBar />}
       <main className='flex-1'>
         <AppRoutes />
       </main>
-      {!hideFooter && <Footer />}
+      {!isDashboard && <Footer />}
       <Toaster position='top-right' />
     </div>
   );
