@@ -62,10 +62,15 @@ class UserService
      */
     public function login(array $credentials)
     {
-        // Find user by email or username
-        $user = User::where('email', $credentials['email'])
-            ->orWhere('username', ltrim((string) $credentials['email'], '@'))
-            ->orWhere('username', (string) $credentials['email'])
+        // Find user by email or username. The username column stores the handle with
+        // its "@" prefix, so a caller who types "amina" must still match "@amina".
+        $input = (string) $credentials['email'];
+        $bare = ltrim($input, '@');
+
+        $user = User::where('email', $input)
+            ->orWhere('username', $input)
+            ->orWhere('username', $bare)
+            ->orWhere('username', '@' . $bare)
             ->first();
 
         // Verify user exists and password matches
@@ -103,7 +108,7 @@ class UserService
             'email' => $data['email'],
             "firstname" => $data["firstname"] ?? $data["name"] ?? null,
             "lastname" => $data["lastname"] ?? null,
-            'username' => "@" . ($data['name'] ?? $data['firstname'] ?? $data['email']),
+            'username' => self::uniqueUsername($data['name'] ?? $data['firstname'] ?? $data['email']),
             'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
             'business_id' => $executive->business_id,
@@ -142,7 +147,9 @@ class UserService
             "firstname" => $firstName,
             "lastname" => $lastName,
             'email' => $data['email'],
-            'username' => "@" . ($data['username'] ?? $data['name'] ?? $data['email']),
+            'username' => self::uniqueUsername(
+                $data['username'] ?? $data['firstname'] ?? $data['name'] ?? $data['email']
+            ),
             'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
             // business_id and role_id are deliberately absent. A self-serve signup
@@ -203,7 +210,9 @@ class UserService
 
         $user->update([
             'email' => $validated['email'] ?? $user->email,
-            'username' => $validated['username'] ?? $user->username,
+            'username' => isset($validated['username'])
+                ? self::normalizeUsername($validated['username'])
+                : $user->username,
             'role_id' => $validated['role_id'] ?? $user->role_id,
         ]);
         $worker = Worker::where("user_id", $user?->id)->first();
