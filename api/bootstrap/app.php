@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\BlockRestrictedRoleActions;
+use App\Http\Middleware\RequireBusiness;
+use App\Http\Middleware\RequireRole;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,8 +16,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Every request reaches Laravel through the nginx edge, which is the only
+        // thing on the compose network that can reach the backend: no compose file
+        // publishes a host port for it, all of them use `expose` only. So the
+        // X-Forwarded-* headers can only have come from our own proxy.
+        //
+        // Without this, a TLS-terminating load balancer in front of nginx makes
+        // every generated URL come out as http:// and $request->secure() return
+        // false, which breaks signed links, URA fiscalisation callbacks and any
+        // absolute URL in an API response.
+        $middleware->trustProxies(at: '*');
+
         $middleware->api(append: [
-            \App\Http\Middleware\BlockRestrictedRoleActions::class,
+            BlockRestrictedRoleActions::class,
         ]);
 
         // Runs after auth:sanctum so the caller is resolved before the tenant check.
@@ -22,11 +36,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // means the common path reads $request->user() directly instead of re-driving
         // the guard.
         $middleware->api(append: [
-            \App\Http\Middleware\RequireBusiness::class,
+            RequireBusiness::class,
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\RequireRole::class,
+            'role' => RequireRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

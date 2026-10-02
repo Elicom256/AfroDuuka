@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
+import { setToken } from '@/lib/session';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthLayout } from './AuthLayout';
@@ -24,10 +26,9 @@ export const Login: React.FC = () => {
       const res = await login(formState).unwrap();
       if (res) {
         const token = await res.data.token;
-        const role = res?.data?.user.role.name;
         toast.success(res.message);
-        localStorage.setItem('token', token);
-        return (window.location.href = `/${role.toLowerCase()}/dashboard`);
+        setToken(token);
+        return (window.location.href = DASHBOARD_PREFIX);
       }
     } catch (error) {
       console.error('Login failed:', error);

@@ -25,17 +25,20 @@ class PosService
     protected NotificationService $notificationService;
     protected TaxService $taxService;
     protected CustomerCreditService $customerCreditService;
+    protected ReceiptNumberGenerator $receiptNumberGenerator;
 
     public function __construct(
         CashFlowService $cashFlowService,
         NotificationService $notificationService,
         TaxService $taxService,
-        CustomerCreditService $customerCreditService
+        CustomerCreditService $customerCreditService,
+        ReceiptNumberGenerator $receiptNumberGenerator
     ) {
         $this->cashFlowService = $cashFlowService;
         $this->notificationService = $notificationService;
         $this->taxService = $taxService;
         $this->customerCreditService = $customerCreditService;
+        $this->receiptNumberGenerator = $receiptNumberGenerator;
     }
 
     public function searchProducts(string $query, int $limit = 20): array
@@ -158,7 +161,12 @@ class PosService
             throw new Exception('A customer is required when using credit payment.', 422);
         }
 
-        return DB::transaction(function () use ($validated, $user, $branchId) {
+        // Claimed before the sale transaction opens purely so the number is not
+        // consumed by a checkout that turns out to have nothing to sell. nextval()
+        // does not block, so this costs nothing in throughput.
+        $receiptNumber = $this->receiptNumberGenerator->next(ReceiptNumberGenerator::POS_PREFIX);
+
+        return DB::transaction(function () use ($validated, $user, $branchId, $receiptNumber) {
             $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
@@ -318,7 +326,7 @@ class PosService
 
             $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName, $sale->id);
 
-            $this->createPosReceipt($sale, $validated, $totalPaid, $changeGiven);
+            $this->createPosReceipt($sale, $validated, $totalPaid, $changeGiven, $receiptNumber);
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
@@ -329,7 +337,7 @@ class PosService
         return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
     }
 
-    protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven): Receipt
+    protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven, string $receiptNumber): Receipt
     {
         $user = Auth::user();
         $discountTotal = (float) SaleItem::where('sale_id', $sale->id)
@@ -341,7 +349,7 @@ class PosService
         $paymentMethod = collect($validated['payments'])->pluck('method')->implode(', ');
 
         $receipt = Receipt::create([
-            'receipt_number'     => $this->generateReceiptNumber(),
+            'receipt_number'     => $receiptNumber,
             'customer_id'        => $sale->customer_id,
             'user_id'            => $user->id,
             'business_id'        => $user->business_id,
@@ -374,14 +382,6 @@ class PosService
         }
 
         return $receipt->load('items');
-    }
-
-    protected function generateReceiptNumber(): string
-    {
-        $prefix = 'POS-';
-        $date = now()->format('Ymd');
-        $last = Receipt::whereDate('created_at', today())->count();
-        return $prefix . $date . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
     public function holdSale(array $items, ?int $customerId, ?string $notes, ?int $businessBranchId = null): Sale
