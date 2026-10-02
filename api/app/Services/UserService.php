@@ -13,6 +13,51 @@ use Illuminate\Validation\ValidationException;
 class UserService
 {
     /**
+     * Normalise a handle to the stored form: exactly one leading "@", lowercased.
+     *
+     * Idempotent on purpose. The client is not trusted to send a bare handle — a caller
+     * that posts "@amina" must not end up storing "@@amina", which is what an
+     * unconditional '"@" . $value' produced. ltrim() rather than a single-character
+     * strip so any number of stray prefixes collapses.
+     */
+    public static function normalizeUsername(?string $value): ?string
+    {
+        $bare = ltrim(trim((string) $value), '@');
+
+        if ($bare === '') {
+            return null;
+        }
+
+        return '@' . strtolower($bare);
+    }
+
+    /**
+     * Resolve a handle collision the way StoreUserRequest documents: @jane, @jane2, @jane3…
+     *
+     * The request deliberately carries no `unique` rule on username — a second Jane must
+     * not be refused over a field she never typed — so the uniquification has to happen
+     * here. The column's unique index remains the backstop.
+     */
+    public static function uniqueUsername(string $base): string
+    {
+        $candidate = self::normalizeUsername($base) ?? '@user';
+
+        if (User::where('username', $candidate)->doesntExist()) {
+            return $candidate;
+        }
+
+        $root = rtrim($candidate, '0123456789');
+        $suffix = strlen($candidate) - strlen($root);
+
+        do {
+            $candidate = $root . ($suffix + 1);
+            $suffix++;
+        } while (User::where('username', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    /**
      * Authenticate a user and generate API token
      */
     public function login(array $credentials)

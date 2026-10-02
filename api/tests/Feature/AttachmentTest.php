@@ -165,7 +165,7 @@ class AttachmentTest extends TestCase
             'business_branch_id' => $this->branch->id,
         ]);
 
-        $this->postJson("/api/admin/customers/{$customer->id}/attachments", [
+        $this->postJson("/api/dashboard/customers/{$customer->id}/attachments", [
             'file' => UploadedFile::fake()->create('kra.pdf', 300, 'application/pdf'),
         ])->assertStatus(201);
 

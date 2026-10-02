@@ -43,7 +43,7 @@ export const customersQuery = createApi({
     updateCustomer: builder.mutation<any, { body: any; id: string }>({
       query: ({ body, id }) => ({
         url: `/${id}`,
-        method: 'DELETE',
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: ['CustomersAPI'],
