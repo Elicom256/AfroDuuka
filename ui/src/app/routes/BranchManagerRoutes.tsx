@@ -9,6 +9,8 @@ import { QuotationsPage } from '../pages/dashboards/shared/quotations/Quotations
 import { ExecutiveSalesPage } from '../pages/dashboards/executive/pages/ExecutiveSalesPage';
 import { ExecutivePurchasesPage } from '../pages/dashboards/executive/pages/ExecutivePurchasesPage';
 import { Product } from '../pages/dashboards/executive/components/products/Product';
+import { ProductCategories } from '../pages/dashboards/executive/components/products/ProductCategories';
+import { ProductCategory } from '../pages/dashboards/executive/components/products/ProductCategory';
 import { Sale } from '../pages/dashboards/executive/components/sales/Sale';
 import { Purchase } from '../pages/dashboards/executive/components/purchases/Purchase';
 import { SaleReturn } from '../pages/dashboards/executive/components/sale-returns/SaleReturn';
@@ -69,6 +71,8 @@ export const BranchManagerRoutes = () => {
           <Route path='suppliers' element={<ExecutiveProductsPage />} />
           <Route path='products' element={<ExecutiveProductsPage />} />
           <Route path='products/:id' element={<Product />} />
+          <Route path='product-categories' element={<ProductCategories />} />
+          <Route path='product-categories/:id' element={<ProductCategory />} />
           <Route path='sales' element={<ExecutiveSalesPage />} />
           <Route path='sales/:id' element={<Sale />} />
           <Route path='sale-returns' element={<ExecutiveSaleReturnsPage />} />
