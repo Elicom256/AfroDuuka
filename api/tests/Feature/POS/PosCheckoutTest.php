@@ -54,6 +54,7 @@ class PosCheckoutTest extends TestCase
         ]);
         $this->customer = Customer::factory()->create([
             'user_id' => $customerUser->id,
+            'business_id' => $this->business->id,
         ]);
 
         Sanctum::actingAs($this->user);
