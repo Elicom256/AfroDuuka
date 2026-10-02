@@ -13,7 +13,10 @@ export const Supplier = () => {
   const { id } = useParams<{ id: string }>();
   const { data, error, isLoading } = useSupplierQuery(id!, { skip: !id });
   const [destroy, { isLoading: deleting }] = useDeleteSupplierMutation();
-  const { canDelete } = useRolePermissions();
+  // Not canDelete: that is branch-scoped and would let a BranchManager remove the
+  // business's supplier from under every other branch's purchase history. Only the
+  // Executive authors suppliers, so only the Executive may delete one.
+  const { canManageSuppliers } = useRolePermissions();
   const supplier = data?.supplier;
   const user = supplier?.user;
 
@@ -49,7 +52,7 @@ export const Supplier = () => {
         </div>
 
         <div className=''>
-          {canDelete && <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />}
+          {canManageSuppliers && <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />}
         </div>
       </div>
 

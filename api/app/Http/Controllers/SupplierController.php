@@ -18,9 +18,14 @@ class SupplierController extends Controller
     }
     /**
      * Display a listing of the resource.
+     *
+     * BaseModel's business scope keeps this to the caller's tenant, and
+     * EffectiveBranchScope keeps a BranchManager to their own branch's rows.
      */
     public function index()
     {
+        $this->authorize('viewAny', Supplier::class);
+
         $suppliers = Supplier::with("user")->get();
         return response()->json(["message" => "Fetched suppliers", "suppliers" => $suppliers]);
     }
@@ -30,6 +35,8 @@ class SupplierController extends Controller
      */
     public function store(StoreSupplierRequest $request)
     {
+        $this->authorize('create', Supplier::class);
+
         $allowed = SuppliersSettings::value("status");
         abort_if($allowed !== "enabled", 'Supplier creation is disabled.', 403);
         $validated = $request->validated();
@@ -42,6 +49,8 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
+        $this->authorize('view', $supplier);
+
         $supplier->load("user");
         return response()->json(["message" => "Supplier Fetched Successfully!", "supplier" => $supplier]);
     }
@@ -51,7 +60,8 @@ class SupplierController extends Controller
      */
     public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        //
+        $this->authorize('update', $supplier);
+
         $validated = $request->validated();
         $supplier = $this->supplierService->updateSupplier($supplier, $validated);
         return response()->json(["message" => "Supplier Updated Successfully!", "supplier" => $supplier]);
@@ -63,6 +73,8 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
+        $this->authorize('delete', $supplier);
+
         $supplier->delete();
         return response()->json(["message" => "Deleted Supplier Successfully!"]);
     }

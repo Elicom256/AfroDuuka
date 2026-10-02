@@ -4,6 +4,8 @@ import { BranchManagerLayout } from '../pages/dashboards/branch-manager/BranchMa
 import { BranchManagerDashboardPage } from '../pages/dashboards/branch-manager/BranchManagerDashboardPage';
 import { ExecutiveWorkersPage } from '../pages/dashboards/executive/pages/ExecutiveWorkersPage';
 import { ExecutiveProductsPage } from '../pages/dashboards/executive/pages/ExecutiveProductsPage';
+import { ExecutiveSuppliersPage } from '../pages/dashboards/executive/pages/ExecutiveSuppliersPage';
+import { Supplier } from '../pages/dashboards/executive/components/suppliers/Supplier';
 import { ExecutiveOrdersPage } from '../pages/dashboards/executive/pages/ExecutiveOrdersPage';
 import { QuotationsPage } from '../pages/dashboards/shared/quotations/QuotationsPage';
 import { ExecutiveSalesPage } from '../pages/dashboards/executive/pages/ExecutiveSalesPage';
@@ -68,7 +70,8 @@ export const BranchManagerRoutes = () => {
         <Route element={<BranchManagerLayout />}>
           <Route index element={<BranchManagerDashboardPage />} />
           <Route path='workers' element={<ExecutiveWorkersPage />} />
-          <Route path='suppliers' element={<ExecutiveProductsPage />} />
+          <Route path='suppliers' element={<ExecutiveSuppliersPage />} />
+          <Route path='suppliers/:id' element={<Supplier />} />
           <Route path='products' element={<ExecutiveProductsPage />} />
           <Route path='products/:id' element={<Product />} />
           <Route path='product-categories' element={<ProductCategories />} />

@@ -3,7 +3,10 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const supplierQuery = createApi({
   reducerPath: 'suppliersPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/admin/suppliers`,
+    // Was /admin/suppliers, which no route group serves — every supplier endpoint lives
+    // under the role-gated /dashboard prefix in routes/executive.php, so this silently
+    // 404'd and the suppliers page rendered empty for every role.
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/suppliers`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
