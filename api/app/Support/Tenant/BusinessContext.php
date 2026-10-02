@@ -30,12 +30,14 @@ class BusinessContext
     protected ?int $branchId = null;
 
     /**
-     * The caller's role name, memoised against the user it was read for.
+     * The caller's role name, memoised against the user and role it was read for.
      *
      * Keyed on the user id rather than just cached, so switching the acting user
      * inside one process — which tests do — cannot serve a stale role.
      */
     protected ?int $roleNameUserId = null;
+
+    protected ?int $roleNameRoleId = null;
 
     protected string $roleName = '';
 
@@ -108,6 +110,16 @@ class BusinessContext
      * Memoised because this sits on the hot path: it used to add a SELECT to
      * every single tenant query, and the value cannot change under a given user
      * within a request.
+     *
+     * "Cannot change within a request" is the part that was wrong. Onboarding
+     * creates the account, then the business, then the role — all inside one
+     * request — so the first lookup for that user reads role_id null, memoises an
+     * empty role name, and every later check in the same process sees the empty
+     * string. RequireRole then refuses the very next call as "your role is not
+     * permitted", which is how a freshly onboarded owner was locked out of their own
+     * business. Keying the memo on role_id as well as user id makes the value
+     * invalidate itself the moment the user's role actually changes, which costs
+     * nothing on the hot path because role_id is already in memory.
      */
     protected function roleNameFor(?User $user): string
     {
@@ -115,11 +127,12 @@ class BusinessContext
             return '';
         }
 
-        if ($this->roleNameUserId === $user->id) {
+        if ($this->roleNameUserId === $user->id && $this->roleNameRoleId === $user->role_id) {
             return $this->roleName;
         }
 
         $this->roleNameUserId = $user->id;
+        $this->roleNameRoleId = $user->role_id;
         $this->roleName = strtolower((string) (
             $user->role_id !== null
                 ? Role::withoutGlobalScopes()->whereKey($user->role_id)->value('name')
@@ -165,6 +178,7 @@ class BusinessContext
         $this->businessId = null;
         $this->branchId = null;
         $this->roleNameUserId = null;
+        $this->roleNameRoleId = null;
         $this->roleName = '';
     }
 }

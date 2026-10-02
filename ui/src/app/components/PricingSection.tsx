@@ -169,7 +169,7 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
 
         <CardFooter className='mt-auto pt-6'>
           <Button className='w-full' variant={isMostPopular ? 'default' : 'outline'} asChild>
-            <Link to='/signup'>Get Started</Link>
+            <Link to='/onboarding'>Get Started</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -624,7 +624,7 @@ export const PricingSection = () => {
           </p>
           <div className='flex flex-col sm:flex-row gap-4 justify-center pt-4'>
             <Button size="lg" className='bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 shadow-md border-none group transition-all duration-300' asChild>
-              <Link to="/signup" className='flex items-center gap-2'>
+              <Link to='/onboarding' className='flex items-center gap-2'>
                 Start Your 14-Day Free Trial
                 <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform' />
               </Link>

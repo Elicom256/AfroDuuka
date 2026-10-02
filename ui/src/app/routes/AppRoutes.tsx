@@ -26,6 +26,7 @@ export const AppRoutes = () => {
   const role = data?.data?.role?.name;
   const hasToken = Boolean(getToken());
   const onDashboard = window.location.pathname.startsWith(DASHBOARD_PREFIX);
+  const onOnboarding = window.location.pathname.startsWith('/onboarding');
 
   if (hasToken && isLoading) {
     return <PageLoadingState />;
@@ -43,6 +44,16 @@ export const AppRoutes = () => {
   // them to the login screen instead of a dead end.
   if (!hasToken && onDashboard) {
     return <Navigate to='/login' replace />;
+  }
+
+  // A real account with no business yet: the person signed up and never finished
+  // creating their business, so they have no role and none of the role trees below
+  // match. That used to drop them on the 404 page, from a dashboard URL they had no
+  // way to get back out of. RequireBusiness is refusing every tenant route for them
+  // with "onboarding_incomplete", so the onboarding step is where they belong.
+  const onboardingComplete = data?.onboarding?.complete !== false;
+  if (hasToken && !onboardingComplete && !onOnboarding) {
+    return <Navigate to='/onboarding' replace />;
   }
 
   return (

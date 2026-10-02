@@ -13,12 +13,14 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CalendarDays, MessageSquareText } from 'lucide-react';
 import type { LandingPeriod } from '@/app/pages/dashboards/executive/components/landingPeriods';
+import { useTimeGreeting } from '@/lib/greeting';
 
 export const BranchManagerDashboardPage = () => {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [period, setPeriod] = useState<LandingPeriod>('last_7_days');
   const { data: userData } = useLoggedinUserQuery();
   const username = userData?.data?.username ?? 'there';
+  const greeting = useTimeGreeting();
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -28,18 +30,11 @@ export const BranchManagerDashboardPage = () => {
     day: 'numeric',
   });
 
-  const getGreeting = () => {
-    const hour = now.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
   return (
     <div className='space-y-3'>
       <div className='flex flex-col gap-2 border-b border-border/70 pb-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className='text-lg font-medium'>{getGreeting()}, {username}</h1>
+          <h1 className='text-lg font-medium'>{greeting}, {username}</h1>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
           <div className='flex items-center gap-2 text-xs text-muted-foreground'>

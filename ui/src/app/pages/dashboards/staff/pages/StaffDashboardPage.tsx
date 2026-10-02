@@ -4,12 +4,14 @@ import { StaffAttendance } from '@/app/pages/dashboards/staff/components/attenda
 import { StaffTasks } from '@/app/pages/dashboards/staff/components/tasks/StaffTasks';
 import { StaffQuickStock } from '@/app/pages/dashboards/staff/components/quick-stock/StaffQuickStock';
 import { LayoutDashboard, CalendarDays } from 'lucide-react';
+import { useTimeGreeting } from '@/lib/greeting';
 
 export const StaffDashboardPage = () => {
   const { flagEmoji } = useCurrency();
   const { data: userData } = useLoggedinUserQuery();
 
   const username = userData?.data?.username ?? 'there';
+  const greeting = useTimeGreeting();
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -18,13 +20,6 @@ export const StaffDashboardPage = () => {
     month: 'long',
     day: 'numeric',
   });
-
-  const getGreeting = () => {
-    const hour = now.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
 
   return (
     <div className='space-y-6'>
@@ -37,7 +32,7 @@ export const StaffDashboardPage = () => {
               Staff Dashboard
             </div>
             <h1 className='text-2xl font-bold tracking-tight mt-1'>
-              {getGreeting()}, {username}
+              {greeting}, {username}
             </h1>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>

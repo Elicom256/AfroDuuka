@@ -27,7 +27,6 @@ class RequireRole
     public function handle(Request $request, Closure $next): Response
     {
         $user = $this->currentUser($request);
-
         if ($user && RolePermissions::canManageBranch($user)) {
             return $next($request);
         }

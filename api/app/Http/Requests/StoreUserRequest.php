@@ -58,7 +58,13 @@ class StoreUserRequest extends FormRequest
             'firstname' => 'required|string|max:255',
             'lastname' => 'nullable|string|max:255',
             'name' => 'nullable|string|max:255',
-            'username' => 'nullable|string|max:255|unique:users',
+            // No `unique` rule here on purpose. The username is derived from the first
+            // name by the signup form, so a second Jane is refused with a complaint
+            // about a field she never typed. UserService::uniqueUsername() resolves the
+            // collision instead (@jane, @jane2, ...) and the column's unique index is
+            // the backstop. Validating it here as well just rejected a legitimate
+            // signup once the service stopped double-prefixing the value.
+            'username' => 'nullable|string|max:40',
             'phone' => 'required|string|max:20|unique:users',
             'business_id' => 'nullable|exists:businesses,id',
             'business_branch_id' => 'nullable|exists:business_branches,id',

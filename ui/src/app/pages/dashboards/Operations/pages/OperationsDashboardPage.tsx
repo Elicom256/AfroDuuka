@@ -7,12 +7,14 @@ import { OperationsQuickActions } from '@/app/pages/dashboards/Operations/compon
 import { OperationsTopProducts } from '@/app/pages/dashboards/Operations/components/top-products/OperationsTopProducts';
 import { OperationsSalesPerformance } from '@/app/pages/dashboards/Operations/components/sales-performance/OperationsSalesPerformance';
 import { LayoutDashboard, CalendarDays, Sparkles } from 'lucide-react';
+import { useTimeGreeting } from '@/lib/greeting';
 
 export const OperationsDashboardPage = () => {
   const { flagEmoji } = useCurrency();
   const { data: userData } = useLoggedinUserQuery();
 
   const username = userData?.data?.username ?? 'there';
+  const greeting = useTimeGreeting();
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -21,13 +23,6 @@ export const OperationsDashboardPage = () => {
     month: 'long',
     day: 'numeric',
   });
-
-  const getGreeting = () => {
-    const hour = now.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
 
   return (
     <div className='space-y-6'>
@@ -42,7 +37,7 @@ export const OperationsDashboardPage = () => {
               <Sparkles className='h-3.5 w-3.5 text-yellow-500' />
             </div>
             <h1 className='text-2xl font-bold tracking-tight mt-1'>
-              {getGreeting()}, {username} 👋
+              {greeting}, {username} 👋
             </h1>
           </div>
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-3 sm:mt-0'>

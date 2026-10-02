@@ -239,7 +239,7 @@ class RecipientProvisionerTest extends TestCase
         NotificationRecipient::withoutGlobalScopes()->create([
             'business_id' => $business->id,
             'business_branch_id' => null,
-            'label' => NotificationRecipient::LABEL_ADMIN,
+            'label' => NotificationRecipient::LABEL_CUSTOM,
             'channel' => 'whatsapp',
             'address' => '+256700999999',
             'is_active' => true,
@@ -252,7 +252,7 @@ class RecipientProvisionerTest extends TestCase
         $this->assertTrue(
             NotificationRecipient::withoutGlobalScopes()
                 ->where('business_id', $business->id)
-                ->where('label', NotificationRecipient::LABEL_ADMIN)
+                ->where('label', NotificationRecipient::LABEL_CUSTOM)
                 ->firstOrFail()
                 ->is_active
         );
@@ -339,12 +339,15 @@ class RecipientProvisionerTest extends TestCase
             'phone' => '0772123456',
         ]);
 
-        Country::factory()->create(['iso_alpha2' => 'UG', 'name' => 'Uganda']);
+        $country = Country::factory()->create(['iso_alpha2' => 'UG', 'name' => 'Uganda']);
 
         $business = app(BusinessService::class)->create([
             'name' => 'Acme Ltd',
             'address' => 'Kampala',
             'business_category_id' => BusinessCategory::factory()->create()->id,
+            // Called directly rather than through the HTTP route, so this payload is
+            // never validated. businesses.country_id is NOT NULL and has no default.
+            'country_id' => $country->id,
         ], $user);
 
         $recipients = NotificationRecipient::withoutGlobalScopes()

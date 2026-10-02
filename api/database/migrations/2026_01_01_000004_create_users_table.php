@@ -12,7 +12,12 @@ return new class extends Migration
             $table->id();
             $table->string("firstname")->nullable();
             $table->string("lastname")->nullable();
-            $table->string("username")->nullable();
+            // StoreUserRequest has always declared `unique:users` on this column, but
+            // the constraint was never in the schema. The rule then compared the value
+            // the client sent against the stored one, which never matched because the
+            // service stored a different string, so duplicates slipped through and
+            // username sign-in became ambiguous.
+            $table->string("username")->nullable()->unique();
             $table->string('email')->unique();
             $table->string('phone')->unique();
             $table->string('address')->nullable();
