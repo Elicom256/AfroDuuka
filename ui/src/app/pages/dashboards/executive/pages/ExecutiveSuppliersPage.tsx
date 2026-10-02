@@ -6,11 +6,16 @@ import { Edit, Plus } from 'lucide-react';
 import { SupplierFormDialog } from '../components/suppliers/SupplierFormDialog';
 import { useNavigate } from 'react-router-dom';
 import { ExportButton } from '@/app/components/ExportButton';
+import { useRolePermissions } from '@/lib/useRolePermissions';
 
 export const ExecutiveSuppliersPage = () => {
   const navigate = useNavigate();
   const { data, isLoading: fetchingSuppliers } = useSuppliersQuery();
   const suppliers = data?.suppliers ?? [];
+  // Suppliers are business-level records. A BranchManager is routed here too, to
+  // read the counterparties their purchases reference, but authoring them is the
+  // Executive's alone — so the write controls are hidden rather than left to 403.
+  const { canManageSuppliers } = useRolePermissions();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
@@ -31,10 +36,12 @@ export const ExecutiveSuppliersPage = () => {
         <h1 className='text-3xl font-bold'>Suppliers</h1>
         <div className='flex gap-2'>
           <ExportButton type='suppliers' label='Export' />
-          <Button onClick={handleAddNew}>
-            <Plus className='mr-2 h-4 w-4' />
-            Add Supplier
-          </Button>
+          {canManageSuppliers && (
+            <Button onClick={handleAddNew}>
+              <Plus className='mr-2 h-4 w-4' />
+              Add Supplier
+            </Button>
+          )}
         </div>
       </div>
 
@@ -57,21 +64,32 @@ export const ExecutiveSuppliersPage = () => {
                 {supplier.company_name && <p className='text-sm text-gray-500 font-medium'>{supplier.company_name}</p>}
                 <p className='text-sm text-gray-400'>{supplier.user.email}</p>
               </div>
-              <Button variant='outline' size='sm' onClick={() => handleEdit(supplier)}>
-                <Edit />
-                <span>Edit</span>
-              </Button>
+              {canManageSuppliers && (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(supplier);
+                  }}
+                >
+                  <Edit />
+                  <span>Edit</span>
+                </Button>
+              )}
             </div>
           ))
         )}
       </div>
 
-      <SupplierFormDialog
-        open={dialogOpen}
-        selectedSupplier={selectedSupplier}
-        setDialogOpen={setDialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+      {canManageSuppliers && (
+        <SupplierFormDialog
+          open={dialogOpen}
+          selectedSupplier={selectedSupplier}
+          setDialogOpen={setDialogOpen}
+          onOpenChange={setDialogOpen}
+        />
+      )}
     </div>
   );
 };

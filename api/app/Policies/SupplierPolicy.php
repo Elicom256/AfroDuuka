@@ -4,16 +4,21 @@ namespace App\Policies;
 
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Support\Auth\RolePermissions;
 
 class SupplierPolicy
 {
     /**
      * Determine whether the user can view any models.
+     *
+     * Every tenant user may read their own business's suppliers — the BaseModel
+     * business scope already confines the query to their business, and purchases
+     * need a supplier name to render at all. Authoring is the restricted half; see
+     * RolePermissions::canManageSuppliers().
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +26,7 @@ class SupplierPolicy
      */
     public function view(User $user, Supplier $supplier): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +34,7 @@ class SupplierPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return RolePermissions::canManageSuppliers($user);
     }
 
     /**
@@ -37,7 +42,7 @@ class SupplierPolicy
      */
     public function update(User $user, Supplier $supplier): bool
     {
-        return false;
+        return RolePermissions::canManageSuppliers($user);
     }
 
     /**
@@ -45,8 +50,7 @@ class SupplierPolicy
      */
     public function delete(User $user, Supplier $supplier): bool
     {
-        $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::canManageSuppliers($user);
     }
 
     /**
@@ -54,7 +58,7 @@ class SupplierPolicy
      */
     public function restore(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $this->delete($user, $supplier);
     }
 
     /**
@@ -62,7 +66,6 @@ class SupplierPolicy
      */
     public function forceDelete(User $user, Supplier $supplier): bool
     {
-        $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return $this->delete($user, $supplier);
     }
 }
