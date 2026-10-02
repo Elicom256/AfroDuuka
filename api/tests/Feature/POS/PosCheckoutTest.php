@@ -279,8 +279,15 @@ class PosCheckoutTest extends TestCase
 
     public function test_checkout_requires_auth(): void
     {
+        // 401, not a redirect: this is a JSON API and the SPA's dead-session handler
+        // watches for the 401. See UnauthenticatedResponseTest.
+        // setUp() authenticates every test in this class, including this one, so the
+        // session has to be dropped before the request means anything. Without it this
+        // test asserted against an authenticated call and passed for the wrong reason.
+        $this->app['auth']->forgetGuards();
+
         $this->postJson('/api/pos/checkout', [])
-            ->assertStatus(302);
+            ->assertStatus(401);
     }
 
     public function test_checkout_updates_last_sold_at(): void

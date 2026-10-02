@@ -2,6 +2,7 @@
 
 namespace App\Support\Auth;
 
+use App\Models\Role;
 use App\Models\User;
 
 /**
@@ -43,12 +44,27 @@ class RolePermissions
      */
     public const BRANCH_MANAGER_ROLES = ['branchmanager'];
 
-    public static function roleName(?User $user): string
+public static function roleName(?User $user): string
     {
         // Role names are stored inconsistently ("BranchManager", "branch_manager",
-        // "Branch Manager"), so every comparison lowercases first, then strips
+        // "Branch Manager"), so every comparison here lowercases first, then strips
         // separators entirely.
-        return preg_replace('/[^a-z0-9]/', '', strtolower((string) $user?->role?->name));
+        //
+        // The role is read by primary key from the user's own record, unscoped. Role
+        // extends BaseModel, so `roles` carries a business_id and the relation goes
+        // through the same global scope that asks for the tenant id — and for a user
+        // who has no business yet that scope resolves to `whereRaw('0 = 1')`, hiding
+        // even the role that belongs to them. Every capability check then read an empty
+        // role name and refused the request: a CoreSupport account, which has no
+        // business by design, was locked out of everything, and so was anyone part-way
+        // through onboarding. This is the same rule BusinessContext::roleNameFor()
+        // follows for the same reason.
+        $name = $user?->role?->name
+            ?? ($user?->role_id !== null
+                ? Role::withoutGlobalScopes()->whereKey($user->role_id)->value('name')
+                : null);
+
+        return preg_replace('/[^a-z0-9]/', '', strtolower((string) $name));
     }
 
     public static function isRestricted(?User $user): bool

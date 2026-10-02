@@ -14,9 +14,11 @@ export const BusinessInfoSettings = () => {
   const { data: catsData } = useGetBusinessCategoriesQuery();
   const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
   const business = data?.data;
-  const categories = catsData?.data || [];
+  // GET /dashboard/business-categories returns the collection bare, not under a `data`
+  // key. Reading `.data` here yielded undefined and left the dropdown permanently empty.
+  const categories = catsData ?? [];
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', business_category_id: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', logo: '', business_category_id: '' });
 
   useEffect(() => {
     if (business) {
@@ -25,6 +27,7 @@ export const BusinessInfoSettings = () => {
         email: business.email || '',
         phone: business.phone || '',
         address: business.address || '',
+        logo: business.logo || '',
         business_category_id: String(business.business_category_id || ''),
       });
     }
@@ -88,6 +91,28 @@ export const BusinessInfoSettings = () => {
                 {categories.map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div className='space-y-2'>
+            <Label htmlFor='business_logo'>Logo URL</Label>
+            <div className='flex items-center gap-3'>
+              {form.logo && (
+                <img
+                  src={form.logo}
+                  alt='Business logo'
+                  className='h-10 w-10 shrink-0 rounded-md border border-border/60 bg-background object-contain p-1'
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
+              <Input
+                id='business_logo'
+                value={form.logo}
+                onChange={(e) => setForm({ ...form, logo: e.target.value })}
+                placeholder='https://example.com/logo.png'
+              />
+            </div>
+            <p className='text-xs text-muted-foreground'>
+              Shown in the top navigation instead of the DuukaFlow wordmark.
+            </p>
           </div>
           <Button type='submit' disabled={isUpdating}>
             <Save className='h-4 w-4 mr-2' />

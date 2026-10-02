@@ -27,7 +27,7 @@ export const HeroSection = () => {
 
           <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
             <Button size='lg' className='h-12 px-5' asChild>
-              <Link to='/signup'>
+              <Link to='/onboarding'>
                 Get started
                 <ArrowRight className='ml-2 h-4 w-4' />
               </Link>

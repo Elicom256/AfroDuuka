@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Tenant\BusinessContext;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -33,15 +34,18 @@ use Tests\TestCase;
  */
 class BusinessContextRoleLookupTest extends TestCase
 {
+    // Without this the records below are committed and every test that runs later in
+    // the process inherits them — which is how a Business::factory() call in a
+    // following file collided with rows this one left behind.
+    use RefreshDatabase;
+
     private int $seq = 0;
 
     /**
-     * Built by hand rather than through Business::factory().
-     *
-     * The factory creates a Country and a BusinessCategory from fixed lists, and
-     * both tables have UNIQUE names, so it only works against an empty database.
-     * Anything that ran before this test and did not roll back leaves rows that
-     * make it fail, which is how this file passed alone and failed in the suite.
+     * Built by hand rather than through Business::factory(), so the records here do
+     * not depend on how many countries and categories the faker has already handed
+     * out — both tables have UNIQUE names, and the factory's `unique()` state resets
+     * per test while the rows it wrote do not.
      */
     private function makeUser(string $roleName, ?int $branchId = null): User
     {
