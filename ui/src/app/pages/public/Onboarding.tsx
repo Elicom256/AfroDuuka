@@ -11,7 +11,6 @@ import {
   useGetPublicBusinessCategoriesQuery,
 } from '@/app/store/features/business/setup/onboardingQuery';
 import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 import { getToken, setToken } from '@/lib/session';
 import { Stepper, type StepperStep } from './onboarding/Stepper';
 import { AccountSetup } from './onboarding/AccountSetup';
@@ -186,7 +185,7 @@ export const Onboarding: React.FC = () => {
       // A full navigation, not a client-side one: the role tree is chosen from the
       // freshly-created tenant and every cached query in the store was fetched without
       // it. This is the same reason logout reloads the page.
-      return (window.location.href = DASHBOARD_PREFIX);
+      return (window.location.href = '/dashboard');
     } catch (error) {
       submittedRef.current = false;
 

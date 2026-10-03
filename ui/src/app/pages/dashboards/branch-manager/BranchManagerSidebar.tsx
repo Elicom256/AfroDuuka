@@ -37,7 +37,6 @@ import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { useGetUnreadCountQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 type BranchManagerSidebarProps = {
   onNavigate?: () => void;
@@ -135,7 +134,7 @@ export const BranchManagerSidebar = ({ onNavigate }: BranchManagerSidebarProps) 
   const { data: unreadData } = useGetUnreadCountQuery(undefined, { pollingInterval: 60000 });
   const features = useFeatureSettings();
   const role = userData?.data?.role?.name;
-  const prefix = DASHBOARD_PREFIX;
+  const prefix = '/dashboard';
   const unreadCount = unreadData?.unread_count ?? 0;
 
   const filteredSections = navSections

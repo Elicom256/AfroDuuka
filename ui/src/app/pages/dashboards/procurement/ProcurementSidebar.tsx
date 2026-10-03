@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 const navItems = [
   { label: 'Overview', to: '/', icon: LayoutDashboard, end: true },
@@ -25,7 +24,7 @@ type ProcurementSidebarProps = {
 export const ProcurementSidebar = ({ onNavigate }: ProcurementSidebarProps) => {
   const { data } = useLoggedinUserQuery();
   const role = data?.data?.role?.name;
-  const prefix = DASHBOARD_PREFIX;
+  const prefix = '/dashboard';
 
   return (
     <nav className='flex flex-col h-full'>
