@@ -411,6 +411,102 @@ class TenantIsolationTest extends TestCase
         $this->assertSame('1600.00', (string) $sale->saleItems->first()->subtotal);
     }
 
+    public function test_non_pos_sale_request_preserves_discount_in_calculated_totals(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+
+        $taxCategory = \App\Models\TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
+        \App\Models\TaxRate::factory()->create([
+            'tax_category_id' => $taxCategory->id,
+            'rate' => 0.18,
+            'is_active' => true,
+        ]);
+
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'tax_category_id' => $taxCategory->id,
+            'quantity' => 10,
+            'reorder_level' => 1,
+            'selling_price' => 1000,
+            'is_tax_inclusive' => false,
+            'status' => 'active',
+        ]);
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/sales/branch-sales', [
+            'business_branch_id' => $branch->id,
+            'customer_id' => null,
+            'status' => 'completed',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => $paymentMethod->id,
+            'currency' => 'UGX',
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 2,
+                'unit_price' => 1000,
+                'discount' => 200,
+            ]],
+        ])->assertOk();
+
+        $sale = Sale::with(['saleItems', 'salePayments'])->findOrFail($response->json('sale.id'));
+
+        $this->assertSame('1600.00', (string) $sale->subtotal);
+        $this->assertSame('288.00', (string) $sale->tax_amount);
+        $this->assertSame('1888.00', (string) $sale->total_amount);
+        $this->assertSame('200.00', (string) $sale->saleItems->first()->discount);
+        $this->assertSame('1888.00', (string) $sale->salePayments->first()->amount);
+    }
+
+    public function test_non_pos_sale_request_rejects_invalid_line_discounts(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'quantity' => 10,
+            'selling_price' => 1000,
+            'status' => 'active',
+        ]);
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        foreach ([-1, 1001] as $discount) {
+            $this->postJson('/api/sales/branch-sales', [
+                'business_branch_id' => $branch->id,
+                'customer_id' => null,
+                'status' => 'completed',
+                'paymentStatus' => 'paid',
+                'payment_status_id' => $paymentMethod->id,
+                'currency' => 'UGX',
+                'items' => [[
+                    'product_id' => $product->id,
+                    'quantity' => 1,
+                    'unit_price' => 1000,
+                    'discount' => $discount,
+                ]],
+            ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('items.0.discount');
+        }
+
+        $this->assertSame(0, Sale::where('business_branch_id', $branch->id)->count());
+        $this->assertSame(10, $product->fresh()->quantity);
+    }
+
     public function test_branch_user_index_only_contains_own_branch_products(): void
     {
         $business = Business::factory()->create();

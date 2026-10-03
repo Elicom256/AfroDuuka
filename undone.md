@@ -8,9 +8,9 @@
 
 DuukaFlow has substantial operational breadth: multi-branch inventory, POS and non-POS sales, purchase orders, returns, finance, staff, reports, audit surfaces, and role permissions are implemented. This is not a missing-feature-count problem. The outstanding risk is that a small number of core invariants can still fail, and the release process does not yet demonstrate a recoverable, consistently verified production system.
 
-**Readiness: not yet ready for production rollout.** Resolve the remaining pricing correctness issue and platform-role access, and prove backup restoration before handling real business data.
+**Readiness: not yet ready for production rollout.** Resolve platform-role access and prove backup restoration before handling real business data.
 
-## P0 — Fix Before Launch
+## P0 — Fix Before Launch (completed)
 
 ### ✅ 1. Duplicate product lines can oversell in non-POS sales — Fixed
 
@@ -20,13 +20,13 @@ Evidence and regression coverage: [api/app/Services/SaleItemService.php](api/app
 
 **Verified:** Docker tests cover rejection without writes when duplicate lines exceed stock, and successful duplicate lines decrement stock once with one correctly aggregated movement. The focused suite passed alongside the standard non-POS checkout and discount tests (4 tests, 19 assertions).
 
-### 2. Non-POS sale discounts are not accepted by request validation
+### ✅ 2. Non-POS sale discounts are not accepted by request validation — Fixed
 
-The service calculates tax and subtotal from `items.*.discount`, but `StoreSaleRequest::rules()` does not validate that field. Laravel's `validated()` output therefore omits it, so a discount sent by the client is silently ignored on the HTTP path. The existing discount regression exercises `SaleItemService` directly and does not establish that the API request carries the discount through.
+`StoreSaleRequest` now preserves the optional per-unit discount through validation, requires it to be numeric and nonnegative, and caps it at the corresponding line's unit price. The HTTP path now calculates and persists the discounted subtotal, tax, sale total, line discount, and payment amount consistently.
 
 Evidence: [api/app/Http/Requests/StoreSaleRequest.php](api/app/Http/Requests/StoreSaleRequest.php), [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
 
-**Action:** Define and validate the discount contract (including non-negative and maximum-allowed bounds), then add an HTTP-level test asserting the persisted line discount, tax, subtotal, total, and payment amount agree.
+**Verified:** Docker tests confirm a valid discount produces a $1,600 subtotal, $288 tax, and $1,888 sale/payment total, and reject negative and over-unit-price discounts. The focused non-POS sale suite passed (6 tests, 33 assertions).
 
 ## P1 — Resolve Before Release
 
@@ -100,7 +100,7 @@ Do not carry these older findings forward as current blockers without new eviden
 ## Recommended Order
 
 1. ✅ Fix aggregate stock validation and add the non-POS duplicate-line regression test.
-2. Restore discount validation at the HTTP boundary and test final monetary values end to end.
+2. ✅ Restore discount validation at the HTTP boundary and test final monetary values end to end.
 3. Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
 4. Implement scheduled off-host backups and complete a documented restore drill.
 5. Re-run the full backend suite, frontend lint, and production build in the same CI configuration used for release.
@@ -108,4 +108,4 @@ Do not carry these older findings forward as current blockers without new eviden
 
 ## Review Limitations
 
-This was a source-based review, not a production penetration test or full manual UAT. The frontend lint command could not run because UI dependencies are not installed in this workspace. Historical test/build results are identified as such above. No external integrations, messaging/notification delivery, or URA flows were assessed.
+This was a source-based review, not a production penetration test or full manual UAT. Frontend lint was not rerun for this task; the earlier attempt occurred before the user restored `node_modules`. Historical test/build results are identified as such above. No external integrations, messaging/notification delivery, or URA flows were assessed.
