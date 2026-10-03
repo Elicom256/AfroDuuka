@@ -11,8 +11,8 @@
 #  failed outright and nothing could be launched from it.
 #
 #  Before first run: put real production values in ./api/.env, in particular
-#  APP_KEY, DB_PASSWORD and the WhatsApp credentials. APP_KEY and the database
-#  password must not be the development ones.
+#  APP_KEY, DB_PASSWORD and DigitalOcean Spaces credentials. APP_KEY and the
+#  database password must not be the development ones.
 # ---------------------------------------------------------------------------
 
 services:
@@ -56,6 +56,7 @@ services:
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      BACKUP_DISK: spaces
     depends_on:
       pgsql:
         condition: service_healthy
