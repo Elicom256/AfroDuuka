@@ -261,6 +261,21 @@ class OperationsRolePermissionsTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id, 'selling_price' => 2000]);
     }
 
+    public function test_procurement_cannot_reprice_a_product(): void
+    {
+        $this->actingAsRole('Procurement');
+        $product = $this->product();
+
+        $this->putJson("/api/products/{$product->id}", [
+            'selling_price' => 2000,
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'selling_price' => 1500,
+        ]);
+    }
+
     public function test_an_executive_can_still_delete_a_product(): void
     {
         $this->actingAsRole('Executive');

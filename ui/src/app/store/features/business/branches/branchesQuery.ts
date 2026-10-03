@@ -54,7 +54,7 @@ export const branchesQuery = createApi({
     // dynamics
     branchDynamics: builder.query<any, void>({
       query: () => ({
-        url: `/branch/dynamics`,
+        url: `/dynamics`,
         method: 'GET',
       }),
       providesTags: ['BranchesAPI'],

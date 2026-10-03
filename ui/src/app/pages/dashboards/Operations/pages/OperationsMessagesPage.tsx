@@ -1,15 +1,14 @@
 import { MessageCircle } from 'lucide-react';
 import { OperationsPageShell, SectionCard } from './components/Operations-page-shell';
-import { PageLoadingState } from '@/utils/PageLoadingState';
-import { useBranchMessagesQuery } from '@/app/store/features/branch';
+import { useGetNotificationsQuery } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { resolveList } from './components/Operations-page-utils';
 
 export const OperationsMessagesPage = () => {
-  const { data, isLoading } = useBranchMessagesQuery();
-  const messages = resolveList(data, 'messages');
-  const unreadCount = messages.filter((msg: any) => !msg.read).length;
-
-  if (isLoading) return <PageLoadingState />;
+  // Messaging has no backend module yet, so the branch inbox is driven by the
+  // notification feed until a messages endpoint exists.
+  const { data, isLoading } = useGetNotificationsQuery();
+  const messages = resolveList(data, 'notifications');
+  const unreadCount = messages.filter((msg: any) => !msg.is_read).length;
 
   return (
     <div className='space-y-6'>

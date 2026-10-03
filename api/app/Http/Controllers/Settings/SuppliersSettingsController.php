@@ -32,7 +32,7 @@ class SuppliersSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SuppliersSettings $suppliersSettings)
+    public function show(SuppliersSettings $suppliersSetting)
     {
         //
     }

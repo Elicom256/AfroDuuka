@@ -39,14 +39,14 @@ class ProductPolicy
     /**
      * Determine whether the user can update the model.
      *
-     * Allowed within the branch set. What a restricted role may actually change is
-     * narrowed in UpdateProductRequest, which permits quantity and nothing else, and
-     * the controller routes that quantity through InventoryService so the change is
-     * journalled.
+     * Catalogue edits require catalogue permission. Operations retains its narrow
+     * stock-count path; UpdateProductRequest prohibits catalogue fields for that role
+     * and the controller journals quantity changes through InventoryService.
      */
     public function update(User $user, Product $product): bool
     {
-        return $this->isWithinBranchSet($user, $product);
+        return $this->isWithinBranchSet($user, $product)
+            && (RolePermissions::canEditCatalog($user) || RolePermissions::isRestricted($user));
     }
 
     /**
