@@ -7,13 +7,25 @@ use App\Http\Requests\UpdateSubscriptionRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\WhatsApp\WhatsAppNotificationService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Subscriptions are business-level billing.
+ *
+ * The route group carries no 'role' middleware and every request below validated
+ * with a bare Auth::check(), so before this pass any signed-in account could
+ * change the plan and expiry dates of its business, and — because store() cancels
+ * the business's active subscription before creating a replacement — could strand
+ * it on no plan at all.
+ */
 class SubscriptionController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Subscription::class);
+
         $subscriptions = Subscription::with(['plan', 'business', 'payments'])->get();
 
         return response()->json(['subscriptions' => $subscriptions, 'message' => 'Subscriptions retrieved']);
@@ -21,6 +33,8 @@ class SubscriptionController extends Controller
 
     public function store(StoreSubscriptionRequest $request)
     {
+        $this->authorize('create', Subscription::class);
+
         $validated = $request->validated();
         $businessId = $validated['business_id'];
 
@@ -60,6 +74,8 @@ class SubscriptionController extends Controller
 
     public function show(Subscription $subscription)
     {
+        $this->authorize('view', $subscription);
+
         return response()->json([
             'subscription' => $subscription->load(['plan', 'business', 'payments']),
             'message' => 'Subscription retrieved',
@@ -68,6 +84,8 @@ class SubscriptionController extends Controller
 
     public function update(UpdateSubscriptionRequest $request, Subscription $subscription)
     {
+        $this->authorize('update', $subscription);
+
         $validated = $request->validated();
         $subscription->update($validated);
 
@@ -79,6 +97,8 @@ class SubscriptionController extends Controller
 
     public function destroy(Subscription $subscription)
     {
+        $this->authorize('delete', $subscription);
+
         $subscription->delete();
 
         return response()->json(['message' => 'Subscription deleted']);

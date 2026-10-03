@@ -4,65 +4,69 @@ namespace App\Policies;
 
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Support\Auth\RolePermissions;
 
 class SubscriptionPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Read is same-tenant, not elevated.
+     *
+     * Billing pages exist for the business paying the bill — PlanBillingSettings and
+     * ExecutiveSubscriptionPaymentsPage both read through this — so returning false
+     * here, as this policy used to, was wrong in the other direction: the list was
+     * only reachable because SubscriptionController::index never called the policy.
+     * The tenant scope on Subscription is what actually keeps one business from
+     * reading another's billing, so the policy only has to agree with it.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Subscription $subscription): bool
     {
-        return false;
+        return $user->business_id === null
+            || $user->business_id === $subscription->business_id;
     }
 
     /**
-     * Determine whether the user can create models.
+     * Writes go through canManageSubscriptions, which is Elevated roles only. The
+     * tenant check still applies: a CoreSupport or siteadmin account with no
+     * business_id may act across tenants by design, which is what RequireBusiness
+     * and the cross-tenant tests already encode.
      */
     public function create(User $user): bool
     {
-        return false;
+        return RolePermissions::canManageSubscriptions($user);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Subscription $subscription): bool
     {
-        return false;
+        if (! RolePermissions::canManageSubscriptions($user)) {
+            return false;
+        }
+
+        return $user->business_id === null
+            || $user->business_id === $subscription->business_id;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Subscription $subscription): bool
     {
-        $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        if (! RolePermissions::canManageSubscriptions($user)) {
+            return false;
+        }
+
+        return $user->business_id === null
+            || $user->business_id === $subscription->business_id;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Subscription $subscription): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Subscription $subscription): bool
     {
-        $role = strtolower((string) $user->role?->name);
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return false;
     }
 }
