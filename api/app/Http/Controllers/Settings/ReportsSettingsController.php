@@ -33,7 +33,7 @@ class ReportsSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ReportsSettings $reportsSettings)
+    public function show(ReportsSettings $reportsSetting)
     {
         //
     }

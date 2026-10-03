@@ -32,7 +32,7 @@ class CustomersSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(CustomersSettings $customersSettings)
+    public function show(CustomersSettings $customersSetting)
     {
         //
     }

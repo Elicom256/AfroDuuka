@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Services\ProcurementService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +76,8 @@ class ProcurementController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403);
+
         try {
             $validated = $request->validate([
                 'supplier_id' => 'nullable|exists:suppliers,id',
@@ -110,8 +113,10 @@ class ProcurementController extends Controller
         ]);
     }
 
-    public function approve(PurchaseOrder $purchase_order): JsonResponse
+    public function approve(Request $request, PurchaseOrder $purchase_order): JsonResponse
     {
+        abort_unless(RolePermissions::canApprovePurchaseOrder($request->user()), 403);
+
         try {
             $order = $this->procurementService->approvePurchaseOrder($purchase_order);
 
@@ -129,6 +134,8 @@ class ProcurementController extends Controller
 
     public function order(PurchaseOrder $purchase_order): JsonResponse
     {
+        abort_unless(RolePermissions::canReceivePurchaseOrder(Auth::user()), 403);
+
         try {
             $order = $this->procurementService->markAsOrdered($purchase_order);
 
@@ -146,6 +153,8 @@ class ProcurementController extends Controller
 
     public function receive(Request $request, PurchaseOrder $purchase_order): JsonResponse
     {
+        abort_unless(RolePermissions::canReceivePurchaseOrder($request->user()), 403);
+
         try {
             $validated = $request->validate([
                 'items' => 'required|array',
@@ -173,6 +182,8 @@ class ProcurementController extends Controller
 
     public function cancel(PurchaseOrder $purchase_order): JsonResponse
     {
+        abort_unless(RolePermissions::canCreatePurchaseOrder(Auth::user()), 403);
+
         try {
             $order = $this->procurementService->cancelPurchaseOrder($purchase_order);
 

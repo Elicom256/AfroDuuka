@@ -32,9 +32,9 @@ class PromotionsSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PromotionsSettings $promotionsSettings)
+    public function show(PromotionsSettings $promotionsSetting)
     {
-        return response()->json(["message" => "Setting updated", "setting" => $promotionsSettings]);
+        return response()->json(["message" => "Setting updated", "setting" => $promotionsSetting]);
     }
 
     /**

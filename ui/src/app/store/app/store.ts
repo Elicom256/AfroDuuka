@@ -20,7 +20,6 @@ import { branchSuppliersQuery } from '../features/branch/suppliers/branchSupplie
 import { branchReportsQuery } from '../features/branch/reports/branchReportsQuery';
 import { branchFinancesQuery } from '../features/branch/finances/branchFinancesQuery';
 import { notificationsApi } from '../features/branch/notifications/notificationsQuery';
-import { branchMessagesQuery } from '../features/branch/messages/messagesQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
 import { attachmentsQuery } from '../features/branch/attachments/attachmentsQuery';
@@ -86,7 +85,6 @@ export const store = configureStore({
     [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
     [branchReportsQuery.reducerPath]: branchReportsQuery.reducer,
     [branchFinancesQuery.reducerPath]: branchFinancesQuery.reducer,
-    [branchMessagesQuery.reducerPath]: branchMessagesQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
@@ -157,7 +155,6 @@ export const store = configureStore({
       branchSuppliersQuery.middleware,
       branchReportsQuery.middleware,
       branchFinancesQuery.middleware,
-      branchMessagesQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       attachmentsQuery.middleware,
