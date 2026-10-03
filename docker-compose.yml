@@ -6,7 +6,7 @@ services:
     ports:
       # ui/nginx.conf listens on 8080. Mapping 80:80 published a port nothing was
       # listening on, so this stack served no frontend either.
-      - "8080:8080"
+      - '8080:8080'
     env_file:
       - ./ui/.env
 
@@ -57,11 +57,7 @@ services:
       - app
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}",
-        ]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -78,7 +74,7 @@ services:
       - app
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
