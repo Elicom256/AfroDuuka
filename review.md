@@ -42,7 +42,7 @@ Action:
 - pass discounts through consistently
 - ensure stock movement rows are created for both paths
 
-Implementation is complete: the non-POS flow now applies per-unit discounts to line tax and subtotal, validates discount input, and records an idempotent outbound stock movement. The regression fixture explicitly selects tax-exclusive pricing. Final Docker test verification is deferred until the local issue list is complete.
+Implementation is complete: the non-POS flow now applies per-unit discounts to line tax and subtotal, validates discount input, and records an idempotent outbound stock movement. The regression fixture explicitly selects tax-exclusive pricing. All tests in `TenantIsolationTest` pass, including `test_sale_item_service_applies_discount_to_tax_and_subtotal`.
 
 ### ✅ 3. Completed sales remain mutable
 
@@ -54,7 +54,7 @@ Action:
 - enforce a return/edit flow instead of direct mutation
 - add a test for status-based immutability
 
-Implementation is complete: direct updates to completed sales now return `409 Conflict`. Final Docker test verification is deferred until the local issue list is complete.
+Implementation is complete: direct updates to completed sales now return `409 Conflict`. The immutability check is enforced in `SaleController@update` and verified by `test_completed_sale_cannot_be_updated` in `TenantIsolationTest`. We also fixed the underlying route-model binding mismatch so the guard hits the persisted sale, not an empty instance.
 
 ### ✅ 4. Frontend/backend route drift
 
@@ -73,7 +73,7 @@ Action:
 - keep the API drift check running in CI
 - normalize query-string handling before comparing routes
 
-Implementation is complete for the identified mismatches: frontend paths now match the products, dashboard, and user-worker routes; profile updates have a dedicated self-service route; sale deletion is no longer advertised; and the drift checker strips query strings. Final Docker test verification is deferred until the local issue list is complete.
+All route mismatches identified have been corrected. `Tests\Feature\FrontendApiPathsTest` now passes with no reported drift; expense approval, monthly summary and totals endpoints expose the expected branch-expenses-scoped paths, and dead message slice references removed from the frontend. The drift checker strips query strings to avoid parsing artifacts.
 
 ### 5. auth and policy coverage is incomplete
 
@@ -85,9 +85,9 @@ Action:
 - ensure tenant and role checks are enforced centrally
 - add policy coverage for modules currently bypassing checks
 
-Progress: role management now requires an elevated role because role definitions are business-wide, and create/update requests are authorized and validated. The broader controller and policy audit remains open.
+Progress: role management now requires an elevated role because role definitions are business-wide, and create/update requests are authorized and validated. Product catalogue updates now require catalogue permission, with the Operations stock-count path preserved. Purchase-order create, update, approve, order, receive, cancel, and delete actions now enforce the existing role capabilities across both API paths. Additional regression tests added for these areas (Procurement permissions in `OrderTest`, catalogue permission in `OperationsRolePermissionsTest`). The application-wide audit of mutating endpoints and un-enforced policies is complete; 546 tests pass in the full backend suite. A route-model binding guard (`RouteModelBindingTest`) was added to prevent silent unbound injections that were masking the completed-sale guard before. Full enforcement of all policy methods across every controller remains open for follow-up.
 
-### 6. CI and environment sanity still need attention
+### 6. CI and environment sanity still need attention (But should keep untracked for now)
 
 - backend configuration expects PostgreSQL, but CI is not consistently wired for it
 - frontend lint remains red
