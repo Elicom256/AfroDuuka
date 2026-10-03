@@ -51,6 +51,9 @@ class SaleItemService
             }
 
             $productIds = collect($validated["items"])->pluck('product_id')->filter()->unique()->values()->all();
+            $requestedQuantities = collect($validated['items'])
+                ->groupBy(fn ($item) => (int) $item['product_id'])
+                ->map(fn ($items) => $items->sum(fn ($item) => (int) $item['quantity']));
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
                 ->where('business_branch_id', $branchId)
@@ -71,7 +74,7 @@ class SaleItemService
                 if (!$product) {
                     throw new Exception("Product not found", 404);
                 }
-                if ($product->quantity < $item["quantity"]) {
+                if ($product->quantity < $requestedQuantities->get((int) $product->id)) {
                     throw new Exception("Products available are few to what you want to sale", 301);
                 }
                 if ($product->quantity <= $product->reorder_level) {
@@ -125,19 +128,23 @@ class SaleItemService
                     'tax_amount'       => $tax['tax_amount'],
                     'subtotal'         => ($item['quantity'] * $item['unit_price']) - $lineDiscount,
                 ]);
-                $product->decrement("quantity", $item['quantity']);
+            }
+
+            foreach ($requestedQuantities as $productId => $quantity) {
+                $product = $products->get($productId);
+                $product->decrement('quantity', $quantity);
                 $product->update(['last_sold_at' => now()]);
 
                 StockMovement::updateOrCreate(
                     [
-                        'movement_key' => md5(Sale::class . ':' . $sale->id . ':' . $product->id . ':out:' . $item['quantity']),
+                        'movement_key' => md5(Sale::class . ':' . $sale->id . ':' . $product->id . ':out:' . $quantity),
                     ],
                     [
                         'business_id'       => $user->business_id,
                         'business_branch_id' => $branchId,
                         'product_id'        => $product->id,
                         'type'              => 'out',
-                        'quantity'          => $item['quantity'],
+                        'quantity'          => $quantity,
                         'reference_type'    => Sale::class,
                         'reference_id'      => $sale->id,
                         'notes'             => 'Non-POS sale',

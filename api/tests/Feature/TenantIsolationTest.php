@@ -8,6 +8,7 @@ use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
+use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -234,6 +235,93 @@ class TenantIsolationTest extends TestCase
             'reference_type' => Sale::class,
             'reference_id' => $sale->id,
         ]);
+    }
+
+    public function test_non_pos_sale_rejects_duplicate_lines_that_exceed_available_stock(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'quantity' => 5,
+            'reorder_level' => 1,
+            'selling_price' => 1500,
+            'status' => 'active',
+        ]);
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        try {
+            app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+                'business_branch_id' => $branch->id,
+                'customer_id' => null,
+                'note' => 'Duplicate product lines exceed stock',
+                'paymentStatus' => 'paid',
+                'payment_status_id' => $paymentMethod->id,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
+                    ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
+                ],
+            ], $branch->id);
+
+            $this->fail('Expected the sale to be rejected when combined quantity exceeds stock.');
+        } catch (\Exception $exception) {
+            $this->assertSame(301, $exception->getCode());
+        }
+
+        $this->assertSame(5, $product->fresh()->quantity);
+        $this->assertSame(0, Sale::where('business_branch_id', $branch->id)->count());
+        $this->assertSame(0, StockMovement::where('product_id', $product->id)->count());
+    }
+
+    public function test_non_pos_sale_aggregates_duplicate_lines_for_stock_movement(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'quantity' => 5,
+            'reorder_level' => 1,
+            'selling_price' => 1500,
+            'status' => 'active',
+        ]);
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+            'business_branch_id' => $branch->id,
+            'customer_id' => null,
+            'note' => 'Duplicate product lines within stock',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => $paymentMethod->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 1500],
+                ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
+            ],
+        ], $branch->id);
+
+        $this->assertCount(2, $sale->saleItems);
+        $this->assertSame(0, $product->fresh()->quantity);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'reference_type' => Sale::class,
+            'reference_id' => $sale->id,
+            'type' => 'out',
+            'quantity' => 5,
+        ]);
+        $this->assertSame(1, StockMovement::where('product_id', $product->id)->count());
     }
 
     public function test_completed_sale_cannot_be_updated(): void
