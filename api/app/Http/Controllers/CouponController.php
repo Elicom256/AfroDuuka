@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Coupon;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,8 @@ class CouponController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot create coupons.');
+
         $user = Auth::user();
 
         $validated = $request->validate([
@@ -52,6 +55,8 @@ class CouponController extends Controller
 
     public function update(Request $request, Coupon $coupon): JsonResponse
     {
+        abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot edit coupons.');
+
         $validated = $request->validate([
             'description' => 'nullable|string',
             'discount_type' => 'sometimes|in:percentage,fixed',
@@ -70,6 +75,8 @@ class CouponController extends Controller
 
     public function destroy(Coupon $coupon): JsonResponse
     {
+        abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You cannot delete coupons.');
+
         $coupon->delete();
         return response()->json(['message' => 'Coupon deleted']);
     }

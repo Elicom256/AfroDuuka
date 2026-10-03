@@ -188,6 +188,42 @@ class RolePermissions
     }
 
     /**
+     * May the user create, edit or delete subscriptions?
+     *
+     * A subscription is what a business pays to exist on the platform, so this is
+     * not branch work. BranchManager is excluded deliberately: the route group has
+     * no 'role' middleware, and canManageBranch would otherwise admit them to
+     * rewrite the plan and expiry dates of the whole business.
+     *
+     * Cross-tenant creation is still blocked separately — StoreSubscriptionRequest
+     * pins business_id to the caller's own business unless they have none, and
+     * Subscription extends BaseModel so the tenant scope hides other businesses'
+     * rows from update and delete.
+     */
+    public static function canManageSubscriptions(?User $user): bool
+    {
+        return static::isElevated($user);
+    }
+
+    /**
+     * May the user author or change discounts — coupons and promotions?
+     *
+     * Pricing is money, and Operations is the one role that stands to gain from
+     * loosening it: a coupon is pure margin given away at the till, so an
+     * Operations account able to write one can discount its own sales with no
+     * second pair of eyes. Restricting writes to canManageBranch keeps that out
+     * while still letting a BranchManager run promotions for its own branch,
+     * which is ordinary branch-level commercial work.
+     *
+     * Reads stay open. The till has to resolve a coupon code mid-transaction, and
+     * an Operations user cannot check a discount it is not allowed to author.
+     */
+    public static function canManageDiscounts(?User $user): bool
+    {
+        return static::canManageBranch($user);
+    }
+
+    /**
      * May the user author or edit scheduled report definitions?
      *
      * Reports are business-level configuration — they carry business_id and no

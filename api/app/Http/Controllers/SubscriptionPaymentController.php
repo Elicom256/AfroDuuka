@@ -7,10 +7,20 @@ use App\Http\Requests\UpdateSubscriptionPaymentRequest;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionPaymentController extends Controller
 {
+    /**
+     * A subscription payment is billing, so it follows canManageSubscriptions.
+     *
+     * store() already refused to record a payment against another business, but that
+     * check is a tenant boundary, not a role boundary: any Operations account inside
+     * its own business could file and then mark payments completed, and completing one
+     * credits subscription_balance straight onto the business. update() had no gate at
+     * all beyond validation, which is the write that moves money.
+     */
     public function index()
     {
         $payments = SubscriptionPayment::with(['subscription.plan', 'subscription.business', 'paymentMethod', 'verifiedBy'])->get();
@@ -19,6 +29,8 @@ class SubscriptionPaymentController extends Controller
 
     public function store(StoreSubscriptionPaymentRequest $request)
     {
+        abort_unless(RolePermissions::canManageSubscriptions(Auth::user()), 403, 'You cannot record subscription payments.');
+
         $validated = $request->validated();
 
         // Default payment_status to pending when not provided
@@ -45,6 +57,8 @@ class SubscriptionPaymentController extends Controller
 
     public function show(SubscriptionPayment $subscriptionPayment)
     {
+        abort_unless(RolePermissions::canManageSubscriptions(Auth::user()), 403, 'You cannot view subscription payments.');
+
         return response()->json([
             'subscription_payment' => $subscriptionPayment->load(['subscription.plan', 'paymentMethod', 'verifiedBy']),
             'message' => 'Subscription payment retrieved'
@@ -53,20 +67,39 @@ class SubscriptionPaymentController extends Controller
 
     public function update(UpdateSubscriptionPaymentRequest $request, SubscriptionPayment $subscriptionPayment)
     {
-        $validated = $request->validated();
+        // Marking a payment 'completed' credits subscription_balance below, so this is
+        // the single most consequential write in the module and the gate sits in front
+        // of it rather than only around the tenant check.
+        abort_unless(RolePermissions::canManageSubscriptions(Auth::user()), 403, 'You cannot update subscription payments.');
 
-        if (isset($validated['payment_status']) && $validated['payment_status'] === 'completed') {
-            $validated['verified_by'] = Auth::id();
-            $validated['verified_at'] = now();
+        $subscription = $subscriptionPayment->subscription;
 
-            $subscription = $subscriptionPayment->subscription;
-            if ($subscription && $subscription->business) {
-                $subscription->business->increment('subscription_balance', $subscriptionPayment->amount_paid);
-            }
+        if ($subscription && Auth::user()->business_id !== null
+            && $subscription->business_id !== Auth::user()->business_id) {
+            abort(403, 'Cannot update payment for another business.');
         }
+
+        $validated = $request->validated();
 
         if (isset($validated['payment_status']) && $validated['payment_status'] === 'rejected' && empty($validated['rejection_reason'])) {
             abort(422, 'Rejection reason is required when rejecting a payment');
+        }
+
+        // Only credit on the transition into completed. Re-sending 'completed' for a
+        // payment that already carries it used to increment subscription_balance again,
+        // so a double-clicked verify button credited the business twice for one
+        // payment. $subscriptionPayment is the pre-update row, so its status is the
+        // state being transitioned from.
+        if (
+            ($validated['payment_status'] ?? null) === 'completed'
+            && $subscriptionPayment->payment_status !== 'completed'
+        ) {
+            $validated['verified_by'] = Auth::id();
+            $validated['verified_at'] = now();
+
+            if ($subscription && $subscription->business) {
+                $subscription->business->increment('subscription_balance', $subscriptionPayment->amount_paid);
+            }
         }
 
         $subscriptionPayment->update($validated);
@@ -78,6 +111,15 @@ class SubscriptionPaymentController extends Controller
 
     public function destroy(SubscriptionPayment $subscriptionPayment)
     {
+        abort_unless(RolePermissions::canManageSubscriptions(Auth::user()), 403, 'You cannot delete subscription payments.');
+
+        $subscription = $subscriptionPayment->subscription;
+
+        if ($subscription && Auth::user()->business_id !== null
+            && $subscription->business_id !== Auth::user()->business_id) {
+            abort(403, 'Cannot delete payment for another business.');
+        }
+
         $subscriptionPayment->delete();
         return response()->json(['message' => 'Subscription payment deleted']);
     }

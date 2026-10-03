@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Promotion;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PromotionController extends Controller
 {
@@ -18,6 +20,8 @@ class PromotionController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot create promotions.');
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -43,6 +47,8 @@ class PromotionController extends Controller
 
     public function update(Request $request, Promotion $promotion): JsonResponse
     {
+        abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot edit promotions.');
+
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
@@ -61,6 +67,8 @@ class PromotionController extends Controller
 
     public function destroy(Promotion $promotion): JsonResponse
     {
+        abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You cannot delete promotions.');
+
         $promotion->delete();
         return response()->json(['message' => 'Promotion deleted']);
     }
