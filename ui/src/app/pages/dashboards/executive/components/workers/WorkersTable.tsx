@@ -28,7 +28,7 @@ type WorkersTableProps = {
 };
 
 export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting }: WorkersTableProps) => {
-  const [recordAttendance, { isLoading: recording, error }] = useRecordEmployeeattendanceMutation();
+  const [recordAttendance, { isLoading: recording }] = useRecordEmployeeattendanceMutation();
   const [session, setSession] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [allPresent, setAllPresent] = useState<boolean>(false);
   const [selected, setSelected] = useState<Record<number, boolean>>({});

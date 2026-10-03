@@ -11,8 +11,8 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const PurchaseReturn = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
+  const { data: prData, isLoading } = usePurchaseReturnQuery(id ?? '', { skip: !id });
   if (!id) return null;
-  const { data: prData, isLoading } = usePurchaseReturnQuery(id, { skip: !id });
   if (isLoading) return <PageLoadingState />;
 
   const pr = prData?.purchase_return || prData;

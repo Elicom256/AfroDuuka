@@ -1,10 +1,10 @@
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarCheck, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { CalendarCheck, Clock, CheckCircle2 } from 'lucide-react';
 
 export const StaffAttendance = () => {
-  const { data: userData, isLoading } = useLoggedinUserQuery();
+  const { isLoading } = useLoggedinUserQuery();
 
   if (isLoading) {
     return (

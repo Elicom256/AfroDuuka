@@ -11,7 +11,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import { TrendingUp, Hash } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -81,9 +81,13 @@ export const PriceAnalytics = () => {
 
   // Cleanup chart instance on unmount
   useEffect(() => {
+    // Captured at effect time: reading chartRef.current from the cleanup can hit a
+    // different (or null) node than the one this effect attached to, which leaks the
+    // chart instance instead of destroying it.
+    const chart = chartRef.current;
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
+      if (chart) {
+        chart.destroy();
       }
     };
   }, []);

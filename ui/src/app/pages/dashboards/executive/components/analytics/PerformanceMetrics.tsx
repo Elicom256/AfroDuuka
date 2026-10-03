@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,25 +22,25 @@ export const PerformanceMetrics = () => {
 
   // Fetch products list
   const { data: productsData } = useProductsQuery();
-  const products = productsData?.products || [];
+  // Memoised so the `|| []` fallback does not hand the product list a new array identity
+  // on every render.
+  const products = useMemo(() => productsData?.products || [], [productsData]);
+
+  // Falls back to the first product until the user picks one. Deriving it here rather
+  // than auto-selecting in an effect keeps the first render correct and saves the extra
+  // render pass the effect forced.
+  const activeProductId = selectedProductId || (products[0] ? String(products[0].id) : '');
 
   // Fetch metrics for selected product
   const { data, isLoading, isFetching, isError, refetch } = useProductMetricsQuery(
     {
-      id: selectedProductId,
+      id: activeProductId,
       period: selectedPeriod,
     },
-    { skip: !selectedProductId },
+    { skip: !activeProductId },
   );
 
   const metrics = data?.data;
-
-  // Auto select first product
-  useEffect(() => {
-    if (products.length > 0 && !selectedProductId) {
-      setSelectedProductId(String(products[0].id));
-    }
-  }, [products, selectedProductId]);
 
   const handleProductChange = (productId: string) => setSelectedProductId(productId);
   const handlePeriodChange = (period: string) => setSelectedPeriod(period);
@@ -61,7 +61,7 @@ export const PerformanceMetrics = () => {
         },
       ],
     };
-  }, [metrics]);
+  }, [metrics, currency]);
 
   const chartOptions = {
     responsive: true,
@@ -108,7 +108,7 @@ export const PerformanceMetrics = () => {
         {/* Product Selector */}
         <div>
           <label className='text-sm font-medium mb-2 block'>Select Product</label>
-          <Select value={selectedProductId} onValueChange={handleProductChange}>
+          <Select value={activeProductId} onValueChange={handleProductChange}>
             <SelectTrigger>
               <SelectValue placeholder='Choose a product to analyze' />
             </SelectTrigger>

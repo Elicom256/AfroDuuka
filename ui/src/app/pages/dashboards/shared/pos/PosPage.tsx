@@ -51,7 +51,6 @@ export const PosPage = () => {
   const navigate = useNavigate();
   const { data: userData } = useLoggedinUserQuery();
   const business = userData?.data?.business;
-  const role = userData?.data?.role?.name;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useProductsQuery, useProductAnalyticsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useProductsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ProductTable } from '../components/products/ProductTable';
 import { AdjustStock } from '../components/products/AdjustStock';
@@ -12,7 +12,6 @@ import { Package, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
 export const OperationsInventoryPage = () => {
   const { currency } = useCurrency();
   const { data: productData, isLoading } = useProductsQuery();
-  const { data: analytics } = useProductAnalyticsQuery();
   const { data: restocking } = useProductRestockingQuery();
   const [adjustProduct, setAdjustProduct] = useState<any>(null);
 

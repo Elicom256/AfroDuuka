@@ -6,7 +6,7 @@ import { resolveList } from './components/Operations-page-utils';
 export const OperationsMessagesPage = () => {
   // Messaging has no backend module yet, so the branch inbox is driven by the
   // notification feed until a messages endpoint exists.
-  const { data, isLoading } = useGetNotificationsQuery();
+  const { data } = useGetNotificationsQuery();
   const messages = resolveList(data, 'notifications');
   const unreadCount = messages.filter((msg: any) => !msg.is_read).length;
 

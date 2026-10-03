@@ -11,8 +11,8 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const SaleReturn = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
+  const { data: srData, isLoading } = useSaleReturnQuery(id ?? '', { skip: !id });
   if (!id) return null;
-  const { data: srData, isLoading } = useSaleReturnQuery(id, { skip: !id });
   if (isLoading) return <PageLoadingState />;
 
   const sr = srData?.sale_return || srData;

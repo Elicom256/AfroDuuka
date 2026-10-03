@@ -27,7 +27,9 @@ export const ProductPriceChart = ({ productId }: ProductPriceChartProps) => {
   const chartRef = useRef<any>(null);
   const { data, isLoading, error } = useProductPriceHistoryQuery({ productId, per_page: 10000 });
 
-  const records = data?.data?.data ?? [];
+  // Memoised because `data?.data?.data ?? []` allocates a fresh array on every render,
+  // which would make the sortedRecords memo below recompute on every single render.
+  const records = useMemo(() => data?.data?.data ?? [], [data]);
 
   const sortedRecords = useMemo(() => {
     return [...records].sort(
@@ -93,8 +95,12 @@ export const ProductPriceChart = ({ productId }: ProductPriceChartProps) => {
   } as const;
 
   useEffect(() => {
+    // Captured at effect time: reading chartRef.current from the cleanup can hit a
+    // different (or null) node than the one this effect attached to, which leaks the
+    // chart instance instead of destroying it.
+    const chart = chartRef.current;
     return () => {
-      if (chartRef.current) chartRef.current.destroy();
+      if (chart) chart.destroy();
     };
   }, []);
 
