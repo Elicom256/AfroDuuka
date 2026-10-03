@@ -66,17 +66,17 @@ export const AppRoutes = () => {
       <Route path='login' element={<Login />} />
       <Route path='signup' element={<SignUp />} />
       <Route path='onboarding' element={<Onboarding />} />
-        <Route path='about' element={<About />} />
-        <Route path='documentation' element={<Documentation />} />
-        <Route path='terms' element={<TermsOfService />} />
-        <Route path='privacy' element={<PrivacyPolicy />} />
+      <Route path='about' element={<About />} />
+      <Route path='documentation' element={<Documentation />} />
+      <Route path='terms' element={<TermsOfService />} />
+      <Route path='privacy' element={<PrivacyPolicy />} />
 
       {/* Role-based protected routes, all mounted at /dashboard/* so that the
           hardcoded '/dashboard/...' links throughout the app resolve. The tree
           is chosen from the role, so the URL does not need to repeat it. */}
       {role === 'Executive' && <Route path='dashboard/*' element={<ExecutiveRoutes />} />}
       {role === 'BranchManager' && <Route path='dashboard/*' element={<BranchManagerRoutes />} />}
-      {role === 'CoreSupport' && <Route path='dashboard/*' element={<SuperadminRoutes />} />}
+      {(role === 'CoreSupport' || role === 'siteadmin') && <Route path='dashboard/*' element={<SuperadminRoutes />} />}
       {role === 'Operations' && <Route path='dashboard/*' element={<OperationsRoutes />} />}
       {role === 'Procurement' && <Route path='dashboard/*' element={<ProcurementRoutes />} />}
       {role === 'staff' && <Route path='dashboard/*' element={<StaffDashboard />} />}
