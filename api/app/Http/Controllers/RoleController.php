@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Models\Role;
+use App\Support\Auth\RolePermissions;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
@@ -56,6 +58,8 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        abort_unless(RolePermissions::isElevated(Auth::user()), 403);
+
         $role->delete();
         return response()->json(["message" => "Role deleted!"]);
     }

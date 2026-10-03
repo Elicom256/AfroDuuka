@@ -14,7 +14,7 @@ This review focuses on the issues that affect the product before any external in
 | -------------------- | ------------------------ | --------------------------------------------------------------------- |
 | Backend tests        | **534 passed, 1 failed** | The single failure is the API drift check, which is useful and active |
 | TypeScript           | **Passes**               | `tsc -b --force` completes successfully                               |
-| ESLint               | **1,099 problems**       | Frontend lint remains red                                             |
+| ESLint               | **1,098 findings**       | 1,080 errors, 18 warnings across 451 files; lint remains red          |
 | CI backend           | **Not reliably green**   | Configuration is inconsistent for database-backed tests               |
 | Local data integrity | **Needs hardening**      | Sale and stock paths still drift                                      |
 | Route drift          | **Confirmed**            | Frontend and backend contracts are not aligned                        |
@@ -32,7 +32,7 @@ Action completed:
 - removed the stale relationship from the sale load path
 - added a regression test for a successful non-POS sale
 
-### 2. POS and non-POS checkout paths calculate totals differently
+### ✅ 2. POS and non-POS checkout paths calculate totals differently
 
 The two sale paths do not agree on discount, subtotal, and tax treatment. The non-POS flow can drop discount data and under-record stock movement, which leads to inconsistent ledger values and tax mismatch.
 
@@ -42,7 +42,9 @@ Action:
 - pass discounts through consistently
 - ensure stock movement rows are created for both paths
 
-### 3. Completed sales remain mutable
+Implementation is complete: the non-POS flow now applies per-unit discounts to line tax and subtotal, validates discount input, and records an idempotent outbound stock movement. The regression fixture explicitly selects tax-exclusive pricing. Final Docker test verification is deferred until the local issue list is complete.
+
+### ✅ 3. Completed sales remain mutable
 
 A completed sale can still be updated and re-pointed without a guard on status. This leaves the system exposed to post-completion mutation.
 
@@ -52,7 +54,9 @@ Action:
 - enforce a return/edit flow instead of direct mutation
 - add a test for status-based immutability
 
-### 4. Frontend/backend route drift is still active
+Implementation is complete: direct updates to completed sales now return `409 Conflict`. Final Docker test verification is deferred until the local issue list is complete.
+
+### ✅ 4. Frontend/backend route drift
 
 The frontend and backend contracts are not aligned. The API drift test is already catching real mismatches, including missing endpoints and invalid route names.
 
@@ -69,6 +73,8 @@ Action:
 - keep the API drift check running in CI
 - normalize query-string handling before comparing routes
 
+Implementation is complete for the identified mismatches: frontend paths now match the products, dashboard, and user-worker routes; profile updates have a dedicated self-service route; sale deletion is no longer advertised; and the drift checker strips query strings. Final Docker test verification is deferred until the local issue list is complete.
+
 ### 5. auth and policy coverage is incomplete
 
 Several controllers lack effective authorization checks, and policies are not consistently enforced across the app.
@@ -79,11 +85,15 @@ Action:
 - ensure tenant and role checks are enforced centrally
 - add policy coverage for modules currently bypassing checks
 
+Progress: role management now requires an elevated role because role definitions are business-wide, and create/update requests are authorized and validated. The broader controller and policy audit remains open.
+
 ### 6. CI and environment sanity still need attention
 
 - backend configuration expects PostgreSQL, but CI is not consistently wired for it
 - frontend lint remains red
 - the repo still has environment and secret hygiene issues that should be cleaned before adding any new integration layer
+
+Progress: the local CI workflow now provisions PostgreSQL and the frontend source path required by the API drift check; Compose development credentials are aligned with `api/.env.example`. The `.env.prod` file has been removed from Git and ignored for future copies. Credential rotation/history cleanup and the existing frontend lint backlog remain open. The Docker lint run found 1,080 errors and 18 warnings across 451 files, mostly `no-explicit-any`, unused variables, and React hook rules; only one finding is auto-fixable. Keep `.github/workflows/ci.yml` untracked for now. Final Docker test verification is deferred until the local issue list is complete.
 
 ---
 

@@ -68,6 +68,7 @@ class FrontendApiPathsTest extends TestCase
                 }
 
                 $url = preg_replace('/\$\{[^}]+\}/', '1', $url);
+                $url = parse_url($url, PHP_URL_PATH) ?: '/';
 
                 $fullPath = 'api' . rtrim($baseUrl, '/') . $url;
                 $fullPath = preg_replace('#/+#', '/', $fullPath);

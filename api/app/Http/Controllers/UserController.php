@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Country;
 use App\Models\Subscription;
@@ -67,6 +68,17 @@ class UserController extends Controller
             'data' => $user,
             "country" => $country ?? "N/A",
             "onboarding" => $onboarding,
+        ], 200);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = $request->user();
+        $user->fill($request->validated())->save();
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'data' => $user->fresh(),
         ], 200);
     }
 

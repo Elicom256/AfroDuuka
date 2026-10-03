@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use App\Support\Auth\RolePermissions;
 
 class UpdateRoleRequest extends FormRequest
 {
@@ -12,7 +14,7 @@ class UpdateRoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return RolePermissions::isElevated(Auth::user());
     }
 
     /**
@@ -23,7 +25,7 @@ class UpdateRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
         ];
     }
 }

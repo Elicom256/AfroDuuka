@@ -79,6 +79,12 @@ public function salesAnalytics()
      */
     public function update(UpdateSaleRequest $request, Sale $sale)
     {
+        if ($sale->status === 'completed') {
+            return response()->json([
+                'message' => 'Completed sales cannot be edited. Use the return flow instead.',
+            ], 409);
+        }
+
         $validated = $request->validated();
         $sale->update($validated);
         return response()->json(["message" => "Sale Updated", "sale" => $sale]);

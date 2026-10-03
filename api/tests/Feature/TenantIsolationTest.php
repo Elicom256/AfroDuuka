@@ -7,6 +7,7 @@ use App\Models\BusinessBranch;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -225,6 +226,48 @@ class TenantIsolationTest extends TestCase
         $this->assertCount(1, $sale->saleItems);
         $this->assertCount(1, $sale->salePayments);
         $this->assertNotNull($sale->receipt);
+        $this->assertDatabaseHas('stock_movements', [
+            'business_branch_id' => $branch->id,
+            'product_id' => $product->id,
+            'type' => 'out',
+            'quantity' => 1,
+            'reference_type' => Sale::class,
+            'reference_id' => $sale->id,
+        ]);
+    }
+
+    public function test_completed_sale_cannot_be_updated(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create(['business_branch_id' => $branch->id]);
+        $sale = Sale::create([
+            'business_branch_id' => $branch->id,
+            'subtotal' => 100,
+            'tax_amount' => 0,
+            'total_amount' => 100,
+            'status' => 'completed',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->putJson("/api/sales/branch-sales/{$sale->id}", [
+            'business_branch_id' => $branch->id,
+            'items' => [[
+                'product_id' => $product->id,
+                'sale_id' => $sale->id,
+                'quantity' => 1,
+                'price' => 200,
+                'subtotal' => 200,
+            ]],
+        ])->assertStatus(409);
+
+        $this->assertDatabaseHas('sales', [
+            'id' => $sale->id,
+            'status' => 'completed',
+            'total_amount' => 100,
+        ]);
     }
 
     public function test_sale_item_service_applies_discount_to_tax_and_subtotal(): void

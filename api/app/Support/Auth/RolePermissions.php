@@ -197,4 +197,5 @@ public static function roleName(?User $user): string
     {
         return static::isElevated($user);
     }
+
 }

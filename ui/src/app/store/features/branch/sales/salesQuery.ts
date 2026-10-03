@@ -52,21 +52,8 @@ export const salesQuery = createApi({
       }),
       invalidatesTags: ['SalesAPI'],
     }),
-    deleteSale: builder.mutation<any, number | string>({
-      query: (id) => ({
-        url: `/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['SalesAPI'],
-    }),
   }),
 });
 
-export const {
-  useSalesQuery,
-  useSaleQuery,
-  useAddSaleMutation,
-  useUpdateSaleMutation,
-  useDeleteSaleMutation,
-  useGetSalesAnalyticsQuery,
-} = salesQuery;
+export const { useSalesQuery, useSaleQuery, useAddSaleMutation, useUpdateSaleMutation, useGetSalesAnalyticsQuery } =
+  salesQuery;
