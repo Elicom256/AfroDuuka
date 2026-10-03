@@ -25,7 +25,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export const SalesAnalytics = () => {
   const { currency } = useCurrency();
   const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
-  const { data, isLoading, isError, error } = useGetSalesAnalyticsQuery(selectedPeriod);
+  const { data, isLoading, isFetching, isError, refetch } = useGetSalesAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
 
   const analytics = data?.data;
@@ -83,7 +83,7 @@ export const SalesAnalytics = () => {
   }
 
   if (isError) {
-    return <Error error={error} />;
+    return <Error title='Unable to load sales analytics' onRetry={refetch} retrying={isFetching} />;
   }
 
   if (!analytics?.sales_trend?.length) {

@@ -25,7 +25,7 @@ export const PerformanceMetrics = () => {
   const products = productsData?.products || [];
 
   // Fetch metrics for selected product
-  const { data, isLoading, isError, error } = useProductMetricsQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useProductMetricsQuery(
     {
       id: selectedProductId,
       period: selectedPeriod,
@@ -88,7 +88,7 @@ export const PerformanceMetrics = () => {
   };
 
   if (isLoading) return <LoadingState />;
-  if (isError) return <Error error={error} />;
+  if (isError) return <Error title='Unable to load product performance' onRetry={refetch} retrying={isFetching} />;
 
   return (
     <Card>

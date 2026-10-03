@@ -2,13 +2,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search } from 'lucide-react';
 import { useGetFinanceTransactionsQuery } from '@/app/store/features/finance/financeQuery';
@@ -16,6 +10,7 @@ import { useBranchesQuery } from '@/app/store/features/business/branches/branche
 import { FinanceTransactionTable } from '../components/finance/FinanceTransactionTable';
 import { FinanceAdjustmentDialog } from '../components/finance/FinanceAdjustmentDialog';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 const transactionTypes = [
   { value: '', label: 'All' },
@@ -50,7 +45,7 @@ export const ExecutiveFinanceTransactionsPage = () => {
     return params;
   }, [page, type, category, dateFrom, dateTo, branchId, search]);
 
-  const { data, isLoading, refetch } = useGetFinanceTransactionsQuery(queryParams);
+  const { data, isLoading, isFetching, isError, refetch } = useGetFinanceTransactionsQuery(queryParams);
 
   const records = data?.data?.data ?? data?.transactions?.data ?? [];
   const currentPage = data?.data?.current_page ?? data?.transactions?.current_page ?? 1;
@@ -80,9 +75,7 @@ export const ExecutiveFinanceTransactionsPage = () => {
         <CardHeader className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
           <div className='space-y-2'>
             <CardTitle className='text-2xl'>Financial Transactions</CardTitle>
-            <CardDescription className='max-w-2xl'>
-              Track all financial movements across your business
-            </CardDescription>
+            <CardDescription className='max-w-2xl'>Track all financial movements across your business</CardDescription>
           </div>
           <FinanceAdjustmentDialog onSuccess={refetch} />
         </CardHeader>
@@ -167,11 +160,37 @@ export const ExecutiveFinanceTransactionsPage = () => {
         </CardContent>
       </Card>
 
-      {records.length === 0 && !isLoading ? (
+      {isError && !data ? (
+        <QueryErrorState
+          title='Unable to load financial transactions'
+          description='No transaction results are available because the request failed. Your filters are preserved.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      ) : isError ? (
+        <>
+          <QueryErrorState
+            title='Transactions may be out of date'
+            description='The latest refresh failed. The last loaded transactions are still shown.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+          {records.length > 0 && (
+            <FinanceTransactionTable
+              records={records}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          )}
+        </>
+      ) : records.length === 0 && !isLoading ? (
         <Card>
           <CardContent className='py-16 text-center text-muted-foreground'>
-            <p className='text-lg'>No transactions found</p>
-            <p className='text-sm mt-1'>Try adjusting your filters or create a new adjustment.</p>
+            <QueryEmptyState
+              title='No transactions found'
+              description='Try adjusting your filters or create a new adjustment.'
+            />
           </CardContent>
         </Card>
       ) : (

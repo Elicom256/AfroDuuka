@@ -4,10 +4,11 @@ import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Receipt } from 'lucide-react';
 import { format } from 'date-fns';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const RecentSales = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useSalesQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useSalesQuery();
 
   const sales = data?.sales ?? data ?? [];
   const recent = [...sales]
@@ -29,6 +30,24 @@ export const RecentSales = () => {
     );
   }
 
+  if (isError && !data) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-sm'>Recent sales</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QueryErrorState
+            title='Unable to load recent sales'
+            description='Sales records could not be retrieved.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className='pb-3'>
@@ -39,12 +58,23 @@ export const RecentSales = () => {
         <CardDescription>Latest transactions</CardDescription>
       </CardHeader>
       <CardContent>
+        {isError && (
+          <QueryErrorState
+            title='Recent sales may be out of date'
+            description='The last loaded transactions are shown.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        )}
         {recent.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>No recent sales.</p>
+          <QueryEmptyState title='No recent sales' description='Completed sales will appear here.' />
         ) : (
           <div className='space-y-2'>
             {recent.map((sale: any) => (
-              <div key={sale.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'>
+              <div
+                key={sale.id}
+                className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'
+              >
                 <div className='min-w-0'>
                   <p className='truncate font-medium'>
                     Order #{sale.id}

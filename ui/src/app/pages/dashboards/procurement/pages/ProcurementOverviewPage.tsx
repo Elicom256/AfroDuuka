@@ -3,12 +3,23 @@ import { useGetOverviewQuery } from '@/app/store/features/procurement/procuremen
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { AlertTriangle, Package, Truck, DollarSign } from 'lucide-react';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ProcurementOverviewPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useGetOverviewQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useGetOverviewQuery();
 
   if (isLoading) return <PageLoadingState />;
+  if (isError && !data) {
+    return (
+      <QueryErrorState
+        title='Unable to load procurement overview'
+        description='Reorder counts and suggested order values are unavailable because the request failed.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
 
   const overview = data;
 
@@ -41,6 +52,14 @@ export const ProcurementOverviewPage = () => {
 
   return (
     <div className='space-y-6'>
+      {isError && (
+        <QueryErrorState
+          title='Procurement overview may be out of date'
+          description='The latest refresh failed. The last loaded figures are still shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <Card className='rounded-3xl border border-border/70 bg-card p-6'>
         <CardHeader>
           <CardTitle>Procurement Overview</CardTitle>
@@ -74,16 +93,22 @@ export const ProcurementOverviewPage = () => {
           {overview?.reorder_suggestions && overview.reorder_suggestions.length > 0 ? (
             <div className='space-y-3'>
               {overview.reorder_suggestions.slice(0, 5).map((suggestion) => (
-                <div key={suggestion.product_id} className='flex items-center justify-between rounded-2xl border border-border/70 bg-muted p-4'>
+                <div
+                  key={suggestion.product_id}
+                  className='flex items-center justify-between rounded-2xl border border-border/70 bg-muted p-4'
+                >
                   <div>
                     <p className='font-medium'>{suggestion.product_name}</p>
                     <p className='text-xs text-muted-foreground'>
-                      Stock: {suggestion.current_stock} / Reorder: {suggestion.reorder_level} | Avg Daily Sales: {suggestion.avg_daily_sales}
+                      Stock: {suggestion.current_stock} / Reorder: {suggestion.reorder_level} | Avg Daily Sales:{' '}
+                      {suggestion.avg_daily_sales}
                     </p>
                   </div>
                   <div className='text-right'>
                     <p className='font-semibold'>{suggestion.suggested_order_quantity} units</p>
-                    <p className='text-xs text-muted-foreground'>{currency} {suggestion.estimated_order_value.toLocaleString()}</p>
+                    <p className='text-xs text-muted-foreground'>
+                      {currency} {suggestion.estimated_order_value.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               ))}

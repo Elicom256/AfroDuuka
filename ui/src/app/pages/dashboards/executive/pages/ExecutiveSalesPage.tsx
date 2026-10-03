@@ -10,10 +10,11 @@ import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settin
 import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { ExportButton } from '@/app/components/ExportButton';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ExecutiveSalesPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useSalesQuery();
+  const { data, isLoading, isFetching, error, refetch } = useSalesQuery();
   const { data: productData } = useProductsQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
   const { data: buyers } = useCustomersQuery();
@@ -23,6 +24,16 @@ export const ExecutiveSalesPage = () => {
   const paymentMethods = methods?.methods;
   const customers = buyers?.customers;
   if (isLoading) return <PageLoadingState />;
+  if (error && !data) {
+    return (
+      <QueryErrorState
+        title='Unable to load sales'
+        description='Sales totals and records are unavailable because the request failed.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
 
   const sales = data?.sales ?? data ?? [];
   const products = productData?.products ?? [];
@@ -36,6 +47,14 @@ export const ExecutiveSalesPage = () => {
 
   return (
     <div className='space-y-6'>
+      {error && data && (
+        <QueryErrorState
+          title='Sales may be out of date'
+          description='The latest refresh failed. The last loaded sales are still shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <Card className='rounded-3xl border border-border/70 bg-card p-2'>
         <CardHeader>
           <CardTitle>Sales</CardTitle>
@@ -49,7 +68,9 @@ export const ExecutiveSalesPage = () => {
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total revenue</p>
-              <p className='text-lg font-semibold'>{currency} {totals.toLocaleString()}</p>
+              <p className='text-lg font-semibold'>
+                {currency} {totals.toLocaleString()}
+              </p>
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Products sold</p>

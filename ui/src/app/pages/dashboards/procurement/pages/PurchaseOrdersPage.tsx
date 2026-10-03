@@ -3,6 +3,7 @@ import { useGetPurchaseOrdersQuery } from '@/app/store/features/procurement/proc
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Badge } from '@/components/ui/badge';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-500/10 text-gray-500',
@@ -16,9 +17,19 @@ const statusColors: Record<string, string> = {
 
 export const PurchaseOrdersPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useGetPurchaseOrdersQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery();
 
   if (isLoading) return <PageLoadingState />;
+  if (isError && !data) {
+    return (
+      <QueryErrorState
+        title='Unable to load purchase orders'
+        description='Purchase order records are unavailable because the request failed.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
 
   const orders = data?.data ?? [];
 
@@ -30,6 +41,14 @@ export const PurchaseOrdersPage = () => {
           <CardDescription>Manage purchase orders from draft through receiving.</CardDescription>
         </CardHeader>
         <CardContent>
+          {isError && (
+            <QueryErrorState
+              title='Purchase orders may be out of date'
+              description='The latest refresh failed. The last loaded orders are still shown.'
+              onRetry={refetch}
+              retrying={isFetching}
+            />
+          )}
           {orders.length > 0 ? (
             <div className='space-y-3'>
               {orders.map((order) => (
@@ -54,16 +73,19 @@ export const PurchaseOrdersPage = () => {
                     )}
                   </div>
                   <div className='text-right'>
-                    <p className='text-lg font-semibold'>{currency} {Number(order.total_amount).toLocaleString()}</p>
-                    <p className='text-xs text-muted-foreground'>
-                      {new Date(order.created_at).toLocaleDateString()}
+                    <p className='text-lg font-semibold'>
+                      {currency} {Number(order.total_amount).toLocaleString()}
                     </p>
+                    <p className='text-xs text-muted-foreground'>{new Date(order.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className='text-sm text-muted-foreground'>No purchase orders found.</p>
+            <QueryEmptyState
+              title='No purchase orders yet'
+              description='Purchase orders will appear here once created.'
+            />
           )}
         </CardContent>
       </Card>
