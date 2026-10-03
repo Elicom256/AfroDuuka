@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use App\Support\Auth\RolePermissions;
 
 class StoreRoleRequest extends FormRequest
 {
@@ -12,7 +14,12 @@ class StoreRoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return RolePermissions::isElevated(Auth::user());
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['business_id' => Auth::user()->business_id]);
     }
 
     /**
@@ -23,7 +30,8 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['required', 'string', 'max:255'],
+            'business_id' => ['nullable', 'integer', 'exists:businesses,id'],
         ];
     }
 }

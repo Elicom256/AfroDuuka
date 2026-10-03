@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const branchCustomersQuery = createApi({
   reducerPath: 'branchCustomersPath',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/customers`,
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/customers`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
