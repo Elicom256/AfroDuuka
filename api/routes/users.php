@@ -14,11 +14,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // every user's role, and a worker update is how a role gets reassigned.
     Route::middleware('role')->group(function () {
         Route::get('/', [UserController::class, 'index']);
+        Route::post('/workers', [UserController::class, 'store']);
         Route::put('/workers/{worker}', [UserController::class, 'update']);
         Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
     });
 
     Route::get('/me', [UserController::class, 'me']);
+    Route::patch('/update', [UserController::class, 'updateProfile']);
     Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/workers', [UserController::class, 'workers']);
     Route::get('/workers/{worker}', [UserController::class, 'worker']);
