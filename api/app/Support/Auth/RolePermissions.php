@@ -44,7 +44,24 @@ class RolePermissions
      */
     public const BRANCH_MANAGER_ROLES = ['branchmanager'];
 
-public static function roleName(?User $user): string
+    /**
+     * Platform operators: the staff who own the product itself.
+     *
+     * A narrower set than ELEVATED_ROLES. Everything else in this class is a
+     * statement about what a role may do *inside one business*, which is what
+     * executive and branchmanager mean. A plan's price list, by contrast, has
+     * no business_id at all — Plan extends Eloquent\Model rather than BaseModel
+     * precisely because one price list is sold to every tenant — so no tenant
+     * scope can contain it and an Executive must not be able to reprice it.
+     */
+    public const PLATFORM_OPERATOR_ROLES = ['siteadmin'];
+
+    public static function isPlatformOperator(?User $user): bool
+    {
+        return in_array(static::roleName($user), static::PLATFORM_OPERATOR_ROLES, true);
+    }
+
+    public static function roleName(?User $user): string
     {
         // Role names are stored inconsistently ("BranchManager", "branch_manager",
         // "Branch Manager"), so every comparison here lowercases first, then strips
