@@ -4,6 +4,7 @@ namespace App\Support\Tenant;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -83,8 +84,8 @@ class BusinessContext
             return null;
         }
 
-        // Site admins have unrestricted access.
-        if ($this->roleNameFor($user) === 'siteadmin') {
+        // Platform operators have unrestricted access.
+        if ($this->isPlatformOperator()) {
             return null;
         }
 
@@ -156,6 +157,11 @@ class BusinessContext
     public function isSiteAdmin(): bool
     {
         return $this->roleNameFor(Auth::user()) === 'siteadmin';
+    }
+
+    public function isPlatformOperator(): bool
+    {
+        return in_array($this->roleNameFor(Auth::user()), RolePermissions::PLATFORM_OPERATOR_ROLES, true);
     }
 
     public function hasBusiness(): bool

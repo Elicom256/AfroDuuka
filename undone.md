@@ -8,7 +8,7 @@
 
 DuukaFlow has substantial operational breadth: multi-branch inventory, POS and non-POS sales, purchase orders, returns, finance, staff, reports, audit surfaces, and role permissions are implemented. This is not a missing-feature-count problem. The outstanding risk is that a small number of core invariants can still fail, and the release process does not yet demonstrate a recoverable, consistently verified production system.
 
-**Readiness: not yet ready for production rollout.** Resolve platform-role access and prove backup restoration before handling real business data.
+**Readiness: not yet ready for production rollout.** Prove backup restoration and address the remaining operational/UI release gaps before handling real business data.
 
 ## P0 — Fix Before Launch (completed)
 
@@ -30,21 +30,21 @@ Evidence: [api/app/Http/Requests/StoreSaleRequest.php](api/app/Http/Requests/Sto
 
 ## P1 — Resolve Before Release
 
-### 3. `siteadmin` has no frontend dashboard route
+### ✅ 3. `siteadmin` has no frontend dashboard route — Fixed
 
-The role seeder creates both `CoreSupport` and `siteadmin`, but `AppRoutes` mounts a dashboard only for `CoreSupport`, not `siteadmin`. A valid `siteadmin` account therefore has no role tree to render after authentication and falls through to the not-found route. This is distinct from whether the backend role is authorized correctly.
+`AppRoutes` now mounts the existing Superadmin route tree for both seeded platform roles, `CoreSupport` and `siteadmin`, so neither role falls through to the not-found route after login.
 
 Evidence: [api/database/seeders/RoleTableSeeder.php](api/database/seeders/RoleTableSeeder.php) and [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
 
-**Action:** Decide whether `siteadmin` is a supported human-operated role. If yes, mount an explicitly authorized platform-admin tree and add a login/route test. If not, remove it from seeded and assignable roles so users cannot be provisioned into a dead-end account.
+**Verified:** TypeScript and Vite production build pass after the route update. A route-specific UI test is not configured in this project.
 
-### 4. CoreSupport's platform permissions conflict with tenant model scoping
+### ✅ 4. Platform-role permissions and tenant model scoping were inconsistent — Fixed
 
-`RolePermissions` considers `CoreSupport` elevated, and `EffectiveBranchScope` explicitly allows elevated system roles without a business. However, the `BaseModel` business scope treats only `siteadmin` as unrestricted. An authenticated CoreSupport user with no `business_id` receives a `0 = 1` constraint on models with a `business_id` column. Current CoreSupport isolation coverage verifies cross-business `Product` access, but `Product` is branch-scoped and does not exercise this business scope; there is no equivalent coverage for business-scoped models such as `Role`.
+The platform-operator allowlist is now the single explicit exception in both business and branch scopes and includes `CoreSupport` and `siteadmin`. Ordinary elevated tenant roles such as `Executive` no longer receive unrestricted branch-scoped access when their account has no business; missing tenant context fails closed.
 
 Evidence: [api/app/Models/BaseModel.php](api/app/Models/BaseModel.php), [api/app/Support/Auth/RolePermissions.php](api/app/Support/Auth/RolePermissions.php), [api/app/Support/Tenant/EffectiveBranchScope.php](api/app/Support/Tenant/EffectiveBranchScope.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
 
-**Action:** Define one explicit platform-operator rule and use it consistently across business and branch scopes. Add tests for CoreSupport and siteadmin querying business-scoped and branch-scoped models, including both permitted access and denied tenant-user access.
+**Verified:** Docker tests confirm both platform roles can query across business-scoped Roles and branch-scoped Products, while a businessless Executive sees neither. Existing branch and cross-business isolation checks also pass (10 tests, 24 assertions).
 
 ### 5. Backups are manual; recovery is not demonstrated
 
@@ -54,13 +54,13 @@ Evidence: [api/app/Console/Commands/DatabaseBackup.php](api/app/Console/Commands
 
 **Action:** Automate backups to storage independent of the application host, define encryption/retention and failure alerting, and rehearse a restore into an isolated database. Record measured recovery point and recovery time objectives before launch.
 
-### 6. Frontend lint is a CI gate with a known backlog, but could not be re-run here
+### 6. Frontend lint is currently failing CI
 
-The CI workflow runs `npm run lint`, so lint errors fail the frontend job. The latest recorded readiness review reports 1,080 ESLint errors and 18 warnings. I attempted to rerun lint from `ui`, but the workspace has no installed ESLint executable (`eslint: not found`); this review cannot confirm the current count. The old count should be treated as a warning requiring a fresh run, not as a newly verified measurement.
+The CI workflow runs `npm run lint`, so lint errors fail the frontend job. I reran the command after dependencies were restored: it reports **1,080 errors and 18 warnings**. This confirms the backlog recorded in the earlier review remains and is still a release/CI blocker.
 
 Evidence: [.github/workflows/ci.yml](.github/workflows/ci.yml), [ui/package.json](ui/package.json), and [review.md](review.md).
 
-**Action:** Install dependencies with the lockfile, rerun lint, and reduce or intentionally configure the backlog. Keep lint and production build as required CI checks. The recorded 593 backend tests and TypeScript build pass are from `review.md`; they were not rerun as part of this review.
+**Action:** Reduce or intentionally configure the lint backlog, and keep lint plus the production build as required CI checks. The production TypeScript/Vite build passes; the full backend suite was not run during this task.
 
 ## P2 — Improve Before Wider Rollout
 
@@ -92,6 +92,7 @@ Do not carry these older findings forward as current blockers without new eviden
 
 - `procurementApi` is now registered as both reducer and middleware in [ui/src/app/store/app/store.ts](ui/src/app/store/app/store.ts).
 - Dashboard routes now mount under `/dashboard/*`, and the role route trees have not-found fallbacks; the earlier exact-path and broad dead-link claims are stale. See [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
+- `CoreSupport` and `siteadmin` now share explicit platform-operator scope semantics, and both map to the Superadmin route tree. Regression tests cover business- and branch-scoped models and fail-closed behavior for a businessless Executive.
 - Non-POS sales now lock selected branch products and reject products from another branch in [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php).
 - POS receipt numbering now uses `ReceiptNumberGenerator`, rather than the earlier count-and-increment approach, in [api/app/Services/PosService.php](api/app/Services/PosService.php).
 - PHPUnit configuration forces the `testing` environment and `inventory_test`, which addresses the prior development-database safety issue. See [api/phpunit.xml](api/phpunit.xml) and [api/.env.testing](api/.env.testing).
@@ -101,11 +102,11 @@ Do not carry these older findings forward as current blockers without new eviden
 
 1. ✅ Fix aggregate stock validation and add the non-POS duplicate-line regression test.
 2. ✅ Restore discount validation at the HTTP boundary and test final monetary values end to end.
-3. Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
+3. ✅ Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
 4. Implement scheduled off-host backups and complete a documented restore drill.
 5. Re-run the full backend suite, frontend lint, and production build in the same CI configuration used for release.
 6. Complete role-based UAT on real devices, then decide the first-release connectivity guarantee for POS.
 
 ## Review Limitations
 
-This was a source-based review, not a production penetration test or full manual UAT. Frontend lint was not rerun for this task; the earlier attempt occurred before the user restored `node_modules`. Historical test/build results are identified as such above. No external integrations, messaging/notification delivery, or URA flows were assessed.
+This was a source-based review, not a production penetration test or full manual UAT. Current validation for this task included 10 targeted backend tests (24 assertions), a successful TypeScript/Vite production build, and an ESLint run that remains failing at 1,080 errors and 18 warnings. No external integrations, messaging/notification delivery, or URA flows were assessed.

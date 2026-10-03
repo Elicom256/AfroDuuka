@@ -39,7 +39,7 @@ class BaseModel extends Model
             $businessId = $context->businessId() ?? (Auth::check() ? Auth::user()?->business_id : null);
 
             if ($businessId === null) {
-                if (Auth::check() && ! $context->isSiteAdmin()) {
+                if (Auth::check() && ! $context->isPlatformOperator()) {
                     $builder->whereRaw('0 = 1');
                 }
 

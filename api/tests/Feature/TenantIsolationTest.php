@@ -633,6 +633,60 @@ class TenantIsolationTest extends TestCase
         $this->assertCount(2, $response->json('products'));
     }
 
+    public function test_platform_operators_can_query_business_and_branch_scoped_models(): void
+    {
+        $businessA = Business::factory()->create();
+        $branchA = BusinessBranch::factory()->create(['business_id' => $businessA->id]);
+        Role::factory()->create(['business_id' => $businessA->id, 'name' => 'Executive']);
+        Product::factory()->create(['business_branch_id' => $branchA->id]);
+
+        $businessB = Business::factory()->create();
+        $branchB = BusinessBranch::factory()->create(['business_id' => $businessB->id]);
+        Role::factory()->create(['business_id' => $businessB->id, 'name' => 'Operations']);
+        Product::factory()->create(['business_branch_id' => $branchB->id]);
+
+        $platformUsers = collect(['CoreSupport', 'siteadmin'])->map(function ($roleName) {
+            $role = Role::factory()->create(['business_id' => null, 'name' => $roleName]);
+
+            return User::factory()->create([
+                'business_id' => null,
+                'business_branch_id' => null,
+                'role_id' => $role->id,
+            ]);
+        });
+
+        $expectedRoleCount = Role::withoutGlobalScopes()->count();
+        $expectedProductCount = Product::withoutGlobalScopes()->count();
+
+        foreach ($platformUsers as $platformUser) {
+            Sanctum::actingAs($platformUser);
+
+            $this->assertTrue(app(\App\Support\Tenant\BusinessContext::class)->isPlatformOperator());
+            $this->assertSame($expectedRoleCount, Role::count());
+            $this->assertSame($expectedProductCount, Product::count());
+        }
+    }
+
+    public function test_businessless_executive_cannot_query_tenant_models(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        Product::factory()->create(['business_branch_id' => $branch->id]);
+
+        $role = Role::factory()->create(['business_id' => null, 'name' => 'Executive']);
+        $executive = User::factory()->create([
+            'business_id' => null,
+            'business_branch_id' => null,
+            'role_id' => $role->id,
+        ]);
+
+        Sanctum::actingAs($executive);
+
+        $this->assertFalse(app(\App\Support\Tenant\BusinessContext::class)->isPlatformOperator());
+        $this->assertSame(0, Role::count());
+        $this->assertSame(0, Product::count());
+    }
+
     public function test_product_global_scope_hides_products_outside_the_branch_set(): void
     {
         $business = Business::factory()->create();

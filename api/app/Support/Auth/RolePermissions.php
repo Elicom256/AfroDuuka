@@ -54,7 +54,7 @@ class RolePermissions
      * precisely because one price list is sold to every tenant — so no tenant
      * scope can contain it and an Executive must not be able to reprice it.
      */
-    public const PLATFORM_OPERATOR_ROLES = ['siteadmin'];
+    public const PLATFORM_OPERATOR_ROLES = ['coresupport', 'siteadmin'];
 
     public static function isPlatformOperator(?User $user): bool
     {

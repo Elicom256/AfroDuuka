@@ -123,7 +123,7 @@ class EffectiveBranchScope
             // given `0 = 1` and could read nothing at all — the opposite of the
             // cross-tenant access its role exists to provide.
             if ($resolved === null) {
-                if (! RolePermissions::isElevated($user)) {
+                if (! RolePermissions::isPlatformOperator($user)) {
                     $builder->whereRaw('0 = 1');
                 }
 
