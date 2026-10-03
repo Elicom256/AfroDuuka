@@ -3,7 +3,17 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
+/**
+ * Authorization lives in PlanPolicy, not here.
+ *
+ * Plans have no business_id, so this request has no tenant to check against and
+ * no meaningful "owns this record" relationship — the only question is whether
+ * the caller is allowed to write platform-wide pricing at all. Returning true
+ * here means "let the controller reach PlanPolicy"; the plan create/update/delete
+ * authorization is enforced there via $this->authorize().
+ */
 class StorePlanRequest extends FormRequest
 {
     public function authorize(): bool
@@ -16,6 +26,10 @@ class StorePlanRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:plans,slug',
+            // plans.mark is a NOT NULL enum with no default, and PlanSeeder supplies one
+            // of these four. Without it here the insert reached Postgres with a null and
+            // every POST /api/plans returned a 500 instead of creating a plan.
+            'mark' => ['required', Rule::in(['Affordable', 'Most Popular', 'Best Value', 'Enterprise'])],
             'description' => 'nullable|string',
             'monthly_price' => 'required|numeric|min:0',
             'yearly_price' => 'required|numeric|min:0',

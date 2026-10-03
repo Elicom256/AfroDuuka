@@ -22,17 +22,23 @@ class TodoController extends Controller
 
     public function show(Todo $todo)
     {
+        $this->authorize('view', $todo);
+
         return response()->json(['message' => 'Fetched todo', 'data' => $todo]);
     }
 
     public function update(UpdateTodoRequest $request, Todo $todo)
     {
+        $this->authorize('update', $todo);
+
         $todo->update($request->validated());
         return response()->json(['message' => 'Todo updated', 'data' => $todo]);
     }
 
     public function destroy(Todo $todo)
     {
+        $this->authorize('delete', $todo);
+
         $todo->delete();
         return response()->json(['message' => 'Todo deleted']);
     }
