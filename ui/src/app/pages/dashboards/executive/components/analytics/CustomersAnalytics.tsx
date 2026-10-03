@@ -4,11 +4,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Users } from 'lucide-react';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const CustomersAnalytics = () => {
-  const { data, isLoading, isError } = useBranchCustomersQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useBranchCustomersQuery();
   const customers = data?.data || [];
 
   if (isLoading) {
@@ -27,7 +28,7 @@ export const CustomersAnalytics = () => {
     );
   }
 
-  if (isError || !customers.length) {
+  if (isError && (!data || !customers.length)) {
     return (
       <Card>
         <CardHeader>
@@ -37,7 +38,31 @@ export const CustomersAnalytics = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className='text-sm text-muted-foreground'>No customers data available</p>
+          <QueryErrorState
+            title='Unable to load customer analytics'
+            description='Customer data could not be retrieved. A previously empty result is not enough to confirm the current customer count.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!customers.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <Users className='h-6 w-6' />
+            Customers Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QueryEmptyState
+            title='No customer data'
+            description='Customer analytics will appear after customers are added.'
+          />
         </CardContent>
       </Card>
     );
@@ -85,6 +110,14 @@ export const CustomersAnalytics = () => {
         <CardDescription>Customer base overview</CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
+        {isError && (
+          <QueryErrorState
+            title='Customer analytics may be out of date'
+            description='The latest refresh failed. The last loaded results are shown.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        )}
         <div className='grid gap-2 sm:grid-cols-3'>
           <div className='rounded-lg bg-muted p-3'>
             <p className='text-xs text-muted-foreground'>Total Customers</p>

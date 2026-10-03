@@ -85,7 +85,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # The backend service owns migrations; running them here too would race.
-      SKIP_MIGRATIONS: "true"
+      SKIP_MIGRATIONS: 'true'
     command: php artisan queue:work --tries=3 --sleep=3 --max-time=3600
     depends_on:
       pgsql:
@@ -116,11 +116,7 @@ services:
       - app
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}",
-        ]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -135,7 +131,7 @@ services:
       - app
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5

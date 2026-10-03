@@ -16,7 +16,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const InventoryAnalytics = () => {
   const { currency } = useCurrency();
-  const { data, isLoading, isError, error } = useProductAnalyticsQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useProductAnalyticsQuery();
 
   const analytics = data?.data;
   // console.log('analytics==>', analytics);
@@ -44,7 +44,7 @@ export const InventoryAnalytics = () => {
   }
 
   if (isError) {
-    return <Error error={error} />;
+    return <Error title='Unable to load inventory analytics' onRetry={refetch} retrying={isFetching} />;
   }
 
   if (!analytics) {
