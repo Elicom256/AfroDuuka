@@ -129,13 +129,13 @@ class UserController extends Controller
 
 
  //  branch worker
-     public function worker(User $worker)
+     public function worker(User $user)
     {
-        abort_unless($worker->business_id === Auth::user()?->business_id, 404);
-        $worker = $worker->load("role");
+        abort_unless($user->business_id === Auth::user()?->business_id, 404);
+        $user = $user->load("role");
         return response()->json([
             'message' => 'Worker retrieved successfully',
-            'worker' => $worker,
+            'worker' => $user,
         ], 200);
     }
 
@@ -235,15 +235,15 @@ class UserController extends Controller
     /**
      * Remove the specified user from storage
      */
-    public function destroy(User $worker)
+    public function destroy(User $user)
     {
         try {
             abort_unless(Auth::check(), 403, 'Authentication required.');
             abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You do not have permission to delete users.');
-            abort_unless($worker->business_id === Auth::user()?->business_id, 404);
-            abort_unless($worker->id !== Auth::id(), 403, 'You cannot delete your own account.');
+            abort_unless($user->business_id === Auth::user()?->business_id, 404);
+            abort_unless($user->id !== Auth::id(), 403, 'You cannot delete your own account.');
 
-            $worker->delete();
+            $user->delete();
             return response()->json([
                 'message' => 'User deleted successfully',
             ], 200);

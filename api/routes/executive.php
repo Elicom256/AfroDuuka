@@ -28,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::get("/branches/cashflow/analytics", [CashFlowController::class, "analytics"]);
 
     // ============ Branches =============
+    // Registered before the resource so the literal segment wins over {branch}.
+    Route::get("/branches/dynamics", [BusinessBranchController::class, "salesAndPurchases"]);
     Route::apiResource("branches", BusinessBranchController::class)->only(["index", "show", "store", "update", "destroy"]);
     // ============ Roles =============
     Route::apiResource("roles", RoleController::class);

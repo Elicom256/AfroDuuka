@@ -3,32 +3,31 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Search, Send, Inbox, Bell, Users } from 'lucide-react';
-import { useBranchMessagesQuery } from '@/app/store/features/branch/messages/messagesQuery';
 import { useGetNotificationsQuery, useGetUnreadCountQuery, useMarkAllAsReadMutation } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { format } from 'date-fns';
 
 export const ExecutiveMessagesPage = () => {
-  const { data: messagesData, isLoading: messagesLoading } = useBranchMessagesQuery();
+  // Messaging has no backend module yet, so the inbox is driven by the
+  // notification feed until a messages endpoint exists.
   const { data: notificationsData, isLoading: notificationsLoading } = useGetNotificationsQuery();
   const { data: unreadData, isLoading: unreadLoading } = useGetUnreadCountQuery();
   const [markAllAsRead] = useMarkAllAsReadMutation();
   const [selectedConvo, setSelectedConvo] = useState<any>(null);
 
-  const isLoading = messagesLoading || notificationsLoading || unreadLoading;
+  const isLoading = notificationsLoading || unreadLoading;
 
   if (isLoading) return <PageLoadingState />;
 
-  const messages = messagesData?.messages ?? messagesData ?? [];
   const notifications = notificationsData?.notifications ?? notificationsData ?? [];
   const unreadCount = unreadData?.count ?? unreadData?.unread ?? notifications.filter((n: any) => !n.is_read).length;
 
-  const conversations = messages.length > 0 ? messages : notifications.slice(0, 5);
+  const conversations = notifications.slice(0, 5);
 
   const stats = [
     { label: 'Inbox', value: String(notifications.length), icon: Inbox },
     { label: 'Unread', value: String(unreadCount), icon: MessageSquare },
-    { label: 'Messages', value: String(messages.length), icon: Users },
+    { label: 'Messages', value: String(notifications.length), icon: Users },
     { label: 'Announcements', value: String(notifications.filter((n: any) => n.type === 'announcement').length), icon: Bell },
   ];
 

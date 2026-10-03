@@ -6,6 +6,7 @@ use App\Http\Requests\StorePurchaseOrderRequest;
 use App\Http\Requests\UpdatePurchaseOrderRequest;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,8 @@ class PurchaseOrderController extends Controller
 
     public function store(StorePurchaseOrderRequest $request): JsonResponse
     {
+        abort_unless(RolePermissions::canCreatePurchaseOrder(Auth::user()), 403);
+
         $user = Auth::user();
         $validated = $request->validated();
 
@@ -62,13 +65,23 @@ class PurchaseOrderController extends Controller
 
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchase_order): JsonResponse
     {
-        $purchase_order->update($request->validated());
+        $validated = $request->validated();
+
+        abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403);
+
+        if (($validated['status'] ?? null) === 'approved') {
+            abort_unless(RolePermissions::canApprovePurchaseOrder($request->user()), 403);
+        }
+
+        $purchase_order->update($validated);
 
         return response()->json(["message" => "Purchase order updated", "data" => $purchase_order->load("items.product", "supplier")]);
     }
 
     public function destroy(PurchaseOrder $purchase_order): JsonResponse
     {
+        abort_unless(RolePermissions::canApprovePurchaseOrder(Auth::user()), 403);
+
         $purchase_order->items()->delete();
         $purchase_order->delete();
         return response()->json(["message" => "Purchase order deleted"]);

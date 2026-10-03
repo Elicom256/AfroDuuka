@@ -15,15 +15,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/workers', [UserController::class, 'store']);
-        Route::put('/workers/{worker}', [UserController::class, 'update']);
-        Route::delete('/workers/{worker}', [UserController::class, 'destroy']);
+        Route::put('/workers/{user}', [UserController::class, 'update']);
+        Route::delete('/workers/{user}', [UserController::class, 'destroy']);
     });
 
     Route::get('/me', [UserController::class, 'me']);
     Route::patch('/update', [UserController::class, 'updateProfile']);
     Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/workers', [UserController::class, 'workers']);
-    Route::get('/workers/{worker}', [UserController::class, 'worker']);
+    Route::get('/workers/{user}', [UserController::class, 'worker']);
 
     // ================== NOTIFICATIONS ======================
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);

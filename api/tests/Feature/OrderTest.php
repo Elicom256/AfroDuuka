@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\Role;
 use App\Models\SaleOrder;
 use App\Models\Supplier;
@@ -144,6 +145,51 @@ class OrderTest extends TestCase
         ]);
     }
 
+    public function test_procurement_cannot_approve_a_purchase_order(): void
+    {
+        $this->role->update(['name' => 'Procurement']);
+        $purchaseOrder = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $this->user->id,
+            'supplier_id' => null,
+            'order_number' => 'PO-SECURITY-001',
+            'total_amount' => 100,
+            'status' => 'pending',
+        ]);
+
+        $this->putJson("/api/purchase-orders/{$purchaseOrder->id}", [
+            'status' => 'approved',
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $purchaseOrder->id,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_procurement_cannot_use_dedicated_purchase_order_approval_endpoint(): void
+    {
+        $this->role->update(['name' => 'Procurement']);
+        $purchaseOrder = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $this->user->id,
+            'supplier_id' => null,
+            'order_number' => 'PO-SECURITY-002',
+            'total_amount' => 100,
+            'status' => 'pending',
+        ]);
+
+        $this->postJson("/api/procurement/purchase-orders/{$purchaseOrder->id}/approve")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $purchaseOrder->id,
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_sale_order_rejects_unknown_status(): void
     {
         $order = $this->createSaleOrder();
@@ -154,6 +200,7 @@ class OrderTest extends TestCase
 
     public function test_creates_purchase_order_with_supplier_and_items(): void
     {
+        $this->role->update(['name' => 'Procurement']);
         $supplier = $this->makeSupplier();
         $product = $this->product();
 
@@ -183,6 +230,48 @@ class OrderTest extends TestCase
         ]);
     }
 
+    public function test_operations_cannot_create_purchase_orders_through_either_endpoint(): void
+    {
+        $supplier = $this->makeSupplier();
+        $product = $this->product();
+        $payload = [
+            'supplier_id' => $supplier->id,
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'unit_price' => 100,
+            ]],
+        ];
+
+        $this->postJson('/api/purchase-orders', $payload)->assertStatus(403);
+        $this->postJson('/api/procurement/purchase-orders', $payload)->assertStatus(403);
+
+        $this->assertDatabaseCount('purchase_orders', 0);
+    }
+
+    public function test_operations_cannot_edit_purchase_order_notes(): void
+    {
+        $purchaseOrder = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $this->user->id,
+            'supplier_id' => null,
+            'order_number' => 'PO-SECURITY-003',
+            'total_amount' => 100,
+            'status' => 'pending',
+            'notes' => 'Original notes',
+        ]);
+
+        $this->putJson("/api/purchase-orders/{$purchaseOrder->id}", [
+            'notes' => 'Unauthorized edit',
+        ])->assertStatus(403);
+
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $purchaseOrder->id,
+            'notes' => 'Original notes',
+        ]);
+    }
+
     public function test_purchase_order_requires_supplier(): void
     {
         $product = $this->product();
@@ -194,13 +283,14 @@ class OrderTest extends TestCase
 
     public function test_updates_purchase_order_status(): void
     {
+        $this->role->update(['name' => 'Procurement']);
         $supplier = $this->makeSupplier();
         $product = $this->product();
 
         $create = $this->postJson('/api/purchase-orders', [
             'supplier_id' => $supplier->id,
             'items' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100]],
-        ]);
+        ])->assertStatus(201);
 
         $this->putJson('/api/purchase-orders/' . $create->json('data.id'), ['status' => 'cancelled'])
             ->assertStatus(200)

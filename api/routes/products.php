@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     // ========== Specific routes BEFORE wildcard ==========
-    Route::apiResource('categories', ProductCategoryController::class);
+    Route::apiResource('categories', ProductCategoryController::class)->parameters(['categories' => 'productCategory']);
     Route::get("/analytics", [ProductController::class, "inventoryAnalytics"]);
     Route::get("/expiring", [ProductController::class, "expiringAnalytics"]);
     Route::get("/restocking", [ProductController::class, "restocking"]);

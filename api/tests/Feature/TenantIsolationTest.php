@@ -242,6 +242,9 @@ class TenantIsolationTest extends TestCase
         $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
         $user = $this->branchUser($business, $branch);
         $product = Product::factory()->create(['business_branch_id' => $branch->id]);
+
+        Sanctum::actingAs($user);
+
         $sale = Sale::create([
             'business_branch_id' => $branch->id,
             'subtotal' => 100,
@@ -249,8 +252,6 @@ class TenantIsolationTest extends TestCase
             'total_amount' => 100,
             'status' => 'completed',
         ]);
-
-        Sanctum::actingAs($user);
 
         $this->putJson("/api/sales/branch-sales/{$sale->id}", [
             'business_branch_id' => $branch->id,

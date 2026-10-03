@@ -33,7 +33,7 @@ class AttendanceSettingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(AttendanceSettings $attendanceSettings)
+    public function show(AttendanceSettings $attendanceSetting)
     {
         //
     }
