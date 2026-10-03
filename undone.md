@@ -1,0 +1,111 @@
+# DuukaFlow — Remaining Work Review
+
+**Reviewed:** 2026-10-03  
+**Scope:** Core product and launch readiness: tenant access, POS/sales, inventory, finance, procurement, reporting, frontend workflows, testing, and operations.  
+**Excluded:** WhatsApp/email messaging and notification delivery, URA integration, and external-provider/API integration work. Sales payments recorded inside the app remain in scope; payment-provider integrations do not.
+
+## Summary
+
+DuukaFlow has substantial operational breadth: multi-branch inventory, POS and non-POS sales, purchase orders, returns, finance, staff, reports, audit surfaces, and role permissions are implemented. This is not a missing-feature-count problem. The outstanding risk is that a small number of core invariants can still fail, and the release process does not yet demonstrate a recoverable, consistently verified production system.
+
+**Readiness: not yet ready for production rollout.** Resolve the remaining pricing correctness issue and platform-role access, and prove backup restoration before handling real business data.
+
+## P0 — Fix Before Launch
+
+### ✅ 1. Duplicate product lines can oversell in non-POS sales — Fixed
+
+The non-POS sale service now sums requested quantities by product and compares each total against its locked product row before writing the sale. It decrements stock once per product and records one movement with the aggregate quantity. This closes the duplicate-line overdraw and ledger undercount paths.
+
+Evidence and regression coverage: [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php) and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
+
+**Verified:** Docker tests cover rejection without writes when duplicate lines exceed stock, and successful duplicate lines decrement stock once with one correctly aggregated movement. The focused suite passed alongside the standard non-POS checkout and discount tests (4 tests, 19 assertions).
+
+### 2. Non-POS sale discounts are not accepted by request validation
+
+The service calculates tax and subtotal from `items.*.discount`, but `StoreSaleRequest::rules()` does not validate that field. Laravel's `validated()` output therefore omits it, so a discount sent by the client is silently ignored on the HTTP path. The existing discount regression exercises `SaleItemService` directly and does not establish that the API request carries the discount through.
+
+Evidence: [api/app/Http/Requests/StoreSaleRequest.php](api/app/Http/Requests/StoreSaleRequest.php), [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
+
+**Action:** Define and validate the discount contract (including non-negative and maximum-allowed bounds), then add an HTTP-level test asserting the persisted line discount, tax, subtotal, total, and payment amount agree.
+
+## P1 — Resolve Before Release
+
+### 3. `siteadmin` has no frontend dashboard route
+
+The role seeder creates both `CoreSupport` and `siteadmin`, but `AppRoutes` mounts a dashboard only for `CoreSupport`, not `siteadmin`. A valid `siteadmin` account therefore has no role tree to render after authentication and falls through to the not-found route. This is distinct from whether the backend role is authorized correctly.
+
+Evidence: [api/database/seeders/RoleTableSeeder.php](api/database/seeders/RoleTableSeeder.php) and [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
+
+**Action:** Decide whether `siteadmin` is a supported human-operated role. If yes, mount an explicitly authorized platform-admin tree and add a login/route test. If not, remove it from seeded and assignable roles so users cannot be provisioned into a dead-end account.
+
+### 4. CoreSupport's platform permissions conflict with tenant model scoping
+
+`RolePermissions` considers `CoreSupport` elevated, and `EffectiveBranchScope` explicitly allows elevated system roles without a business. However, the `BaseModel` business scope treats only `siteadmin` as unrestricted. An authenticated CoreSupport user with no `business_id` receives a `0 = 1` constraint on models with a `business_id` column. Current CoreSupport isolation coverage verifies cross-business `Product` access, but `Product` is branch-scoped and does not exercise this business scope; there is no equivalent coverage for business-scoped models such as `Role`.
+
+Evidence: [api/app/Models/BaseModel.php](api/app/Models/BaseModel.php), [api/app/Support/Auth/RolePermissions.php](api/app/Support/Auth/RolePermissions.php), [api/app/Support/Tenant/EffectiveBranchScope.php](api/app/Support/Tenant/EffectiveBranchScope.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
+
+**Action:** Define one explicit platform-operator rule and use it consistently across business and branch scopes. Add tests for CoreSupport and siteadmin querying business-scoped and branch-scoped models, including both permitted access and denied tenant-user access.
+
+### 5. Backups are manual; recovery is not demonstrated
+
+The PostgreSQL backup command can create a custom-format dump and restore it with an explicit destructive `--force` flag. It defaults to a local `storage/app/backups` path. The scheduler currently has no backup entry, and the repository does not establish off-host storage, retention/rotation, backup monitoring, or a tested restore drill. A backup command by itself is not a production recovery plan.
+
+Evidence: [api/app/Console/Commands/DatabaseBackup.php](api/app/Console/Commands/DatabaseBackup.php) and [api/routes/console.php](api/routes/console.php).
+
+**Action:** Automate backups to storage independent of the application host, define encryption/retention and failure alerting, and rehearse a restore into an isolated database. Record measured recovery point and recovery time objectives before launch.
+
+### 6. Frontend lint is a CI gate with a known backlog, but could not be re-run here
+
+The CI workflow runs `npm run lint`, so lint errors fail the frontend job. The latest recorded readiness review reports 1,080 ESLint errors and 18 warnings. I attempted to rerun lint from `ui`, but the workspace has no installed ESLint executable (`eslint: not found`); this review cannot confirm the current count. The old count should be treated as a warning requiring a fresh run, not as a newly verified measurement.
+
+Evidence: [.github/workflows/ci.yml](.github/workflows/ci.yml), [ui/package.json](ui/package.json), and [review.md](review.md).
+
+**Action:** Install dependencies with the lockfile, rerun lint, and reduce or intentionally configure the backlog. Keep lint and production build as required CI checks. The recorded 593 backend tests and TypeScript build pass are from `review.md`; they were not rerun as part of this review.
+
+## P2 — Improve Before Wider Rollout
+
+### 7. User-facing failure states are inconsistent
+
+Some detail pages render generic text for request failures rather than a reusable error state with a retry or return action. For example, the product detail page displays a plain “Error loading product” block. A broader pass should ensure list, detail, mutation, and report pages distinguish loading, empty, permission-denied, and server-failure states. Do not let backend failures look like legitimate empty business data.
+
+Evidence: [ui/src/app/pages/dashboards/executive/components/products/Product.tsx](ui/src/app/pages/dashboards/executive/components/products/Product.tsx). The size of the broader gap was not re-counted in this review.
+
+**Action:** Establish shared error/empty/loading patterns, provide actionable retry behavior where safe, and review high-frequency POS, sales, inventory, and finance flows first.
+
+### 8. POS resilience and mobile workflow need a deliberate launch decision
+
+The UI project backlog still lists mobile support and offline sync as future work. A network-dependent POS may be acceptable for an initial connected pilot, but outages can stop sales and make reconciliation difficult. This is a product/operational decision rather than a claim that offline mode is already promised.
+
+Evidence: [ui/README.md](ui/README.md).
+
+**Action:** Validate the POS on the actual target tablet/phone and printer setup. For the first release, document the connectivity assumption and recovery procedure; plan offline sale queuing and conflict-safe stock reconciliation before expanding to low-connectivity locations.
+
+### 9. Auditability and recovery paths should be validated end to end
+
+The application has stock movements, product-loss records, financial audits, and sale/purchase return flows. Before launch, verify that each correction flow reverses or compensates the original ledger effects without silently rewriting completed business history. Existing breadth is promising, but the review did not execute a full business UAT across these linked records.
+
+**Action:** Run scripted end-to-end scenarios for sale, partial return, purchase receipt/return, stock write-off, cash adjustment, and void/refusal paths. Assert final stock, sale/payment totals, cash flow, audit log, and branch ownership after each scenario.
+
+## Areas That Have Improved Since Older Reviews
+
+Do not carry these older findings forward as current blockers without new evidence:
+
+- `procurementApi` is now registered as both reducer and middleware in [ui/src/app/store/app/store.ts](ui/src/app/store/app/store.ts).
+- Dashboard routes now mount under `/dashboard/*`, and the role route trees have not-found fallbacks; the earlier exact-path and broad dead-link claims are stale. See [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
+- Non-POS sales now lock selected branch products and reject products from another branch in [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php).
+- POS receipt numbering now uses `ReceiptNumberGenerator`, rather than the earlier count-and-increment approach, in [api/app/Services/PosService.php](api/app/Services/PosService.php).
+- PHPUnit configuration forces the `testing` environment and `inventory_test`, which addresses the prior development-database safety issue. See [api/phpunit.xml](api/phpunit.xml) and [api/.env.testing](api/.env.testing).
+- Completed-sale immutability and the earlier sale relation/totals fixes are recorded as implemented in [review.md](review.md).
+
+## Recommended Order
+
+1. ✅ Fix aggregate stock validation and add the non-POS duplicate-line regression test.
+2. Restore discount validation at the HTTP boundary and test final monetary values end to end.
+3. Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
+4. Implement scheduled off-host backups and complete a documented restore drill.
+5. Re-run the full backend suite, frontend lint, and production build in the same CI configuration used for release.
+6. Complete role-based UAT on real devices, then decide the first-release connectivity guarantee for POS.
+
+## Review Limitations
+
+This was a source-based review, not a production penetration test or full manual UAT. The frontend lint command could not run because UI dependencies are not installed in this workspace. Historical test/build results are identified as such above. No external integrations, messaging/notification delivery, or URA flows were assessed.
