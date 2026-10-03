@@ -35,7 +35,6 @@ import { ExecutiveSuppliersPage } from '../pages/dashboards/executive/pages/Exec
 import { ExecutiveCustomersPage } from '../pages/dashboards/executive/pages/ExecutiveCustomersPage';
 import { ExecutiveAnalyticsPage } from '../pages/dashboards/executive/pages/ExecutiveAnalyticsPage';
 import { ExecutiveReportsPage } from '../pages/dashboards/executive/pages/ExecutiveReportsPage';
-import { ExecutiveFinancesPage } from '../pages/dashboards/executive/pages/ExecutiveFinancesPage';
 import { ExecutiveFinanceTransactionsPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceTransactionsPage';
 import { ExecutiveFinanceReportsPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceReportsPage';
 import { ExecutiveFinanceCashFlowPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceCashFlowPage';
@@ -58,7 +57,6 @@ import { CurrencySettings } from '../pages/dashboards/executive/components/setti
 import { BusinessInfoSettings } from '../pages/dashboards/executive/components/settings/BusinessInfoSettings';
 import { PlanBillingSettings } from '../pages/dashboards/executive/components/settings/PlanBillingSettings';
 import { ExecutiveCurrencyRatesPage } from '../pages/dashboards/executive/pages/ExecutiveCurrencyRatesPage';
-import { ExecutivePaymentGatewaysPage } from '../pages/dashboards/executive/pages/ExecutivePaymentGatewaysPage';
 import { WhatsAppSettings } from '../pages/dashboards/executive/components/settings/WhatsAppSettings';
 import { ExecutivePrintersPage } from '../pages/dashboards/executive/pages/ExecutivePrintersPage';
 import { ExecutiveStockTransfersPage } from '../pages/dashboards/executive/pages/ExecutiveStockTransfersPage';

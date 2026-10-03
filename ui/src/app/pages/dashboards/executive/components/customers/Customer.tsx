@@ -40,7 +40,7 @@ export const Customer = () => {
         toast.success(res.message);
         return navigate('/dashboard/customers');
       }
-    } catch (error) {
+    } catch {
       toast.error('failed to delete customer');
     }
   };

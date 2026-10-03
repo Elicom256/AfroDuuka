@@ -36,7 +36,7 @@ export const AddBranch = () => {
         setOpen(false);
       }
       return;
-    } catch (error) {
+    } catch {
       toast.error('Failed to add a branch!');
     }
   };

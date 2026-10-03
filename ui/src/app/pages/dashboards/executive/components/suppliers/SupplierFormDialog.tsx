@@ -1,5 +1,5 @@
 // components/suppliers/SupplierFormDialog.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,7 +55,9 @@ export const SupplierFormDialog = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const supplier = selectedSupplier?.user;
+  // Memoised so the reset effect below can depend on the user object itself: reading
+  // selectedSupplier?.user inline made the deps list understate what it actually read.
+  const supplier = useMemo(() => selectedSupplier?.user, [selectedSupplier]);
   useEffect(() => {
     if (selectedSupplier) {
       setFormData({
@@ -76,7 +78,7 @@ export const SupplierFormDialog = ({
         remarks: '',
       });
     }
-  }, [selectedSupplier, open]);
+  }, [selectedSupplier, supplier, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

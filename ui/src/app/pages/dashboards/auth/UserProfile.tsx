@@ -33,7 +33,9 @@ export const UserProfile = ({ data, compact = false }: { data: ProfileData; comp
         toast.success(res.message);
       }
       return (window.location.href = '/login');
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to log out. Please try again.');
+    }
   };
   return (
     <Dialog>

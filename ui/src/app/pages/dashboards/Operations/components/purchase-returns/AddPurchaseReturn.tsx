@@ -20,7 +20,6 @@ import { toast } from 'sonner';
 import { usePurchasesQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { usePurchaseReturnsQuery } from '@/app/store/features/branch/purchase-returns/purchaseReturnsQuery';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
-import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddPurchaseReturnProps {
   addPurchaseReturn: any;
@@ -36,13 +35,17 @@ interface SelectedItem {
 }
 
 export const AddPurchaseReturn = ({ addPurchaseReturn }: AddPurchaseReturnProps) => {
-  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
   const { data: purchasesData } = usePurchasesQuery();
   const { data: returnsData } = usePurchaseReturnsQuery();
   const { data: sup } = useSuppliersQuery();
-  const purchases = purchasesData?.purchases ?? purchasesData ?? [];
-  const existingReturns = returnsData?.purchase_returns ?? returnsData ?? [];
+  // Memoised so the `?? []` fallbacks below stop handing the search/line-item memos a
+  // brand new array identity on every render.
+  const purchases = useMemo(() => purchasesData?.purchases ?? purchasesData ?? [], [purchasesData]);
+  const existingReturns = useMemo(
+    () => returnsData?.purchase_returns ?? returnsData ?? [],
+    [returnsData],
+  );
   const suppliers = sup?.suppliers || [];
 
   const [search, setSearch] = useState('');

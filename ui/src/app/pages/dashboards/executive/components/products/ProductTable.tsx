@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,10 +33,6 @@ interface Product {
   category_name?: string;
 }
 
-const getCategoryName = (product: Product) => {
-  return product.category_name || product.product_category?.name || 'Uncategorized';
-};
-
 export const ProductTable = () => {
   const { data: branchProducts, isLoading: loadBranchProducts, isFetching, error, refetch } = useProductsQuery();
   const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
@@ -49,13 +45,12 @@ export const ProductTable = () => {
 
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
+  // Clamped here instead of corrected in an effect: deleting the last row of the last
+  // page can leave currentPage pointing past the end, and an effect would first render an
+  // empty table before pulling the page back.
+  const page = Math.min(currentPage, totalPages);
+  const startIndex = (page - 1) * itemsPerPage;
 
   const paginatedProducts = useMemo(
     () => products.slice(startIndex, startIndex + itemsPerPage),
@@ -203,7 +198,7 @@ export const ProductTable = () => {
         </CardContent>
       </Card>
 
-      <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      <PaginationComponent currentPage={page} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       {selectedProduct && <EditProduct open={isEditOpen} onOpenChange={setIsEditOpen} product={selectedProduct} />}
     </div>

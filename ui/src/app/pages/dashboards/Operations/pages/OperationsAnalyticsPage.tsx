@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProductAnalyticsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useLowStockQuery, useOutOfStockQuery, useStockSummaryQuery, useInventoryValuationQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -41,7 +40,7 @@ const baseOptions = {
 
 export const OperationsAnalyticsPage = () => {
   const { currency } = useCurrency();
-  const [period, setPeriod] = useState('30');
+  const period = '30';
 
   const { data: analytics, isLoading: analyticsLoading } = useProductAnalyticsQuery();
   const { data: restocking, isLoading: restockingLoading } = useProductRestockingQuery();

@@ -23,7 +23,7 @@ export const OperationsNotificationsPage = () => {
   const handleMarkAsRead = async (id: any) => {
     try {
       await markAsRead(id).unwrap();
-    } catch (err) {
+    } catch {
       toast.error('Failed to mark notification as read');
     }
   };
@@ -33,7 +33,7 @@ export const OperationsNotificationsPage = () => {
     try {
       await deleteNotification(id).unwrap();
       toast.success('Notification deleted');
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete notification');
     }
   };
