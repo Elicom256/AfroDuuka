@@ -19,6 +19,7 @@ import { ExpenseFilters } from '../components/expenses/ExpenseFilters';
 import { ExpenseTable } from '../components/expenses/ExpenseTable';
 import { ExpenseCharts } from '../components/expenses/ExpenseCharts';
 import { ApproveExpenseDialog } from '../components/expenses/ApproveExpenseDialog';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -41,7 +42,7 @@ export const ExecutiveExpensesPage = () => {
     return params;
   }, [page, filters, search]);
 
-  const { data, isLoading, error } = useGetExpensesQuery(queryParams);
+  const { data, isLoading, isFetching, error, refetch } = useGetExpensesQuery(queryParams);
   const { data: categoriesData } = useGetExpenseCategoriesQuery();
   const { data: branchesData } = useBranchesQuery();
   const { data: monthlyData } = useGetMonthlyExpenseSummaryQuery({});
@@ -90,6 +91,19 @@ export const ExecutiveExpensesPage = () => {
   };
 
   if (isLoading) return <PageLoadingState />;
+
+  if (error) {
+    return (
+      <div className='space-y-6'>
+        <QueryErrorState
+          title='Unable to load expenses'
+          description='Expenses could not be retrieved from the server.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6'>

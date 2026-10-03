@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetFinanceDashboardQuery, useCreateFinanceAdjustmentMutation } from '@/app/store/features/finance/financeQuery';
+import { useGetFinanceDashboardQuery } from '@/app/store/features/finance/financeQuery';
 import { useGetCashFlowsQuery } from '@/app/store/features/business/executive/cashFlowQuery';
 import { FinanceSummaryCards } from '../components/finance/FinanceSummaryCards';
 import { CashFlowTable } from '../components/finances/CashFlowTable';
@@ -12,7 +12,7 @@ export const ExecutiveFinancesPage = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const { data: dashboardData, isLoading: dashboardLoading } = useGetFinanceDashboardQuery();
-  const { data: cashFlowData, isLoading: cashFlowLoading } = useGetCashFlowsQuery(1);
+  const { data: cashFlowData, isLoading: cashFlowLoading } = useGetCashFlowsQuery(page);
 
   const dashboard = dashboardData?.data;
   const cashFlows = cashFlowData?.data?.data ?? [];

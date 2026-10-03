@@ -19,6 +19,7 @@ import { useProductsQuery } from '@/app/store/features/branch/products/branchPro
 import { useBranchSuppliersQuery } from '@/app/store/features/branch/suppliers/branchSuppliersQuery';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -34,7 +35,7 @@ interface OrderItemInput {
 }
 
 const SalesOrdersTab = () => {
-  const { data, isLoading, error } = useOrdersQuery();
+  const { data, isLoading, isFetching, error, refetch } = useOrdersQuery();
   const { data: productsData } = useProductsQuery();
   const [createOrder] = useCreateOrderMutation();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -96,6 +97,19 @@ const SalesOrdersTab = () => {
   };
 
   if (isLoading) return <PageLoadingState />;
+
+  if (error) {
+    return (
+      <div className='p-6'>
+        <QueryErrorState
+          title='Unable to load sales orders'
+          description='Sales orders could not be retrieved from the server.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -46,7 +46,7 @@ export const WorkerFormDialog = ({
   setDialogOpen,
 }: WorkerFormDialogProps) => {
   const [registerWorker] = useRegisterWorkerMutation();
-  const [updateWorker, { error }] = useUpdateWorkerMutation();
+  const [updateWorker] = useUpdateWorkerMutation();
   const worker = selectedWorker?.user;
 
   const [formData, setFormData] = useState<WorkerFormData>({

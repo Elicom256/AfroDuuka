@@ -41,7 +41,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Crown, Plus, Pencil, Trash2, Loader2, CalendarDays, Building2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-600 border-green-500/20',

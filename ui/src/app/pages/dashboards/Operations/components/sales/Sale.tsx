@@ -11,8 +11,8 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const Sale = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
+  const { data: saleData, isLoading: saleLoading } = useSaleQuery(id ?? '', { skip: !id });
   if (!id) return null;
-  const { data: saleData, isLoading: saleLoading } = useSaleQuery(id, { skip: !id });
   if (saleLoading) return <PageLoadingState />;
 
   const sale = saleData?.sale || saleData;

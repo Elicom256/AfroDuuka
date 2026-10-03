@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useGetFinanceTransactionsQuery } from '@/app/store/features/finance/financeQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { FinanceTransactionTable } from '../components/finance/FinanceTransactionTable';

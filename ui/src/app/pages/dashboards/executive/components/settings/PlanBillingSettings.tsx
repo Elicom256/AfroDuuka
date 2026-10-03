@@ -20,7 +20,7 @@ export const PlanBillingSettings = () => {
 
   const handleChoosePlan = async (planId: number, planName: string) => {
     try {
-      const res = await createSubscription({ plan_id: planId }).unwrap();
+      await createSubscription({ plan_id: planId }).unwrap();
       toast.success(`Subscribed to ${planName}`);
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to subscribe');

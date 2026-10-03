@@ -20,7 +20,7 @@ export const AiChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello! I\'m your AI inventory assistant. Ask me about your products, sales, stock levels, revenue, or any other business data.`,
+      content: `Hello! I'm your AI inventory assistant. Ask me about your products, sales, stock levels, revenue, or any other business data.`,
       timestamp: new Date(),
     },
   ]);

@@ -48,7 +48,7 @@ export const ExecutiveNotificationsPage = () => {
   const handleMarkAsRead = async (id: any) => {
     try {
       await markAsRead(id).unwrap();
-    } catch (err) {
+    } catch {
       toast.error('Failed to mark notification as read');
     }
   };
@@ -59,7 +59,7 @@ export const ExecutiveNotificationsPage = () => {
       if (res) {
         toast.success(res.message ?? 'All marked as read');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to mark all as read');
     }
   };
@@ -69,7 +69,7 @@ export const ExecutiveNotificationsPage = () => {
     try {
       await deleteNotification(id).unwrap();
       toast.success('Notification deleted');
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete notification');
     }
   };
@@ -79,7 +79,7 @@ export const ExecutiveNotificationsPage = () => {
     try {
       const res = await clearAll().unwrap();
       toast.success(res?.message ?? 'All notifications cleared');
-    } catch (err) {
+    } catch {
       toast.error('Failed to clear notifications');
     }
   };

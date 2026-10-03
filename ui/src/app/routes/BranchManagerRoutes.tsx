@@ -25,7 +25,6 @@ import { NotificationDetailPage } from '../pages/dashboards/shared/notifications
 import { ExecutiveCustomersPage } from '../pages/dashboards/executive/pages/ExecutiveCustomersPage';
 import { ExecutiveAnalyticsPage } from '../pages/dashboards/executive/pages/ExecutiveAnalyticsPage';
 import { ExecutiveReportsPage } from '../pages/dashboards/executive/pages/ExecutiveReportsPage';
-import { ExecutiveFinancesPage } from '../pages/dashboards/executive/pages/ExecutiveFinancesPage';
 import { ExecutiveFinanceTransactionsPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceTransactionsPage';
 import { ExecutiveFinanceReportsPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceReportsPage';
 import { ExecutiveFinanceCashFlowPage } from '../pages/dashboards/executive/pages/ExecutiveFinanceCashFlowPage';
@@ -35,7 +34,6 @@ import { ExecutiveAttendancePage } from '../pages/dashboards/executive/pages/Exe
 import { ExecutivePromotionsPage } from '../pages/dashboards/executive/pages/ExecutivePromotionsPage';
 import { ExecutiveCouponsPage } from '../pages/dashboards/executive/pages/ExecutiveCouponsPage';
 import { ExecutiveCurrencyRatesPage } from '../pages/dashboards/executive/pages/ExecutiveCurrencyRatesPage';
-import { ExecutivePaymentGatewaysPage } from '../pages/dashboards/executive/pages/ExecutivePaymentGatewaysPage';
 import { ExecutivePrintersPage } from '../pages/dashboards/executive/pages/ExecutivePrintersPage';
 import { ExecutiveStockTransfersPage } from '../pages/dashboards/executive/pages/ExecutiveStockTransfersPage';
 import { ExecutiveReceiptsPage } from '../pages/dashboards/executive/pages/ExecutiveReceiptsPage';

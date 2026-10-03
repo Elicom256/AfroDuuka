@@ -6,7 +6,6 @@ import { useBranchPromotionsQuery } from '@/app/store/features/branch/promotions
 import { useProductAnalyticsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useGetCashFlowsQuery } from '@/app/store/features/business/executive/cashFlowQuery';
 import { useBranchReportsQuery, useLowStockQuery, useOutOfStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
-import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -58,7 +57,7 @@ export const ExecutiveCustomersPage = () => {
 export const ExecutiveAnalyticsPage = () => {
   const { data: analytics, isLoading: analyticsLoading } = useProductAnalyticsQuery();
   const { data: restocking, isLoading: restockingLoading } = useProductRestockingQuery();
-  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30');
+  const { isLoading: lowLoading } = useLowStockQuery('30');
   const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30');
 
   const isLoading = analyticsLoading || restockingLoading || lowLoading || outLoading;

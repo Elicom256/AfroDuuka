@@ -1,112 +1,49 @@
-# DuukaFlow — Remaining Work Review
+# DuukaFlow — Remaining Work
 
 **Reviewed:** 2026-10-03  
-**Scope:** Core product and launch readiness: tenant access, POS/sales, inventory, finance, procurement, reporting, frontend workflows, testing, and operations.  
-**Excluded:** WhatsApp/email messaging and notification delivery, URA integration, and external-provider/API integration work. Sales payments recorded inside the app remain in scope; payment-provider integrations do not.
+**Scope:** Core product launch readiness: operations, data integrity, UI, testing, and recovery.  
+**Excluded:** WhatsApp/email messaging and notifications, URA integration, payment/subscription providers, and other external APIs.
 
-## Summary
+## Status
 
-DuukaFlow has substantial operational breadth: multi-branch inventory, POS and non-POS sales, purchase orders, returns, finance, staff, reports, audit surfaces, and role permissions are implemented. This is not a missing-feature-count problem. The outstanding risk is that a small number of core invariants can still fail, and the release process does not yet demonstrate a recoverable, consistently verified production system.
+DuukaFlow has broad operational coverage across inventory, POS and sales, purchasing, finance, staff, reporting, and audit workflows. The remaining work is primarily release verification and operational readiness, not adding more feature breadth.
 
-**Readiness: not yet ready for production rollout.** Prove backup restoration and address the remaining operational/UI release gaps before handling real business data.
+**Not yet ready for production rollout.** Verify production backups and restore, clear the frontend CI lint failure, and complete business-flow UAT before handling live business data.
 
-## P0 — Fix Before Launch (completed)
+## P0 — Before Production
 
-### ✅ 1. Duplicate product lines can oversell in non-POS sales — Fixed
+### 1. Verify scheduled off-host backup and restore
 
-The non-POS sale service now sums requested quantities by product and compares each total against its locked product row before writing the sale. It decrements stock once per product and records one movement with the aggregate quantity. This closes the duplicate-line overdraw and ledger undercount paths.
+The project now has a PostgreSQL backup command and DigitalOcean Spaces configuration, but the off-host scheduled path and recovery procedure have not been verified against a configured Spaces bucket. The development restore drill was deferred. Do not treat local dumps or successful fake-storage tests as proof of production recovery.
 
-Evidence and regression coverage: [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php) and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
+Evidence: [api/app/Console/Commands/DatabaseBackup.php](api/app/Console/Commands/DatabaseBackup.php), [api/config/filesystems.php](api/config/filesystems.php), and the Docker backup/restore scripts under [ops](ops).
 
-**Verified:** Docker tests cover rejection without writes when duplicate lines exceed stock, and successful duplicate lines decrement stock once with one correctly aggregated movement. The focused suite passed alongside the standard non-POS checkout and discount tests (4 tests, 19 assertions).
+**Action:** Configure Spaces credentials as deployment secrets, verify the scheduled VPS backup uploads successfully, set retention and failure monitoring, then restore a real archive into an isolated database. Record the measured recovery point and recovery time.
 
-### ✅ 2. Non-POS sale discounts are not accepted by request validation — Fixed
+### 2. Clear the frontend lint CI failure
 
-`StoreSaleRequest` now preserves the optional per-unit discount through validation, requires it to be numeric and nonnegative, and caps it at the corresponding line's unit price. The HTTP path now calculates and persists the discounted subtotal, tax, sale total, line discount, and payment amount consistently.
-
-Evidence: [api/app/Http/Requests/StoreSaleRequest.php](api/app/Http/Requests/StoreSaleRequest.php), [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
-
-**Verified:** Docker tests confirm a valid discount produces a $1,600 subtotal, $288 tax, and $1,888 sale/payment total, and reject negative and over-unit-price discounts. The focused non-POS sale suite passed (6 tests, 33 assertions).
-
-## P1 — Resolve Before Release
-
-### ✅ 3. `siteadmin` has no frontend dashboard route — Fixed
-
-`AppRoutes` now mounts the existing Superadmin route tree for both seeded platform roles, `CoreSupport` and `siteadmin`, so neither role falls through to the not-found route after login.
-
-Evidence: [api/database/seeders/RoleTableSeeder.php](api/database/seeders/RoleTableSeeder.php) and [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
-
-**Verified:** TypeScript and Vite production build pass after the route update. A route-specific UI test is not configured in this project.
-
-### ✅ 4. Platform-role permissions and tenant model scoping were inconsistent — Fixed
-
-The platform-operator allowlist is now the single explicit exception in both business and branch scopes and includes `CoreSupport` and `siteadmin`. Ordinary elevated tenant roles such as `Executive` no longer receive unrestricted branch-scoped access when their account has no business; missing tenant context fails closed.
-
-Evidence: [api/app/Models/BaseModel.php](api/app/Models/BaseModel.php), [api/app/Support/Auth/RolePermissions.php](api/app/Support/Auth/RolePermissions.php), [api/app/Support/Tenant/EffectiveBranchScope.php](api/app/Support/Tenant/EffectiveBranchScope.php), and [api/tests/Feature/TenantIsolationTest.php](api/tests/Feature/TenantIsolationTest.php).
-
-**Verified:** Docker tests confirm both platform roles can query across business-scoped Roles and branch-scoped Products, while a businessless Executive sees neither. Existing branch and cross-business isolation checks also pass (10 tests, 24 assertions).
-
-### 5. Backups are manual; recovery is not demonstrated
-
-The PostgreSQL backup command can create a custom-format dump and restore it with an explicit destructive `--force` flag. It defaults to a local `storage/app/backups` path. The scheduler currently has no backup entry, and the repository does not establish off-host storage, retention/rotation, backup monitoring, or a tested restore drill. A backup command by itself is not a production recovery plan.
-
-Evidence: [api/app/Console/Commands/DatabaseBackup.php](api/app/Console/Commands/DatabaseBackup.php) and [api/routes/console.php](api/routes/console.php).
-
-**Action:** Automate backups to storage independent of the application host, define encryption/retention and failure alerting, and rehearse a restore into an isolated database. Record measured recovery point and recovery time objectives before launch.
-
-### 6. Frontend lint is currently failing CI
-
-The CI workflow runs `npm run lint`, so lint errors fail the frontend job. I reran the command after dependencies were restored: it reports **1,080 errors and 18 warnings**. This confirms the backlog recorded in the earlier review remains and is still a release/CI blocker.
+CI runs `npm run lint`. The latest verified run reports **1,080 errors and 18 warnings**, so the frontend CI job remains red even though the TypeScript/Vite production build passes.
 
 Evidence: [.github/workflows/ci.yml](.github/workflows/ci.yml), [ui/package.json](ui/package.json), and [review.md](review.md).
 
-**Action:** Reduce or intentionally configure the lint backlog, and keep lint plus the production build as required CI checks. The production TypeScript/Vite build passes; the full backend suite was not run during this task.
+**Action:** Reduce or deliberately baseline the lint backlog without disabling meaningful checks. Keep lint and the production build required in CI.
 
-## P2 — Improve Before Wider Rollout
+## P1 — Before Broader Rollout
 
-### ✅ 7. Primary operational error and empty states were inconsistent — Fixed
+### 3. Validate POS on target devices and document connectivity assumptions
 
-Primary list, detail, analytics, and report workflows now distinguish failed requests from successful empty results. Query failures use a shared accessible alert with contextual copy and a retry control; a refresh failure with cached data labels the result as potentially stale rather than discarding it or presenting it as current. Detail screens distinguish a failed request from a genuinely missing record.
-
-The shared UI is in [ui/src/app/components/QueryErrorState.tsx](ui/src/app/components/QueryErrorState.tsx). It is applied across sales, purchases, inventory products, procurement orders/overview, finance transactions/reports, stock reports, customer/supplier directories and details, product details, and executive dashboard revenue, cash, stock-health, and sales widgets.
-
-**Verified:** The full UI TypeScript and Vite production build passes after the rollout. The build still reports the existing large-chunk warning; no new TypeScript errors were reported. This closes the launch-priority gap on primary operational screens; low-frequency and peripheral screens can adopt the shared component opportunistically as they are touched.
-
-### 8. POS resilience and mobile workflow need a deliberate launch decision
-
-The UI project backlog still lists mobile support and offline sync as future work. A network-dependent POS may be acceptable for an initial connected pilot, but outages can stop sales and make reconciliation difficult. This is a product/operational decision rather than a claim that offline mode is already promised.
+The UI backlog still lists mobile support and offline sync. A connected-only pilot may be reasonable, but network outages can stop checkout and complicate reconciliation.
 
 Evidence: [ui/README.md](ui/README.md).
 
-**Action:** Validate the POS on the actual target tablet/phone and printer setup. For the first release, document the connectivity assumption and recovery procedure; plan offline sale queuing and conflict-safe stock reconciliation before expanding to low-connectivity locations.
+**Action:** Validate POS on the actual tablet/phone, scanner, and printer setup. Document the initial connectivity requirement and outage procedure; plan offline sale queuing and conflict-safe stock reconciliation before expanding to low-connectivity sites.
 
-### 9. Auditability and recovery paths should be validated end to end
+### 4. Run end-to-end financial and inventory UAT
 
-The application has stock movements, product-loss records, financial audits, and sale/purchase return flows. Before launch, verify that each correction flow reverses or compensates the original ledger effects without silently rewriting completed business history. Existing breadth is promising, but the review did not execute a full business UAT across these linked records.
+The application has stock movements, product-loss records, financial audits, and sale/purchase return flows, but the linked correction paths have not been verified together in a complete business UAT.
 
-**Action:** Run scripted end-to-end scenarios for sale, partial return, purchase receipt/return, stock write-off, cash adjustment, and void/refusal paths. Assert final stock, sale/payment totals, cash flow, audit log, and branch ownership after each scenario.
-
-## Areas That Have Improved Since Older Reviews
-
-Do not carry these older findings forward as current blockers without new evidence:
-
-- `procurementApi` is now registered as both reducer and middleware in [ui/src/app/store/app/store.ts](ui/src/app/store/app/store.ts).
-- Dashboard routes now mount under `/dashboard/*`, and the role route trees have not-found fallbacks; the earlier exact-path and broad dead-link claims are stale. See [ui/src/app/routes/AppRoutes.tsx](ui/src/app/routes/AppRoutes.tsx).
-- `CoreSupport` and `siteadmin` now share explicit platform-operator scope semantics, and both map to the Superadmin route tree. Regression tests cover business- and branch-scoped models and fail-closed behavior for a businessless Executive.
-- Non-POS sales now lock selected branch products and reject products from another branch in [api/app/Services/SaleItemService.php](api/app/Services/SaleItemService.php).
-- POS receipt numbering now uses `ReceiptNumberGenerator`, rather than the earlier count-and-increment approach, in [api/app/Services/PosService.php](api/app/Services/PosService.php).
-- PHPUnit configuration forces the `testing` environment and `inventory_test`, which addresses the prior development-database safety issue. See [api/phpunit.xml](api/phpunit.xml) and [api/.env.testing](api/.env.testing).
-- Completed-sale immutability and the earlier sale relation/totals fixes are recorded as implemented in [review.md](review.md).
-
-## Recommended Order
-
-1. ✅ Fix aggregate stock validation and add the non-POS duplicate-line regression test.
-2. ✅ Restore discount validation at the HTTP boundary and test final monetary values end to end.
-3. ✅ Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
-4. Implement scheduled off-host backups and complete a documented restore drill.
-5. Re-run the full backend suite and frontend lint in the same CI configuration used for release; the UI production build now passes, while ESLint remains a separate known backlog.
-6. Complete role-based UAT on real devices, then decide the first-release connectivity guarantee for POS.
+**Action:** Test sale, partial return, purchase receipt/return, stock write-off, cash adjustment, and void/refusal paths. Assert final stock, sale and payment totals, cash flow, audit history, and branch ownership after each scenario.
 
 ## Review Limitations
 
-This was a source-based review, not a production penetration test or full manual UAT. Frontend error-state validation was a TypeScript/Vite production build; ESLint remains failing at 1,080 errors and 18 warnings from its latest run. No external integrations, messaging/notification delivery, or URA flows were assessed.
+This is a source-based readiness list, not a production penetration test or completed manual UAT. The production UI build passes; ESLint remains failing as noted above. Backup provider credentials and an isolated restore target were not available for end-to-end recovery verification. No excluded integrations were assessed.

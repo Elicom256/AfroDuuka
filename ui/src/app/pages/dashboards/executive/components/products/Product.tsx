@@ -74,7 +74,7 @@ export const Product = () => {
         toast.success(res.message);
       }
       return navigate('../products');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete product');
     }
   };

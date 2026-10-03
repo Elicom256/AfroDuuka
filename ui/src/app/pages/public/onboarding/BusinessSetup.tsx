@@ -1,4 +1,4 @@
-import { Building2, Globe, Mail, MapPin, Phone, Search } from 'lucide-react';
+import { Building2, Globe, Mail, MapPin, Phone } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

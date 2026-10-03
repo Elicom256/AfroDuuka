@@ -40,7 +40,7 @@ export const Supplier = () => {
         toast.success(res.message);
         return navigate('/dashboard/suppliers');
       }
-    } catch (error) {
+    } catch {
       toast.error('failed to delete supplier');
     }
   };

@@ -12,9 +12,10 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { AddProductCategory } from './AddProductCategory';
 import { EditProductCategory } from './EditProductCategory';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ProductCategories = () => {
-  const { data, isLoading, error } = useProductCategoriesQuery();
+  const { data, isLoading, isFetching, error, refetch } = useProductCategoriesQuery();
   const [remove, { isLoading: deleting }] = useDeleteProductCategoryMutation();
   const [search, setSearch] = useState('');
 
@@ -42,12 +43,25 @@ export const ProductCategories = () => {
     try {
       const res = await remove(id).unwrap();
       toast.success(res.message ?? 'Category deleted successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete category');
     }
   };
 
   if (isLoading) return <PageLoadingState />;
+
+  if (error) {
+    return (
+      <div className='p-6'>
+        <QueryErrorState
+          title='Unable to load categories'
+          description='Product categories could not be retrieved from the server.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='p-6'>

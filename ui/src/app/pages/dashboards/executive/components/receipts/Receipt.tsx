@@ -47,7 +47,8 @@ export const ReceiptDetail = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
+      console.error('Failed to download receipt');
     }
   };
 

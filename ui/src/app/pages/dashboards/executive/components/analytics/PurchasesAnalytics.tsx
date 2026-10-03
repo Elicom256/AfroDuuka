@@ -35,7 +35,7 @@ export const PurchasesAnalytics = () => {
         },
       ],
     };
-  }, [analytics]);
+  }, [analytics, currency]);
 
   const chartOptions = {
     responsive: true,

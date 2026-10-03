@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
-export const EditReorderRule = ({ open, onOpenChange, rule, products, suppliers, updateRule }: any) => {
+export const EditReorderRule = ({ open, onOpenChange, rule, suppliers, updateRule }: any) => {
   const [form, setForm] = useState({
     reorder_quantity: '',
     preferred_supplier_id: '',

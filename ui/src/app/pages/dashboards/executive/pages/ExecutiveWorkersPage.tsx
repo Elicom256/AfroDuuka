@@ -42,7 +42,7 @@ export const ExecutiveWorkersPage = () => {
     try {
       await deleteWorker({ id: worker.id, userData: { isActive: false } }).unwrap();
       toast.success('Worker deleted successfully.');
-    } catch (error) {
+    } catch {
       toast.error('Unable to delete worker.');
     }
   };

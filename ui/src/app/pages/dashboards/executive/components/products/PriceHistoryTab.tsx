@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { LoadingState } from '@/utils/LoadingState';
-import { Clock, ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
+import { Clock, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ProductPriceChart } from './ProductPriceChart';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';

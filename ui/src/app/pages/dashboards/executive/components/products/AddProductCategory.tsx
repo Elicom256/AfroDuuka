@@ -32,7 +32,7 @@ export const AddProductCategory: React.FC = () => {
       toast.success(res.message || 'Category added successfully');
       setOpen(false);
       setFormData({ name: '', description: '' });
-    } catch (error) {
+    } catch {
       toast.error('Failed to add category');
     }
   };

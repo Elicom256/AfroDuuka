@@ -51,13 +51,12 @@ export const ProductTable = () => {
       }
       setProdId('');
       return;
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete product');
     }
   };
   return (
     <div>
-      {/* <TestProd /> */}
       <Table>
         <TableHeader>
           <TableRow>

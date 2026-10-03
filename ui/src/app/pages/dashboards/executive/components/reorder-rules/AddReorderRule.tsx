@@ -33,7 +33,7 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
       return;
     }
     try {
-      const res = await createRule({
+      await createRule({
         ...form,
         reorder_quantity: Number(form.reorder_quantity),
         preferred_supplier_id: form.preferred_supplier_id || null,

@@ -18,7 +18,6 @@ import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { useSaleReturnsQuery } from '@/app/store/features/branch/sale-returns/saleReturnsQuery';
-import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddSaleReturnProps {
   addSaleReturn: any;
@@ -34,12 +33,13 @@ interface SelectedItem {
 }
 
 export const AddSaleReturn = ({ addSaleReturn }: AddSaleReturnProps) => {
-  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
   const { data: salesData } = useSalesQuery();
   const { data: returnsData } = useSaleReturnsQuery();
-  const sales = salesData?.sales ?? salesData ?? [];
-  const existingReturns = returnsData?.sale_returns ?? returnsData ?? [];
+  // Memoised so the `?? []` fallbacks below stop handing the search/line-item memos a
+  // brand new array identity on every render.
+  const sales = useMemo(() => salesData?.sales ?? salesData ?? [], [salesData]);
+  const existingReturns = useMemo(() => returnsData?.sale_returns ?? returnsData ?? [], [returnsData]);
 
   const [search, setSearch] = useState('');
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
