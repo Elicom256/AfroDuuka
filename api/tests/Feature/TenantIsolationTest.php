@@ -7,6 +7,7 @@ use App\Models\BusinessBranch;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -184,6 +185,141 @@ class TenantIsolationTest extends TestCase
                 'unit_price' => 1500,
             ]],
         ], $branch->id);
+    }
+
+    public function test_sale_item_service_saves_a_valid_non_pos_sale(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'quantity' => 10,
+            'reorder_level' => 1,
+            'selling_price' => 1500,
+            'status' => 'active',
+        ]);
+
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+            'business_branch_id' => $branch->id,
+            'customer_id' => null,
+            'note' => 'Valid sale',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => $paymentMethod->id,
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'unit_price' => 1500,
+            ]],
+        ], $branch->id);
+
+        $this->assertNotNull($sale);
+        $this->assertSame('completed', $sale->status);
+        $this->assertCount(1, $sale->saleItems);
+        $this->assertCount(1, $sale->salePayments);
+        $this->assertNotNull($sale->receipt);
+        $this->assertDatabaseHas('stock_movements', [
+            'business_branch_id' => $branch->id,
+            'product_id' => $product->id,
+            'type' => 'out',
+            'quantity' => 1,
+            'reference_type' => Sale::class,
+            'reference_id' => $sale->id,
+        ]);
+    }
+
+    public function test_completed_sale_cannot_be_updated(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+        $product = Product::factory()->create(['business_branch_id' => $branch->id]);
+        $sale = Sale::create([
+            'business_branch_id' => $branch->id,
+            'subtotal' => 100,
+            'tax_amount' => 0,
+            'total_amount' => 100,
+            'status' => 'completed',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $this->putJson("/api/sales/branch-sales/{$sale->id}", [
+            'business_branch_id' => $branch->id,
+            'items' => [[
+                'product_id' => $product->id,
+                'sale_id' => $sale->id,
+                'quantity' => 1,
+                'price' => 200,
+                'subtotal' => 200,
+            ]],
+        ])->assertStatus(409);
+
+        $this->assertDatabaseHas('sales', [
+            'id' => $sale->id,
+            'status' => 'completed',
+            'total_amount' => 100,
+        ]);
+    }
+
+    public function test_sale_item_service_applies_discount_to_tax_and_subtotal(): void
+    {
+        $business = Business::factory()->create();
+        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
+        $user = $this->branchUser($business, $branch);
+
+        $taxCategory = \App\Models\TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
+        \App\Models\TaxRate::factory()->create([
+            'tax_category_id' => $taxCategory->id,
+            'rate' => 0.18,
+            'is_active' => true,
+        ]);
+
+        $product = Product::factory()->create([
+            'business_branch_id' => $branch->id,
+            'tax_category_id' => $taxCategory->id,
+            'quantity' => 10,
+            'reorder_level' => 1,
+            'selling_price' => 1000,
+            'is_tax_inclusive' => false,
+            'status' => 'active',
+        ]);
+
+        $paymentMethod = PaymentMethod::create([
+            'business_id' => $business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+            'business_branch_id' => $branch->id,
+            'customer_id' => null,
+            'note' => 'Discounted sale',
+            'paymentStatus' => 'paid',
+            'payment_status_id' => $paymentMethod->id,
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 2,
+                'unit_price' => 1000,
+                'discount' => 200,
+            ]],
+        ], $branch->id);
+
+        $this->assertSame('1600.00', (string) $sale->subtotal);
+        $this->assertSame('288.00', (string) $sale->tax_amount);
+        $this->assertSame('1888.00', (string) $sale->total_amount);
+        $this->assertSame('200.00', (string) $sale->saleItems->first()->discount);
+        $this->assertSame('1600.00', (string) $sale->saleItems->first()->subtotal);
     }
 
     public function test_branch_user_index_only_contains_own_branch_products(): void

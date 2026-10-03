@@ -178,6 +178,21 @@ class RequireRoleMiddlewareTest extends TestCase
         $this->withToken($token)->getJson('/api/tax-categories')->assertStatus(200);
     }
 
+    public function test_branch_manager_cannot_delete_business_wide_roles(): void
+    {
+        $token = $this->bearerTokenFor('BranchManager');
+        $role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Operations',
+        ]);
+
+        $this->withToken($token)
+            ->deleteJson("/api/dashboard/roles/{$role->id}")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('roles', ['id' => $role->id]);
+    }
+
     public function test_an_unauthenticated_request_is_refused_by_auth_before_the_role_gate(): void
     {
         $this->getJson('/api/expenses/branch-expenses')->assertStatus(401);

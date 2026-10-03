@@ -1,222 +1,113 @@
-# DuukaFlow — MVP Launch Review
+# DuukaFlow — Local Readiness Review
 
-**Date:** 2026-09-29
-**Scope:** Full codebase audit (Laravel API + React/TypeScript UI) against MVP launch criteria
+**Date:** 2026-10-03
+**Scope:** local implementation and product stability only.
+**Status:** third-party integrations are intentionally deferred for now.
 
----
-
-## Executive Summary
-
-DuukaFlow has evolved significantly beyond what the older markdown docs describe. Many previously-broken modules (Promotions, Coupons, Attachments, Quotations, Procurement, Orders, History) are now fully implemented. The codebase is feature-rich with ~85 UI routes, 47 test files, and 429 passing tests.
-
-**However, the MVP is not launch-ready.** The remaining gaps are concentrated in operational correctness, notification delivery, payment collection, and production hardening — not in feature breadth.
-
-**MVP Readiness: ~7/10** (up from 6.5/10 in previous review)
+This review focuses on the issues that affect the product before any external integration work begins.
 
 ---
 
-## What's Already Done (Verified)
+## Verified baseline
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| Promotions | ✅ Full CRUD | Controller, model, routes all functional |
-| Coupons | ✅ Full CRUD | Auto-generated codes, API wired |
-| Product Attachments | ✅ Polymorphic | `Attachment` model + migration + controller + UI |
-| Quotations | ✅ Full CRUD | Send/accept/cancel/PDF workflow |
-| Procurement / Purchase Orders | ✅ Full | Reorder suggestions, approve/order/receive/cancel |
-| Orders | ✅ Real API | Executive + Operations pages use RTK Query |
-| History | ✅ Real API | Procurement history uses real purchase order data |
-| Todos | ✅ Routes active | Mounted in `users.php` |
-| Stock Transfers | ✅ Fixed | Matches by SKU → barcode → name (not category) |
-| BaseModel Scoping | ✅ Active | Both business + branch scopes enforced |
-| Policies | ⚠️ Partial | 19 `$this->authorize()` calls in 4 controllers only |
-| TypeScript | ✅ Clean | `tsc --noEmit` passes with zero errors |
-| POS | ✅ Functional | Barcode scan, hold/resume, split payments |
-| Returns/Refunds | ✅ Done | SaleReturn, PurchaseReturn with restocking |
-| Expenses | ✅ Done | With approve workflow |
-| Price History | ✅ Done | Model + analytics + timeline |
-| Loyalty | ✅ Models exist | **Not wired into checkout** |
-| Receipts | ✅ PDF generation | Via dompdf |
-| Tax Invoices | ✅ Done | With URA submission |
+| Metric               | Result                   | Note                                                                  |
+| -------------------- | ------------------------ | --------------------------------------------------------------------- |
+| Backend tests        | **534 passed, 1 failed** | The single failure is the API drift check, which is useful and active |
+| TypeScript           | **Passes**               | `tsc -b --force` completes successfully                               |
+| ESLint               | **1,098 findings**       | 1,080 errors, 18 warnings across 451 files; lint remains red          |
+| CI backend           | **Not reliably green**   | Configuration is inconsistent for database-backed tests               |
+| Local data integrity | **Needs hardening**      | Sale and stock paths still drift                                      |
+| Route drift          | **Confirmed**            | Frontend and backend contracts are not aligned                        |
 
 ---
 
-## P0 — Launch Blockers (Must Fix)
+## Local issues to fix first
 
-### 1. WhatsApp Notification System Incomplete
+### ✅ 1. Non-POS sales can still fail and roll back the transaction
 
-**Status:** Stage 3 of 7 complete. The send path works with real Meta API, but the system is not finished.
+This issue is fixed: the stale `salePayment` relation load has been replaced with the valid `salePayments` relation, so a successful non-POS sale can complete without throwing inside the transaction.
 
-**What's left (per `undone.md`):**
-- **Stage 4:** Catalogue wiring — 14 notifications defined but none dispatched from real triggers. Product alert state machine, subscription lifecycle job, monthly report job, quotation send.
-- **Stage 5:** Tests — tenant-scoping mandatory on every row.
-- **Stage 6:** UI — notification log, recipient management, per-category preferences, template editor, SES bounce dashboard.
-- **Stage 7:** Flip provider from `demo` to `meta` (last, after tests).
+Action completed:
 
-**Why it blocks launch:** The product's core value proposition includes automated customer communication (receipts, reminders, alerts). Without Stage 4 wiring, no notification actually fires from business events.
+- removed the stale relationship from the sale load path
+- added a regression test for a successful non-POS sale
 
-### 2. No Real Payment Collection
+### ✅ 2. POS and non-POS checkout paths calculate totals differently
 
-**Status:** Only manual payment verification exists. No mobile money (MTN MoMo, Airtel Money) or card gateway integration.
+The two sale paths do not agree on discount, subtotal, and tax treatment. The non-POS flow can drop discount data and under-record stock movement, which leads to inconsistent ledger values and tax mismatch.
 
-**Why it blocks launch:** Retail POS must take real payments. Manual verification doesn't scale and isn't sellable as a production system.
+Action:
 
-### 3. No Email/SMS Integration
+- align both sale paths to the same finalised-sale logic
+- pass discounts through consistently
+- ensure stock movement rows are created for both paths
 
-**Status:** WhatsApp is being built but email and SMS don't exist. Receipts are in-app only.
+Implementation is complete: the non-POS flow now applies per-unit discounts to line tax and subtotal, validates discount input, and records an idempotent outbound stock movement. The regression fixture explicitly selects tax-exclusive pricing. Final Docker test verification is deferred until the local issue list is complete.
 
-**Why it blocks launch:** Digital receipts via email/SMS are table stakes for retail. Customers expect them.
+### ✅ 3. Completed sales remain mutable
 
-### 4. 7 Failing Tests
+A completed sale can still be updated and re-pointed without a guard on status. This leaves the system exposed to post-completion mutation.
 
-**Status:** 429 pass, 7 fail — all in WhatsApp suite (job dispatch count assertions in `StageZeroRepairTest` and `RecipientProvisionerTest`).
+Action:
 
-**Why it blocks launch:** A red test suite means you can't confidently deploy. These need fixing before any production push.
+- prevent updates to completed sales
+- enforce a return/edit flow instead of direct mutation
+- add a test for status-based immutability
 
-### 5. RBAC Not Fully Enforced
+Implementation is complete: direct updates to completed sales now return `409 Conflict`. Final Docker test verification is deferred until the local issue list is complete.
 
-**Status:** Policies exist but are only invoked in 4 controllers (Attachment, Product, Quotation, ProductCategory). Most controllers have no authorization checks.
+### ✅ 4. Frontend/backend route drift
 
-**Why it blocks launch:** A multi-tenant SaaS without consistent authorization is a data-leak risk. Any authenticated user can likely access any endpoint.
+The frontend and backend contracts are not aligned. The API drift test is already catching real mismatches, including missing endpoints and invalid route names.
 
----
+Examples:
 
-## P1 — Critical for Real-World Use
+- `GET /inventory` has no backend route
+- `DELETE /sales/branch-sales/{id}` is not actually exposed
+- `GET /suppliers` and `GET /customers` map to different backend endpoints
+- worker/user creation/update routes are inconsistent
 
-### 6. Two Stub UI Pages Remain
+Action:
 
-| Page | File | Issue |
-|------|------|-------|
-| Staff Inventory | `ui/src/app/pages/dashboards/staff/pages/StaffInventoryPage.tsx` | "Inventory list and alerts will be implemented here." |
-| Staff Sales Overview | `ui/src/app/pages/dashboards/staff/pages/StaffSalesOverviewPage.tsx` | "Charts and sales flow visualization will be implemented here." |
+- fix the route mismatches at the source
+- keep the API drift check running in CI
+- normalize query-string handling before comparing routes
 
-**Fix:** Either build these or remove from navigation. Visible stubs destroy launch confidence.
+Implementation is complete for the identified mismatches: frontend paths now match the products, dashboard, and user-worker routes; profile updates have a dedicated self-service route; sale deletion is no longer advertised; and the drift checker strips query strings. Final Docker test verification is deferred until the local issue list is complete.
 
-### 7. 96 Console.log Statements in Production UI
+### 5. auth and policy coverage is incomplete
 
-**Status:** Pervasive across Executive pages, Login, SignUp, routes, and components.
+Several controllers lack effective authorization checks, and policies are not consistently enforced across the app.
 
-**Fix:** Remove or replace with proper logging. Debug output in production is unprofessional and can leak data.
+Action:
 
-### 8. Loyalty Not Wired into Checkout
+- audit controllers for missing `authorize()` usage
+- ensure tenant and role checks are enforced centrally
+- add policy coverage for modules currently bypassing checks
 
-**Status:** Loyalty models + `LoyaltyService` exist but earn/burn is not connected to POS checkout.
+Progress: role management now requires an elevated role because role definitions are business-wide, and create/update requests are authorized and validated. The broader controller and policy audit remains open.
 
-**Fix:** Earn points on sale completion, redeem/burn at POS, card lookup in POS.
+### 6. CI and environment sanity still need attention
 
-### 9. No Backup/Restore Strategy
+- backend configuration expects PostgreSQL, but CI is not consistently wired for it
+- frontend lint remains red
+- the repo still has environment and secret hygiene issues that should be cleaned before adding any new integration layer
 
-**Status:** No backup scripts, no cron jobs, no restore procedures documented.
-
-**Fix:** Implement `pg_dump` cron + test restore drill. Essential for business continuity.
-
-### 10. No CI/CD Pipeline
-
-**Status:** No GitHub Actions, no automated test/build pipeline.
-
-**Fix:** Add CI that runs `php artisan test` + `tsc --noEmit` + `vite build` on every push.
-
-### 11. No Production Deployment Setup
-
-**Status:** Docker files exist but no HTTPS, no monitoring (Sentry), no structured logging, no rate limiting.
-
-**Fix:** Productionize before launch — HTTPS, error tracking, backups, monitoring.
+Progress: the local CI workflow now provisions PostgreSQL and the frontend source path required by the API drift check; Compose development credentials are aligned with `api/.env.example`. The `.env.prod` file has been removed from Git and ignored for future copies. Credential rotation/history cleanup and the existing frontend lint backlog remain open. The Docker lint run found 1,080 errors and 18 warnings across 451 files, mostly `no-explicit-any`, unused variables, and React hook rules; only one finding is auto-fixable. Keep `.github/workflows/ci.yml` untracked for now. Final Docker test verification is deferred until the local issue list is complete.
 
 ---
 
-## P2 — Polish for Confident Launch
+## Recommended next order of work
 
-### 12. Seeders Are Fragile
-
-**Status:** Several seeders depend on exact execution order and throw `Business::not found` if run out of order.
-
-**Fix:** Make seeders idempotent — skip + warn, or create their own fixture business.
-
-### 13. No Audit Trail Frontend Integration
-
-**Status:** Backend has `ActivityLog` but no frontend page surfaces it to users.
-
-**Fix:** Add an audit log viewer page for admins.
-
-### 14. No Offline-First Capability
-
-**Status:** POS requires connectivity. No sync/reconciliation strategy.
-
-**Fix:** Post-MVP, but plan the architecture early.
-
-### 15. Subscription Billing Not Automated
-
-**Status:** Subscriptions exist with manual payment verification. No auto-collection, no dunning, no auto-renewal.
-
-**Fix:** Needed for SaaS revenue. Integrate with payment gateway (P0 #2 above).
-
-### 16. Documentation Fragmentation
-
-**Status:** 25+ markdown files in repo root, many overlapping or superseded.
-
-**Fix:** Consolidate into `docs/` with a single roadmap + ADRs. Delete stale files.
+1. fix the non-POS sale rollback
+2. align POS and non-POS sale calculations
+3. lock completed sales against mutation
+4. close the frontend/backend route drift
+5. tighten local authorization and policy enforcement
+6. only then revisit external integrations
 
 ---
 
-## Test Suite Summary
+## Scope note
 
-| Metric | Value |
-|--------|-------|
-| Test files | 47 |
-| Passing | 429 |
-| Failing | 7 (WhatsApp job count assertions) |
-| Assertions | 1,306 |
-| Duration | ~89s |
-| TypeScript | Clean (`tsc --noEmit` passes) |
-
----
-
-## Recommended Launch Sequence
-
-### Sprint 1 (Week 1–2): Fix What's Broken
-1. Fix 7 failing WhatsApp tests
-2. Complete WhatsApp Stage 4 (wire 14 notifications to real triggers)
-3. Build or remove 2 stub UI pages
-4. Remove 96 console.log statements
-5. Invoke policies in all controllers (not just 4)
-
-### Sprint 2 (Week 3–4): Real Payments + Comms
-6. Integrate at least one mobile money provider at POS
-7. Add email integration (SES or similar) for receipts
-8. Complete WhatsApp Stage 5–7 (tests, UI, flip provider)
-9. Wire loyalty into checkout
-
-### Sprint 3 (Week 5–6): Production Hardening
-10. CI/CD pipeline (test + build on push)
-11. Backup/restore automation + drill
-12. HTTPS + monitoring + error tracking
-13. Rate limiting + structured logging
-14. Idempotent seeders
-15. Subscription auto-billing
-
-### Sprint 4 (Week 7): Launch
-16. End-to-end UAT with real business scenarios
-17. Multi-tenant isolation verification
-18. Performance testing on POS checkout
-19. Documentation consolidation
-20. Deploy to production
-
----
-
-## Key Risks
-
-| Risk | Severity | Likelihood |
-|------|----------|------------|
-| Cross-tenant data leakage (RBAC gaps) | Critical | High |
-| WhatsApp notifications silently failing | High | Medium |
-| Payment reconciliation errors | High | Medium |
-| No backup → data loss | Critical | Low |
-| Launching with visible stubs | Medium | High |
-
----
-
-## Bottom Line
-
-The codebase has come a long way. Most "broken" items from older reviews are now fixed. The remaining work is **operational hardening** — making what exists actually work in production (real payments, real notifications, real backups, real authorization) rather than building new features.
-
-**Do not launch until P0 items are resolved.** The difference between 7/10 and 9/10 is not more features — it's making the existing features trustworthy.
+For now, the review intentionally excludes third-party integrations. Once the local sale, stock, auth, and route integrity issues are resolved, the integration work can be reviewed separately and scoped cleanly.
