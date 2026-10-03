@@ -29,13 +29,14 @@ import { PeriodFilterBar } from '../PeriodFilterBar';
 import { type ReportFilter } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/utils/LoadingState';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 // Register Chart.js components (both Line and Bar elements needed)
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 export const PriceAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
-  const { data, isLoading, isError, error } = usePriceHistoryAnalyticsQuery(selectedPeriod);
+  const { data, isLoading, isFetching, isError, refetch } = usePriceHistoryAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
 
   const analytics = data?.data;
@@ -99,8 +100,13 @@ export const PriceAnalytics = () => {
             <TrendingUp className='h-6 w-6' /> Price Change Analytics
           </CardTitle>
         </CardHeader>
-        <CardContent className='py-12 text-center text-red-500'>
-          Failed to load price analytics.
+        <CardContent>
+          <QueryErrorState
+            title='Unable to load price analytics'
+            description='Price history data could not be retrieved.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
         </CardContent>
       </Card>
     );
@@ -114,8 +120,8 @@ export const PriceAnalytics = () => {
             <TrendingUp className='h-6 w-6' /> Price Change Analytics
           </CardTitle>
         </CardHeader>
-        <CardContent className='py-12 text-center text-muted-foreground'>
-          No data available.
+        <CardContent>
+          <QueryEmptyState title='No price history data' description='There are no price changes for this period.' />
         </CardContent>
       </Card>
     );
@@ -131,9 +137,7 @@ export const PriceAnalytics = () => {
               <CardTitle className='flex items-center gap-2'>
                 <TrendingUp className='h-6 w-6' /> Price Change Analytics
               </CardTitle>
-              <CardDescription className='capitalize'>
-                {analytics.period?.replace(/_/g, ' ')}
-              </CardDescription>
+              <CardDescription className='capitalize'>{analytics.period?.replace(/_/g, ' ')}</CardDescription>
             </div>
             <PeriodFilterBar selected={selectedPeriod} onChange={handlePeriodChange} />
           </div>
@@ -156,12 +160,7 @@ export const PriceAnalytics = () => {
           {/* Chart */}
           {chartData && (
             <div className='h-80 w-full pt-2'>
-              <Line
-                ref={chartRef}
-                data={chartData}
-                options={chartOptions}
-                key={`price-chart-${selectedPeriod}`}
-              />
+              <Line ref={chartRef} data={chartData} options={chartOptions} key={`price-chart-${selectedPeriod}`} />
             </div>
           )}
 
@@ -184,10 +183,7 @@ export const PriceAnalytics = () => {
           <CardContent>
             <div className='space-y-3'>
               {analytics.most_changed.map((item: any, idx: number) => (
-                <div
-                  key={item.product_id}
-                  className='flex items-center justify-between py-2 border-b last:border-b-0'
-                >
+                <div key={item.product_id} className='flex items-center justify-between py-2 border-b last:border-b-0'>
                   <div className='flex items-center gap-3'>
                     <span className='text-sm font-medium text-muted-foreground w-6'>#{idx + 1}</span>
                     <span className='font-medium'>{item.product?.name ?? `Product #${item.product_id}`}</span>

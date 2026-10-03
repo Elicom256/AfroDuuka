@@ -13,7 +13,7 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 export const PurchasesAnalytics = () => {
   const { currency } = useCurrency();
   const [selectedPeriod, setSelectedPeriod] = useState('last_7_days');
-  const { data, isLoading, isError, error } = usePurchaseAnalyticsQuery(selectedPeriod);
+  const { data, isLoading, isFetching, isError, refetch } = usePurchaseAnalyticsQuery(selectedPeriod);
   const chartRef = useRef<any>(null);
 
   const analytics = data?.data;
@@ -66,7 +66,7 @@ export const PurchasesAnalytics = () => {
   }
 
   if (isError) {
-    return <Error error={error} />;
+    return <Error title='Unable to load purchase analytics' onRetry={refetch} retrying={isFetching} />;
   }
 
   if (!analytics?.purchase_trend?.length) {

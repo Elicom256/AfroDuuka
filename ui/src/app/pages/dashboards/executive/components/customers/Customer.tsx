@@ -7,12 +7,13 @@ import { Calendar, Mail, Phone, MapPin, User, Hash, FileText, Trash2 } from 'luc
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const Customer = () => {
   const navigate = useNavigate();
 
   const { id } = useParams<{ id: string }>();
-  const { data, error, isLoading } = useCustomerQuery(id!, { skip: !id });
+  const { data, error, isLoading, isFetching, refetch } = useCustomerQuery(id!, { skip: !id });
   const [destroy, { isLoading: deleting }] = useDeleteCustomerMutation();
   const { canDelete } = useRolePermissions();
 
@@ -20,8 +21,17 @@ export const Customer = () => {
   const user = customer?.user;
 
   if (isLoading || deleting) return <PageLoadingState />;
-  if (error || !customer)
-    return <div className='p-6 text-red-500'>Failed to load customer, {(error as any)?.data.message}</div>;
+  if (error) {
+    return (
+      <QueryErrorState
+        title='Unable to load customer'
+        description='Customer details could not be retrieved.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
+  if (!customer) return <div className='p-6 text-muted-foreground'>Customer not found.</div>;
 
   const handleDelete = async () => {
     try {

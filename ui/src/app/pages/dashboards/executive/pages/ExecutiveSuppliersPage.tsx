@@ -7,10 +7,11 @@ import { SupplierFormDialog } from '../components/suppliers/SupplierFormDialog';
 import { useNavigate } from 'react-router-dom';
 import { ExportButton } from '@/app/components/ExportButton';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ExecutiveSuppliersPage = () => {
   const navigate = useNavigate();
-  const { data, isLoading: fetchingSuppliers } = useSuppliersQuery();
+  const { data, isLoading: fetchingSuppliers, isFetching, isError, refetch } = useSuppliersQuery();
   const suppliers = data?.suppliers ?? [];
   // Suppliers are business-level records. A BranchManager is routed here too, to
   // read the counterparties their purchases reference, but authoring them is the
@@ -46,39 +47,63 @@ export const ExecutiveSuppliersPage = () => {
       </div>
 
       <div className='grid gap-4'>
-        {fetchingSuppliers ? (
+        {isError && !data ? (
+          <QueryErrorState
+            title='Unable to load suppliers'
+            description='The supplier directory is unavailable because the request failed.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        ) : fetchingSuppliers ? (
           <p>Loading suppliers...</p>
-        ) : suppliers.length === 0 ? (
-          <p>No suppliers found.</p>
         ) : (
-          suppliers.map((supplier: any) => (
-            <div
-              key={supplier.id}
-              className='border p-4 rounded-lg flex justify-between items-center hover:bg-white/20'
-              onClick={() => navigate(`/dashboard/suppliers/${supplier?.id}`)}
-            >
-              <div>
-                <p className='font-medium'>
-                  {supplier.user.firstname} {supplier.user.lastname}
-                </p>
-                {supplier.company_name && <p className='text-sm text-gray-500 font-medium'>{supplier.company_name}</p>}
-                <p className='text-sm text-gray-400'>{supplier.user.email}</p>
-              </div>
-              {canManageSuppliers && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEdit(supplier);
-                  }}
+          <>
+            {isError && (
+              <QueryErrorState
+                title='Supplier list may be out of date'
+                description='The latest refresh failed. The last loaded supplier list is still shown.'
+                onRetry={refetch}
+                retrying={isFetching}
+              />
+            )}
+            {suppliers.length === 0 ? (
+              <QueryEmptyState
+                title='No suppliers yet'
+                description='Suppliers will appear here after they are added.'
+              />
+            ) : (
+              suppliers.map((supplier: any) => (
+                <div
+                  key={supplier.id}
+                  className='border p-4 rounded-lg flex justify-between items-center hover:bg-white/20'
+                  onClick={() => navigate(`/dashboard/suppliers/${supplier?.id}`)}
                 >
-                  <Edit />
-                  <span>Edit</span>
-                </Button>
-              )}
-            </div>
-          ))
+                  <div>
+                    <p className='font-medium'>
+                      {supplier.user.firstname} {supplier.user.lastname}
+                    </p>
+                    {supplier.company_name && (
+                      <p className='text-sm text-gray-500 font-medium'>{supplier.company_name}</p>
+                    )}
+                    <p className='text-sm text-gray-400'>{supplier.user.email}</p>
+                  </div>
+                  {canManageSuppliers && (
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(supplier);
+                      }}
+                    >
+                      <Edit />
+                      <span>Edit</span>
+                    </Button>
+                  )}
+                </div>
+              ))
+            )}
+          </>
         )}
       </div>
 

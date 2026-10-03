@@ -64,13 +64,13 @@ Evidence: [.github/workflows/ci.yml](.github/workflows/ci.yml), [ui/package.json
 
 ## P2 — Improve Before Wider Rollout
 
-### 7. User-facing failure states are inconsistent
+### ✅ 7. Primary operational error and empty states were inconsistent — Fixed
 
-Some detail pages render generic text for request failures rather than a reusable error state with a retry or return action. For example, the product detail page displays a plain “Error loading product” block. A broader pass should ensure list, detail, mutation, and report pages distinguish loading, empty, permission-denied, and server-failure states. Do not let backend failures look like legitimate empty business data.
+Primary list, detail, analytics, and report workflows now distinguish failed requests from successful empty results. Query failures use a shared accessible alert with contextual copy and a retry control; a refresh failure with cached data labels the result as potentially stale rather than discarding it or presenting it as current. Detail screens distinguish a failed request from a genuinely missing record.
 
-Evidence: [ui/src/app/pages/dashboards/executive/components/products/Product.tsx](ui/src/app/pages/dashboards/executive/components/products/Product.tsx). The size of the broader gap was not re-counted in this review.
+The shared UI is in [ui/src/app/components/QueryErrorState.tsx](ui/src/app/components/QueryErrorState.tsx). It is applied across sales, purchases, inventory products, procurement orders/overview, finance transactions/reports, stock reports, customer/supplier directories and details, product details, and executive dashboard revenue, cash, stock-health, and sales widgets.
 
-**Action:** Establish shared error/empty/loading patterns, provide actionable retry behavior where safe, and review high-frequency POS, sales, inventory, and finance flows first.
+**Verified:** The full UI TypeScript and Vite production build passes after the rollout. The build still reports the existing large-chunk warning; no new TypeScript errors were reported. This closes the launch-priority gap on primary operational screens; low-frequency and peripheral screens can adopt the shared component opportunistically as they are touched.
 
 ### 8. POS resilience and mobile workflow need a deliberate launch decision
 
@@ -104,9 +104,9 @@ Do not carry these older findings forward as current blockers without new eviden
 2. ✅ Restore discount validation at the HTTP boundary and test final monetary values end to end.
 3. ✅ Align `CoreSupport`/`siteadmin` backend scope semantics and frontend role routing.
 4. Implement scheduled off-host backups and complete a documented restore drill.
-5. Re-run the full backend suite, frontend lint, and production build in the same CI configuration used for release.
+5. Re-run the full backend suite and frontend lint in the same CI configuration used for release; the UI production build now passes, while ESLint remains a separate known backlog.
 6. Complete role-based UAT on real devices, then decide the first-release connectivity guarantee for POS.
 
 ## Review Limitations
 
-This was a source-based review, not a production penetration test or full manual UAT. Current validation for this task included 10 targeted backend tests (24 assertions), a successful TypeScript/Vite production build, and an ESLint run that remains failing at 1,080 errors and 18 warnings. No external integrations, messaging/notification delivery, or URA flows were assessed.
+This was a source-based review, not a production penetration test or full manual UAT. Frontend error-state validation was a TypeScript/Vite production build; ESLint remains failing at 1,080 errors and 18 warnings from its latest run. No external integrations, messaging/notification delivery, or URA flows were assessed.

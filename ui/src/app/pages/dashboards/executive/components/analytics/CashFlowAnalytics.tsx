@@ -9,12 +9,13 @@ import { type ReportFilter } from '@/types';
 import { Error } from './Error';
 import { LoadingState } from '@/utils/LoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { QueryEmptyState } from '@/app/components/QueryErrorState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const CashFlowAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<ReportFilter>('last_7_days');
-  const { data, isLoading, isError, error } = useCashFlowAnalyticsQuery(selectedPeriod);
+  const { data, isLoading, isFetching, isError, refetch } = useCashFlowAnalyticsQuery(selectedPeriod);
   const { currency } = useCurrency();
 
   const analytics = data?.data;
@@ -25,9 +26,13 @@ export const CashFlowAnalytics = () => {
     return <LoadingState />;
   }
 
-  if (isError || !analytics) {
-    return <Error error={error} />;
+  if (isError) {
+    return <Error title='Unable to load cash flow analytics' onRetry={refetch} retrying={isFetching} />;
   }
+  if (!analytics)
+    return (
+      <QueryEmptyState title='No cash-flow analytics' description='No cash-flow data is available for this period.' />
+    );
 
   const { total_revenue, total_expenses, net_cash_flow } = analytics;
   const isPositive = net_cash_flow >= 0;

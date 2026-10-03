@@ -3,16 +3,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSalesAnalyticsQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js';
 import { TrendingUp, DollarSign, ShoppingCart, Package, Trophy, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -32,7 +25,9 @@ const DeltaChip = ({ current, previous }: { current: number; previous: number })
   const pct = ((current - previous) / previous) * 100;
   const positive = pct >= 0;
   return (
-    <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${positive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
+    <span
+      className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${positive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}
+    >
       {positive ? <ArrowUpRight className='h-2.5 w-2.5' /> : <ArrowDownRight className='h-2.5 w-2.5' />}
       {Math.abs(pct).toFixed(0)}%
     </span>
@@ -56,7 +51,7 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
 
 export const SalesStatCards = ({ period }: { period: DashboardPeriod }) => {
   const { currency, currencySymbol } = useCurrency();
-  const { data, isLoading } = useGetSalesAnalyticsQuery(period);
+  const { data, isLoading, isFetching, isError, refetch } = useGetSalesAnalyticsQuery(period);
 
   if (isLoading) {
     return (
@@ -65,6 +60,17 @@ export const SalesStatCards = ({ period }: { period: DashboardPeriod }) => {
           <Skeleton key={i} className='h-20 rounded-3xl' />
         ))}
       </div>
+    );
+  }
+
+  if (isError && !data) {
+    return (
+      <QueryErrorState
+        title='Unable to load sales summary'
+        description='Revenue and order totals are unavailable.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
     );
   }
 
@@ -77,9 +83,10 @@ export const SalesStatCards = ({ period }: { period: DashboardPeriod }) => {
   const totalItemsSold = Number(analytics?.items_sold ?? 0);
   const avgOrderValue = Number(analytics?.avg_sale ?? 0);
 
-  const bestDay = trend.length > 0
-    ? trend.reduce((best: any, point: any) => (Number(point.amount) > Number(best.amount) ? point : best), trend[0])
-    : null;
+  const bestDay =
+    trend.length > 0
+      ? trend.reduce((best: any, point: any) => (Number(point.amount) > Number(best.amount) ? point : best), trend[0])
+      : null;
 
   const symbol = currencySymbol ?? currency ?? '';
   const formatAmount = (amount: number) => `${symbol} ${Math.round(amount).toLocaleString()}`;
@@ -125,9 +132,20 @@ export const SalesStatCards = ({ period }: { period: DashboardPeriod }) => {
 
   return (
     <div className='space-y-3'>
+      {isError && (
+        <QueryErrorState
+          title='Sales summary may be out of date'
+          description='The last loaded totals are shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
         {cards.map((card) => (
-          <Card key={card.title} className='rounded-3xl border border-border/70 bg-card p-4 transition-all hover:shadow-md'>
+          <Card
+            key={card.title}
+            className='rounded-3xl border border-border/70 bg-card p-4 transition-all hover:shadow-md'
+          >
             <div className='flex items-start justify-between gap-2'>
               <div className='flex items-center gap-2.5'>
                 <div className={`rounded-xl p-2 ${card.iconClass}`}>
@@ -148,7 +166,7 @@ export const SalesStatCards = ({ period }: { period: DashboardPeriod }) => {
       </div>
 
       {bestDay && Number(bestDay.amount) > 0 && (
-        <Card className='rounded-3xl border border-border/70 bg-gradient-to-r from-emerald-500/10 via-card to-card p-4'>
+        <Card className='rounded-3xl border border-border/70 bg-linear-to-r from-emerald-500/10 via-card to-card p-4'>
           <div className='flex items-center gap-2.5'>
             <div className='rounded-xl bg-emerald-500/10 p-2'>
               <Trophy className='h-4 w-4 text-emerald-500' />

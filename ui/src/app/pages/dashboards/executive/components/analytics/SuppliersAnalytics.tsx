@@ -4,11 +4,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Truck } from 'lucide-react';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const SuppliersAnalytics = () => {
-  const { data, isLoading, isError } = useBranchSuppliersQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useBranchSuppliersQuery();
   const suppliers = data?.data || [];
 
   if (isLoading) {
@@ -27,7 +28,7 @@ export const SuppliersAnalytics = () => {
     );
   }
 
-  if (isError || !suppliers.length) {
+  if (isError && (!data || !suppliers.length)) {
     return (
       <Card>
         <CardHeader>
@@ -37,7 +38,31 @@ export const SuppliersAnalytics = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className='text-sm text-muted-foreground'>No suppliers data available</p>
+          <QueryErrorState
+            title='Unable to load supplier analytics'
+            description='Supplier data could not be retrieved. A previously empty result is not enough to confirm the current supplier count.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!suppliers.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <Truck className='h-6 w-6' />
+            Suppliers Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QueryEmptyState
+            title='No supplier data'
+            description='Supplier analytics will appear after suppliers are added.'
+          />
         </CardContent>
       </Card>
     );
@@ -81,6 +106,14 @@ export const SuppliersAnalytics = () => {
         <CardDescription>Supplier relationships overview</CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
+        {isError && (
+          <QueryErrorState
+            title='Supplier analytics may be out of date'
+            description='The latest refresh failed. The last loaded results are shown.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        )}
         <div className='grid gap-2 sm:grid-cols-3'>
           <div className='rounded-lg bg-muted p-3'>
             <p className='text-xs text-muted-foreground'>Total Suppliers</p>

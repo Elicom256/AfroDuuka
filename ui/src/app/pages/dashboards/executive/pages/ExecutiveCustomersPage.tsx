@@ -7,10 +7,11 @@ import { CustomerFormDialog } from '../components/customers/CustomerFormDialog';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useNavigate } from 'react-router-dom';
 import { ExportButton } from '@/app/components/ExportButton';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ExecutiveCustomersPage = () => {
   const navigate = useNavigate();
-  const { data, isLoading: fetchingCustomers } = useCustomersQuery();
+  const { data, isLoading: fetchingCustomers, isFetching, isError, refetch } = useCustomersQuery();
   const customers = data?.customers || [];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -40,30 +41,52 @@ export const ExecutiveCustomersPage = () => {
 
       {/* You can replace this with a proper table later */}
       <div className='grid gap-4'>
-        {fetchingCustomers ? (
+        {isError && !data ? (
+          <QueryErrorState
+            title='Unable to load customers'
+            description='The customer directory is unavailable because the request failed.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        ) : fetchingCustomers ? (
           <PageLoadingState />
-        ) : customers.length === 0 ? (
-          <p>No customers found.</p>
         ) : (
-          customers.map((customer: any) => (
-            <div
-              key={customer.id}
-              onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
-              className='border p-4 rounded-lg flex justify-between items-center'
-            >
-              <div>
-                <p className='font-medium'>
-                  {customer.user.firstname} {customer.user.lastname}
-                </p>
-                <p className='text-sm text-gray-500'>{customer.user.email}</p>
-                {customer.company_name && <p className='text-sm text-gray-600'>{customer.company_name}</p>}
-              </div>
-              <Button variant='outline' size='sm' onClick={() => handleEdit(customer)}>
-                <Edit />
-                <span>Edit</span>
-              </Button>
-            </div>
-          ))
+          <>
+            {isError && (
+              <QueryErrorState
+                title='Customer list may be out of date'
+                description='The latest refresh failed. The last loaded customer list is still shown.'
+                onRetry={refetch}
+                retrying={isFetching}
+              />
+            )}
+            {customers.length === 0 ? (
+              <QueryEmptyState
+                title='No customers yet'
+                description='Customers will appear here after they are added.'
+              />
+            ) : (
+              customers.map((customer: any) => (
+                <div
+                  key={customer.id}
+                  onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
+                  className='border p-4 rounded-lg flex justify-between items-center'
+                >
+                  <div>
+                    <p className='font-medium'>
+                      {customer.user.firstname} {customer.user.lastname}
+                    </p>
+                    <p className='text-sm text-gray-500'>{customer.user.email}</p>
+                    {customer.company_name && <p className='text-sm text-gray-600'>{customer.company_name}</p>}
+                  </div>
+                  <Button variant='outline' size='sm' onClick={() => handleEdit(customer)}>
+                    <Edit />
+                    <span>Edit</span>
+                  </Button>
+                </div>
+              ))
+            )}
+          </>
         )}
       </div>
 

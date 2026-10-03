@@ -7,12 +7,36 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle, Receipt as ReceiptIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { Button } from '@/components/ui/button';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const Sale = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
-  const { data: saleData, isLoading: saleLoading, error } = useSaleQuery(String(id), { skip: !id });
+  const {
+    data: saleData,
+    isLoading: saleLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useSaleQuery(String(id), { skip: !id });
   if (saleLoading) return <PageLoadingState />;
+
+  if (error) {
+    return (
+      <div className='space-y-4'>
+        <QueryErrorState
+          title='Unable to load sale'
+          description='Sale details could not be retrieved from the server.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+        <Button variant='ghost' asChild>
+          <Link to='../sales'>Back to sales</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const sale = saleData?.sale || saleData;
   if (!sale) {
@@ -28,7 +52,7 @@ export const Sale = () => {
       <div className='flex items-center gap-4'>
         <Link to='../sales' className='flex items-center gap-2 text-blue-400 hover:underline'>
           <ArrowLeftCircle />
-          <span>Back to Products</span>
+          <span>Back to Sales</span>
         </Link>
       </div>
 
@@ -52,7 +76,8 @@ export const Sale = () => {
                   <span className='font-medium'>Note:</span> {sale.note || 'No note'}
                 </p>
                 <p>
-                  <span className='font-medium'>Total Amount:</span> {currency} {parseInt(sale.total_amount).toLocaleString()}
+                  <span className='font-medium'>Total Amount:</span> {currency}{' '}
+                  {parseInt(sale.total_amount).toLocaleString()}
                 </p>
                 {sale.receipt && (
                   <p>
@@ -86,8 +111,12 @@ export const Sale = () => {
                   <TableRow key={item.id}>
                     <TableCell className='font-medium'>{item?.product.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{currency} {Number(item.unit_price).toLocaleString()}</TableCell>
-                    <TableCell>{currency} {Number(item.subtotal).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {currency} {Number(item.unit_price).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {currency} {Number(item.subtotal).toLocaleString()}
+                    </TableCell>
                   </TableRow>
                 )) || (
                   <TableRow>

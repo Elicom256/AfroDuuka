@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import ReportCard from './ReportCard';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import {
   useMonthlyPerformancePdfMutation,
@@ -11,8 +12,7 @@ import {
 
 const MONTHS_OFFERED = 24;
 
-const monthKey = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+const monthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
 /**
  * The last MONTHS_OFFERED completed months, newest first.
@@ -84,10 +84,7 @@ export const MonthlyPerformanceReport = () => {
   const [branchId, setBranchId] = useState<string>('');
 
   const { data: branchesData } = useBranchesQuery();
-  const branches = useMemo<BranchOption[]>(
-    () => branchesData?.branches || [],
-    [branchesData]
-  );
+  const branches = useMemo<BranchOption[]>(() => branchesData?.branches || [], [branchesData]);
 
   // Defaults to the first branch once the list arrives. Unlike the comparison card there
   // is no "all branches" view to preserve here, so there is nothing for a default to
@@ -96,9 +93,9 @@ export const MonthlyPerformanceReport = () => {
 
   // Skipped until a branch is known: firing with an empty branch_id would come back 422,
   // because the API has no whole-company document to serve.
-  const { data, isLoading, isError } = useMonthlyPerformanceQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useMonthlyPerformanceQuery(
     { month, branchId: activeBranchId },
-    { skip: !activeBranchId }
+    { skip: !activeBranchId },
   );
 
   // Lazy, so the PDF is fetched on click rather than with the page. A report is a few
@@ -116,7 +113,7 @@ export const MonthlyPerformanceReport = () => {
         { label: 'Total purchases', value: report?.figures.purchases, tone: 'text-amber-600' },
         { label: 'Total expenses', value: report?.figures.expenses, tone: 'text-red-600' },
       ] as const,
-    [report]
+    [report],
   );
 
   const formatMoney = (value: number | null | undefined) => {
@@ -145,9 +142,7 @@ export const MonthlyPerformanceReport = () => {
       const link = document.createElement('a');
 
       link.href = url;
-      link.download = report
-        ? fileNameFor(report.branch_name, report.period)
-        : `monthly-report-${month}.pdf`;
+      link.download = report ? fileNameFor(report.branch_name, report.period) : `monthly-report-${month}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -167,7 +162,7 @@ export const MonthlyPerformanceReport = () => {
             </label>
             <select
               id='monthly-report-branch'
-              className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
+              className='rounded border px-3 py-1.5 text-sm bg-background min-w-45'
               value={activeBranchId}
               onChange={(e) => setBranchId(e.target.value)}
               disabled={branches.length === 0}
@@ -186,7 +181,7 @@ export const MonthlyPerformanceReport = () => {
             </label>
             <select
               id='monthly-report-month'
-              className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
+              className='rounded border px-3 py-1.5 text-sm bg-background min-w-45'
               value={month}
               onChange={(e) => setMonth(e.target.value)}
             >
@@ -205,13 +200,19 @@ export const MonthlyPerformanceReport = () => {
       </div>
 
       {isError && (
-        <div className='text-center py-12 text-destructive'>
-          Could not load the monthly report. Please try again.
-        </div>
+        <QueryErrorState
+          title='Unable to load monthly report'
+          description='The report could not be retrieved for this branch and month.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
       )}
 
       {!isError && !report && !pending && (
-        <div className='text-center py-12 text-muted-foreground'>No report data available.</div>
+        <QueryEmptyState
+          title='No report data'
+          description='No monthly report is available for this branch and month.'
+        />
       )}
 
       {!isError && !report && pending && (
@@ -222,17 +223,13 @@ export const MonthlyPerformanceReport = () => {
 
       {report && (
         <div className='space-y-6'>
-          <p className='text-sm text-muted-foreground'>
-            Every figure below describes {report.branch_name} only.
-          </p>
+          <p className='text-sm text-muted-foreground'>Every figure below describes {report.branch_name} only.</p>
 
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
             {figures.map((figure) => (
               <div key={figure.label} className='bg-card border rounded-xl p-5'>
                 <p className='text-sm text-muted-foreground'>{figure.label}</p>
-                <p className={`text-2xl font-semibold mt-2 ${figure.tone}`}>
-                  {formatMoney(figure.value)}
-                </p>
+                <p className={`text-2xl font-semibold mt-2 ${figure.tone}`}>{formatMoney(figure.value)}</p>
               </div>
             ))}
 

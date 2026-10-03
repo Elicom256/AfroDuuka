@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, PackageSearch } from 'lucide-react';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 type StockWatchItem = {
   id: number | string;
@@ -13,9 +14,27 @@ type StockWatchItem = {
 };
 
 export const StockHealth = () => {
-  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30');
-  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30');
-  const { data: expiring, isLoading: expiringLoading } = useProductExpiringQuery();
+  const {
+    data: lowStock,
+    isLoading: lowLoading,
+    isFetching: lowFetching,
+    isError: lowError,
+    refetch: refetchLow,
+  } = useLowStockQuery('30');
+  const {
+    data: outOfStock,
+    isLoading: outLoading,
+    isFetching: outFetching,
+    isError: outError,
+    refetch: refetchOut,
+  } = useOutOfStockQuery('30');
+  const {
+    data: expiring,
+    isLoading: expiringLoading,
+    isFetching: expiringFetching,
+    isError: expiringError,
+    refetch: refetchExpiring,
+  } = useProductExpiringQuery();
 
   const isLoading = lowLoading || outLoading || expiringLoading;
 
@@ -49,6 +68,44 @@ export const StockHealth = () => {
     );
   }
 
+  const hasErrors = lowError || outError || expiringError;
+  const hasMissingFailedData = (lowError && !lowStock) || (outError && !outOfStock) || (expiringError && !expiring);
+  if (hasMissingFailedData) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-sm'>Stock to watch</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          {lowError && !lowStock && (
+            <QueryErrorState
+              title='Low-stock alerts unavailable'
+              description='The low-stock report failed to load.'
+              onRetry={refetchLow}
+              retrying={lowFetching}
+            />
+          )}
+          {outError && !outOfStock && (
+            <QueryErrorState
+              title='Out-of-stock alerts unavailable'
+              description='The out-of-stock report failed to load.'
+              onRetry={refetchOut}
+              retrying={outFetching}
+            />
+          )}
+          {expiringError && !expiring && (
+            <QueryErrorState
+              title='Expiry alerts unavailable'
+              description='Product expiry data failed to load.'
+              onRetry={refetchExpiring}
+              retrying={expiringFetching}
+            />
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   const totalAlerts = lowCount + outCount + expiringCount;
 
   return (
@@ -65,6 +122,34 @@ export const StockHealth = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {hasErrors && (
+          <div className='mb-3 space-y-2'>
+            {lowError && (
+              <QueryErrorState
+                title='Low-stock data may be out of date'
+                description='The last loaded results are shown.'
+                onRetry={refetchLow}
+                retrying={lowFetching}
+              />
+            )}
+            {outError && (
+              <QueryErrorState
+                title='Out-of-stock data may be out of date'
+                description='The last loaded results are shown.'
+                onRetry={refetchOut}
+                retrying={outFetching}
+              />
+            )}
+            {expiringError && (
+              <QueryErrorState
+                title='Expiry data may be out of date'
+                description='The last loaded results are shown.'
+                onRetry={refetchExpiring}
+                retrying={expiringFetching}
+              />
+            )}
+          </div>
+        )}
         <div className='mb-3 grid grid-cols-3 divide-x divide-border border-y border-border py-2 text-center'>
           <div>
             <p className='text-lg font-semibold'>{outCount}</p>

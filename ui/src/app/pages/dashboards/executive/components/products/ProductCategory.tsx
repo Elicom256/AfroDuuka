@@ -4,14 +4,24 @@ import { Link, useParams } from 'react-router-dom';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeftCircle } from 'lucide-react';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ProductCategory = () => {
   const { id } = useParams();
-  const { data, isLoading, error } = useProductCategoryQuery(id as string, { skip: !id });
+  const { data, isLoading, isFetching, error, refetch } = useProductCategoryQuery(id as string, { skip: !id });
 
   if (isLoading) return <PageLoadingState />;
-  if (error) return <div>Error loading product category</div>;
-  if (!data) return <div>Product category not found</div>;
+  if (error) {
+    return (
+      <QueryErrorState
+        title='Unable to load product category'
+        description='Category details could not be retrieved.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
+  if (!data) return <div className='p-6 text-muted-foreground'>Product category not found.</div>;
 
   const category = data?.category ?? data;
 

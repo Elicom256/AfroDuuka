@@ -3,14 +3,28 @@ import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useLowStockQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const LowStockReport = () => {
   const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
-  const { data, isLoading } = useLowStockQuery(period);
+  const { data, isLoading, isFetching, isError, refetch } = useLowStockQuery(period);
 
   const lowStockData = data?.data;
   const products = lowStockData?.products || [];
+
+  if (isError && !data) {
+    return (
+      <ReportCard title='Low Stock' loading={isLoading}>
+        <QueryErrorState
+          title='Unable to load low-stock report'
+          description='Stock counts are unavailable because the report request failed.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      </ReportCard>
+    );
+  }
 
   const formatCurrency = (value: string | number) => {
     return new Intl.NumberFormat('en-US', {
@@ -22,6 +36,14 @@ export const LowStockReport = () => {
 
   return (
     <ReportCard title='Low Stock' loading={isLoading}>
+      {isError && (
+        <QueryErrorState
+          title='Low-stock report may be out of date'
+          description='The latest refresh failed. The last loaded report is still shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <div className='flex items-center gap-3 mb-6'>
         <label className='text-sm text-muted-foreground'>Period:</label>
         <select
@@ -47,7 +69,10 @@ export const LowStockReport = () => {
 
       {/* Products List */}
       {products.length === 0 ? (
-        <div className='text-center py-12 text-muted-foreground'>No low stock items found for this period.</div>
+        <QueryEmptyState
+          title='No low-stock products'
+          description='No products are below their reorder levels for this period.'
+        />
       ) : (
         <div className='space-y-3'>
           {products.map((item: any) => (

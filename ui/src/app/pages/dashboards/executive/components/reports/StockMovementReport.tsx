@@ -2,10 +2,11 @@ import { useState } from 'react';
 import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useStockMovementQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const StockMovementReport = () => {
   const [period, setPeriod] = useState<string>(periods[0].value);
-  const { data, isLoading } = useStockMovementQuery(period);
+  const { data, isLoading, isFetching, isError, refetch } = useStockMovementQuery(period);
 
   const movementData = data?.data;
   const trend = movementData?.trend || [];
@@ -17,6 +18,16 @@ export const StockMovementReport = () => {
 
   return (
     <ReportCard title='Stock Movement' loading={isLoading}>
+      {isError && (
+        <QueryErrorState
+          title={movementData ? 'Stock movement may be out of date' : 'Unable to load stock movement'}
+          description={
+            movementData ? 'The last loaded movement report is shown.' : 'Stock movement data could not be retrieved.'
+          }
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <div className='flex items-center gap-3 mb-6'>
         <label className='text-sm text-muted-foreground'>Period:</label>
         <select
@@ -32,9 +43,9 @@ export const StockMovementReport = () => {
         </select>
       </div>
 
-      {!movementData ? (
-        <div className='text-center py-12 text-muted-foreground'>No stock movement data available</div>
-      ) : (
+      {!movementData && !isError ? (
+        <div className='text-center py-12 text-muted-foreground'>No stock movement data available for this period.</div>
+      ) : movementData ? (
         <div className='space-y-8'>
           {/* Summary Metrics */}
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -122,7 +133,7 @@ export const StockMovementReport = () => {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </ReportCard>
   );
 };

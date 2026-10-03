@@ -14,10 +14,11 @@ import { useProductsQuery } from '@/app/store/features/branch/products/branchPro
 import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { ExportButton } from '@/app/components/ExportButton';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ExecutivePurchasesPage = () => {
   const { currency } = useCurrency();
-  const { data, isLoading } = usePurchasesQuery();
+  const { data, isLoading, isFetching, error, refetch } = usePurchasesQuery();
   const { data: productData } = useProductsQuery();
   const { data: sup } = useSuppliersQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
@@ -28,6 +29,16 @@ export const ExecutivePurchasesPage = () => {
   const paymentMethods = methods?.methods;
   const suppliers = sup?.suppliers || [];
   if (isLoading || loadNewPurchase) return <PageLoadingState />;
+  if (error && !data) {
+    return (
+      <QueryErrorState
+        title='Unable to load purchases'
+        description='Purchase totals and records are unavailable because the request failed.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
 
   const purchases = data?.purchases ?? data ?? [];
   const products = productData?.products ?? [];
@@ -48,6 +59,14 @@ export const ExecutivePurchasesPage = () => {
 
   return (
     <div className='space-y-6'>
+      {error && data && (
+        <QueryErrorState
+          title='Purchases may be out of date'
+          description='The latest refresh failed. The last loaded purchases are still shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <Card className='rounded-3xl border border-border/70 bg-card p-2'>
         <CardHeader>
           <CardTitle>Purchases</CardTitle>
@@ -61,7 +80,9 @@ export const ExecutivePurchasesPage = () => {
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Total Spent</p>
-              <p className='text-lg font-semibold'>{currency} {totalPurchaseAmount.toLocaleString()}</p>
+              <p className='text-lg font-semibold'>
+                {currency} {totalPurchaseAmount.toLocaleString()}
+              </p>
             </div>
             <div className='rounded-3xl border border-border/70 bg-muted p-2 text-center'>
               <p className='text-sm uppercase tracking-[0.2em] text-muted-foreground'>Products Ordered</p>

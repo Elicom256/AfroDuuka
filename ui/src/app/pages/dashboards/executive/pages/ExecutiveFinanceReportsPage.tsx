@@ -9,6 +9,7 @@ import {
   useGetIncomeSummaryQuery,
 } from '@/app/store/features/finance/financeQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const ExecutiveFinanceReportsPage = () => {
   const today = new Date();
@@ -23,18 +24,24 @@ export const ExecutiveFinanceReportsPage = () => {
     data: revenueData,
     isLoading: revenueLoading,
     isError: revenueError,
+    isFetching: revenueFetching,
+    refetch: refetchRevenue,
   } = useGetRevenueReportQuery({ start_date: fromDate, end_date: toDate });
 
   const {
     data: expenseData,
     isLoading: expenseLoading,
     isError: expenseError,
+    isFetching: expenseFetching,
+    refetch: refetchExpenses,
   } = useGetExpenseReportQuery({ start_date: fromDate, end_date: toDate });
 
   const {
     data: incomeData,
     isLoading: incomeLoading,
     isError: incomeError,
+    isFetching: incomeFetching,
+    refetch: refetchIncome,
   } = useGetIncomeSummaryQuery({ year: selectedYear });
 
   if (revenueLoading || expenseLoading || incomeLoading) return <PageLoadingState />;
@@ -79,21 +86,36 @@ export const ExecutiveFinanceReportsPage = () => {
         </TabsList>
         <TabsContent value='revenue' className='pt-4'>
           {revenueError ? (
-            <p className='text-red-500'>Failed to load revenue data.</p>
+            <QueryErrorState
+              title='Unable to load revenue report'
+              description='Revenue data could not be retrieved.'
+              onRetry={refetchRevenue}
+              retrying={revenueFetching}
+            />
           ) : (
             <RevenueChart data={revenueChartData} />
           )}
         </TabsContent>
         <TabsContent value='expense' className='pt-4'>
           {expenseError ? (
-            <p className='text-red-500'>Failed to load expense data.</p>
+            <QueryErrorState
+              title='Unable to load expense report'
+              description='Expense data could not be retrieved.'
+              onRetry={refetchExpenses}
+              retrying={expenseFetching}
+            />
           ) : (
             <ExpenseBreakdown data={expenseBreakdownData} />
           )}
         </TabsContent>
         <TabsContent value='income' className='pt-4'>
           {incomeError ? (
-            <p className='text-red-500'>Failed to load income summary data.</p>
+            <QueryErrorState
+              title='Unable to load income summary'
+              description='Income summary data could not be retrieved.'
+              onRetry={refetchIncome}
+              retrying={incomeFetching}
+            />
           ) : (
             <IncomeSummaryTable data={incomeSummaryData} year={selectedYear} onYearChange={setSelectedYear} />
           )}

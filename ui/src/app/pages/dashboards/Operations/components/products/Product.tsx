@@ -11,16 +11,26 @@ import { ArrowLeftCircle } from 'lucide-react';
 import { useProductQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const Product = () => {
   const { currency } = useCurrency();
   const { id } = useParams();
-  const { data, isLoading, error } = useProductQuery(id as string, { skip: !id });
+  const { data, isLoading, isFetching, error, refetch } = useProductQuery(id as string, { skip: !id });
   const { canManageCatalog } = useRolePermissions();
   const [editOpen, setEditOpen] = useState(false);
   if (isLoading) return <PageLoadingState />;
-  if (error) return <div>Error loading product</div>;
-  if (!data) return <div>Product not found</div>;
+  if (error) {
+    return (
+      <QueryErrorState
+        title='Unable to load product'
+        description='Product details could not be retrieved.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
+  if (!data?.product) return <div className='p-6 text-muted-foreground'>Product not found.</div>;
 
   const product = data?.product;
 
@@ -48,55 +58,57 @@ export const Product = () => {
           <Card>
             <CardHeader>
               <CardAction>
-                <Badge variant={product.status === true ? 'default' : 'secondary'}>
-                  {product.status}
-                </Badge>
+                <Badge variant={product.status === true ? 'default' : 'secondary'}>{product.status}</Badge>
               </CardAction>
               <CardTitle>{product.name}</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'><div className='grid grid-cols-2 gap-4'>
+            <CardContent className='space-y-4'>
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>SKU</label>
+                  <p className=''>{product.sku}</p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>SKU</label>
-              <p className=''>{product.sku}</p>
-            </div>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Barcode</label>
+                  <p className=''>{product.barcode || 'N/A'}</p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Barcode</label>
-              <p className=''>{product.barcode || 'N/A'}</p>
-            </div>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Selling Price</label>
+                  <p className=''>
+                    {currency} {product.selling_price}
+                  </p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Selling Price</label>
-              <p className=''>{currency} {product.selling_price}</p>
-            </div>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Cost Price</label>
+                  <p className=''>
+                    {currency} {product.cost_price}
+                  </p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Cost Price</label>
-              <p className=''>{currency} {product.cost_price}</p>
-            </div>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Quantity</label>
+                  <p className=''>{product.quantity}</p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Quantity</label>
-              <p className=''>{product.quantity}</p>
-            </div>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
+                  <p className=''>{product.reorder_level ?? '-'}</p>
+                </div>
 
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
-              <p className=''>{product.reorder_level ?? "-"}</p>
-            </div>
-
-            <div className='flex items-center gap-2'>
-              <label className='text-sm font-medium text-gray-500'>Product Type ID</label>
-              <p className=''>{product.product_category_id ?? "-"}</p>
-            </div>
-          </div>
-          <div className='flex items-center gap-2'>
-            <label className='text-sm font-medium text-gray-500'>Description</label>
-            <p className=''>{product.description || 'No description'}</p>
-          </div>
-        </CardContent>
-      </Card>
+                <div className='flex items-center gap-2'>
+                  <label className='text-sm font-medium text-gray-500'>Product Type ID</label>
+                  <p className=''>{product.product_category_id ?? '-'}</p>
+                </div>
+              </div>
+              <div className='flex items-center gap-2'>
+                <label className='text-sm font-medium text-gray-500'>Description</label>
+                <p className=''>{product.description || 'No description'}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

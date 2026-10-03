@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 type TrendPoint = { date: string; amount: number; count: number };
 type DashboardPeriod = 'today' | 'last_7_days' | 'last_30_days' | 'this_month' | 'last_month';
@@ -23,13 +24,28 @@ interface SalesPurchasesSummaryProps {
   onPeriodChange?: (period: DashboardPeriod) => void;
 }
 
-export const SalesPurchasesSummary = ({ period: controlledPeriod, onPeriodChange }: SalesPurchasesSummaryProps = {}) => {
+export const SalesPurchasesSummary = ({
+  period: controlledPeriod,
+  onPeriodChange,
+}: SalesPurchasesSummaryProps = {}) => {
   const { currency, currencySymbol } = useCurrency();
   const [internalPeriod, setInternalPeriod] = useState<DashboardPeriod>('last_7_days');
   const period = controlledPeriod ?? internalPeriod;
   const setPeriod = onPeriodChange ?? setInternalPeriod;
-  const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery(period);
-  const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseAnalyticsQuery(period);
+  const {
+    data: salesData,
+    isLoading: salesLoading,
+    isFetching: salesFetching,
+    isError: salesError,
+    refetch: refetchSales,
+  } = useGetSalesAnalyticsQuery(period);
+  const {
+    data: purchaseData,
+    isLoading: purchaseLoading,
+    isFetching: purchaseFetching,
+    isError: purchaseError,
+    refetch: refetchPurchases,
+  } = usePurchaseAnalyticsQuery(period);
 
   const isLoading = salesLoading || purchaseLoading;
   const sales = salesData?.data;
@@ -48,6 +64,34 @@ export const SalesPurchasesSummary = ({ period: controlledPeriod, onPeriodChange
         <CardContent className='space-y-4'>
           <Skeleton className='h-16 w-full' />
           <Skeleton className='h-32 w-full' />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if ((salesError && !salesData) || (purchaseError && !purchaseData)) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-sm'>Sales overview</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          {salesError && !salesData && (
+            <QueryErrorState
+              title='Unable to load sales summary'
+              description='Sales figures could not be retrieved.'
+              onRetry={refetchSales}
+              retrying={salesFetching}
+            />
+          )}
+          {purchaseError && !purchaseData && (
+            <QueryErrorState
+              title='Unable to load purchase summary'
+              description='Purchase figures could not be retrieved.'
+              onRetry={refetchPurchases}
+              retrying={purchaseFetching}
+            />
+          )}
         </CardContent>
       </Card>
     );
@@ -74,6 +118,22 @@ export const SalesPurchasesSummary = ({ period: controlledPeriod, onPeriodChange
         </Select>
       </CardHeader>
       <CardContent>
+        {salesError && (
+          <QueryErrorState
+            title='Sales figures may be out of date'
+            description='The last loaded sales figures are shown.'
+            onRetry={refetchSales}
+            retrying={salesFetching}
+          />
+        )}
+        {purchaseError && (
+          <QueryErrorState
+            title='Purchase figures may be out of date'
+            description='The last loaded purchase figures are shown.'
+            onRetry={refetchPurchases}
+            retrying={purchaseFetching}
+          />
+        )}
         <div className='mb-4 grid grid-cols-3 divide-x divide-border border-y border-border'>
           <div className='min-w-0 py-3 pr-2 sm:pr-4'>
             <p className='text-[11px] text-muted-foreground'>Sales</p>

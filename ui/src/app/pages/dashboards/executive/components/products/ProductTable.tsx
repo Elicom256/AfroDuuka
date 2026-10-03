@@ -11,6 +11,7 @@ import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features
 import { EditProduct } from './EditProduct';
 import { useNavigate } from 'react-router-dom';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 interface Product {
   id: string;
@@ -37,7 +38,7 @@ const getCategoryName = (product: Product) => {
 };
 
 export const ProductTable = () => {
-  const { data: branchProducts, isLoading: loadBranchProducts, error } = useProductsQuery();
+  const { data: branchProducts, isLoading: loadBranchProducts, isFetching, error, refetch } = useProductsQuery();
   const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -79,8 +80,26 @@ export const ProductTable = () => {
   };
 
   if (loadBranchProducts) return <PageLoadingState />;
+  if (error && !branchProducts) {
+    return (
+      <QueryErrorState
+        title='Unable to load inventory products'
+        description='Your product list could not be retrieved. Inventory totals are unavailable until the request succeeds.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
   return (
     <div className='space-y-4'>
+      {error && branchProducts && (
+        <QueryErrorState
+          title='Inventory may be out of date'
+          description='The latest product refresh failed. The last loaded inventory is still shown.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <Card className='border-border/60'>
         <CardHeader className='flex flex-row items-center justify-between gap-4'>
           <div>
@@ -127,12 +146,18 @@ export const ProductTable = () => {
                     <TableRow key={product.id} onClick={() => navigate(`/dashboard/products/${product.id}`)}>
                       <TableCell>{product.id}</TableCell>
                       <TableCell className='text-xl'>
-  <span>{product.cover_url ? (
-    <img src={product.cover_url} alt={product.name} className='h-10 w-10 rounded-lg object-cover' />
-  ) : (
-    product.emoji || ''
-  )}</span>
-</TableCell>
+                        <span>
+                          {product.cover_url ? (
+                            <img
+                              src={product.cover_url}
+                              alt={product.name}
+                              className='h-10 w-10 rounded-lg object-cover'
+                            />
+                          ) : (
+                            product.emoji || ''
+                          )}
+                        </span>
+                      </TableCell>
                       <TableCell className='font-medium'>{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>

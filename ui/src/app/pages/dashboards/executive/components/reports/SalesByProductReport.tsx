@@ -3,11 +3,12 @@ import ReportCard from './ReportCard';
 import { periods } from '../periodHelper';
 import { useSalesByProductQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const SalesByProductReport = () => {
   const { currency } = useCurrency();
   const [period, setPeriod] = useState<string>(periods[0].value);
-  const { data, isLoading } = useSalesByProductQuery(period);
+  const { data, isLoading, isFetching, isError, refetch } = useSalesByProductQuery(period);
 
   const reportData = data?.data;
   const topProducts = reportData?.top_products || [];
@@ -22,6 +23,14 @@ export const SalesByProductReport = () => {
 
   return (
     <ReportCard title='Sales By Product' loading={isLoading}>
+      {isError && (
+        <QueryErrorState
+          title={reportData ? 'Sales report may be out of date' : 'Unable to load sales by product'}
+          description={reportData ? 'The last loaded report is shown.' : 'Product sales could not be retrieved.'}
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <div className='flex items-center gap-3 mb-4'>
         <label className='text-sm text-muted-foreground'>Period:</label>
         <select className='rounded border px-2 py-1 text-sm' value={period} onChange={(e) => setPeriod(e.target.value)}>
@@ -33,8 +42,8 @@ export const SalesByProductReport = () => {
         </select>
       </div>
 
-      {topProducts.length === 0 ? (
-        <div className='text-sm text-muted-foreground'>No sales data for this period</div>
+      {topProducts.length === 0 && !isError ? (
+        <QueryEmptyState title='No product sales' description='There are no sales for this period.' />
       ) : (
         <div className='space-y-2'>
           {topProducts.map((prod: any) => (

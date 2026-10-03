@@ -4,6 +4,7 @@ import { periods } from '../periodHelper';
 import { useBranchPerformanceQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const BranchPerformanceReport = () => {
   const { currency } = useCurrency();
@@ -16,7 +17,7 @@ export const BranchPerformanceReport = () => {
   const { data: branchesData } = useBranchesQuery();
   const branches = branchesData?.branches || [];
 
-  const { data, isLoading } = useBranchPerformanceQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useBranchPerformanceQuery({
     id: selectedBranchId || undefined,
     period,
   });
@@ -44,6 +45,16 @@ export const BranchPerformanceReport = () => {
 
   return (
     <ReportCard title='Branch Performance' loading={isLoading}>
+      {isError && (
+        <QueryErrorState
+          title={report ? 'Branch report may be out of date' : 'Unable to load branch performance'}
+          description={
+            report ? 'The last loaded branch report is shown.' : 'Branch performance data could not be retrieved.'
+          }
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+      )}
       <div className='flex flex-wrap gap-4 mb-6'>
         <div className='flex items-center gap-3'>
           <label className='text-sm text-muted-foreground'>Period:</label>
@@ -63,7 +74,7 @@ export const BranchPerformanceReport = () => {
         <div className='flex items-center gap-3'>
           <label className='text-sm text-muted-foreground'>Branch:</label>
           <select
-            className='rounded border px-3 py-1.5 text-sm bg-background min-w-[180px]'
+            className='rounded border px-3 py-1.5 text-sm bg-background min-w-45'
             value={selectedBranchId}
             onChange={(e) => setSelectedBranchId(e.target.value)}
           >
@@ -77,24 +88,20 @@ export const BranchPerformanceReport = () => {
         </div>
       </div>
 
-      {!summary ? (
+      {!summary && !isError ? (
         <div className='text-center py-12 text-muted-foreground'>
           No performance data available for the selected branch and period.
         </div>
-      ) : (
+      ) : summary ? (
         <div className='space-y-6'>
           <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Total Revenue</p>
-              <p className='text-3xl font-semibold mt-2 text-emerald-600'>
-                {formatCurrency(totalRevenue)}
-              </p>
+              <p className='text-3xl font-semibold mt-2 text-emerald-600'>{formatCurrency(totalRevenue)}</p>
             </div>
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Total Expenses</p>
-              <p className='text-3xl font-semibold mt-2 text-red-600'>
-                {formatCurrency(totalExpenses)}
-              </p>
+              <p className='text-3xl font-semibold mt-2 text-red-600'>{formatCurrency(totalExpenses)}</p>
             </div>
             <div className='bg-card border rounded-xl p-5'>
               <p className='text-sm text-muted-foreground'>Net Profit</p>
@@ -111,17 +118,15 @@ export const BranchPerformanceReport = () => {
               <p className='text-sm text-emerald-600 font-medium'>Best Performing Branch</p>
               <p className='text-lg font-bold mt-1'>{summary.best_performing_branch.branch_name}</p>
               <p className='text-sm text-muted-foreground'>
-                Revenue: {formatCurrency(summary.best_performing_branch.total_revenue)} | 
-                Profit: {formatCurrency(summary.best_performing_branch.net_profit)}
+                Revenue: {formatCurrency(summary.best_performing_branch.total_revenue)} | Profit:{' '}
+                {formatCurrency(summary.best_performing_branch.net_profit)}
               </p>
             </div>
           )}
 
           {branchRows.length > 1 && (
             <div>
-              <h3 className='text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3'>
-                All Branches
-              </h3>
+              <h3 className='text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3'>All Branches</h3>
               <div className='space-y-2'>
                 {branchRows.map((branch: any) => (
                   <div
@@ -135,7 +140,8 @@ export const BranchPerformanceReport = () => {
                     <div className='text-right'>
                       <p className='font-semibold'>{formatCurrency(branch.total_revenue)}</p>
                       <p className={`text-xs ${branch.net_profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {branch.net_profit >= 0 ? '+' : ''}{formatCurrency(branch.net_profit)}
+                        {branch.net_profit >= 0 ? '+' : ''}
+                        {formatCurrency(branch.net_profit)}
                       </p>
                     </div>
                   </div>
@@ -144,7 +150,7 @@ export const BranchPerformanceReport = () => {
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </ReportCard>
   );
 };

@@ -4,10 +4,11 @@ import { useSalesByProductQuery } from '@/app/store/features/branch/reports/bran
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Award } from 'lucide-react';
 import { landingPeriodLabel, type LandingPeriod } from '../landingPeriods';
+import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const TopProducts = ({ period }: { period: LandingPeriod }) => {
   const { currency } = useCurrency();
-  const { data, isLoading } = useSalesByProductQuery(period);
+  const { data, isLoading, isFetching, isError, refetch } = useSalesByProductQuery(period);
 
   const topProducts: any[] = data?.data?.top_products ?? [];
 
@@ -26,6 +27,24 @@ export const TopProducts = ({ period }: { period: LandingPeriod }) => {
     );
   }
 
+  if (isError && !data) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-sm'>Top products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QueryErrorState
+            title='Unable to load top products'
+            description='Product sales could not be retrieved.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   const maxSold = topProducts.length > 0 ? Math.max(...topProducts.map((p) => Number(p.quantity_sold) || 0)) : 1;
 
   return (
@@ -38,8 +57,16 @@ export const TopProducts = ({ period }: { period: LandingPeriod }) => {
         <CardDescription>Best sellers · {landingPeriodLabel(period)}</CardDescription>
       </CardHeader>
       <CardContent>
+        {isError && (
+          <QueryErrorState
+            title='Top products may be out of date'
+            description='The last loaded product rankings are shown.'
+            onRetry={refetch}
+            retrying={isFetching}
+          />
+        )}
         {topProducts.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>No sales data for this period.</p>
+          <QueryEmptyState title='No product sales' description='There are no sales in this period.' />
         ) : (
           <div className='space-y-3'>
             {topProducts.slice(0, 5).map((product) => {

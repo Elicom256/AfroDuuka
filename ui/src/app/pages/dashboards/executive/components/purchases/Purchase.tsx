@@ -7,12 +7,36 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { Button } from '@/components/ui/button';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const Purchase = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
-  const { data: purchaseData, isLoading: purchaseLoading } = usePurchaseQuery(Number(id), { skip: !id });
+  const {
+    data: purchaseData,
+    isLoading: purchaseLoading,
+    isFetching,
+    error,
+    refetch,
+  } = usePurchaseQuery(Number(id), { skip: !id });
   if (purchaseLoading) return <PageLoadingState />;
+
+  if (error) {
+    return (
+      <div className='space-y-4'>
+        <QueryErrorState
+          title='Unable to load purchase'
+          description='Purchase details could not be retrieved from the server.'
+          onRetry={refetch}
+          retrying={isFetching}
+        />
+        <Button variant='ghost' asChild>
+          <Link to='../purchases'>Back to purchases</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const purchase = purchaseData?.purchase || purchaseData;
 
@@ -83,8 +107,12 @@ export const Purchase = () => {
                     <TableRow key={item.id}>
                       <TableCell className='font-medium'>{item?.product.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{currency} {Number(item.cost_price).toLocaleString()}</TableCell>
-                      <TableCell>{currency} {Number(item.subtotal).toLocaleString()}</TableCell>
+                      <TableCell>
+                        {currency} {Number(item.cost_price).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {currency} {Number(item.subtotal).toLocaleString()}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (

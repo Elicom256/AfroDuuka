@@ -7,11 +7,12 @@ import { Calendar, Mail, Phone, MapPin, User, Building2, Hash, Trash2 } from 'lu
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const Supplier = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data, error, isLoading } = useSupplierQuery(id!, { skip: !id });
+  const { data, error, isLoading, isFetching, refetch } = useSupplierQuery(id!, { skip: !id });
   const [destroy, { isLoading: deleting }] = useDeleteSupplierMutation();
   // Not canDelete: that is branch-scoped and would let a BranchManager remove the
   // business's supplier from under every other branch's purchase history. Only the
@@ -21,8 +22,17 @@ export const Supplier = () => {
   const user = supplier?.user;
 
   if (isLoading || deleting) return <PageLoadingState />;
-  if (error || !supplier)
-    return <div className='p-6 text-red-500'>Failed to load supplier, {(error as any)?.data.message}</div>;
+  if (error) {
+    return (
+      <QueryErrorState
+        title='Unable to load supplier'
+        description='Supplier details could not be retrieved.'
+        onRetry={refetch}
+        retrying={isFetching}
+      />
+    );
+  }
+  if (!supplier) return <div className='p-6 text-muted-foreground'>Supplier not found.</div>;
   const handleDelete = async () => {
     try {
       const res = await destroy(supplier?.id).unwrap();
