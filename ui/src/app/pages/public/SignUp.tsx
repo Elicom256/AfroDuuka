@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Phone, Lock, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -117,7 +116,7 @@ export const SignUp: React.FC = () => {
         if (res) {
           toast.success(res.message);
         }
-        return (window.location.href = DASHBOARD_PREFIX);
+        return (window.location.href = '/dashboard');
       } catch (err: any) {
         toast.error(err?.data?.message || 'Something went wrong');
       }
