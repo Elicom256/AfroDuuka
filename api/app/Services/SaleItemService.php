@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
+use App\Models\StockMovement;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -86,7 +87,8 @@ class SaleItemService
                 $tax = $taxService->calculateForProduct(
                     $product,
                     (float) $item['unit_price'],
-                    (int) $item['quantity']
+                    (int) $item['quantity'],
+                    (float) ($item['discount'] ?? 0)
                 );
                 $lineTaxes[$index] = $tax;
                 $totalSubtotal += $tax['taxable_amount'];
@@ -109,19 +111,38 @@ class SaleItemService
                 $product = $products->get($item['product_id']);
                 $tax = $lineTaxes[$index];
 
+                $lineDiscount = ((float) ($item['discount'] ?? 0)) * $item['quantity'];
+
                 SaleItem::create([
                     'sale_id'          => $sale->id,
                     'product_id'       => $item['product_id'],
                     'quantity'         => $item['quantity'],
                     'unit_price'       => $item['unit_price'],
+                    'discount'         => $item['discount'] ?? 0,
                     'tax_rate'         => $tax['rate'],
                     'is_tax_inclusive' => $tax['is_tax_inclusive'],
                     'taxable_amount'   => $tax['taxable_amount'],
                     'tax_amount'       => $tax['tax_amount'],
-                    'subtotal'         => $item['quantity'] * $item['unit_price'],
+                    'subtotal'         => ($item['quantity'] * $item['unit_price']) - $lineDiscount,
                 ]);
                 $product->decrement("quantity", $item['quantity']);
                 $product->update(['last_sold_at' => now()]);
+
+                StockMovement::updateOrCreate(
+                    [
+                        'movement_key' => md5(Sale::class . ':' . $sale->id . ':' . $product->id . ':out:' . $item['quantity']),
+                    ],
+                    [
+                        'business_id'       => $user->business_id,
+                        'business_branch_id' => $branchId,
+                        'product_id'        => $product->id,
+                        'type'              => 'out',
+                        'quantity'          => $item['quantity'],
+                        'reference_type'    => Sale::class,
+                        'reference_id'      => $sale->id,
+                        'notes'             => 'Non-POS sale',
+                    ]
+                );
             }
 
             $paymentMethod = PaymentMethod::find($validated["payment_status_id"] ?? null);
@@ -148,7 +169,7 @@ class SaleItemService
             $validated['payment_method'] = $paymentMethodName;
             $receiptService->createReceiptForSale($sale, $validated);
 
-            return $sale->load(["saleItems", "salePayment", "receipt"]);
+            return $sale->load(["saleItems", "salePayments", "receipt"]);
         });
    }
 
