@@ -78,6 +78,18 @@ class BusinessDebitController extends Controller
         ]);
     }
 
+    /**
+     * Record a payment against a supplier debt.
+     *
+     * Deliberately not gated to an elevated role. Settling a debt *records* money that
+     * has already been committed — it is a floor task, like a till payment or a cash
+     * drawer close, and this app has no separate accountant role. Gating it to
+     * canManageBranch() was tried and broke BusinessDebitTest, whose Operations user
+     * settles debts on purpose; that test is the better statement of intent.
+     *
+     * The distinction that matters is against expense approval: approving an expense
+     * decides whether spend is allowed, while this only records a decision already made.
+     */
     public function pay(Request $request, BusinessDebit $businessDebit): JsonResponse
     {
         $validated = $request->validate([

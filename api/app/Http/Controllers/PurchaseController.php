@@ -6,8 +6,10 @@ use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -48,8 +50,21 @@ class PurchaseController extends Controller
         return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
     }
 
+    /**
+     * Receiving is the write that moves real stock.
+     *
+     * receivePurchase() increments product quantity and rewrites cost_price for every
+     * line, so this is the highest-value write in the module: an unrestricted caller
+     * could inflate stock and overwrite the cost basis the business prices from. The
+     * role middleware on this route group only checks that the caller holds *some*
+     * role, so the capability has to be named here. Procurement may receive because
+     * goods arriving is its job; Operations may not, because it would be checking in
+     * stock it never ordered.
+     */
     public function receive(Purchase $purchase, Request $request): JsonResponse
     {
+        abort_unless(RolePermissions::canReceivePurchaseOrder(Auth::user()), 403, 'You cannot receive purchase orders.');
+
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.purchase_item_id' => 'required|exists:purchase_items,id',
@@ -96,7 +111,17 @@ class PurchaseController extends Controller
      */
     public function update(UpdatePurchaseRequest $request, Purchase $purchase)
     {
+        // The route has always been published by Route::resource, but this body was a
+        // bare `//` comment, so it returned null and Laravel failed the response type.
         //
+        // It stays refused rather than implemented on purpose. A purchase is not a
+        // free-standing draft: receiving one has already incremented product quantity
+        // and rewritten cost_price for every line, so editing the header afterwards
+        // would leave stock and cost basis describing a purchase that no longer reads
+        // the same. Correcting a received purchase is a stock adjustment, which is
+        // what the stock-movement endpoints are for. Use cancel/receive state changes
+        // rather than rewriting history.
+        abort(422, 'Purchases cannot be edited after creation. Adjust stock through the stock movement endpoints instead.');
     }
 
     /**
@@ -104,6 +129,11 @@ class PurchaseController extends Controller
      */
     public function destroy(Purchase $purchase)
     {
-        //
+        // Refused for the same reason as update(): a received purchase is referenced by
+        // stock_movements and by the cost basis of every product it touched. Deleting
+        // the header would cascade those away and leave inventory that cannot be
+        // reconciled. The role gate is the central DELETE middleware (canDelete); this
+        // is the business rule on top of it.
+        abort(422, 'Purchases cannot be deleted. Cancel or adjust them instead.');
     }
 }
