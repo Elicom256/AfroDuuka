@@ -14,7 +14,12 @@ if [ ! -f "vendor/autoload.php" ]; then
     composer install --no-interaction --no-scripts
 fi
 
-php artisan storage:link || true
+# `storage:link` exits non-zero once the symlink exists, so calling it
+# unconditionally printed "The [public/storage] link already exists." as an ERROR
+# on every restart. Only run it when the link is actually missing.
+if [ ! -e public/storage ]; then
+    php artisan storage:link || true
+fi
 
 # Local development does not need cache rebuilds on every restart.
 if [ "$APP_ENV" != "local" ] && [ "$APP_ENV" != "development" ]; then

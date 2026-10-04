@@ -2,7 +2,18 @@
 # Base image (FrankenPHP + PHP runtime)
 # ------------------------------------------------------------------------------
 
-FROM dunglas/frankenphp:1.2.0-php8.3-alpine AS base
+# FrankenPHP must be >= 1.5.0 for Octane 2.x. This was pinned at 1.2.0, which the
+# dev image never noticed because its CMD is `artisan serve` and never loads Octane.
+# The prod CMD is `octane:start --server=frankenphp`, and Octane's
+# ensureFrankenPhpBinaryMeetsRequirements() compares the binary against its
+# requiredFrankenPhpVersion. Below the floor it calls confirm(..., default: true),
+# which in a container with no TTY answers *yes*, so it tries to swap the binary:
+# rename(/usr/local/bin/frankenphp, ...) -> Permission denied, because the image
+# drops to USER www-data while the binary is root-owned. The uncaught exception
+# exits 1, restart: unless-stopped brings it straight back, and the container
+# never reaches a healthy state — which also blocks the frontend, since it waits
+# on `condition: service_healthy`.
+FROM dunglas/frankenphp:1.9.1-php8.3-alpine AS base
 
 # 1. Declare ARGs at the top of the base image
 ARG USER_ID=1000
