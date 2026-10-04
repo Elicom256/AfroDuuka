@@ -4,19 +4,31 @@ namespace Tests\Feature;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\BusinessCredit;
+use App\Models\BusinessDebit;
+use App\Models\CashDrawerSession;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Coupon;
+use App\Models\CurrencyRate;
+use App\Models\Customer;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use App\Models\PaymentGateway;
 use App\Models\Plan;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Promotion;
 use App\Models\Purchase;
 use App\Models\Role;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Models\SaleOrder;
 use App\Models\StockTransfer;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\WhatsAppConfig;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -42,6 +54,8 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
     protected Business $business;
     protected BusinessBranch $branch;
+    protected Supplier $supplier;
+    protected Customer $customer;
 
     /** The user put on the session by the most recent actingAsRole() call. */
     private User $currentUser;
@@ -58,6 +72,14 @@ class MutatingEndpointAuthorizationTest extends TestCase
         Role::factory()->create([
             'business_id' => $this->business->id,
             'name' => 'supplier',
+        ]);
+
+        $this->supplier = Supplier::factory()->create([
+            'business_id' => $this->business->id,
+        ]);
+
+        $this->customer = Customer::factory()->create([
+            'business_id' => $this->business->id,
         ]);
     }
 
@@ -766,5 +788,797 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
         $this->postJson('/api/ai/chat', ['message' => 'Summarise today'])
             ->assertForbidden();
+    }
+
+    // =====================================================================
+    // The 29 that the first audit of item 5 never looked at.
+    //
+    // Everything above was found by reading controllers. This block is the other
+    // half: it was found by walking the route table mechanically, and the reasons
+    // are written out because "no gate" reads like an oversight rather than a
+    // decision unless you can see which decision it is.
+    //
+    // Two patterns produced every one of these holes:
+    //
+    //   1. A FormRequest::authorize() returning Auth::check(). That is authentication.
+    //      Ninety-six request classes answer that, and for most modules a route-level
+    //      `role` group covers them. For the modules in this block nothing did.
+    //   2. A twin controller that lost its gate. PurchaseOrderController gates every
+    //      action inline; PurchaseController — the same resource, different table —
+    //      gated only receive(). The copy that is *not* protected is the one nobody
+    //      re-reads.
+    //
+    // Each refusal test asserts the row did not change, so a 403 that arrives before
+    // the write cannot pass by accident.
+    // =====================================================================
+
+    // ------------------------------------------- payment provider credentials
+
+    /** No PaymentGatewayFactory exists, so the row is built directly. */
+    private function paymentGateway(array $overrides = []): PaymentGateway
+    {
+        return PaymentGateway::create(array_merge([
+            'business_id' => $this->business->id,
+            'provider' => 'mtn_momo',
+            'api_key' => 'live-key',
+            'api_secret' => 'live-secret',
+            'webhook_secret' => 'live-webhook',
+        ], $overrides));
+    }
+
+    private function gatewayPayload(array $overrides = []): array
+    {
+        return array_merge([
+            'business_id' => $this->business->id,
+            'provider' => 'mtn_momo',
+            'api_key' => 'attacker-key',
+            'api_secret' => 'attacker-secret',
+            'webhook_secret' => 'attacker-webhook',
+        ], $overrides);
+    }
+
+    /**
+     * The one worth naming in the suite forever.
+     *
+     * This row is where live mobile-money payments are routed and how an inbound
+     * webhook proves it came from the provider rather than from anyone who guessed
+     * the URL. An Operations account — the till role this review defines as "runs the
+     * day-to-day floor, does not author the catalogue, does not remove records" —
+     * could write it, and the audit that certified item 5 as done never ran this.
+     */
+    public function test_operations_cannot_write_a_payment_gateway(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/payment-gateways', $this->gatewayPayload())->assertForbidden();
+
+        $this->assertDatabaseCount('payment_gateways', 0);
+    }
+
+    public function test_operations_cannot_rewrite_a_payment_gateway(): void
+    {
+        $this->actingAsRole('Operations');
+        $gateway = $this->paymentGateway();
+
+        $this->putJson("/api/payment-gateways/{$gateway->id}", [
+            'api_key' => 'attacker-key',
+            'webhook_secret' => 'attacker-webhook',
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('payment_gateways', [
+            'id' => $gateway->id,
+            'api_key' => 'live-key',
+            'webhook_secret' => 'live-webhook',
+        ]);
+    }
+
+    public function test_an_executive_can_write_a_payment_gateway(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/payment-gateways', $this->gatewayPayload())->assertCreated();
+
+        $this->assertDatabaseHas('payment_gateways', [
+            'business_id' => $this->business->id,
+            'provider' => 'mtn_momo',
+            'api_key' => 'attacker-key',
+        ]);
+    }
+
+    /** canManagePaymentConfig() resolves to canManageBranch(), so this must hold too. */
+    public function test_a_branch_manager_can_write_a_payment_gateway(): void
+    {
+        $this->actingAsRole('BranchManager');
+
+        $this->postJson('/api/payment-gateways', $this->gatewayPayload())->assertCreated();
+    }
+
+    // ------------------------------------------------------------ currency rates
+
+    private function currencyRate(array $overrides = []): CurrencyRate
+    {
+        return CurrencyRate::create(array_merge([
+            'business_id' => $this->business->id,
+            'base_currency' => 'UGX',
+            'target_currency' => 'USD',
+            'rate' => 3600,
+            'source' => 'central-bank',
+            'valid_from' => now()->toDateString(),
+        ], $overrides));
+    }
+
+    private function currencyRatePayload(array $overrides = []): array
+    {
+        return array_merge([
+            'business_id' => $this->business->id,
+            'base_currency' => 'UGX',
+            'target_currency' => 'USD',
+            'rate' => 9999,
+            'source' => 'attacker',
+            'valid_from' => now()->toDateString(),
+        ], $overrides);
+    }
+
+    /**
+     * Every multi-currency total and report derives from this row, so writing one
+     * repricing the whole business' books is a one-request operation.
+     */
+    public function test_operations_cannot_write_a_currency_rate(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/currency-rates', $this->currencyRatePayload())->assertForbidden();
+
+        $this->assertDatabaseCount('currency_rates', 0);
+    }
+
+    public function test_operations_cannot_rewrite_a_currency_rate(): void
+    {
+        $this->actingAsRole('Operations');
+        $rate = $this->currencyRate();
+
+        $this->putJson("/api/currency-rates/{$rate->id}", ['rate' => 9999])->assertForbidden();
+
+        $this->assertDatabaseHas('currency_rates', ['id' => $rate->id, 'rate' => 3600]);
+    }
+
+    public function test_an_executive_can_write_a_currency_rate(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/currency-rates', $this->currencyRatePayload())->assertCreated();
+    }
+
+    // -------------------------------------------------------- whatsapp credentials
+
+    private function whatsAppPayload(array $overrides = []): array
+    {
+        return array_merge([
+            'provider' => 'meta',
+            'business_phone' => '+256700000001',
+            'access_token' => 'attacker-token',
+            'webhook_verify_token' => 'attacker-verify',
+        ], $overrides);
+    }
+
+    public function test_operations_cannot_write_whatsapp_credentials(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/whatsapp', $this->whatsAppPayload())->assertForbidden();
+
+        $this->assertDatabaseCount('whats_app_configs', 0);
+    }
+
+    /**
+     * The stored config already holds a live token, so the refusal has to leave it
+     * alone rather than merely answer 403.
+     */
+    public function test_operations_cannot_rewrite_whatsapp_credentials(): void
+    {
+        $this->actingAsRole('Operations');
+        $config = WhatsAppConfig::create([
+            'business_id' => $this->business->id,
+            'provider' => 'meta',
+            'business_phone' => '+256700000001',
+            'access_token' => 'live-token',
+        ]);
+
+        $this->putJson("/api/whatsapp/{$config->id}", [
+            'access_token' => 'attacker-token',
+        ])->assertForbidden();
+
+        $this->assertSame('live-token', $config->fresh()->getRawOriginal('access_token')
+            ?? $config->fresh()->access_token);
+    }
+
+    /**
+     * Unmetered today because the provider is in demo mode, but the endpoint is the
+     * outbound channel and is billed the moment a paid account is attached.
+     */
+    public function test_operations_cannot_send_a_whatsapp_test_message(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/whatsapp/test-message', [
+            'recipient' => '+256700000002',
+            'message' => 'Test',
+        ])->assertForbidden();
+    }
+
+    public function test_a_branch_manager_can_write_whatsapp_credentials(): void
+    {
+        $this->actingAsRole('BranchManager');
+
+        $this->postJson('/api/whatsapp', $this->whatsAppPayload())->assertCreated();
+    }
+
+    // ------------------------------------------------------------------- money
+
+    private function businessDebitPayload(array $overrides = []): array
+    {
+        return array_merge([
+            'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
+            'amount' => 50000,
+            'reference' => 'INV-900',
+            'status' => 'open',
+            'description' => 'Supplier goods on credit',
+        ], $overrides);
+    }
+
+    public function test_operations_cannot_open_a_business_debit(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/finances/business-debits', $this->businessDebitPayload())
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('business_debits', 0);
+    }
+
+    public function test_operations_cannot_rewrite_a_business_debit(): void
+    {
+        $this->actingAsRole('Operations');
+        $debit = BusinessDebit::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
+            'amount' => 50000,
+            'status' => 'open',
+        ]);
+
+        $this->putJson("/api/finances/business-debits/{$debit->id}", [
+            'amount' => 1,
+            'status' => 'open',
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('business_debits', ['id' => $debit->id, 'amount' => 50000]);
+    }
+
+    public function test_an_executive_can_open_a_business_debit(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/finances/business-debits', $this->businessDebitPayload())
+            ->assertCreated();
+    }
+
+    /**
+     * The counterpart to the above, and the reason store() and pay() are not the
+     * same rule. pay() records a payment already committed and stays open to the
+     * floor; opening the debt asserts the business owes the money, which it does not
+     * until someone says so. BusinessDebitTest keeps its Operations user as the
+     * evidence that the pay side stays open.
+     */
+    public function test_operations_can_still_settle_a_business_debit(): void
+    {
+        $this->actingAsRole('Operations');
+        $debit = BusinessDebit::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
+            'amount' => 30000,
+            'status' => 'open',
+        ]);
+
+        $this->postJson("/api/finances/business-debits/{$debit->id}/pay", [
+            'amount' => 30000,
+        ])->assertCreated();
+
+        $this->assertSame(0.0, (float) $debit->fresh()->balance());
+    }
+
+    public function test_operations_cannot_open_a_business_credit(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/finances/business-credits', [
+            'business_branch_id' => $this->branch->id,
+            'customer_id' => $this->customer->id,
+            'amount' => 75000,
+            'reference' => 'CRED-900',
+            'status' => 'open',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('business_credits', 0);
+    }
+
+    public function test_an_executive_can_open_a_business_credit(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/finances/business-credits', [
+            'business_branch_id' => $this->branch->id,
+            'customer_id' => $this->customer->id,
+            'amount' => 75000,
+            'reference' => 'CRED-900',
+            'status' => 'open',
+        ])->assertCreated();
+    }
+
+    public function test_operations_cannot_record_a_customer_credit_payment(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson("/api/finances/customers/{$this->customer->id}/credit-payments", [
+            'business_branch_id' => $this->branch->id,
+            'amount' => 25000,
+            'reference' => 'PAY-CRED-900',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('customer_credit_transactions', 0);
+    }
+
+    /**
+     * This one was not simply missing — it was answering 422 for a role refusal.
+     * authorizeSensitiveFinance() sat inside the try block, so abort()'s
+     * HttpException was caught by `catch (\Exception)` and reported as "Failed to
+     * create adjustment". The write was blocked; the caller could not tell a refused
+     * role from a bad payload.
+     */
+    public function test_operations_cannot_post_a_cash_flow_adjustment(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/finances/adjustments', [
+            'transaction_code' => 'ADJ-900',
+            'type' => 'adjustment',
+            'amount' => 1000,
+            'currency' => 'UGX',
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $this->currentUser->id,
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('cash_flows', ['transaction_code' => 'ADJ-900']);
+    }
+
+    public function test_an_executive_can_post_a_cash_flow_adjustment(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/finances/adjustments', [
+            'transaction_code' => 'ADJ-901',
+            'type' => 'adjustment',
+            'amount' => 1000,
+            'currency' => 'UGX',
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $this->currentUser->id,
+        ])->assertCreated();
+    }
+
+    public function test_operations_cannot_open_a_cash_drawer(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/finances/cash-drawers/open', [
+            'business_branch_id' => $this->branch->id,
+            'opening_cash' => 50000,
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('cash_drawer_sessions', 0);
+    }
+
+    public function test_operations_cannot_close_a_cash_drawer(): void
+    {
+        $this->actingAsRole('Executive');
+        $session = CashDrawerSession::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'opened_by' => $this->currentUser->id,
+            'opening_cash' => 50000,
+            'status' => 'open',
+        ]);
+
+        $this->actingAsRole('Operations');
+
+        $this->postJson("/api/finances/cash-drawers/{$session->id}/close", [
+            'counted_cash' => 49900,
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('cash_drawer_sessions', [
+            'id' => $session->id,
+            'status' => 'open',
+        ]);
+    }
+
+    public function test_an_executive_can_open_a_cash_drawer(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/finances/cash-drawers/open', [
+            'business_branch_id' => $this->branch->id,
+            'opening_cash' => 50000,
+        ])->assertCreated();
+    }
+
+    // -------------------------------------------------------- stock destruction
+
+    private function stockProduct(): Product
+    {
+        $category = ProductCategory::create([
+            'business_id' => $this->business->id,
+            'name' => 'Write-off '.$this->currentUser->id,
+            'status' => 'active',
+        ]);
+
+        return Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'product_category_id' => $category->id,
+            'quantity' => 10,
+            'cost_price' => 500,
+            'status' => 'active',
+        ]);
+    }
+
+    /**
+     * InventoryService::writeOff() validates the reason and the quantity and never
+     * asked which role was asking, so the HTTP entry point is the only place this can
+     * be answered. The gate belongs here rather than in the service precisely because
+     * the service is also reached from the stock-count and expiry-sweep paths that
+     * Operations legitimately drives — ProductLossTest exercises those directly and
+     * still passes.
+     */
+    public function test_operations_cannot_record_a_product_loss(): void
+    {
+        $this->actingAsRole('Operations');
+        $product = $this->stockProduct();
+
+        $this->postJson('/api/product-losses', [
+            'product_id' => $product->id,
+            'type' => 'expired',
+            'quantity' => 4,
+            'reason' => 'Expired crate',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('product_losses', 0);
+        $this->assertSame(10, (int) $product->fresh()->quantity);
+    }
+
+    public function test_a_branch_manager_can_record_a_product_loss(): void
+    {
+        $this->actingAsRole('BranchManager');
+        $product = $this->stockProduct();
+
+        $this->postJson('/api/product-losses', [
+            'product_id' => $product->id,
+            'type' => 'expired',
+            'quantity' => 4,
+            'reason' => 'Expired crate',
+        ])->assertCreated();
+
+        $this->assertSame(6, (int) $product->fresh()->quantity);
+    }
+
+    public function test_operations_cannot_process_a_sale_return(): void
+    {
+        $this->actingAsRole('Operations');
+        $saleItem = $this->soldSaleItem();
+
+        $this->postJson('/api/returns/sale-returns', [
+            'reason' => 'Wrong item handed over',
+            'restock' => true,
+            'items' => [
+                ['sale_item_id' => $saleItem->id, 'quantity' => 1, 'condition' => 'resellable'],
+            ],
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('sale_returns', 0);
+    }
+
+    public function test_operations_cannot_process_a_purchase_return(): void
+    {
+        $this->actingAsRole('Operations');
+        $purchase = $this->purchaseWithItems();
+        $purchaseItem = $purchase->purchaseItems->first();
+
+        $this->postJson('/api/returns/purchase-returns', [
+            'supplier_id' => $purchase->supplier_id,
+            'reason' => 'Damaged in transit',
+            'restock' => true,
+            'items' => [
+                ['purchase_item_id' => $purchaseItem->id, 'quantity' => 1, 'condition' => 'resellable'],
+            ],
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('purchase_returns', 0);
+    }
+
+    /** A completed sale with one item on it, so a return has something to point at. */
+    private function soldSaleItem(): SaleItem
+    {
+        $product = $this->stockProduct();
+
+        $sale = Sale::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $this->currentUser->id,
+            'total_amount' => 10000,
+            'status' => 'completed',
+        ]);
+
+        $item = $sale->items()->create([
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'unit_price' => 5000,
+            'subtotal' => 10000,
+        ]);
+
+        return $item;
+    }
+
+    // -------------------------------------------- trade documents and config
+
+    public function test_operations_cannot_record_a_purchase(): void
+    {
+        $this->actingAsRole('Operations');
+        $category = ProductCategory::create([
+            'business_id' => $this->business->id,
+            'name' => 'Purchases',
+            'status' => 'active',
+        ]);
+        $product = Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'product_category_id' => $category->id,
+        ]);
+        $paymentMethod = $this->paymentMethod();
+
+        $this->postJson('/api/purchases/branch-purchases', [
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'payment_status_id' => $paymentMethod->id,
+            'currency' => 'UGX',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 5, 'cost_price' => 5000],
+            ],
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('purchases', 0);
+    }
+
+    /** Recording what was bought is Procurement's job, so this one must still work. */
+    public function test_procurement_can_record_a_purchase(): void
+    {
+        $this->actingAsRole('Procurement');
+        $category = ProductCategory::create([
+            'business_id' => $this->business->id,
+            'name' => 'Purchases',
+            'status' => 'active',
+        ]);
+        $product = Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'product_category_id' => $category->id,
+        ]);
+        $paymentMethod = $this->paymentMethod();
+
+        $this->postJson('/api/purchases/branch-purchases', [
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'payment_status_id' => $paymentMethod->id,
+            'currency' => 'UGX',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 5, 'cost_price' => 5000],
+            ],
+        ])->assertOk();
+
+        $this->assertDatabaseCount('purchases', 1);
+    }
+
+    private function saleOrderPayload(array $overrides = []): array
+    {
+        $product = $this->stockProduct();
+
+        return array_merge([
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ], $overrides);
+    }
+
+    public function test_operations_cannot_create_a_sale_order(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/sale-orders', $this->saleOrderPayload())->assertForbidden();
+
+        $this->assertDatabaseCount('sale_orders', 0);
+    }
+
+    /**
+     * A sale order pins a unit_price and an allocated_qty for a future delivery, and
+     * this update can move it to 'approved' or 'delivered' — the sales-side twin of
+     * approving a purchase order, which is already held to canManageBranch().
+     */
+    public function test_operations_cannot_edit_a_sale_order(): void
+    {
+        $this->actingAsRole('Operations');
+        $order = $this->saleOrderFor($this->saleOrderPayload());
+
+        $this->putJson("/api/sale-orders/{$order->id}", ['status' => 'approved'])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('sale_orders', ['id' => $order->id, 'status' => 'pending']);
+    }
+
+    public function test_an_executive_can_create_a_sale_order(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/sale-orders', $this->saleOrderPayload())->assertCreated();
+    }
+
+    private function saleOrderFor(array $payload): SaleOrder
+    {
+        $id = $this->postJson('/api/sale-orders', $payload)->json('data.id');
+
+        return SaleOrder::findOrFail($id);
+    }
+
+    public function test_operations_cannot_manage_printers(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/printers', [
+            'business_branch_id' => $this->branch->id,
+            'name' => 'Front counter',
+            'type' => 'usb',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('printers', 0);
+    }
+
+    public function test_operations_cannot_manage_reorder_rules(): void
+    {
+        $this->actingAsRole('Operations');
+        $product = $this->stockProduct();
+
+        $this->postJson('/api/reorder-rules', [
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'product_id' => $product->id,
+            'reorder_quantity' => 20,
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('reorder_rules', 0);
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'reorder_level' => $product->reorder_level,
+        ]);
+    }
+
+    public function test_procurement_can_manage_reorder_rules(): void
+    {
+        $this->actingAsRole('Procurement');
+        $product = $this->stockProduct();
+
+        $this->postJson('/api/reorder-rules', [
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'product_id' => $product->id,
+            'reorder_quantity' => 20,
+        ])->assertCreated();
+    }
+
+    public function test_operations_cannot_request_a_report_export(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/report-exports', [
+            'business_id' => $this->business->id,
+            'user_id' => $this->currentUser->id,
+            'report_type' => 'sales',
+            'format' => 'csv',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('report_exports', 0);
+    }
+
+    /**
+     * Report exports follow canManageReports(), which is isElevated() — not
+     * canManageBranch(). An export takes data out of the tenant scope entirely, so it
+     * is a business-level read and a BranchManager does not get one. This is the one
+     * case in this block where the gate is deliberately narrower than manager.
+     */
+    public function test_a_branch_manager_cannot_request_a_report_export(): void
+    {
+        $this->actingAsRole('BranchManager');
+
+        $this->postJson('/api/report-exports', [
+            'business_id' => $this->business->id,
+            'user_id' => $this->currentUser->id,
+            'report_type' => 'sales',
+            'format' => 'csv',
+        ])->assertForbidden();
+    }
+
+    public function test_an_executive_can_request_a_report_export(): void
+    {
+        $this->actingAsRole('Executive');
+
+        $this->postJson('/api/report-exports', [
+            'business_id' => $this->business->id,
+            'user_id' => $this->currentUser->id,
+            'report_type' => 'sales',
+            'format' => 'csv',
+        ])->assertCreated();
+    }
+
+    // -------------------------------------------------- hardened form requests
+
+    /**
+     * UpdateExpenseRequest::authorize() returned a bare true, which held only because
+     * routes/api.php:94 puts `role` on the expenses group. Nothing in the request
+     * said so, so the day that group is dropped it would authorize anything. The
+     * middleware assertion below is what makes this a regression test rather than a
+     * restatement: it fails if the group is ever dropped without the request being
+     * hardened to match.
+     */
+    public function test_the_expenses_route_group_is_still_what_gates_expense_writes(): void
+    {
+        $route = collect(\Illuminate\Support\Facades\Route::getRoutes())
+            ->first(fn ($route) => $route->uri() === 'api/expenses/branch-expenses/{expense}'
+                && in_array('PUT', $route->methods(), true));
+
+        $this->assertNotNull($route, 'The expense update route disappeared.');
+
+        $this->assertContains(
+            'role',
+            $route->gatherMiddleware(),
+            'The expenses group lost its role middleware. If that was deliberate, '
+            .'UpdateExpenseRequest::authorize() now has to carry the check on its own.'
+        );
+    }
+
+    public function test_operations_cannot_edit_an_expense(): void
+    {
+        $this->actingAsRole('Operations');
+        $expense = $this->branchExpense();
+
+        $this->putJson("/api/expenses/branch-expenses/{$expense->id}", [
+            'amount' => 999999,
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'amount' => 1000]);
+    }
+
+    private function branchExpense(): Expense
+    {
+        $category = ExpenseCategory::create([
+            'business_id' => $this->business->id,
+            'name' => 'Rent',
+            'status' => 'active',
+        ]);
+
+        return Expense::create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'expense_category_id' => $category->id,
+            'amount' => 1000,
+            'status' => 'pending',
+        ]);
     }
 }

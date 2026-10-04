@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCashFlowRequest;
 use App\Models\CashFlow;
 use App\Services\FinanceService;
+use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -133,6 +134,18 @@ class FinanceController extends Controller
 
     public function adjustment(StoreCashFlowRequest $request)
     {
+        // Outside the try on purpose.
+        //
+        // This gate used to sit inside the try block, where abort()'s HttpException —
+        // a \RuntimeException, and therefore an \Exception — was swallowed by
+        // `catch (\Exception)` and answered as 422 "Failed to create adjustment". The
+        // write was blocked, but a caller could not tell a refused role from a bad
+        // payload, and a test asserting the refusal had to assert the wrong code.
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot create cash-flow adjustments.');
+
+        // The write below stays with authorizeSensitiveFinance() as a second line of
+        // defence for the role list it carries, which is broader than canManageBranch()
+        // because it also admits Operations.
         try {
             $this->authorizeSensitiveFinance();
             $validated = $request->validated();

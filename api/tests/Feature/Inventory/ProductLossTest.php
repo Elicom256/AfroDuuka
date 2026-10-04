@@ -40,6 +40,26 @@ class ProductLossTest extends TestCase
         $this->actingAs($this->user);
     }
 
+    /**
+     * RoleFactory's default name is 'Operations', so $this->user is an Operations
+     * account by accident. That is correct for the tests below that call
+     * InventoryService::writeOff() directly — the service is deliberately ungated so
+     * the stock-count and expiry-sweep paths Operations really does drive keep
+     * working. The HTTP endpoint is the opposite: it is the one place a loss can be
+     * declared, and it now asks the role first.
+     */
+    private function actingAsRole(string $roleName): void
+    {
+        $role = Role::factory()->create([
+            'business_id' => $this->user->business_id,
+            'name' => $roleName,
+        ]);
+
+        $this->user->forceFill(['role_id' => $role->id])->save();
+
+        $this->actingAs($this->user->fresh());
+    }
+
     protected function product(int $quantity = 10, float $costPrice = 500.00): Product
     {
         return Product::factory()->create([
@@ -120,6 +140,7 @@ class ProductLossTest extends TestCase
 
     public function test_product_loss_via_http_endpoint(): void
     {
+        $this->actingAsRole('BranchManager');
         $product = $this->product(10, 500.00);
 
         $response = $this->postJson('/api/product-losses', [

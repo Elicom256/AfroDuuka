@@ -35,6 +35,12 @@ class PurchaseController extends Controller
      */
     public function store(StorePurchaseRequest $request)
     {
+        // PurchaseOrderController has always gated its store() inline; this twin of it
+        // did not, so a purchase commitment to a supplier could be written by any
+        // signed-in account. canCreatePurchaseOrder() is the same capability, and it
+        // is the one that admits Procurement — recording what was bought is its job.
+        abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403, 'You cannot record purchases.');
+
         $validated = $request->validated();
         $purchase = $this->purchaseService->savePurchase($validated);
         return response()->json(["message" => "Purchase Completed Successfully!", "purchase" => $purchase]);
@@ -111,6 +117,11 @@ class PurchaseController extends Controller
      */
     public function update(UpdatePurchaseRequest $request, Purchase $purchase)
     {
+        // The role check runs first so a refused caller gets an honest 403 rather than
+        // the 422 below, which reads as "this endpoint does not accept edits" and so
+        // tells an Operations account nothing about whether the route is theirs.
+        abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403, 'You cannot edit purchases.');
+
         // The route has always been published by Route::resource, but this body was a
         // bare `//` comment, so it returned null and Laravel failed the response type.
         //
