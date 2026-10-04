@@ -6,7 +6,6 @@ use App\Http\Requests\StorePurchaseReturnRequest;
 use App\Models\PurchaseReturn;
 use App\Services\PurchaseReturnService;
 use App\Support\Auth\RolePermissions;
-use Illuminate\Support\Facades\Auth;
 
 class PurchaseReturnController extends Controller
 {
@@ -35,6 +34,7 @@ class PurchaseReturnController extends Controller
 
         $validated = $request->validated();
         $purchaseReturn = $this->purchaseReturnService->handleCreatePurchaseReturn($validated);
+
         return response()->json(['message' => 'Purchase return processed successfully!', 'purchase_return' => $purchaseReturn], 200);
     }
 
@@ -42,6 +42,7 @@ class PurchaseReturnController extends Controller
     {
         $purchaseReturn = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
             ->findOrFail($purchaseReturn);
+
         return response()->json(['message' => 'Purchase return fetched!', 'purchase_return' => $purchaseReturn]);
     }
 }

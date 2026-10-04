@@ -8,6 +8,7 @@ use App\Models\BusinessCategory;
 use App\Models\Country;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 /**
@@ -81,7 +82,7 @@ class OnboardingFlowTest extends TestCase
         return Business::where('name', $name)->firstOrFail();
     }
 
-    private function branchesOf(Business $business): \Illuminate\Support\Collection
+    private function branchesOf(Business $business): Collection
     {
         return BusinessBranch::where('business_id', $business->id)->get();
     }
@@ -123,7 +124,7 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload()) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload())->assertStatus(201, $token);
 
         $business = $this->createdBusiness();
 
@@ -135,7 +136,7 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload([ 'branches' => [ ['name' => 'Main Branch', 'address' => 'Plot 1', 'phone' => '+256 700 222 333'], ['name' => 'Nalugogo', 'address' => 'Plot 9', 'phone' => '0771234567'], ], ])) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload(['branches' => [['name' => 'Main Branch', 'address' => 'Plot 1', 'phone' => '+256 700 222 333'], ['name' => 'Nalugogo', 'address' => 'Plot 9', 'phone' => '0771234567']]]))->assertStatus(201, $token);
 
         $business = $this->createdBusiness();
         $branches = $this->branchesOf($business);
@@ -153,7 +154,7 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload([ 'branches' => [['name' => 'Main Branch', 'address' => 'Plot 1']], ])) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload(['branches' => [['name' => 'Main Branch', 'address' => 'Plot 1']]]))->assertStatus(201, $token);
 
         $this->assertCount(1, $this->branchesOf($this->createdBusiness()));
         $this->assertSame('Main Branch', $this->branchesOf($this->createdBusiness())->first()->name);
@@ -163,7 +164,7 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload()) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload())->assertStatus(201, $token);
 
         $this->assertCount(1, $this->branchesOf($this->createdBusiness()));
         $this->assertSame('Main Branch', $this->branchesOf($this->createdBusiness())->first()->name);
@@ -196,7 +197,7 @@ class OnboardingFlowTest extends TestCase
         $token = $this->onboardedUpToBusiness();
 
         // The first branch is valid, the second has no name at all.
-        $this->api('post', '/api/dashboard/business', $this->businessPayload([ 'branches' => [ ['name' => 'Kampala', 'address' => 'Plot 1'], ['name' => '', 'address' => 'Plot 2'], ], ])) ->assertStatus(422, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload(['branches' => [['name' => 'Kampala', 'address' => 'Plot 1'], ['name' => '', 'address' => 'Plot 2']]]))->assertStatus(422, $token);
 
         $this->assertSame(0, Business::where('name', 'Amina Retail')->count());
         $this->assertNull(User::where('email', 'amina@example.com')->firstOrFail()->business_id);
@@ -216,7 +217,7 @@ class OnboardingFlowTest extends TestCase
 
         $first = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload($shared)) ->assertStatus(201, $first);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload($shared))->assertStatus(201, $first);
 
         $second = $this->onboardedUpToBusiness([
             'firstname' => 'Ibrahim',
@@ -225,7 +226,7 @@ class OnboardingFlowTest extends TestCase
             'username' => '@ibrahim',
         ]);
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload(array_merge($shared, [ 'name' => 'Ibrahim Retail', ]))) ->assertStatus(201, $second);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload(array_merge($shared, ['name' => 'Ibrahim Retail'])))->assertStatus(201, $second);
 
         $this->assertSame(
             2,
@@ -245,7 +246,7 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload([ 'branches' => [ ['name' => 'Kampala Road', 'address' => 'Plot 1'], ['name' => 'Nalugogo', 'address' => 'Plot 9'], ], ])) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload(['branches' => [['name' => 'Kampala Road', 'address' => 'Plot 1'], ['name' => 'Nalugogo', 'address' => 'Plot 9']]]))->assertStatus(201, $token);
 
         $user = User::where('email', 'amina@example.com')->firstOrFail();
         $branch = $this->branchesOf($this->createdBusiness())->firstOrFail();
@@ -323,16 +324,16 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload()) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload())->assertStatus(201, $token);
 
         // Added after onboarding, the way the dashboard's own branch form does it.
         $this->api('post', '/api/dashboard/branches', [
-                'name' => 'Nalugogo',
-                'address' => 'Plot 9',
-                // The branch form's own placeholder is this shape, and the old rule was
-                // digits_between:10,10 — twelve digits, refused.
-                'phone' => '+256 700 000 000',
-            ], $token)->assertStatus(201);
+            'name' => 'Nalugogo',
+            'address' => 'Plot 9',
+            // The branch form's own placeholder is this shape, and the old rule was
+            // digits_between:10,10 — twelve digits, refused.
+            'phone' => '+256 700 000 000',
+        ], $token)->assertStatus(201);
 
         $this->assertSame('+256700000000', BusinessBranch::where('name', 'Nalugogo')->firstOrFail()->phone);
     }
@@ -341,16 +342,16 @@ class OnboardingFlowTest extends TestCase
     {
         $token = $this->onboardedUpToBusiness();
 
-        $this->api('post', '/api/dashboard/business', $this->businessPayload()) ->assertStatus(201, $token);
+        $this->api('post', '/api/dashboard/business', $this->businessPayload())->assertStatus(201, $token);
 
         // businesses.logo has been in the schema all along but was in neither $fillable
         // nor the update rules, so no request could set it and the navbar always fell
         // back to the platform wordmark.
         $this->api('patch', '/api/dashboard/business', [
-                'name' => 'Amina Retail',
-                'business_category_id' => BusinessCategory::firstOrFail()->id,
-                'logo' => 'https://cdn.example.com/amina.png',
-            ], $token)->assertStatus(200);
+            'name' => 'Amina Retail',
+            'business_category_id' => BusinessCategory::firstOrFail()->id,
+            'logo' => 'https://cdn.example.com/amina.png',
+        ], $token)->assertStatus(200);
 
         $this->assertSame('https://cdn.example.com/amina.png', $this->createdBusiness()->logo);
     }

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReportExportRequest;
 use App\Http\Requests\UpdateReportExportRequest;
-use App\Models\ReportExport;
 use App\Models\ActivityLog;
+use App\Models\ReportExport;
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
@@ -64,12 +64,14 @@ class ReportExportController extends Controller
         abort_unless(RolePermissions::canManageReports($request->user()), 403, 'You cannot change report exports.');
 
         $reportExport->update($request->validated());
+
         return response()->json(['message' => 'Report export updated', 'data' => $reportExport]);
     }
 
     public function destroy(ReportExport $reportExport)
     {
         $reportExport->delete();
+
         return response()->json(['message' => 'Report export deleted']);
     }
 }

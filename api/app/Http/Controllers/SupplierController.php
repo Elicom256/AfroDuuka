@@ -7,15 +7,16 @@ use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\Supplier;
 use App\Services\SupplierService;
-use GuzzleHttp\Psr7\Response;
 
 class SupplierController extends Controller
 {
     protected $supplierService;
+
     public function __construct(SupplierService $supplierService)
     {
         $this->supplierService = $supplierService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -26,8 +27,9 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $suppliers = Supplier::with("user")->get();
-        return response()->json(["message" => "Fetched suppliers", "suppliers" => $suppliers]);
+        $suppliers = Supplier::with('user')->get();
+
+        return response()->json(['message' => 'Fetched suppliers', 'suppliers' => $suppliers]);
     }
 
     /**
@@ -37,11 +39,12 @@ class SupplierController extends Controller
     {
         $this->authorize('create', Supplier::class);
 
-        $allowed = SuppliersSettings::value("status");
-        abort_if($allowed !== "enabled", 'Supplier creation is disabled.', 403);
+        $allowed = SuppliersSettings::value('status');
+        abort_if($allowed !== 'enabled', 'Supplier creation is disabled.', 403);
         $validated = $request->validated();
         $supplier = $this->supplierService->createSupplier($validated);
-        return response()->json(["message" => "Added supplier", "supplier" => $supplier]);
+
+        return response()->json(['message' => 'Added supplier', 'supplier' => $supplier]);
     }
 
     /**
@@ -51,8 +54,9 @@ class SupplierController extends Controller
     {
         $this->authorize('view', $supplier);
 
-        $supplier->load("user");
-        return response()->json(["message" => "Supplier Fetched Successfully!", "supplier" => $supplier]);
+        $supplier->load('user');
+
+        return response()->json(['message' => 'Supplier Fetched Successfully!', 'supplier' => $supplier]);
     }
 
     /**
@@ -64,7 +68,8 @@ class SupplierController extends Controller
 
         $validated = $request->validated();
         $supplier = $this->supplierService->updateSupplier($supplier, $validated);
-        return response()->json(["message" => "Supplier Updated Successfully!", "supplier" => $supplier]);
+
+        return response()->json(['message' => 'Supplier Updated Successfully!', 'supplier' => $supplier]);
 
     }
 
@@ -76,6 +81,7 @@ class SupplierController extends Controller
         $this->authorize('delete', $supplier);
 
         $supplier->delete();
-        return response()->json(["message" => "Deleted Supplier Successfully!"]);
+
+        return response()->json(['message' => 'Deleted Supplier Successfully!']);
     }
 }

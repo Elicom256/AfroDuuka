@@ -21,8 +21,8 @@ class StoreProductCategoryRequest extends FormRequest
     {
         $user = Auth::user();
         $this->merge([
-            "business_id" => $user->business_id,
-            "status" => "active"
+            'business_id' => $user->business_id,
+            'status' => 'active',
         ]);
     }
 

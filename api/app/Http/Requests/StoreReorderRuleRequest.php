@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Support\Tenant\EffectiveBranchScope;
 
 class StoreReorderRuleRequest extends FormRequest
 {

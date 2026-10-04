@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\ReportsSettings;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ReportsSettingsPolicy
 {
@@ -46,6 +45,7 @@ class ReportsSettingsPolicy
     public function delete(User $user, ReportsSettings $reportsSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class ReportsSettingsPolicy
     public function forceDelete(User $user, ReportsSettings $reportsSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

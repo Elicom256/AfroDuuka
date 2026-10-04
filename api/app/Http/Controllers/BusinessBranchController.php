@@ -17,8 +17,9 @@ class BusinessBranchController extends Controller
     public function index()
     {
         $businessId = Auth::user()->business_id;
-        $branches = BusinessBranch::with("business.country")->where("business_id", $businessId)->orderBy("id")->get();
-        return response()->json(["message" => "Fetched all business branches", "branches" => $branches]);
+        $branches = BusinessBranch::with('business.country')->where('business_id', $businessId)->orderBy('id')->get();
+
+        return response()->json(['message' => 'Fetched all business branches', 'branches' => $branches]);
     }
 
     /**
@@ -26,12 +27,13 @@ class BusinessBranchController extends Controller
      */
     public function salesAndPurchases()
     {
-        $totalSales = Sale::sum("total_amount");
-        $totalPurchases = Purchase::sum("total_amount");
+        $totalSales = Sale::sum('total_amount');
+        $totalPurchases = Purchase::sum('total_amount');
+
         return response()->json([
-            "message" => "Fetched new changes",
-            "totalSales" => $totalSales,
-            "totalPurchases" => $totalPurchases
+            'message' => 'Fetched new changes',
+            'totalSales' => $totalSales,
+            'totalPurchases' => $totalPurchases,
         ]);
     }
 
@@ -42,7 +44,8 @@ class BusinessBranchController extends Controller
     {
         $validated = $request->validated();
         $branch = BusinessBranch::create($validated);
-        return response()->json(["message" => "Added a new branch!", "branch" => $branch], 201);
+
+        return response()->json(['message' => 'Added a new branch!', 'branch' => $branch], 201);
     }
 
     /**
@@ -50,9 +53,8 @@ class BusinessBranchController extends Controller
      */
     public function show(BusinessBranch $branch)
     {
-        return response()->json(["message" => "Fetched branch!", "branch" => $branch], 200);
+        return response()->json(['message' => 'Fetched branch!', 'branch' => $branch], 200);
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -61,11 +63,11 @@ class BusinessBranchController extends Controller
     {
         $validated = $request->validated();
         $branch->update($validated);
-        
+
         return response()->json([
-            "message" => "updated $branch->name branch!",
-             "branch" => $branch
-             ]);
+            'message' => "updated $branch->name branch!",
+            'branch' => $branch,
+        ]);
     }
 
     /**

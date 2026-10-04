@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductLossRequest;
+use App\Models\Product;
 use App\Models\ProductLoss;
 use App\Services\InventoryService;
 use App\Support\Auth\RolePermissions;
@@ -11,9 +12,7 @@ use Illuminate\Http\Request;
 
 class ProductLossController extends Controller
 {
-    public function __construct(private InventoryService $inventoryService)
-    {
-    }
+    public function __construct(private InventoryService $inventoryService) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -61,7 +60,7 @@ class ProductLossController extends Controller
 
         $data = $request->validated();
 
-        $product = \App\Models\Product::whereKey($data['product_id'])->firstOrFail();
+        $product = Product::whereKey($data['product_id'])->firstOrFail();
 
         $loss = $this->inventoryService->writeOff(
             $product,

@@ -21,7 +21,7 @@ class UpdatePlanRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|unique:plans,slug,' . $this->route('plan'),
+            'slug' => 'sometimes|string|max:255|unique:plans,slug,'.$this->route('plan'),
             // Same enum as create. It stays out of $fillable's reach on its own, so an
             // unvalidated "mark" here would be dropped silently rather than rejected.
             'mark' => ['sometimes', Rule::in(['Affordable', 'Most Popular', 'Best Value', 'Enterprise'])],

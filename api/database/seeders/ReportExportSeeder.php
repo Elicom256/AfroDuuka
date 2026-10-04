@@ -2,17 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Models\Business;
 use App\Models\ReportExport;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class ReportExportSeeder extends Seeder
 {
     public function run(): void
     {
-        $business = \App\Models\Business::where('email', 'testbusinessone@gmail.com')->first();
-        $user = \App\Models\User::where('email', 'testbusinessone@gmail.com')->first();
+        $business = Business::where('email', 'testbusinessone@gmail.com')->first();
+        $user = User::where('email', 'testbusinessone@gmail.com')->first();
 
-        if (!$business || !$user) {
+        if (! $business || ! $user) {
             return;
         }
 

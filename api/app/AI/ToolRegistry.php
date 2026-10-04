@@ -2,8 +2,6 @@
 
 namespace App\AI;
 
-use Illuminate\Support\Str;
-
 class ToolRegistry
 {
     protected array $tools = [];
@@ -16,18 +14,18 @@ class ToolRegistry
     protected function discoverTools(): void
     {
         $namespace = 'App\\AI\\Tools\\';
-        $path = __DIR__ . '/Tools';
+        $path = __DIR__.'/Tools';
 
-        foreach (glob($path . '/*.php') as $file) {
-            $class = $namespace . pathinfo($file, PATHINFO_FILENAME);
+        foreach (glob($path.'/*.php') as $file) {
+            $class = $namespace.pathinfo($file, PATHINFO_FILENAME);
 
-            if (!class_exists($class)) {
+            if (! class_exists($class)) {
                 continue;
             }
 
             $reflection = new \ReflectionClass($class);
 
-            if ($reflection->isAbstract() || !$reflection->isSubclassOf(Tool::class)) {
+            if ($reflection->isAbstract() || ! $reflection->isSubclassOf(Tool::class)) {
                 continue;
             }
 

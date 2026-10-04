@@ -23,8 +23,11 @@ class QuotationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected Role $role;
+
     protected User $user;
 
     protected function setUp(): void
@@ -60,7 +63,7 @@ class QuotationTest extends TestCase
 
         return Product::factory()->create(array_merge([
             'business_branch_id' => $this->branch->id,
-            'name' => 'Quote Widget ' . self::$productCounter,
+            'name' => 'Quote Widget '.self::$productCounter,
             'status' => 'active',
             'is_tax_inclusive' => false,
             'quantity' => $quantity,
@@ -157,9 +160,9 @@ class QuotationTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonPath('quotation.subtotal', sprintf("%.2f", $tax['taxable_amount']))
-            ->assertJsonPath('quotation.tax_amount', sprintf("%.2f", $tax['tax_amount']))
-            ->assertJsonPath('quotation.total_amount', sprintf("%.2f", $tax['taxable_amount'] + $tax['tax_amount']));
+            ->assertJsonPath('quotation.subtotal', sprintf('%.2f', $tax['taxable_amount']))
+            ->assertJsonPath('quotation.tax_amount', sprintf('%.2f', $tax['tax_amount']))
+            ->assertJsonPath('quotation.total_amount', sprintf('%.2f', $tax['taxable_amount'] + $tax['tax_amount']));
     }
 
     public function test_quotation_requires_at_least_one_item(): void

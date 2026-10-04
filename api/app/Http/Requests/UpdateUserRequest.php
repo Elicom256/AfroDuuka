@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Override;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -21,9 +19,10 @@ class UpdateUserRequest extends FormRequest
     {
         $this->merge([
             'business_id' => Auth::user()->business_id,
-            "business_branch_id" => Auth::user()->business_branch_id
+            'business_branch_id' => Auth::user()->business_branch_id,
         ]);
     }
+
     public function rules(): array
     {
         return [
@@ -35,8 +34,8 @@ class UpdateUserRequest extends FormRequest
             'business_id' => 'nullable|exists:businesses,id',
             'business_branch_id' => 'required|exists:business_branches,id',
             'role_id' => 'nullable|exists:roles,id',
-            "branch_powers" => "nullable|in:allowed,none",
-            "status" => "nullable|in:active,suspended,sucked"
+            'branch_powers' => 'nullable|in:allowed,none',
+            'status' => 'nullable|in:active,suspended,sucked',
         ];
     }
 }

@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\BusinessCategory;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class BusinessCategoryPolicy
 {
@@ -46,6 +45,7 @@ class BusinessCategoryPolicy
     public function delete(User $user, BusinessCategory $businessCategory): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class BusinessCategoryPolicy
     public function forceDelete(User $user, BusinessCategory $businessCategory): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

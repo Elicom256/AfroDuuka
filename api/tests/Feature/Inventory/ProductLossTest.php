@@ -4,7 +4,6 @@ namespace Tests\Feature\Inventory;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\CashFlow;
 use App\Models\Product;
 use App\Models\ProductLoss;
 use App\Models\Role;
@@ -19,7 +18,9 @@ class ProductLossTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected BusinessBranch $branch;
+
     protected InventoryService $inventoryService;
 
     protected function setUp(): void
@@ -128,7 +129,7 @@ class ProductLossTest extends TestCase
     {
         $product = $this->product(10);
 
-        $key = md5($product->id . ':writeoff:damaged:3:' . now()->toDateString());
+        $key = md5($product->id.':writeoff:damaged:3:'.now()->toDateString());
 
         $loss1 = $this->inventoryService->writeOff($product, 3, 'damaged', 'First call', $key);
         $loss2 = $this->inventoryService->writeOff($product, 3, 'damaged', 'Retry', $key);

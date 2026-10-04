@@ -12,9 +12,7 @@ use Illuminate\Http\JsonResponse;
 
 class QuotationController extends Controller
 {
-    public function __construct(protected QuotationService $quotations)
-    {
-    }
+    public function __construct(protected QuotationService $quotations) {}
 
     public function index(): JsonResponse
     {

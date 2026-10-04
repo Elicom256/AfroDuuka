@@ -3,8 +3,8 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\SaleItem;
 use App\Models\PurchaseItem;
+use App\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
 
 class ProfitSummary extends Tool
@@ -67,6 +67,7 @@ class ProfitSummary extends Tool
             'last_month' => now()->subMonth()->startOfMonth(),
             default => now()->subDays(30),
         };
+
         return $date->toDateTimeString();
     }
 }

@@ -3,9 +3,8 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\Sale;
 use App\Models\Purchase;
-use Illuminate\Support\Facades\DB;
+use App\Models\Sale;
 
 class ComparePeriods extends Tool
 {

@@ -10,10 +10,11 @@ class EmployeeSalarySeeder extends Seeder
 {
     public function run(): void
     {
-        $workers = Worker::whereHas('user', fn($q) => $q->where('role_id', '!=', 1))->get();
+        $workers = Worker::whereHas('user', fn ($q) => $q->where('role_id', '!=', 1))->get();
 
         if ($workers->isEmpty()) {
             EmployeeSalary::factory()->count(5)->create();
+
             return;
         }
 

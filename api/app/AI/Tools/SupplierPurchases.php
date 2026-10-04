@@ -4,6 +4,7 @@ namespace App\AI\Tools;
 
 use App\AI\Tool;
 use App\Models\Purchase;
+use App\Models\Supplier;
 
 class SupplierPurchases extends Tool
 {
@@ -36,13 +37,13 @@ class SupplierPurchases extends Tool
         $supplierId = $parameters['supplier_id'] ?? null;
         $limit = min((int) ($parameters['limit'] ?? 20), 100);
 
-        if (!$supplierId) {
+        if (! $supplierId) {
             return ['message' => 'Please provide a supplier ID.'];
         }
 
-        $supplier = \App\Models\Supplier::with('user')->find($supplierId);
+        $supplier = Supplier::with('user')->find($supplierId);
 
-        if (!$supplier) {
+        if (! $supplier) {
             return ['message' => 'Supplier not found.'];
         }
 

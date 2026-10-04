@@ -11,6 +11,7 @@ class PaymentFailed
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $payment;
+
     public $subscription;
 
     public function __construct($payment, $subscription)

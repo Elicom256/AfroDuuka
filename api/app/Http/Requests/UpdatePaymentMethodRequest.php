@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,17 +12,19 @@ class UpdatePaymentMethodRequest extends FormRequest
         return Auth::check();
     }
 
-   public function prepareForValidation()
+    public function prepareForValidation()
     {
         $businessId = Auth::user()->business_id;
+
         return $this->merge([
-            "business_id" => $businessId
+            'business_id' => $businessId,
         ]);
     }
+
     public function rules(): array
     {
         return [
-            "status" => "required|in:enabled,disabled"
+            'status' => 'required|in:enabled,disabled',
         ];
     }
 }

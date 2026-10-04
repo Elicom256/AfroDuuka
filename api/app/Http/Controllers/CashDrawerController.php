@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CashDrawerController extends Controller
 {
-    public function __construct(private CashDrawerService $cashDrawerService)
-    {
-    }
+    public function __construct(private CashDrawerService $cashDrawerService) {}
 
     public function open(OpenCashDrawerRequest $request)
     {

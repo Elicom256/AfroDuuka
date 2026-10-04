@@ -18,9 +18,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class WhatsAppConfigController extends Controller
 {
-    public function __construct(private readonly WhatsAppService $whatsAppService)
-    {
-    }
+    public function __construct(private readonly WhatsAppService $whatsAppService) {}
 
     /**
      * Explicit response shape. Returning the model leaked access_token and

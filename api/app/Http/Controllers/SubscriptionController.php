@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateSubscriptionRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\WhatsApp\WhatsAppNotificationService;
-use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 

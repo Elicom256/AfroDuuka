@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\CreditSetting;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CreditSettingPolicy
 {
@@ -46,6 +45,7 @@ class CreditSettingPolicy
     public function delete(User $user, CreditSetting $creditSetting): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class CreditSettingPolicy
     public function forceDelete(User $user, CreditSetting $creditSetting): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

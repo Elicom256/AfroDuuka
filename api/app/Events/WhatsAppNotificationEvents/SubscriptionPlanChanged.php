@@ -11,6 +11,7 @@ class SubscriptionPlanChanged
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $subscription;
+
     public $oldPlan;
 
     public function __construct($subscription, $oldPlan)

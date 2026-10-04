@@ -11,17 +11,17 @@ class PurchaseOrderItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        "purchase_order_id",
-        "product_id",
-        "quantity",
-        "received_quantity",
-        "unit_price",
-        "subtotal",
+        'purchase_order_id',
+        'product_id',
+        'quantity',
+        'received_quantity',
+        'unit_price',
+        'subtotal',
     ];
 
     protected $casts = [
-        "unit_price" => "decimal:2",
-        "subtotal" => "decimal:2",
+        'unit_price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function purchaseOrder(): BelongsTo

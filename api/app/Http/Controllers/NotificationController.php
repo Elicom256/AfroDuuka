@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreNotificationRequest;
-use App\Http\Requests\UpdateNotificationRequest;
 use App\Models\Notification;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -47,7 +45,7 @@ class NotificationController extends Controller
                 'unread_by_type' => $this->unreadByTypeForUser(),
                 'current_page' => $notifications->currentPage(),
                 'last_page' => $notifications->lastPage(),
-            ]
+            ],
         ]);
     }
 
@@ -80,7 +78,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'message' => 'Notification marked as read',
-            'notification' => $notification
+            'notification' => $notification,
         ]);
     }
 
@@ -98,7 +96,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'message' => 'All notifications marked as read!',
-            'marked_count' => $count
+            'marked_count' => $count,
         ]);
     }
 
@@ -114,7 +112,7 @@ class NotificationController extends Controller
         $notification->delete();
 
         return response()->json([
-            'message' => 'Notification deleted successfully'
+            'message' => 'Notification deleted successfully',
         ]);
     }
 

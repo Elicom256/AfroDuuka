@@ -2,9 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\CoreSettings\PaymentMethod;
-use Illuminate\Auth\Access\Response;
+use App\Models\User;
 
 class PaymentMethodPolicy
 {
@@ -31,6 +30,7 @@ class PaymentMethodPolicy
     public function delete(User $user, PaymentMethod $paymentMethod): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -42,6 +42,7 @@ class PaymentMethodPolicy
     public function forceDelete(User $user, PaymentMethod $paymentMethod): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

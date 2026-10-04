@@ -28,14 +28,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // ================== NOTIFICATIONS ======================
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::apiResource('notifications', NotificationController::class)->only([
-        'index', 'show', 'destroy'
+        'index', 'show', 'destroy',
     ]);
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 
     // ================== Todos =============================== ->only(["index", "store", "show", "update", "destroy"]);
-        Route::apiResource("todos", TodoController::class);
-
+    Route::apiResource('todos', TodoController::class);
 
 });

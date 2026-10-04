@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\LogsActivity;
 
 class Supplier extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\SupplierFactory> */
-    use HasFactory, SoftDeletes, LogsActivity;
+    /** @use HasFactory<SupplierFactory> */
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 
-        'supplier_code', 
+        'user_id',
+        'supplier_code',
         'company_name',
         'status',
         'business_id',

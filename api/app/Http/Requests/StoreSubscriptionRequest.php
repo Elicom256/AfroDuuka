@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class StoreSubscriptionRequest extends FormRequest
 {
@@ -20,29 +20,29 @@ class StoreSubscriptionRequest extends FormRequest
 
         if ($user->business_id) {
             $businessId = $user->business_id;
-        } elseif (!$this->filled('business_id')) {
+        } elseif (! $this->filled('business_id')) {
             abort(422, 'business_id is required for CoreSupport subscriptions.');
         } else {
             $businessId = $this->input('business_id');
         }
 
         $this->merge([
-            'business_id'    => $businessId,
-            'status'         => 'active',
-            'starts_at'      => $now,
-            'ends_at'        => $now->copy()->addMonth(),
-            'trial_ends_at'  => $now->copy()->addMonth(),
+            'business_id' => $businessId,
+            'status' => 'active',
+            'starts_at' => $now,
+            'ends_at' => $now->copy()->addMonth(),
+            'trial_ends_at' => $now->copy()->addMonth(),
         ]);
     }
 
     public function rules(): array
     {
         return [
-            'business_id'   => ['required', 'exists:businesses,id'],
-            'plan_id'       => ['required', 'exists:plans,id'],
-            'status'        => ['required', 'in:active,inactive,cancelled,expired'],
-            'starts_at'     => ['required', 'date'],
-            'ends_at'       => ['required', 'date', 'after:starts_at'],
+            'business_id' => ['required', 'exists:businesses,id'],
+            'plan_id' => ['required', 'exists:plans,id'],
+            'status' => ['required', 'in:active,inactive,cancelled,expired'],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['required', 'date', 'after:starts_at'],
             'trial_ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
         ];
     }

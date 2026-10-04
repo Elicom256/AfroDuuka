@@ -340,7 +340,7 @@ class SignupTest extends TestCase
             ->assertStatus(200);
     }
 
-public function test_business_categories_are_readable_before_signup(): void
+    public function test_business_categories_are_readable_before_signup(): void
     {
         BusinessCategory::factory()->create();
 

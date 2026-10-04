@@ -19,7 +19,7 @@ class TaxPaymentFactory extends Factory
             'payment_date' => now()->subDays(fake()->numberBetween(0, 90))->toDateString(),
             'tax_period_start' => now()->startOfMonth()->toDateString(),
             'tax_period_end' => now()->endOfMonth()->toDateString(),
-            'reference' => 'REF-' . strtoupper(fake()->bothify('####')),
+            'reference' => 'REF-'.strtoupper(fake()->bothify('####')),
             'notes' => fake()->sentence(),
         ];
     }

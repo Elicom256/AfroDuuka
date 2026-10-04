@@ -25,7 +25,7 @@ class PosProductResource extends JsonResource
             'markup_percentage' => $this->markup_percentage,
             'stock' => (int) $this->quantity,
             'reorder_level' => (int) $this->reorder_level,
-            'category' => $this->whenLoaded('productCategory', fn() => $this->productCategory?->name),
+            'category' => $this->whenLoaded('productCategory', fn () => $this->productCategory?->name),
             'status' => $this->status,
         ];
     }

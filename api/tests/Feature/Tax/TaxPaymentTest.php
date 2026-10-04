@@ -18,10 +18,15 @@ class TaxPaymentTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected BusinessBranch $otherBranch;
+
     protected TaxCategory $category;
+
     protected TaxCategory $otherCategory;
 
     protected function setUp(): void
@@ -173,7 +178,7 @@ class TaxPaymentTest extends TestCase
             'amount' => 200_000,
         ]);
 
-        $response = $this->getJson('/api/tax-payments?tax_category_id=' . $this->category->id);
+        $response = $this->getJson('/api/tax-payments?tax_category_id='.$this->category->id);
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('payments'));

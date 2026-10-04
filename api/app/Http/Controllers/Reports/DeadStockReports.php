@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class DeadStockReports extends Controller
 {
-    public function __construct(protected DeadStockReportsService $service)
-    {
-    }
+    public function __construct(protected DeadStockReportsService $service) {}
 
     public function index(Request $request)
     {
         $params = $request->all();
-        if ($request->has('period') && !$request->has('filter')) {
+        if ($request->has('period') && ! $request->has('filter')) {
             $params['filter'] = $request->input('period');
         }
         $report = $this->service->deadStock($params, Auth::user());

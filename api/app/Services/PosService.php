@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Http\Resources\PosCustomerResource;
 use App\Http\Resources\PosProductResource;
-use App\Models\CashFlow;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Receipt;
@@ -13,7 +12,6 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
 use App\Models\StockMovement;
-use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -22,9 +20,13 @@ use Illuminate\Support\Facades\DB;
 class PosService
 {
     protected CashFlowService $cashFlowService;
+
     protected NotificationService $notificationService;
+
     protected TaxService $taxService;
+
     protected CustomerCreditService $customerCreditService;
+
     protected ReceiptNumberGenerator $receiptNumberGenerator;
 
     public function __construct(
@@ -46,15 +48,15 @@ class PosService
         $products = Product::with('productCategory')
             ->where(function ($q) use ($query) {
                 $q->where('barcode', 'ILIKE', "{$query}%")
-                  ->orWhere('sku', 'ILIKE', "{$query}%")
-                  ->orWhere('name', 'ILIKE', "%{$query}%");
+                    ->orWhere('sku', 'ILIKE', "{$query}%")
+                    ->orWhere('name', 'ILIKE', "%{$query}%");
             })
             ->whereIn('status', ['active', 'inactive'])
-            ->orderByRaw("CASE
+            ->orderByRaw('CASE
                 WHEN barcode LIKE ? THEN 1
                 WHEN sku LIKE ? THEN 2
                 ELSE 3
-            END", ["{$query}%", "{$query}%"])
+            END', ["{$query}%", "{$query}%"])
             ->orderBy('name')
             ->limit($limit)
             ->get();
@@ -85,12 +87,12 @@ class PosService
         $customers = Customer::with('user')
             ->whereHas('user', function ($q) use ($user, $query) {
                 $q->where('business_id', $user->business_id)
-                  ->where(function ($sq) use ($query) {
-                      $sq->where('firstname', 'ILIKE', "%{$query}%")
-                         ->orWhere('lastname', 'ILIKE', "%{$query}%")
-                         ->orWhere('phone', 'ILIKE', "%{$query}%")
-                         ->orWhereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$query}%"]);
-                  });
+                    ->where(function ($sq) use ($query) {
+                        $sq->where('firstname', 'ILIKE', "%{$query}%")
+                            ->orWhere('lastname', 'ILIKE', "%{$query}%")
+                            ->orWhere('phone', 'ILIKE', "%{$query}%")
+                            ->orWhereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$query}%"]);
+                    });
             })
             ->orWhere('customer_code', 'LIKE', "%{$query}%")
             ->limit($limit)
@@ -109,18 +111,21 @@ class PosService
             $product = Product::where('id', $item['product_id'])
                 ->first();
 
-            if (!$product) {
-                $errors[] = "Item #" . ($index + 1) . ": Product not found in this branch.";
+            if (! $product) {
+                $errors[] = 'Item #'.($index + 1).': Product not found in this branch.';
+
                 continue;
             }
 
             if ($userBranchId !== null && (int) $product->business_branch_id !== (int) $userBranchId) {
-                $errors[] = "Item #" . ($index + 1) . ": Product not found in this branch.";
+                $errors[] = 'Item #'.($index + 1).': Product not found in this branch.';
+
                 continue;
             }
 
             if ($product->status !== 'active') {
                 $errors[] = "{$product->name}: Product is not available for sale.";
+
                 continue;
             }
 
@@ -152,7 +157,7 @@ class PosService
         }
 
         $cartErrors = $this->validateCart($validated['items']);
-        if (!empty($cartErrors)) {
+        if (! empty($cartErrors)) {
             throw new Exception(implode('; ', $cartErrors), 422);
         }
 
@@ -227,12 +232,12 @@ class PosService
 
                 $sale = Sale::create([
                     'business_branch_id' => $branchId,
-                    'customer_id'        => $validated['customer_id'] ?? null,
-                    'subtotal'           => $totalSubtotal,
-                    'tax_amount'         => $totalTaxAmount,
-                    'total_amount'       => $totalAmount,
-                    'note'               => $validated['note'] ?? null,
-                    'status'             => 'completed',
+                    'customer_id' => $validated['customer_id'] ?? null,
+                    'subtotal' => $totalSubtotal,
+                    'tax_amount' => $totalTaxAmount,
+                    'total_amount' => $totalAmount,
+                    'note' => $validated['note'] ?? null,
+                    'status' => 'completed',
                 ]);
 
                 foreach ($validated['items'] as $item) {
@@ -247,16 +252,16 @@ class PosService
                     );
 
                     SaleItem::create([
-                        'sale_id'          => $sale->id,
-                        'product_id'       => $item['product_id'],
-                        'quantity'         => $item['quantity'],
-                        'unit_price'       => $item['unit_price'],
-                        'discount'         => $item['discount'] ?? 0,
-                        'tax_rate'         => $tax['rate'],
+                        'sale_id' => $sale->id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'discount' => $item['discount'] ?? 0,
+                        'tax_rate' => $tax['rate'],
                         'is_tax_inclusive' => $tax['is_tax_inclusive'],
-                        'taxable_amount'   => $tax['taxable_amount'],
-                        'tax_amount'       => $tax['tax_amount'],
-                        'subtotal'         => $subtotal,
+                        'taxable_amount' => $tax['taxable_amount'],
+                        'tax_amount' => $tax['tax_amount'],
+                        'subtotal' => $subtotal,
                     ]);
 
                     $product->decrement('quantity', $item['quantity']);
@@ -267,14 +272,14 @@ class PosService
                             'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
                         ],
                         [
-                            'business_id'       => $user->business_id,
+                            'business_id' => $user->business_id,
                             'business_branch_id' => $branchId,
-                            'product_id'        => $item['product_id'],
-                            'type'              => 'out',
-                            'quantity'          => $item['quantity'],
-                            'reference_type'    => Sale::class,
-                            'reference_id'      => $sale->id,
-                            'notes'             => 'POS sale',
+                            'product_id' => $item['product_id'],
+                            'type' => 'out',
+                            'quantity' => $item['quantity'],
+                            'reference_type' => Sale::class,
+                            'reference_id' => $sale->id,
+                            'notes' => 'POS sale',
                         ]
                     );
 
@@ -294,9 +299,9 @@ class PosService
             $creditAmount = 0;
             foreach ($validated['payments'] as $payment) {
                 SalePayment::create([
-                    'sale_id'       => $sale->id,
-                    'method'        => $payment['method'],
-                    'amount'        => $payment['amount'],
+                    'sale_id' => $sale->id,
+                    'method' => $payment['method'],
+                    'amount' => $payment['amount'],
                     'paymentStatus' => 'paid',
                 ]);
                 $totalPaid += $payment['amount'];
@@ -315,13 +320,13 @@ class PosService
             $customer = isset($validated['customer_id'])
                 ? Customer::with('user')->find($validated['customer_id'])?->user
                 : null;
-            $customerName = $customer ? trim($customer->firstname . ' ' . $customer->lastname) : 'Walk-in Customer';
+            $customerName = $customer ? trim($customer->firstname.' '.$customer->lastname) : 'Walk-in Customer';
 
             $this->cashFlowService->createCashFlowForSale($sale, $netTotal, [
-                'transaction_code'  => 'CF-POS-' . str_pad($sale->id, 6, '0', STR_PAD_LEFT),
-                'currency'          => $validated['currency'] ?? 'UGX',
+                'transaction_code' => 'CF-POS-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
+                'currency' => $validated['currency'] ?? 'UGX',
                 'payment_status_id' => 1,
-                'reference'         => null,
+                'reference' => null,
             ]);
 
             $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName, $sale->id);
@@ -334,7 +339,7 @@ class PosService
 
     protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
     {
-        return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
+        return md5($referenceType.':'.$referenceId.':'.$productId.':'.$type.':'.$quantity);
     }
 
     protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven, string $receiptNumber): Receipt
@@ -349,35 +354,35 @@ class PosService
         $paymentMethod = collect($validated['payments'])->pluck('method')->implode(', ');
 
         $receipt = Receipt::create([
-            'receipt_number'     => $receiptNumber,
-            'customer_id'        => $sale->customer_id,
-            'user_id'            => $user->id,
-            'business_id'        => $user->business_id,
+            'receipt_number' => $receiptNumber,
+            'customer_id' => $sale->customer_id,
+            'user_id' => $user->id,
+            'business_id' => $user->business_id,
             'business_branch_id' => $sale->business_branch_id,
-            'sale_id'            => $sale->id,
-            'subtotal'           => $subtotal,
-            'discount'           => $discountTotal,
-            'tax'                => $tax,
-            'total'              => $total,
-            'amount_paid'        => $amountPaid,
-            'change_given'       => $changeGiven,
-            'payment_method'     => $paymentMethod,
-            'status'             => 'completed',
-            'notes'              => $sale->note,
+            'sale_id' => $sale->id,
+            'subtotal' => $subtotal,
+            'discount' => $discountTotal,
+            'tax' => $tax,
+            'total' => $total,
+            'amount_paid' => $amountPaid,
+            'change_given' => $changeGiven,
+            'payment_method' => $paymentMethod,
+            'status' => 'completed',
+            'notes' => $sale->note,
         ]);
 
         $saleItems = SaleItem::with('product')->where('sale_id', $sale->id)->get();
 
         foreach ($saleItems as $item) {
             ReceiptItem::create([
-                'receipt_id'   => $receipt->id,
-                'product_id'   => $item->product_id,
+                'receipt_id' => $receipt->id,
+                'product_id' => $item->product_id,
                 'product_name' => $item->product?->name ?? 'Unknown',
-                'sku'          => $item->product?->sku,
-                'quantity'     => $item->quantity,
-                'unit_price'   => $item->unit_price,
-                'discount'     => $item->discount ?? 0,
-                'line_total'   => $item->subtotal,
+                'sku' => $item->product?->sku,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'discount' => $item->discount ?? 0,
+                'line_total' => $item->subtotal,
             ]);
         }
 
@@ -391,7 +396,7 @@ class PosService
 
         $resolved = EffectiveBranchScope::branchesFor($user);
         if ($resolved !== null && $branchId !== null && ! in_array($branchId, $resolved[1], true)) {
-            throw new \Exception('The selected business branch is outside your scope.');
+            throw new Exception('The selected business branch is outside your scope.');
         }
 
         return DB::transaction(function () use ($items, $customerId, $notes, $user, $branchId) {
@@ -422,13 +427,13 @@ class PosService
 
             $sale = Sale::create([
                 'business_branch_id' => $branchId,
-                'user_id'            => $user->id,
-                'customer_id'        => $customerId,
-                'subtotal'           => $totalSubtotal,
-                'tax_amount'         => $totalTaxAmount,
-                'total_amount'       => $totalAmount,
-                'note'               => $notes,
-                'status'             => 'held',
+                'user_id' => $user->id,
+                'customer_id' => $customerId,
+                'subtotal' => $totalSubtotal,
+                'tax_amount' => $totalTaxAmount,
+                'total_amount' => $totalAmount,
+                'note' => $notes,
+                'status' => 'held',
             ]);
 
             foreach ($items as $item) {
@@ -443,16 +448,16 @@ class PosService
                 );
 
                 SaleItem::create([
-                    'sale_id'          => $sale->id,
-                    'product_id'       => $item['product_id'],
-                    'quantity'         => $item['quantity'],
-                    'unit_price'       => $item['unit_price'],
-                    'discount'         => $item['discount'] ?? 0,
-                    'tax_rate'         => $tax['rate'],
+                    'sale_id' => $sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'discount' => $item['discount'] ?? 0,
+                    'tax_rate' => $tax['rate'],
                     'is_tax_inclusive' => $tax['is_tax_inclusive'],
-                    'taxable_amount'   => $tax['taxable_amount'],
-                    'tax_amount'       => $tax['tax_amount'],
-                    'subtotal'         => $subtotal,
+                    'taxable_amount' => $tax['taxable_amount'],
+                    'tax_amount' => $tax['tax_amount'],
+                    'subtotal' => $subtotal,
                 ]);
             }
 

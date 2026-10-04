@@ -4,6 +4,7 @@ namespace Tests\Feature\Tax;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\TaxCategory;
 use App\Models\User;
@@ -17,10 +18,15 @@ class TaxProductIntegrationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected BusinessBranch $otherBranch;
+
     protected TaxCategory $category;
+
     protected TaxCategory $otherCategory;
 
     protected function setUp(): void
@@ -106,7 +112,7 @@ class TaxProductIntegrationTest extends TestCase
 
     public function test_product_response_includes_tax_category_relation(): void
     {
-        $product = \App\Models\Product::factory()->create([
+        $product = Product::factory()->create([
             'business_branch_id' => $this->branch->id,
             'tax_category_id' => $this->category->id,
         ]);

@@ -15,7 +15,7 @@ class SubscriptionSeeder extends Seeder
         $planIds = Plan::pluck('id')->toArray();
         $statuses = ['active', 'paused', 'cancelled', 'expired'];
 
-        if (!$businessId || empty($planIds)) {
+        if (! $businessId || empty($planIds)) {
             return;
         }
 

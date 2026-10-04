@@ -16,7 +16,7 @@ class CustomerFactory extends Factory
         return [
             'user_id' => User::factory(),
             'business_id' => Business::factory(),
-            'customer_code' => 'CUS-' . fake()->unique()->numerify('####'),
+            'customer_code' => 'CUS-'.fake()->unique()->numerify('####'),
             'status' => 'active',
         ];
     }

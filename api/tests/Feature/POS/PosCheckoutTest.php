@@ -4,15 +4,10 @@ namespace Tests\Feature\POS;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\CashFlow;
 use App\Models\Customer;
-use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
-use App\Models\SaleItem;
-use App\Models\SalePayment;
-use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -24,9 +19,13 @@ class PosCheckoutTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected Product $product;
+
     protected Customer $customer;
 
     protected function setUp(): void

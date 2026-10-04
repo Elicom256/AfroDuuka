@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Product;
-use App\Models\Sale;
-use App\Models\Purchase;
 use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Models\Supplier;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Support\Facades\Auth;
@@ -55,10 +55,10 @@ class ExportService
             $query->whereIn('business_branch_id', $branchIds);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
@@ -83,10 +83,10 @@ class ExportService
             $query->whereIn('business_branch_id', $branchIds);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
@@ -129,7 +129,7 @@ class ExportService
     {
         $callback = function () use ($headers, $rows) {
             $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, $headers);
             foreach ($rows as $row) {
                 fputcsv($file, $row);
@@ -139,7 +139,7 @@ class ExportService
 
         return Response::stream($callback, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename={$filename}-" . date('Y-m-d') . '.csv',
+            'Content-Disposition' => "attachment; filename={$filename}-".date('Y-m-d').'.csv',
         ]);
     }
 }
