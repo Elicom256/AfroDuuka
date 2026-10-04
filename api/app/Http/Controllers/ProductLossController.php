@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductLossRequest;
 use App\Models\ProductLoss;
 use App\Services\InventoryService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -47,6 +48,17 @@ class ProductLossController extends Controller
 
     public function store(StoreProductLossRequest $request): JsonResponse
     {
+        // The gate is here, at the controller, and not inside
+        // InventoryService::writeOff(). That service is also reached from the stock
+        // count and expiry sweep, which Operations legitimately drives, so putting a
+        // role check in it would fence Operations out of its own floor.
+        //
+        // Writing a loss off decrements quantity and books a cash_flows expense row.
+        // InventoryService validates the reason and the quantity; it never asked who
+        // was asking, so any signed-in account could remove stock and the money with
+        // it. canModifyStock() is the existing expression of that capability.
+        abort_unless(RolePermissions::canModifyStock($request->user()), 403, 'You cannot record product losses.');
+
         $data = $request->validated();
 
         $product = \App\Models\Product::whereKey($data['product_id'])->firstOrFail();

@@ -36,8 +36,36 @@ class BusinessDebitTest extends TestCase
         $this->actingAs($this->user);
     }
 
+    /**
+     * RoleFactory's default name is 'Operations', so $this->user is an Operations
+     * account by accident rather than by decision. That accident used to be invisible
+     * because nothing on this controller asked. It matters now, because the two halves
+     * of this resource have deliberately different answers:
+     *
+     *   - pay() is ungated. Settling a debt records money already committed, which is
+     *     a floor task. The pay tests below therefore keep the Operations user on
+     *     purpose — they are the evidence that this stays open.
+     *   - store()/update() are gated to canManageBranch(). Asserting that the business
+     *     owes a supplier money is a ledger decision, not a till one.
+     *
+     * The refusal side of that split is pinned in MutatingEndpointAuthorizationTest.
+     */
+    private function actingAsRole(string $roleName): void
+    {
+        $role = Role::factory()->create([
+            'business_id' => $this->user->business_id,
+            'name' => $roleName,
+        ]);
+
+        $this->user->forceFill(['role_id' => $role->id])->save();
+
+        $this->actingAs($this->user->fresh());
+    }
+
     public function test_debit_created_with_open_status_and_full_balance(): void
     {
+        $this->actingAsRole('Executive');
+
         $response = $this->postJson('/api/finances/business-debits', [
             'business_branch_id' => $this->branch->id,
             'supplier_id' => $this->supplier->id,

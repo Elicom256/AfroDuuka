@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateReportExportRequest;
 use App\Models\ReportExport;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -25,6 +26,13 @@ class ReportExportController extends Controller
 
     public function store(StoreReportExportRequest $request)
     {
+        // An export pulls data out of the business in a form that leaves the tenant
+        // scope entirely, so it follows canManageReports() — the same capability
+        // ReportPolicy::create already enforces over the report definitions
+        // themselves. Note that means Executive only, not BranchManager: exporting is
+        // a business-level read.
+        abort_unless(RolePermissions::canManageReports($request->user()), 403, 'You cannot request report exports.');
+
         $export = ReportExport::create($request->validated());
 
         ActivityLog::create([
@@ -53,6 +61,8 @@ class ReportExportController extends Controller
 
     public function update(UpdateReportExportRequest $request, ReportExport $reportExport)
     {
+        abort_unless(RolePermissions::canManageReports($request->user()), 403, 'You cannot change report exports.');
+
         $reportExport->update($request->validated());
         return response()->json(['message' => 'Report export updated', 'data' => $reportExport]);
     }
