@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\LogsActivity;
 
 class Worker extends BaseModel
 {
@@ -33,15 +33,20 @@ class Worker extends BaseModel
     }
 
     public function getBusinessBranchAttribute()
-{
-    return $this->user?->businessBranch ?? null;
-}
-    public function attendances():HasMany{
+    {
+        return $this->user?->businessBranch ?? null;
+    }
+
+    public function attendances(): HasMany
+    {
         return $this->hasMany(Attendance::class);
     }
-    public function employeeRemuneration(){
+
+    public function employeeRemuneration()
+    {
         return $this->hasMany(EmployeeRemuneration::class);
     }
+
     public function employeeSalaries(): HasMany
     {
         return $this->hasMany(EmployeeSalary::class);

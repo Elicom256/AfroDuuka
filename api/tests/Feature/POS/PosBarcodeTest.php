@@ -17,7 +17,9 @@ class PosBarcodeTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
 
     protected function setUp(): void
@@ -50,7 +52,7 @@ class PosBarcodeTest extends TestCase
             'status' => 'active',
         ]);
 
-        $response = $this->getJson("/api/pos/products/by-barcode/890100000001")
+        $response = $this->getJson('/api/pos/products/by-barcode/890100000001')
             ->assertStatus(200)
             ->assertJsonStructure(['message', 'data']);
 
@@ -76,7 +78,7 @@ class PosBarcodeTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->getJson("/api/pos/products/by-barcode/%0A777777777777")
+        $this->getJson('/api/pos/products/by-barcode/%0A777777777777')
             ->assertStatus(200)
             ->assertJsonPath('data.barcode', '777777777777');
     }

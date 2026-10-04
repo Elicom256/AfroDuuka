@@ -2,11 +2,11 @@
 
 namespace App\Observers;
 
+use App\Models\ActivityLog;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Auth\Events\Failed;
 use Illuminate\Support\Facades\Request;
-use App\Models\ActivityLog;
 
 class AuthObserver
 {
@@ -32,7 +32,7 @@ class AuthObserver
     {
         $user = $event->user;
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 

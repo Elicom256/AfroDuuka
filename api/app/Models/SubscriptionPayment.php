@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Models\CoreSettings\PaymentMethod;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SubscriptionPayment extends BaseModel
 {

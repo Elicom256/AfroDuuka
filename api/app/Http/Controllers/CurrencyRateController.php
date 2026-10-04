@@ -30,6 +30,7 @@ class CurrencyRateController extends Controller
         abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage currency rates.');
 
         $rate = CurrencyRate::create($request->validated());
+
         return response()->json(['message' => 'Currency rate created', 'data' => $rate], 201);
     }
 
@@ -47,12 +48,14 @@ class CurrencyRateController extends Controller
         abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage currency rates.');
 
         $currencyRate->update($request->validated());
+
         return response()->json(['message' => 'Currency rate updated', 'data' => $currencyRate]);
     }
 
     public function destroy(CurrencyRate $currencyRate)
     {
         $currencyRate->delete();
+
         return response()->json(['message' => 'Currency rate deleted']);
     }
 }

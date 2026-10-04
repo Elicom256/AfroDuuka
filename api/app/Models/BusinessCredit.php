@@ -42,7 +42,7 @@ class BusinessCredit extends BaseModel
 
     public function amountPaid(): float
     {
-        return (float) \App\Models\CustomerCreditTransaction::where('customer_id', $this->customer_id)
+        return (float) CustomerCreditTransaction::where('customer_id', $this->customer_id)
             ->where('business_branch_id', $this->business_branch_id)
             ->where('type', 'payment')
             ->sum('amount');

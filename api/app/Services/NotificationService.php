@@ -24,15 +24,15 @@ class NotificationService
         ?int $notifiableId = null
     ): Notification {
         return Notification::create([
-            'user_id'         => $user->id,
-            'business_id'         => $user->business_id,
-            'type'            => $type,
-            'title'           => $title,
-            'message'         => $message,
-            'data'            => $data,
+            'user_id' => $user->id,
+            'business_id' => $user->business_id,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'data' => $data,
             'notifiable_type' => $notifiableType,
-            'notifiable_id'   => $notifiableId,
-            'is_read'         => false,
+            'notifiable_id' => $notifiableId,
+            'is_read' => false,
         ]);
     }
 
@@ -48,7 +48,7 @@ class NotificationService
         ?int $notifiableId = null
     ): ?Notification {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -75,7 +75,6 @@ class NotificationService
     /**
      * Common Business Notifications
      */
-
     public function lowStockAlert(User $user, string $productName, int $currentStock, int $reorderLevel, ?int $productId = null): Notification
     {
         return $this->create(

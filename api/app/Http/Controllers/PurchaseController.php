@@ -14,20 +14,22 @@ use Illuminate\Support\Facades\Auth;
 class PurchaseController extends Controller
 {
     protected $purchaseService;
+
     public function __construct(PurchaseService $purchaseService)
     {
         $this->purchaseService = $purchaseService;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $purchases = Purchase::with("supplier", "purchaseItems", "businessBranch")
-                    ->orderByDesc("created_at")
-                    ->get();
+        $purchases = Purchase::with('supplier', 'purchaseItems', 'businessBranch')
+            ->orderByDesc('created_at')
+            ->get();
 
-        return response()->json(["message" => "Purchases fetched", "purchases" => $purchases]);
+        return response()->json(['message' => 'Purchases fetched', 'purchases' => $purchases]);
     }
 
     /**
@@ -43,7 +45,8 @@ class PurchaseController extends Controller
 
         $validated = $request->validated();
         $purchase = $this->purchaseService->savePurchase($validated);
-        return response()->json(["message" => "Purchase Completed Successfully!", "purchase" => $purchase]);
+
+        return response()->json(['message' => 'Purchase Completed Successfully!', 'purchase' => $purchase]);
     }
 
     /**
@@ -51,9 +54,10 @@ class PurchaseController extends Controller
      */
     public function show(string $purchase)
     {
-        $product = Purchase::with("supplier", "purchaseItems.product")
-                  ->findOrFail($purchase);
-        return response()->json(["message" => "Purchase fetched", "purchase" => $product]);
+        $product = Purchase::with('supplier', 'purchaseItems.product')
+            ->findOrFail($purchase);
+
+        return response()->json(['message' => 'Purchase fetched', 'purchase' => $product]);
     }
 
     /**
@@ -91,27 +95,28 @@ class PurchaseController extends Controller
     }
 
     public function salesAnalytics()
-{
-    try {
-        $period = request()->query('period', 'last_7_days');
-        $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
-        if (!in_array($period, $allowedPeriods)) {
-            $period = 'last_7_days'; // fallback
+    {
+        try {
+            $period = request()->query('period', 'last_7_days');
+            $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
+            if (! in_array($period, $allowedPeriods)) {
+                $period = 'last_7_days'; // fallback
+            }
+            $analytics = $this->purchaseService->analytics($period);
+
+            return response()->json([
+                'message' => 'Sales analytics fetched successfully',
+                'data' => $analytics,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch sales analytics',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        $analytics = $this->purchaseService->analytics($period);
-
-        return response()->json([
-            "message" => "Sales analytics fetched successfully",
-            "data" => $analytics
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            "message" => "Failed to fetch sales analytics",
-            "error" => $e->getMessage()
-        ], 500);
     }
-}
+
     /**
      * Update the specified resource in storage.
      */

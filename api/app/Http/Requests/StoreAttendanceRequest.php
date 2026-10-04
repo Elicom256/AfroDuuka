@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class StoreAttendanceRequest extends FormRequest
 {
@@ -27,10 +27,10 @@ class StoreAttendanceRequest extends FormRequest
             // Auto set check_in based on status
             if (in_array($status, ['present', 'late'])) {
                 $attendances[$key]['check_in'] = Carbon::now()->toDateTimeString();
-                $attendances[$key]['remarks'] = "reported for work today! Recorded as present";
+                $attendances[$key]['remarks'] = 'reported for work today! Recorded as present';
             } else {
                 $attendances[$key]['check_in'] = null;
-                $attendances[$key]['remarks'] = "did not report for work today! Recorded as absent";
+                $attendances[$key]['remarks'] = 'did not report for work today! Recorded as absent';
             }
         }
 

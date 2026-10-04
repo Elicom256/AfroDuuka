@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateBusinessStatusRequest;
 use App\Models\Business;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class SuperAdminBusinessController extends Controller
 {
@@ -25,7 +23,8 @@ class SuperAdminBusinessController extends Controller
         $this->ensureSiteAdmin();
 
         $businesses = Business::with(['country', 'users'])->orderBy('created_at', 'desc')->get();
-        return response()->json(["businesses" => $businesses, "message" => "Businesses retrieved"]);
+
+        return response()->json(['businesses' => $businesses, 'message' => 'Businesses retrieved']);
     }
 
     public function show(Business $business)
@@ -33,7 +32,8 @@ class SuperAdminBusinessController extends Controller
         $this->ensureSiteAdmin();
 
         $business->load(['country', 'users', 'productCategories']);
-        return response()->json(["business" => $business, "message" => "Business retrieved"]);
+
+        return response()->json(['business' => $business, 'message' => 'Business retrieved']);
     }
 
     public function updateStatus(UpdateBusinessStatusRequest $request, Business $business)
@@ -45,6 +45,7 @@ class SuperAdminBusinessController extends Controller
         ]);
 
         $business->update(['status' => $request->status]);
-        return response()->json(["business" => $business->fresh(), "message" => "Business status updated"]);
+
+        return response()->json(['business' => $business->fresh(), 'message' => 'Business status updated']);
     }
 }

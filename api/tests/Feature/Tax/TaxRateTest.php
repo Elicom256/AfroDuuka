@@ -18,10 +18,15 @@ class TaxRateTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected BusinessBranch $otherBranch;
+
     protected TaxCategory $category;
+
     protected TaxCategory $otherCategory;
 
     protected function setUp(): void

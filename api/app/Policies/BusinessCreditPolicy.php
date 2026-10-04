@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\BusinessCredit;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class BusinessCreditPolicy
 {
@@ -46,6 +45,7 @@ class BusinessCreditPolicy
     public function delete(User $user, BusinessCredit $businessCredit): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class BusinessCreditPolicy
     public function forceDelete(User $user, BusinessCredit $businessCredit): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

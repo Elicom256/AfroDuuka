@@ -21,7 +21,7 @@ return new class extends Migration
         Schema::create('price_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('changed_by')->constrained("users")->cascadeOnDelete();
+            $table->foreignId('changed_by')->constrained('users')->cascadeOnDelete();
             $table->decimal('old_cost_price', 12, 2)->nullable();
             $table->decimal('new_cost_price', 12, 2)->nullable();
             $table->decimal('old_sale_price', 12, 2)->nullable();

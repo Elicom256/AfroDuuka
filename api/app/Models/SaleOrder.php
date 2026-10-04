@@ -2,31 +2,31 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\LogsActivity;
 
 class SaleOrder extends BaseModel
 {
     use HasFactory, LogsActivity;
 
-    protected $table = "sale_orders";
+    protected $table = 'sale_orders';
 
     protected $fillable = [
-        "business_id",
-        "business_branch_id",
-        "user_id",
-        "customer_id",
-        "quotation_id",
-        "order_number",
-        "total_amount",
-        "status",
-        "notes",
+        'business_id',
+        'business_branch_id',
+        'user_id',
+        'customer_id',
+        'quotation_id',
+        'order_number',
+        'total_amount',
+        'status',
+        'notes',
     ];
 
     protected $casts = [
-        "total_amount" => "decimal:2",
+        'total_amount' => 'decimal:2',
     ];
 
     public function items(): HasMany

@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Traits\LogsActivity;
 
 // receipt / invoice like
 class Sale extends BaseModel
 {
     use LogsActivity;
 
-    protected $fillable = [ 'business_branch_id', 'user_id', 'customer_id', 'subtotal', 'tax_amount', 'total_amount', 'status', 'note'];
+    protected $fillable = ['business_branch_id', 'user_id', 'customer_id', 'subtotal', 'tax_amount', 'total_amount', 'status', 'note'];
 
     protected $casts = [
-        'subtotal'     => 'decimal:2',
-        'tax_amount'   => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
     ];
 
@@ -41,7 +40,7 @@ class Sale extends BaseModel
         return $this->belongsTo(BusinessBranch::class);
     }
 
-     public function salePayments(): HasMany
+    public function salePayments(): HasMany
     {
         return $this->hasMany(SalePayment::class);
     }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,13 +15,14 @@ class StoreBusinessBranchRequest extends FormRequest
         return Auth::check();
     }
 
-    public function prepareForValidation(){
+    public function prepareForValidation()
+    {
         $user = Auth::user();
         $phone = $this->input('phone');
 
         $this->merge([
-            "business_id" => $user->business_id,
-            "status" => "active",
+            'business_id' => $user->business_id,
+            'status' => 'active',
             // Normalise a human-typed number the way StoreUserRequest does. The branch
             // form's own placeholder is "+256 700 000 000", which is 12 digits and was
             // rejected by the exact-10 rule below.
@@ -31,6 +31,7 @@ class StoreBusinessBranchRequest extends FormRequest
                 : $phone,
         ]);
     }
+
     public function rules(): array
     {
         return [

@@ -24,6 +24,7 @@ class PosController extends Controller
     {
         try {
             $products = $this->posService->searchProducts($request->input('q'));
+
             return response()->json(['message' => 'Products fetched', 'data' => $products]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Search failed', 'error' => $e->getMessage()], 500);
@@ -49,6 +50,7 @@ class PosController extends Controller
     {
         try {
             $customers = $this->posService->searchCustomers($request->input('q'));
+
             return response()->json(['message' => 'Customers fetched', 'data' => $customers]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Search failed', 'error' => $e->getMessage()], 500);
@@ -60,7 +62,7 @@ class PosController extends Controller
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer|min:1',
         ]);
 
         $errors = $this->posService->validateCart($request->input('items'));
@@ -76,9 +78,10 @@ class PosController extends Controller
     {
         try {
             $sale = $this->posService->checkout($request->validated());
+
             return response()->json([
                 'message' => 'Sale completed successfully!',
-                'sale'    => $sale,
+                'sale' => $sale,
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
@@ -88,9 +91,10 @@ class PosController extends Controller
             if ($status < 400 || $status > 599) {
                 $status = 500;
             }
+
             return response()->json([
                 'message' => 'Checkout failed',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], $status);
         }
     }
@@ -100,11 +104,11 @@ class PosController extends Controller
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.discount'   => 'nullable|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
             'customer_id' => 'nullable|exists:customers,id',
-            'notes'       => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
             'business_branch_id' => 'nullable|integer|exists:business_branches,id',
         ]);
 
@@ -115,6 +119,7 @@ class PosController extends Controller
                 $request->input('notes'),
                 $request->input('business_branch_id')
             );
+
             return response()->json(['message' => 'Sale held successfully', 'data' => $sale], 201);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
@@ -127,6 +132,7 @@ class PosController extends Controller
     {
         try {
             $sales = $this->posService->getHeldSales();
+
             return response()->json(['message' => 'Held sales fetched', 'data' => $sales]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
@@ -139,6 +145,7 @@ class PosController extends Controller
     {
         try {
             $sale = $this->posService->resumeHeldSale($id);
+
             return response()->json(['message' => 'Held sale resumed', 'data' => $sale]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Held sale not found', 'error' => $e->getMessage()], 404);
@@ -149,6 +156,7 @@ class PosController extends Controller
     {
         try {
             $this->posService->deleteHeldSale($id);
+
             return response()->json(['message' => 'Held sale deleted']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to delete held sale', 'error' => $e->getMessage()], 404);

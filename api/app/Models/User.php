@@ -2,19 +2,18 @@
 
 namespace App\Models;
 
+use App\Support\Tenant\EffectiveBranchScope;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Support\Tenant\EffectiveBranchScope;
-use App\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, LogsActivity;
+    use HasApiTokens, HasFactory, LogsActivity, Notifiable, SoftDeletes;
 
     public function scopeTenantVisible($query)
     {
@@ -25,18 +24,18 @@ class User extends Authenticatable
 
     protected $fillable = [
         'firstname',
-        "lastname",
-        "username",
+        'lastname',
+        'username',
         'email',
-        "phone",
+        'phone',
         'password',
-        "address",
-        "nin",
+        'address',
+        'nin',
         'business_id',
         'business_branch_id',
         'role_id',
-        "status",
-        "branch_powers"
+        'status',
+        'branch_powers',
     ];
 
     protected $hidden = [
@@ -69,11 +68,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
     public function businessBranch()
     {
         return $this->belongsTo(BusinessBranch::class);
     }
-    public function worker(){
+
+    public function worker()
+    {
         return $this->belongsTo(Worker::class);
     }
 }

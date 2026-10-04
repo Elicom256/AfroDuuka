@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomersSettingsRequest;
 use App\Http\Requests\UpdateCustomersSettingsRequest;
-use App\Models\CoreSettings\CustomersSettings;
 use App\Models\ActivityLog;
+use App\Models\CoreSettings\CustomersSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,8 +17,9 @@ class CustomersSettingsController extends Controller
      */
     public function index()
     {
-         $setting = CustomersSettings::first();
-        return response()->json(["settings" =>$setting, "message" => "Customer settings"]);
+        $setting = CustomersSettings::first();
+
+        return response()->json(['settings' => $setting, 'message' => 'Customer settings']);
     }
 
     /**
@@ -59,7 +60,7 @@ class CustomersSettingsController extends Controller
             ],
         ]);
 
-        return response()->json(["message" => "Setting updated", "setting" => $customersSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $customersSetting]);
     }
 
     /**

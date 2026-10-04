@@ -12,13 +12,15 @@ use Illuminate\Http\Request;
 class BusinessController extends Controller
 {
     protected $businessService;
+
     protected $coreBusinessSettings;
 
-   public function __construct(BusinessService $businessService, CoreBusinessSettings $coreBusinessSettings)
-   {
-    $this->businessService = $businessService;
-    $this->coreBusinessSettings = $coreBusinessSettings;
-   }
+    public function __construct(BusinessService $businessService, CoreBusinessSettings $coreBusinessSettings)
+    {
+        $this->businessService = $businessService;
+        $this->coreBusinessSettings = $coreBusinessSettings;
+    }
+
     public function index()
     {
         //
@@ -30,14 +32,15 @@ class BusinessController extends Controller
     public function store(StoreBusinessRequest $request)
     {
         $user = $request->user();
-        
-        $business = $this->businessService->create( $request->validated(), $user);
+
+        $business = $this->businessService->create($request->validated(), $user);
         $businessId = $business->id;
         $settings = $this->coreBusinessSettings->coreSettings($businessId);
+
         return response()->json([
             'message' => 'Business created successfully',
             'business' => $business,
-            "core_settings" => $settings
+            'core_settings' => $settings,
         ], 201);
     }
 
@@ -47,10 +50,11 @@ class BusinessController extends Controller
     public function show(Request $request)
     {
         $business = $request->user()->business;
-        if (!$business) {
+        if (! $business) {
             return response()->json(['message' => 'No business found'], 404);
         }
         $business->load('productCategories', 'users', 'country');
+
         return response()->json(['data' => $business]);
     }
 
@@ -60,10 +64,11 @@ class BusinessController extends Controller
     public function update(UpdateBusinessRequest $request)
     {
         $business = $request->user()->business;
-        if (!$business) {
+        if (! $business) {
             return response()->json(['message' => 'No business found'], 404);
         }
         $business->update($request->validated());
+
         return response()->json(['message' => 'Business updated successfully', 'data' => $business]);
     }
 

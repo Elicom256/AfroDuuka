@@ -11,7 +11,9 @@ class OutOfStockAlert
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $product;
+
     public $business;
+
     public $branch;
 
     public function __construct($product, $business, $branch = null)

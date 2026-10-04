@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
 
 class StoreUserRequest extends FormRequest
 {
@@ -69,13 +68,13 @@ class StoreUserRequest extends FormRequest
             'business_id' => 'nullable|exists:businesses,id',
             'business_branch_id' => 'nullable|exists:business_branches,id',
             'role_id' => [
-            'nullable',
-            Rule::exists('roles')->where(function ($query) {
-                $query->where('business_id', request('business_id'));
-            }),
-        ],
-            "branch_powers" => "nullable|in:allowed,none",
-            "status" => "nullable|in:active,suspended,sucked"
+                'nullable',
+                Rule::exists('roles')->where(function ($query) {
+                    $query->where('business_id', request('business_id'));
+                }),
+            ],
+            'branch_powers' => 'nullable|in:allowed,none',
+            'status' => 'nullable|in:active,suspended,sucked',
         ];
     }
 }

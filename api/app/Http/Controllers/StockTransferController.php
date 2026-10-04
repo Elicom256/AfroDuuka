@@ -44,12 +44,14 @@ class StockTransferController extends Controller
         abort_unless(RolePermissions::canModifyStock(Auth::user()), 403, 'You cannot create stock transfers.');
 
         $transfer = $this->stockTransferService->create($request->validated());
+
         return response()->json(['message' => 'Stock transfer created', 'data' => $transfer], 201);
     }
 
     public function show(StockTransfer $stockTransfer)
     {
         $stockTransfer->load(['fromBranch', 'toBranch', 'items.product', 'transferredBy', 'receivedBy']);
+
         return response()->json(['message' => 'Fetched stock transfer', 'data' => $stockTransfer]);
     }
 
@@ -62,6 +64,7 @@ class StockTransferController extends Controller
 
         try {
             $transfer = $this->stockTransferService->dispatch($stockTransfer);
+
             return response()->json(['message' => 'Stock transfer dispatched', 'data' => $transfer]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -85,6 +88,7 @@ class StockTransferController extends Controller
 
         try {
             $transfer = $this->stockTransferService->receive($stockTransfer, $receivedItems);
+
             return response()->json(['message' => 'Stock transfer received', 'data' => $transfer]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -132,6 +136,7 @@ class StockTransferController extends Controller
 
         try {
             $transfer = $this->stockTransferService->cancel($stockTransfer);
+
             return response()->json(['message' => 'Stock transfer cancelled', 'data' => $transfer]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -143,6 +148,7 @@ class StockTransferController extends Controller
         abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You cannot delete stock transfers.');
 
         $stockTransfer->delete();
+
         return response()->json(['message' => 'Stock transfer deleted']);
     }
 }

@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-       Schema::create('product_categories', function (Blueprint $table) {
-          $table->id();
-          $table->foreignId('business_id')->constrained()->cascadeOnDelete();
-          $table->string('name');
-          $table->text('description')->nullable();
-          $table->enum('status', ["active", "inactive"])->default(1);
-          $table->timestamps();
-      });
+        Schema::create('product_categories', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default(1);
+            $table->timestamps();
+        });
     }
 
     public function down(): void

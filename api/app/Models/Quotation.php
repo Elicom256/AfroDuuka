@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\LogsActivity;
 
 class Quotation extends BaseModel
 {
@@ -30,11 +30,11 @@ class Quotation extends BaseModel
     ];
 
     protected $casts = [
-        'valid_until'    => 'date:Y-m-d',
-        'subtotal'       => 'decimal:2',
-        'tax_amount'     => 'decimal:2',
-        'discount'       => 'decimal:2',
-        'total_amount'   => 'decimal:2',
+        'valid_until' => 'date:Y-m-d',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'total_amount' => 'decimal:2',
     ];
 
     public function items(): HasMany

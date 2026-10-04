@@ -13,8 +13,10 @@ class RoleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(){
+    public function index()
+    {
         $roles = Role::orderBy('name', 'desc')->get();
+
         return response()->json($roles);
     }
 
@@ -25,9 +27,10 @@ class RoleController extends Controller
     {
         $validated = $request->validated();
         $role = Role::create($validated);
+
         return response()->json([
-            "message" => "Role created successfully!",
-            "role" => $role
+            'message' => 'Role created successfully!',
+            'role' => $role,
         ]);
     }
 
@@ -36,8 +39,9 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-       $role = Role::where("id", $role->id)->get();
-       return response()->json(["message" => "Fetched Role with id $role->id", "role" => $role]);
+        $role = Role::where('id', $role->id)->get();
+
+        return response()->json(['message' => "Fetched Role with id $role->id", 'role' => $role]);
     }
 
     /**
@@ -47,9 +51,10 @@ class RoleController extends Controller
     {
         $validated = $request->validated();
         $role = $role->update($validated);
+
         return response()->json([
-            "message" => "Role created successfully!",
-            "role" => $role
+            'message' => 'Role created successfully!',
+            'role' => $role,
         ]);
     }
 
@@ -61,6 +66,7 @@ class RoleController extends Controller
         abort_unless(RolePermissions::isElevated(Auth::user()), 403);
 
         $role->delete();
-        return response()->json(["message" => "Role deleted!"]);
+
+        return response()->json(['message' => 'Role deleted!']);
     }
 }

@@ -47,7 +47,7 @@ class RevenueReport extends Tool
             ->get();
 
         $daily = (clone $query)
-            ->select(DB::raw("DATE(transaction_date) as date"), DB::raw('COALESCE(SUM(amount), 0) as total'))
+            ->select(DB::raw('DATE(transaction_date) as date'), DB::raw('COALESCE(SUM(amount), 0) as total'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -69,6 +69,7 @@ class RevenueReport extends Tool
             'last_month' => now()->subMonth()->startOfMonth(),
             default => now()->subDays(30),
         };
+
         return $date->startOfDay()->toDateString();
     }
 }

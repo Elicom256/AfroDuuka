@@ -45,8 +45,8 @@ class PriceHistoryObserver
         $changeReason = $product->priceChangeReason ?? null;
 
         PriceHistory::create(array_merge($changes, [
-            'product_id'    => $product->id,
-            'changed_by'    => Auth::id(),
+            'product_id' => $product->id,
+            'changed_by' => Auth::id(),
             'change_reason' => $changeReason,
         ]));
     }

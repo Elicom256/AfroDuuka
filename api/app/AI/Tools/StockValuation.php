@@ -32,7 +32,7 @@ class StockValuation extends Tool
     {
         $query = Product::where('quantity', '>', 0);
 
-        if (!empty($parameters['branch_id'])) {
+        if (! empty($parameters['branch_id'])) {
             $query->where('business_branch_id', $parameters['branch_id']);
         }
 

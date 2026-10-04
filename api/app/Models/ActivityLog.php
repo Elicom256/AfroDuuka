@@ -19,12 +19,12 @@ use Spatie\Activitylog\Models\Activity;
  * @property int|null $subject_id
  * @property string|null $causer_type
  * @property int|null $causer_id
- * @property \Illuminate\Support\Collection|null $properties
+ * @property Collection|null $properties
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property int|null $business_id
  * @property int|null $business_branch_id
- * @property \Illuminate\Support\Collection $changes
+ * @property Collection $changes
  */
 class ActivityLog extends Activity
 {
@@ -150,5 +150,6 @@ class ActivityLog extends Activity
         return [
             'before' => $mask($changes->get('old', [])),
             'after' => $mask($changes->get('attributes', [])),
-        ];    }
+        ];
+    }
 }

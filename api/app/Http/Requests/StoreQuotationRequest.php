@@ -17,9 +17,9 @@ class StoreQuotationRequest extends FormRequest
         return [
             'customer_id' => 'nullable|exists:customers,id',
             'valid_until' => 'nullable|date',
-            'currency'    => 'nullable|string|size:3',
-            'notes'       => 'nullable|string',
-            'terms'       => 'nullable|string',
+            'currency' => 'nullable|string|size:3',
+            'notes' => 'nullable|string',
+            'terms' => 'nullable|string',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

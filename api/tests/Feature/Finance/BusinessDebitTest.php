@@ -16,7 +16,9 @@ class BusinessDebitTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected BusinessBranch $branch;
+
     protected Supplier $supplier;
 
     protected function setUp(): void

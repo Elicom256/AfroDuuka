@@ -13,7 +13,7 @@ class PhaseOneArchitectureTest extends TestCase
     #[Test]
     public function it_has_a_demo_provider_that_implements_the_provider_contract(): void
     {
-        $provider = new DemoWhatsAppProvider();
+        $provider = new DemoWhatsAppProvider;
 
         $this->assertInstanceOf(WhatsAppProviderInterface::class, $provider);
         $this->assertSame('demo', $provider->getName());
@@ -35,7 +35,7 @@ class PhaseOneArchitectureTest extends TestCase
     #[Test]
     public function it_can_send_a_demo_message_and_return_success_payload(): void
     {
-        $provider = new DemoWhatsAppProvider();
+        $provider = new DemoWhatsAppProvider;
 
         $result = $provider->sendMessage([
             'to' => '+256712345678',

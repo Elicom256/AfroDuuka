@@ -17,7 +17,7 @@ class TaxService
      */
     public function effectiveRateForProduct(Product $product): ?TaxRate
     {
-        if (!$product->tax_category_id) {
+        if (! $product->tax_category_id) {
             return null;
         }
 
@@ -58,13 +58,13 @@ class TaxService
         $discountPerUnitCents = Money::toCents($discountPerUnit);
         $discountedCents = Money::mul($unitPriceCents - $discountPerUnitCents, $quantity);
 
-        if (!$rate) {
+        if (! $rate) {
             return [
-                'rate'              => null,
-                'is_tax_inclusive'  => (bool) $product->is_tax_inclusive,
+                'rate' => null,
+                'is_tax_inclusive' => (bool) $product->is_tax_inclusive,
                 'discounted_amount' => Money::fromCents($discountedCents),
-                'taxable_amount'    => Money::fromCents($discountedCents),
-                'tax_amount'        => 0.0,
+                'taxable_amount' => Money::fromCents($discountedCents),
+                'tax_amount' => 0.0,
             ];
         }
 
@@ -80,11 +80,11 @@ class TaxService
         }
 
         return [
-            'rate'              => (float) $rate->rate,
-            'is_tax_inclusive'  => $isTaxInclusive,
+            'rate' => (float) $rate->rate,
+            'is_tax_inclusive' => $isTaxInclusive,
             'discounted_amount' => Money::fromCents($discountedCents),
-            'taxable_amount'    => Money::fromCents($taxableCents),
-            'tax_amount'        => Money::fromCents($taxCents),
+            'taxable_amount' => Money::fromCents($taxableCents),
+            'tax_amount' => Money::fromCents($taxCents),
         ];
     }
 }

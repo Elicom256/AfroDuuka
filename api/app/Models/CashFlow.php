@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\CashFlowFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\LogsActivity;
 
 class CashFlow extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\CashFlowFactory> */
-    use HasFactory, SoftDeletes, LogsActivity;
+    /** @use HasFactory<CashFlowFactory> */
+    use HasFactory, LogsActivity, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -130,7 +131,6 @@ class CashFlow extends BaseModel
     /**
      * Scopes
      */
-
     public function scopeSales($query)
     {
         return $query->where('type', 'sale');
@@ -166,15 +166,15 @@ class CashFlow extends BaseModel
 
     public function getCategoryLabelAttribute(): string
     {
-        return match($this->category) {
-            'product_sales'     => 'Product Sales',
+        return match ($this->category) {
+            'product_sales' => 'Product Sales',
             'product_purchases' => 'Product Purchases',
-            'raw_materials'     => 'Raw Materials',
-            'rent'              => 'Rent',
-            'worker_payments'   => 'Worker Payments',
-            'stock_transfer'    => 'Stock Transfer',
-            'expenses'          => 'Expenses',
-            default             => ucfirst(str_replace('_', ' ', $this->category ?? 'N/A')),
+            'raw_materials' => 'Raw Materials',
+            'rent' => 'Rent',
+            'worker_payments' => 'Worker Payments',
+            'stock_transfer' => 'Stock Transfer',
+            'expenses' => 'Expenses',
+            default => ucfirst(str_replace('_', ' ', $this->category ?? 'N/A')),
         };
     }
 }

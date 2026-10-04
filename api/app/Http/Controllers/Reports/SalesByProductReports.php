@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class SalesByProductReports extends Controller
 {
-    public function __construct(protected SalesByProductReportsService $service)
-    {
-    }
+    public function __construct(protected SalesByProductReportsService $service) {}
 
     public function index(Request $request)
     {
         $params = $request->all();
-        if ($request->has('period') && !$request->has('filter')) {
+        if ($request->has('period') && ! $request->has('filter')) {
             $params['filter'] = $request->input('period');
         }
         $report = $this->service->salesByProduct($params, Auth::user());

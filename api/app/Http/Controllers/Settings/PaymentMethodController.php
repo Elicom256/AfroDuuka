@@ -11,9 +11,10 @@ class PaymentMethodController extends Controller
 {
     public function index()
     {
-        $methods = PaymentMethod::where("status", "enabled")->get();
+        $methods = PaymentMethod::where('status', 'enabled')->get();
         $setting = PaymentMethod::all();
-        return response()->json(["settings" =>$setting, "message" => "Payments settings", "methods" => $methods]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Payments settings', 'methods' => $methods]);
     }
 
     public function store(StorePaymentMethodRequest $request)
@@ -23,15 +24,17 @@ class PaymentMethodController extends Controller
 
     public function show(PaymentMethod $paymentMethod)
     {
-        abort_if($paymentMethod->status !== "enabled", 404);
-         return response()->json(["methods" => $paymentMethod, "message" => "Payment method fetched", ]);
+        abort_if($paymentMethod->status !== 'enabled', 404);
+
+        return response()->json(['methods' => $paymentMethod, 'message' => 'Payment method fetched']);
     }
 
     public function update(UpdatePaymentMethodRequest $request, PaymentMethod $paymentMethod)
     {
-         $validated = $request->validated();
+        $validated = $request->validated();
         $setting = $paymentMethod->update($validated);
-        return response()->json(["message" => "Setting updated", "setting" => $setting]);
+
+        return response()->json(['message' => 'Setting updated', 'setting' => $setting]);
     }
 
     public function destroy(PaymentMethod $paymentMethod)

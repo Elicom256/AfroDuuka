@@ -11,9 +11,7 @@ use Illuminate\Http\Request;
 
 class BusinessDebitController extends Controller
 {
-    public function __construct(private DebtService $debtService)
-    {
-    }
+    public function __construct(private DebtService $debtService) {}
 
     public function index(Request $request): JsonResponse
     {

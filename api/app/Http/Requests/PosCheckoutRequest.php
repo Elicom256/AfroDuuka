@@ -22,7 +22,7 @@ class PosCheckoutRequest extends FormRequest
 
         $this->merge([
             'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
-            'currency'           => $this->input('currency', $defaultCurrency),
+            'currency' => $this->input('currency', $defaultCurrency),
         ]);
     }
 
@@ -43,16 +43,16 @@ class PosCheckoutRequest extends FormRequest
             'sale_id' => 'nullable|exists:sales,id',
 
             'items' => 'required_without:sale_id|array|min:1',
-            'items.*.product_id'   => 'required|exists:products,id',
-            'items.*.quantity'     => 'required|integer|min:1',
-            'items.*.unit_price'   => 'required|numeric|min:0',
-            'items.*.discount'     => 'nullable|numeric|min:0',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
 
             'payments' => 'required|array|min:1',
             'payments.*.method' => ['required', 'string', Rule::in(['cash', 'mobile_money', 'card', 'credit'])],
             'payments.*.amount' => 'required|numeric|min:0',
 
-            'note'     => 'nullable|string|max:500',
+            'note' => 'nullable|string|max:500',
             'currency' => 'required|string|size:3',
         ];
     }

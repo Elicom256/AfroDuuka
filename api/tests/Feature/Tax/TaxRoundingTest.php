@@ -19,7 +19,9 @@ class TaxRoundingTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected TaxCategory $category;
+
     protected TaxService $taxService;
 
     protected function setUp(): void
@@ -40,7 +42,7 @@ class TaxRoundingTest extends TestCase
             'name' => 'VAT',
         ]);
 
-        $this->taxService = new TaxService();
+        $this->taxService = new TaxService;
 
         Sanctum::actingAs($this->user);
     }
@@ -49,7 +51,7 @@ class TaxRoundingTest extends TestCase
     {
         TaxRate::factory()->create([
             'tax_category_id' => $this->category->id,
-            'name' => 'VAT ' . ($rate * 100) . '%',
+            'name' => 'VAT '.($rate * 100).'%',
             'rate' => $rate,
             'is_active' => true,
         ]);

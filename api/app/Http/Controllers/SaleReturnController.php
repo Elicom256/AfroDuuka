@@ -35,6 +35,7 @@ class SaleReturnController extends Controller
         $business_branch_id = Auth::user()->business_branch_id;
         $validated = $request->validated();
         $saleReturn = $this->saleReturnService->handleCreateSaleReturn($validated, $business_branch_id);
+
         return response()->json(['message' => 'Sale return processed successfully!', 'sale_return' => $saleReturn], 200);
     }
 
@@ -42,6 +43,7 @@ class SaleReturnController extends Controller
     {
         $saleReturn = SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
             ->findOrFail($saleReturn);
+
         return response()->json(['message' => 'Sale return fetched!', 'sale_return' => $saleReturn]);
     }
 }

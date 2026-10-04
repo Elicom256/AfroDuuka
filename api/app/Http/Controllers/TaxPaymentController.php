@@ -7,6 +7,7 @@ use App\Http\Requests\TaxPaymentAnalyticsRequest;
 use App\Http\Requests\UpdateTaxPaymentRequest;
 use App\Http\Resources\TaxPaymentResource;
 use App\Models\TaxPayment;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -124,7 +125,7 @@ class TaxPaymentController extends Controller
     /**
      * Resolve the [from, to] payment_date range based on a custom range or a period preset.
      *
-     * @return array{0: \Carbon\CarbonImmutable|null, 1: \Carbon\CarbonImmutable|null}
+     * @return array{0: CarbonImmutable|null, 1: CarbonImmutable|null}
      */
     private function resolvePeriod(TaxPaymentAnalyticsRequest $request): array
     {

@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('businesses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("business_category_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("country_id")->constrained()->cascadeOnDelete();
+            $table->foreignId('business_category_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
             // IANA name. Laravel's Schedule carries a single timezone, so the schedule
             // fires once and each job decides per business whether "07:00 local" has
             // arrived. Without this, 07:00 means 07:00 UTC and a Kampala business gets
@@ -29,9 +29,9 @@ return new class extends Migration
             $table->string('email')->nullable()->index();
             $table->string('phone')->nullable()->index();
             $table->string('address')->nullable()->index();
-            $table->enum("status", ["active", "deactivated", "banned"])->default("active");
+            $table->enum('status', ['active', 'deactivated', 'banned'])->default('active');
             $table->string('logo')->nullable();
-            $table->decimal("subscription_balance")->default(0);
+            $table->decimal('subscription_balance')->default(0);
             $table->timestamps();
         });
     }

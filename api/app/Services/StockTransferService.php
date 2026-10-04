@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\StockTransfer;
-use App\Models\StockTransferItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -145,12 +144,12 @@ class StockTransferService
 
     protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
     {
-        return md5($referenceType . ':' . $referenceId . ':' . $productId . ':' . $type . ':' . $quantity);
+        return md5($referenceType.':'.$referenceId.':'.$productId.':'.$type.':'.$quantity);
     }
 
     public function cancel(StockTransfer $transfer): StockTransfer
     {
-        if (!in_array($transfer->status, ['draft', 'in_transit'])) {
+        if (! in_array($transfer->status, ['draft', 'in_transit'])) {
             throw new \Exception('Only draft or in-transit transfers can be cancelled.');
         }
 

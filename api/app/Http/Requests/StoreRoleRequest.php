@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Auth\RolePermissions;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Support\Auth\RolePermissions;
 
 class StoreRoleRequest extends FormRequest
 {

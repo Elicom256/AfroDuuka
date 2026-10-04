@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\PromotionsSettings;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class PromotionsSettingsPolicy
 {
@@ -46,6 +45,7 @@ class PromotionsSettingsPolicy
     public function delete(User $user, PromotionsSettings $promotionsSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class PromotionsSettingsPolicy
     public function forceDelete(User $user, PromotionsSettings $promotionsSettings): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

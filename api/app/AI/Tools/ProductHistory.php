@@ -3,6 +3,7 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
+use App\Models\Product;
 use App\Models\StockMovement;
 
 class ProductHistory extends Tool
@@ -36,8 +37,8 @@ class ProductHistory extends Tool
         $productId = $parameters['product_id'] ?? null;
         $limit = min((int) ($parameters['limit'] ?? 20), 100);
 
-        if (!$productId) {
-            if (!empty($parameters['query'])) {
+        if (! $productId) {
+            if (! empty($parameters['query'])) {
                 $productId = $parameters['query'];
             } else {
                 return ['message' => 'Please provide a product ID or name.'];
@@ -58,7 +59,7 @@ class ProductHistory extends Tool
                 'date' => $m->created_at->toDateTimeString(),
             ]);
 
-        $product = \App\Models\Product::find($productId);
+        $product = Product::find($productId);
 
         return [
             'product_name' => $product?->name ?? 'Unknown',

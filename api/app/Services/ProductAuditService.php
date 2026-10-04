@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\ProductAudit;
 use App\Models\ProductAuditItem;
 use App\Models\StockMovement;
-use App\Models\ActivityLog;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductAuditService
 {
@@ -22,7 +22,8 @@ class ProductAuditService
     public function generateAuditNumber(int $businessBranchId): string
     {
         $count = ProductAudit::where('business_branch_id', $businessBranchId)->count() + 1;
-        return 'PAUDIT-' . str_pad($businessBranchId, 4, '0', STR_PAD_LEFT) . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'PAUDIT-'.str_pad($businessBranchId, 4, '0', STR_PAD_LEFT).'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     public function createAudit(array $data, array $items): ProductAudit

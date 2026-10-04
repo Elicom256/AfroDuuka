@@ -37,12 +37,12 @@ class PriceHistoryController extends Controller
 
             return response()->json([
                 'message' => 'Product price timeline fetched',
-                'data'    => $history,
+                'data' => $history,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price timeline',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -60,12 +60,12 @@ class PriceHistoryController extends Controller
 
             return response()->json([
                 'message' => 'Price history fetched',
-                'data'    => $history,
+                'data' => $history,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price history',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -80,7 +80,7 @@ class PriceHistoryController extends Controller
             $period = $request->query('period', 'last_7_days');
             $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'last_year'];
 
-            if (!in_array($period, $allowedPeriods)) {
+            if (! in_array($period, $allowedPeriods)) {
                 $period = 'last_7_days';
             }
 
@@ -88,12 +88,12 @@ class PriceHistoryController extends Controller
 
             return response()->json([
                 'message' => 'Price change analytics fetched',
-                'data'    => $data,
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price change analytics',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

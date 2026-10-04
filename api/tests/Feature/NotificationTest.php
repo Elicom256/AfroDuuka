@@ -5,9 +5,7 @@ namespace Tests\Feature;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Notification;
-use App\Models\Product;
 use App\Models\Role;
-use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -19,7 +17,9 @@ class NotificationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
 
     protected function setUp(): void

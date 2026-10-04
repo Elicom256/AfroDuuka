@@ -10,18 +10,21 @@ use App\Services\CustomerService;
 
 class CustomerController extends Controller
 {
-   protected $customerService;
+    protected $customerService;
+
     public function __construct(CustomerService $customerService)
     {
         $this->customerService = $customerService;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $customers = Customer::with("user")->where("status", "active")->get();
-        return response()->json(["message" => "Fetched all customers", "customers" => $customers], 200);
+        $customers = Customer::with('user')->where('status', 'active')->get();
+
+        return response()->json(['message' => 'Fetched all customers', 'customers' => $customers], 200);
     }
 
     /**
@@ -29,11 +32,12 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
-        $allowed = CustomersSettings::value("status");
-        abort_if($allowed !== "enabled", 403, 'Customer creation is disabled.');
+        $allowed = CustomersSettings::value('status');
+        abort_if($allowed !== 'enabled', 403, 'Customer creation is disabled.');
         $validated = $request->validated();
         $customer = $this->customerService->createCustomer($validated);
-        return response()->json(["message" => "Created a customer", "customer" => $customer], 201);
+
+        return response()->json(['message' => 'Created a customer', 'customer' => $customer], 201);
     }
 
     /**
@@ -41,8 +45,9 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $customer = $customer->load("user");
-        return response()->json(["message" => "Fetched a customer", "customer" => $customer], 200);
+        $customer = $customer->load('user');
+
+        return response()->json(['message' => 'Fetched a customer', 'customer' => $customer], 200);
     }
 
     /**
@@ -50,10 +55,11 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-         $validated = $request->validated();
-         $data = $this->customerService->updateCustomer($customer,$validated);
+        $validated = $request->validated();
+        $data = $this->customerService->updateCustomer($customer, $validated);
+
         // $customer->update($validated);
-        return response()->json(["message" => "Updated a customer", "customer" => $data], 201);
+        return response()->json(['message' => 'Updated a customer', 'customer' => $data], 201);
     }
 
     /**
@@ -62,6 +68,7 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         $customer->delete();
-        return response()->json(["message" => "Deleted a customer"], 201);
+
+        return response()->json(['message' => 'Deleted a customer'], 201);
     }
 }

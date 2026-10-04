@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 class ExpenseController extends Controller
 {
     protected ActivityLogService $activity_log;
+
     protected CashFlowService $cashFlowService;
 
     public function __construct(ActivityLogService $activityLog, CashFlowService $cashFlowService)
@@ -50,7 +51,7 @@ class ExpenseController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('vendor', 'like', "%{$search}%");
+                    ->orWhere('vendor', 'like', "%{$search}%");
             });
         }
 
@@ -169,11 +170,11 @@ class ExpenseController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $totals = Expense::selectRaw("
+        $totals = Expense::selectRaw('
                 expense_category_id,
                 SUM(amount) as total,
                 COUNT(*) as count
-            ")
+            ')
             ->with('category')
             ->whereYear('payment_date', $year)
             ->groupBy('expense_category_id')

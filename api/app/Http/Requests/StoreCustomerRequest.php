@@ -4,10 +4,8 @@ namespace App\Http\Requests;
 
 use App\Models\Role;
 use App\Support\Tenant\EffectiveBranchScope;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Override;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -23,9 +21,9 @@ class StoreCustomerRequest extends FormRequest
     {
         $user = Auth::user();
         $this->merge([
-            "business_id" => $user->business_id,
+            'business_id' => $user->business_id,
             'status' => 'active',
-            "role_id" => Role::where("name", "customer")->where("business_id", $user->business_id)->value("id")
+            'role_id' => Role::where('name', 'customer')->where('business_id', $user->business_id)->value('id'),
         ]);
 
         if ($user?->business_branch_id && ! $this->has('business_branch_id')) {

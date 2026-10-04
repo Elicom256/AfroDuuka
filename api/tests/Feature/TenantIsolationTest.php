@@ -9,7 +9,11 @@ use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
 use App\Models\StockMovement;
+use App\Models\TaxCategory;
+use App\Models\TaxRate;
 use App\Models\User;
+use App\Services\SaleItemService;
+use App\Support\Tenant\BusinessContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -135,7 +139,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $service = app(\App\Services\SaleItemService::class);
+        $service = app(SaleItemService::class);
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('selected branch');
@@ -169,7 +173,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $service = app(\App\Services\SaleItemService::class);
+        $service = app(SaleItemService::class);
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Selected payment method is invalid.');
@@ -209,7 +213,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+        $sale = app(SaleItemService::class)->handleSaveSaleItem([
             'business_branch_id' => $branch->id,
             'customer_id' => null,
             'note' => 'Valid sale',
@@ -258,7 +262,7 @@ class TenantIsolationTest extends TestCase
         Sanctum::actingAs($user);
 
         try {
-            app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+            app(SaleItemService::class)->handleSaveSaleItem([
                 'business_branch_id' => $branch->id,
                 'customer_id' => null,
                 'note' => 'Duplicate product lines exceed stock',
@@ -300,7 +304,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+        $sale = app(SaleItemService::class)->handleSaveSaleItem([
             'business_branch_id' => $branch->id,
             'customer_id' => null,
             'note' => 'Duplicate product lines within stock',
@@ -365,8 +369,8 @@ class TenantIsolationTest extends TestCase
         $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
         $user = $this->branchUser($business, $branch);
 
-        $taxCategory = \App\Models\TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
-        \App\Models\TaxRate::factory()->create([
+        $taxCategory = TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
+        TaxRate::factory()->create([
             'tax_category_id' => $taxCategory->id,
             'rate' => 0.18,
             'is_active' => true,
@@ -390,7 +394,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $sale = app(\App\Services\SaleItemService::class)->handleSaveSaleItem([
+        $sale = app(SaleItemService::class)->handleSaveSaleItem([
             'business_branch_id' => $branch->id,
             'customer_id' => null,
             'note' => 'Discounted sale',
@@ -417,8 +421,8 @@ class TenantIsolationTest extends TestCase
         $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
         $user = $this->branchUser($business, $branch);
 
-        $taxCategory = \App\Models\TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
-        \App\Models\TaxRate::factory()->create([
+        $taxCategory = TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
+        TaxRate::factory()->create([
             'tax_category_id' => $taxCategory->id,
             'rate' => 0.18,
             'is_active' => true,
@@ -661,7 +665,7 @@ class TenantIsolationTest extends TestCase
         foreach ($platformUsers as $platformUser) {
             Sanctum::actingAs($platformUser);
 
-            $this->assertTrue(app(\App\Support\Tenant\BusinessContext::class)->isPlatformOperator());
+            $this->assertTrue(app(BusinessContext::class)->isPlatformOperator());
             $this->assertSame($expectedRoleCount, Role::count());
             $this->assertSame($expectedProductCount, Product::count());
         }
@@ -682,7 +686,7 @@ class TenantIsolationTest extends TestCase
 
         Sanctum::actingAs($executive);
 
-        $this->assertFalse(app(\App\Support\Tenant\BusinessContext::class)->isPlatformOperator());
+        $this->assertFalse(app(BusinessContext::class)->isPlatformOperator());
         $this->assertSame(0, Role::count());
         $this->assertSame(0, Product::count());
     }

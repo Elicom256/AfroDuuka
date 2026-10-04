@@ -14,7 +14,7 @@ class AiController extends Controller
 
     public function __construct()
     {
-        $registry = new ToolRegistry();
+        $registry = new ToolRegistry;
         $this->agent = new Agent($registry);
     }
 

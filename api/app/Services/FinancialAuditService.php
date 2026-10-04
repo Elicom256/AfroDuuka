@@ -2,17 +2,18 @@
 
 namespace App\Services;
 
-use App\Models\FinancialAudit;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\DB;
+use App\Models\FinancialAudit;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class FinancialAuditService
 {
     public function generateAuditNumber(int $businessBranchId): string
     {
         $count = FinancialAudit::where('business_branch_id', $businessBranchId)->count() + 1;
-        return 'FAUDIT-' . str_pad($businessBranchId, 4, '0', STR_PAD_LEFT) . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return 'FAUDIT-'.str_pad($businessBranchId, 4, '0', STR_PAD_LEFT).'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     public function createAudit(array $data): FinancialAudit

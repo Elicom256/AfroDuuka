@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class StorePurchaseRequest extends FormRequest
 {
@@ -28,8 +27,8 @@ class StorePurchaseRequest extends FormRequest
 
         $this->merge([
             'business_branch_id' => $this->input('business_branch_id', $user->business_branch_id),
-            'status'             => $this->input('status', 'pending'),
-            'currency'           => $this->input('currency', $defaultCurrency),
+            'status' => $this->input('status', 'pending'),
+            'currency' => $this->input('currency', $defaultCurrency),
         ]);
     }
 
@@ -52,19 +51,19 @@ class StorePurchaseRequest extends FormRequest
 
             // Purchase Header
             'total_amount' => 'nullable|numeric|min:0',
-            'status'       => 'required|in:pending,completed,cancelled',
-            'note'         => 'nullable|string|max:500',
+            'status' => 'required|in:pending,completed,cancelled',
+            'note' => 'nullable|string|max:500',
 
             // Payment Information
-            'payment_status_id'  => 'required|exists:payment_methods,id',
-            'reference'      => 'nullable|string|max:100',           // Invoice number, receipt, etc.
-            'currency'       => 'required|string|size:3',
+            'payment_status_id' => 'required|exists:payment_methods,id',
+            'reference' => 'nullable|string|max:100',           // Invoice number, receipt, etc.
+            'currency' => 'required|string|size:3',
 
             // Purchase Items
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'                   => 'required|integer|min:1',
-            'items.*.cost_price'                 => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.cost_price' => 'required|numeric|min:0',
         ];
     }
 
@@ -78,8 +77,8 @@ class StorePurchaseRequest extends FormRequest
             'items.min' => 'You must add at least one item to this purchase.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
             // 👇 Add this line
-             'payment_status_id.exists'   => 'Selected payment method is invalid.',
-             'payment_status_id.required' => 'Payment method is required.',
+            'payment_status_id.exists' => 'Selected payment method is invalid.',
+            'payment_status_id.required' => 'Payment method is required.',
         ];
     }
 }
