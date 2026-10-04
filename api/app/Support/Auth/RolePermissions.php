@@ -251,4 +251,47 @@ class RolePermissions
         return static::isElevated($user);
     }
 
+    /**
+     * May the user author the credentials that route and authenticate money?
+     *
+     * This is the highest-consequence write in the product. A payment gateway row
+     * holds the MTN MoMo / Airtel / Flutterwave / Pesapal api_key, api_secret and
+     * webhook_secret — that is, where live mobile-money payments are sent and how
+     * an inbound webhook proves it came from the provider rather than from anyone
+     * who guessed the URL. Currency rates decide the value of every multi-currency
+     * total and report; a WhatsApp config holds the provider token and the business
+     * number that outbound, metered messages are sent from.
+     *
+     * All three are per-business configuration, not per-branch, but they resolve to
+     * canManageBranch() rather than isElevated() for the same reason the catalogue
+     * rules do: EffectiveBranchScope plus the BaseModel tenant scope confine a
+     * BranchManager to their own branch, and running your own branch's payment
+     * configuration is ordinary branch work. What no role below manager may do is
+     * rewrite it — an Operations account able to write here could re-point where
+     * the business's money goes, which is the opposite of what the till role is for.
+     */
+    public static function canManagePaymentConfig(?User $user): bool
+    {
+        return static::canManageBranch($user);
+    }
+
+    /**
+     * May the user open or close a cash session?
+     *
+     * Opening a drawer floats cash and closing one declares a variance, so this is
+     * the pair of writes that decides whether the till reconciles. Both resolve to
+     * canManageBranch(): the branch scope already confines a BranchManager to the
+     * drawer they are responsible for, and CashDrawerService::assertAccess() checks
+     * the session's branch again on read.
+     *
+     * Named separately from canManageBranch() because the floor genuinely needs the
+     * *other* side of this trade to stay open — BusinessDebitController@pay records
+     * money already committed and is deliberately ungated. If drawer open/close and
+     * debt settlement were both folded into canManageBranch(), that deliberate
+     * exception would have no honest name to point at.
+     */
+    public static function canManageCashDrawer(?User $user): bool
+    {
+        return static::canManageBranch($user);
+    }
 }

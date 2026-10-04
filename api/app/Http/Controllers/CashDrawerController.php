@@ -6,6 +6,7 @@ use App\Http\Requests\CloseCashDrawerRequest;
 use App\Http\Requests\OpenCashDrawerRequest;
 use App\Models\CashDrawerSession;
 use App\Services\CashDrawerService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 class CashDrawerController extends Controller
@@ -16,6 +17,12 @@ class CashDrawerController extends Controller
 
     public function open(OpenCashDrawerRequest $request)
     {
+        // Floating a drawer is what makes the session exist, and closing one declares
+        // a variance — together they are the writes that decide whether the till
+        // reconciles. canManageCashDrawer() rather than canModifyStock() so the rule
+        // has its own name; both resolve to canManageBranch() today.
+        abort_unless(RolePermissions::canManageCashDrawer($request->user()), 403, 'You cannot open a cash drawer.');
+
         $data = $request->validated();
         $session = $this->cashDrawerService->open(
             Auth::user(),
@@ -29,6 +36,8 @@ class CashDrawerController extends Controller
 
     public function close(CloseCashDrawerRequest $request, CashDrawerSession $session)
     {
+        abort_unless(RolePermissions::canManageCashDrawer($request->user()), 403, 'You cannot close a cash drawer.');
+
         $closed = $this->cashDrawerService->close(
             Auth::user(),
             $session,

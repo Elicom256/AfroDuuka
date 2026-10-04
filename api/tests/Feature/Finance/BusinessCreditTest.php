@@ -37,8 +37,29 @@ class BusinessCreditTest extends TestCase
         $this->actingAs($this->user);
     }
 
+    /**
+     * RoleFactory's default name is 'Operations', so $this->user is an Operations
+     * account by accident. Opening a customer credit asserts the business is owed
+     * money, which is a ledger decision, so store()/update() are gated to
+     * canManageBranch(). The rest of this file builds rows directly and reads them
+     * back, which no role is fenced out of.
+     */
+    private function actingAsRole(string $roleName): void
+    {
+        $role = Role::factory()->create([
+            'business_id' => $this->user->business_id,
+            'name' => $roleName,
+        ]);
+
+        $this->user->forceFill(['role_id' => $role->id])->save();
+
+        $this->actingAs($this->user->fresh());
+    }
+
     public function test_credit_created_with_open_status(): void
     {
+        $this->actingAsRole('Executive');
+
         $response = $this->postJson('/api/finances/business-credits', [
             'business_branch_id' => $this->branch->id,
             'customer_id' => $this->customer->id,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessDebitRequest;
 use App\Models\BusinessDebit;
 use App\Services\DebtService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,11 @@ class BusinessDebitController extends Controller
 
     public function store(StoreBusinessDebitRequest $request): JsonResponse
     {
+        // Opening a supplier debt asserts that the business owes this counterparty
+        // money, which is a ledger decision rather than a floor one — contrast pay()
+        // below, which records a payment already made. Reads stay open to every role.
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot open supplier debts.');
+
         $validated = $request->validated();
 
         $debt = BusinessDebit::create($validated);
@@ -61,6 +67,10 @@ class BusinessDebitController extends Controller
 
     public function update(StoreBusinessDebitRequest $request, BusinessDebit $businessDebit): JsonResponse
     {
+        // Same capability as store(): rewriting the amount, reference or status of a
+        // debt restates what the business owes.
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot edit supplier debts.');
+
         $businessDebit->update($request->validated());
 
         return response()->json([

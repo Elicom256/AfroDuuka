@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBusinessCreditRequest;
 use App\Models\BusinessCredit;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,10 @@ class BusinessCreditController extends Controller
 
     public function store(StoreBusinessCreditRequest $request): JsonResponse
     {
+        // The customer-side mirror of a supplier debit: it asserts the business is
+        // owed money, so it is a ledger decision rather than a floor one.
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot open customer credits.');
+
         $credit = BusinessCredit::create($request->validated());
 
         return response()->json([
@@ -57,6 +62,8 @@ class BusinessCreditController extends Controller
 
     public function update(StoreBusinessCreditRequest $request, BusinessCredit $businessCredit): JsonResponse
     {
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot edit customer credits.');
+
         $businessCredit->update($request->validated());
 
         return response()->json([

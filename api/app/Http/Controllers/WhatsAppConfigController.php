@@ -9,6 +9,7 @@ use App\Models\WhatsAppConfig;
 use App\Models\WhatsAppMessageLog;
 use App\Models\WhatsAppTemplate;
 use App\Services\WhatsApp\WhatsAppService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -84,6 +85,11 @@ class WhatsAppConfigController extends Controller
 
     public function store(StoreWhatsAppConfigRequest $request)
     {
+        // The provider token and the sending business_phone_number are credentials, so
+        // this write is held to canManagePaymentConfig() — the same trade as a payment
+        // gateway row. Reads stay open so the settings form can render.
+        abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage WhatsApp credentials.');
+
         // The business is always the authenticated user's own. Accepting a client-supplied
         // business_id let any authenticated tenant create a config for another business.
         $payload = $this->withoutMaskedSecrets($request->validated());
@@ -102,6 +108,10 @@ class WhatsAppConfigController extends Controller
 
     public function update(UpdateWhatsAppConfigRequest $request, WhatsAppConfig $whatsAppConfig)
     {
+        // Same capability as store(): this rewrites the provider token and the number
+        // outbound messages are sent from.
+        abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage WhatsApp credentials.');
+
         // Without this check any authenticated tenant could PATCH another business's
         // WhatsApp config, including its provider credentials.
         if ((int) $whatsAppConfig->business_id !== (int) Auth::user()?->business_id) {
@@ -118,6 +128,12 @@ class WhatsAppConfigController extends Controller
 
     public function testMessage(TestWhatsAppMessageRequest $request)
     {
+        // Sends for real. The demo provider is unmetered today, but the endpoint is the
+        // business's outbound SMS-shaped channel and is metered the moment a paid
+        // provider account is attached, so it takes the credential capability rather
+        // than mere authentication.
+        abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot send WhatsApp test messages.');
+
         $recipient = $request->validated('recipient');
         $message = $request->validated('message');
 

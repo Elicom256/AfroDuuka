@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerCreditPaymentRequest;
 use App\Models\Customer;
 use App\Services\CustomerCreditService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 class CustomerCreditController extends Controller
@@ -28,6 +29,15 @@ class CustomerCreditController extends Controller
 
     public function payment(StoreCustomerCreditPaymentRequest $request, int $customer)
     {
+        // Recording a customer payment writes to the tenant-wide finance ledger and
+        // moves the balance the business is owed, so it takes canManageBranch().
+        //
+        // Note the asymmetry with BusinessDebitController@pay, which stays open to the
+        // floor: settling a supplier debt is a floor task, but the customer-credit
+        // ledger is what credit limits and dunning are computed from, so writing to it
+        // is not something a till role decides alone.
+        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot record customer credit payments.');
+
         $customer = $this->customerForCurrentBusiness($customer);
         $data = $request->validated();
         $payment = $this->creditService->recordPayment(

@@ -32,7 +32,14 @@ class OrderTest extends TestCase
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
         ]);
-        $this->role = Role::factory()->create(['business_id' => $this->business->id]);
+        $this->role = Role::factory()->create([
+            'business_id' => $this->business->id,
+            // Stated rather than inherited. RoleFactory's default name is 'Operations',
+            // which is the right role for nothing in this file: the sale-order tests
+            // need canManageBranch(), and the purchase-order tests reassign the role to
+            // 'Procurement' themselves before asserting what Procurement may not do.
+            'name' => 'Executive',
+        ]);
         $this->user = User::factory()->create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
@@ -232,6 +239,7 @@ class OrderTest extends TestCase
 
     public function test_operations_cannot_create_purchase_orders_through_either_endpoint(): void
     {
+        $this->role->update(['name' => 'Operations']);
         $supplier = $this->makeSupplier();
         $product = $this->product();
         $payload = [
@@ -251,6 +259,7 @@ class OrderTest extends TestCase
 
     public function test_operations_cannot_edit_purchase_order_notes(): void
     {
+        $this->role->update(['name' => 'Operations']);
         $purchaseOrder = PurchaseOrder::create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSaleReturnRequest;
 use App\Models\SaleReturn;
 use App\Services\SaleReturnService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 class SaleReturnController extends Controller
@@ -27,6 +28,10 @@ class SaleReturnController extends Controller
 
     public function store(StoreSaleReturnRequest $request)
     {
+        // Stock back in and a refund out, in one write. canModifyStock() is the
+        // existing expression of that capability.
+        abort_unless(RolePermissions::canModifyStock($request->user()), 403, 'You cannot process sale returns.');
+
         $business_branch_id = Auth::user()->business_branch_id;
         $validated = $request->validated();
         $saleReturn = $this->saleReturnService->handleCreateSaleReturn($validated, $business_branch_id);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePurchaseReturnRequest;
 use App\Models\PurchaseReturn;
 use App\Services\PurchaseReturnService;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseReturnController extends Controller
@@ -27,6 +28,11 @@ class PurchaseReturnController extends Controller
 
     public function store(StorePurchaseReturnRequest $request)
     {
+        // Stock back out to a supplier. Held to canModifyStock() for the same reason
+        // as the sale return opposite: this moves real quantity, and nothing beneath
+        // this line asked which role was asking.
+        abort_unless(RolePermissions::canModifyStock($request->user()), 403, 'You cannot process purchase returns.');
+
         $validated = $request->validated();
         $purchaseReturn = $this->purchaseReturnService->handleCreatePurchaseReturn($validated);
         return response()->json(['message' => 'Purchase return processed successfully!', 'purchase_return' => $purchaseReturn], 200);

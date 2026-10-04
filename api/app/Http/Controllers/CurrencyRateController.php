@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCurrencyRateRequest;
 use App\Http\Requests\UpdateCurrencyRateRequest;
 use App\Models\CurrencyRate;
+use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -26,6 +27,8 @@ class CurrencyRateController extends Controller
 
     public function store(StoreCurrencyRateRequest $request)
     {
+        abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage currency rates.');
+
         $rate = CurrencyRate::create($request->validated());
         return response()->json(['message' => 'Currency rate created', 'data' => $rate], 201);
     }
@@ -35,8 +38,14 @@ class CurrencyRateController extends Controller
         return response()->json(['message' => 'Fetched currency rate', 'data' => $currencyRate]);
     }
 
+    /**
+     * Every multi-currency total and report derives from this row, so writing one is
+     * a pricing decision rather than a floor action. Reads stay open.
+     */
     public function update(UpdateCurrencyRateRequest $request, CurrencyRate $currencyRate)
     {
+        abort_unless(RolePermissions::canManagePaymentConfig($request->user()), 403, 'You cannot manage currency rates.');
+
         $currencyRate->update($request->validated());
         return response()->json(['message' => 'Currency rate updated', 'data' => $currencyRate]);
     }
