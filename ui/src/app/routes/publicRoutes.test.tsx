@@ -136,7 +136,7 @@ describe('public routes with no token', () => {
   });
 
   it.each(PUBLIC_PATHS)('renders %s in place instead of redirecting to /login', async (path) => {
-    const fetchMock = stubFetch(200);
+    stubFetch(200);
 
     renderAt(path);
 
@@ -187,7 +187,7 @@ describe('public routes with a dead token', () => {
     // Step 1 of the fix: authListenerMiddleware is registered in the store. Without
     // it nothing ever cleared the token, which is how "log out" ended up
     // indistinguishable from "still signed in, but wrongly".
-    const fetchMock = stubFetch(401);
+    stubFetch(401);
 
     renderAt('/about');
 
