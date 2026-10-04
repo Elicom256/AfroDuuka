@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ReportFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Report extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\ReportFactory> */
+    /** @use HasFactory<ReportFactory> */
     use HasFactory;
 
     protected $fillable = [

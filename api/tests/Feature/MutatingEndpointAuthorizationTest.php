@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\BusinessCredit;
 use App\Models\BusinessDebit;
 use App\Models\CashDrawerSession;
 use App\Models\CoreSettings\PaymentMethod;
@@ -30,6 +29,7 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Models\WhatsAppConfig;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -53,8 +53,11 @@ class MutatingEndpointAuthorizationTest extends TestCase
     use RefreshDatabase;
 
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected Supplier $supplier;
+
     protected Customer $customer;
 
     /** The user put on the session by the most recent actingAsRole() call. */
@@ -988,8 +991,8 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'access_token' => 'attacker-token',
         ])->assertForbidden();
 
-        $this->assertSame('live-token', $config->fresh()->getRawOriginal('access_token')
-            ?? $config->fresh()->access_token);
+        // access_token is an encrypted cast, so only the accessor round-trips plaintext.
+        $this->assertSame('live-token', $config->fresh()->access_token);
     }
 
     /**
@@ -1041,14 +1044,17 @@ class MutatingEndpointAuthorizationTest extends TestCase
     {
         $this->actingAsRole('Operations');
         $debit = BusinessDebit::factory()->create([
-            'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
             'supplier_id' => $this->supplier->id,
             'amount' => 50000,
             'status' => 'open',
         ]);
 
+        // Valid payload on purpose: the inline gate runs after UpdateBusinessDebitRequest,
+        // so an incomplete body would be answered 422 and prove nothing about the role.
         $this->putJson("/api/finances/business-debits/{$debit->id}", [
+            'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
             'amount' => 1,
             'status' => 'open',
         ])->assertForbidden();
@@ -1075,7 +1081,6 @@ class MutatingEndpointAuthorizationTest extends TestCase
     {
         $this->actingAsRole('Operations');
         $debit = BusinessDebit::factory()->create([
-            'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
             'supplier_id' => $this->supplier->id,
             'amount' => 30000,
@@ -1168,7 +1173,8 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $this->currentUser->id,
-        ])->assertCreated();
+            // adjustment() returns the created flow without an explicit 201.
+        ])->assertOk();
     }
 
     public function test_operations_cannot_open_a_cash_drawer(): void
@@ -1192,6 +1198,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'opened_by' => $this->currentUser->id,
             'opening_cash' => 50000,
             'status' => 'open',
+            'opened_at' => now(),
         ]);
 
         $this->actingAsRole('Operations');
@@ -1321,7 +1328,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'status' => 'completed',
         ]);
 
-        $item = $sale->items()->create([
+        $item = $sale->saleItems()->create([
             'product_id' => $product->id,
             'quantity' => 2,
             'unit_price' => 5000,
@@ -1349,6 +1356,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
         $this->postJson('/api/purchases/branch-purchases', [
             'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
             'status' => 'completed',
             'payment_status_id' => $paymentMethod->id,
             'currency' => 'UGX',
@@ -1377,6 +1385,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
         $this->postJson('/api/purchases/branch-purchases', [
             'business_branch_id' => $this->branch->id,
+            'supplier_id' => $this->supplier->id,
             'status' => 'completed',
             'payment_status_id' => $paymentMethod->id,
             'currency' => 'UGX',
@@ -1386,6 +1395,16 @@ class MutatingEndpointAuthorizationTest extends TestCase
         ])->assertOk();
 
         $this->assertDatabaseCount('purchases', 1);
+    }
+
+    /** Purchases settle against a payment method, so the receipt path needs a real one. */
+    private function paymentMethod(): PaymentMethod
+    {
+        return PaymentMethod::create([
+            'business_id' => $this->business->id,
+            'method' => 'cash',
+            'status' => 'enabled',
+        ]);
     }
 
     private function saleOrderPayload(array $overrides = []): array
@@ -1415,8 +1434,12 @@ class MutatingEndpointAuthorizationTest extends TestCase
      */
     public function test_operations_cannot_edit_a_sale_order(): void
     {
-        $this->actingAsRole('Operations');
+        // The order has to exist before the refusal, so it is created as an Executive
+        // and the session is then handed to Operations for the attempt to edit.
+        $this->actingAsRole('Executive');
         $order = $this->saleOrderFor($this->saleOrderPayload());
+
+        $this->actingAsRole('Operations');
 
         $this->putJson("/api/sale-orders/{$order->id}", ['status' => 'approved'])
             ->assertForbidden();
@@ -1539,7 +1562,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
      */
     public function test_the_expenses_route_group_is_still_what_gates_expense_writes(): void
     {
-        $route = collect(\Illuminate\Support\Facades\Route::getRoutes())
+        $route = collect(Route::getRoutes())
             ->first(fn ($route) => $route->uri() === 'api/expenses/branch-expenses/{expense}'
                 && in_array('PUT', $route->methods(), true));
 
@@ -1578,6 +1601,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'business_branch_id' => $this->branch->id,
             'expense_category_id' => $category->id,
             'amount' => 1000,
+            'payment_date' => now()->toDateString(),
             'status' => 'pending',
         ]);
     }

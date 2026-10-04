@@ -14,7 +14,7 @@ class SystemPrompt
 - For any request outside these domains, respond that you can help with business data
 
 ## Available Tools
-' . json_encode($toolDefinitions, JSON_PRETTY_PRINT) . '
+'.json_encode($toolDefinitions, JSON_PRETTY_PRINT).'
 
 ## Classification Rules
 

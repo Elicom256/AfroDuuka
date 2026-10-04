@@ -14,7 +14,7 @@ class ReceiptController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('receipt_number', 'like', "%{$search}%")
-                  ->orWhere('payment_method', 'like', "%{$search}%");
+                    ->orWhere('payment_method', 'like', "%{$search}%");
             });
         }
 

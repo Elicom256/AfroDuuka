@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\AttendanceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\LogsActivity;
 
 class Attendance extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\AttendanceFactory> */
+    /** @use HasFactory<AttendanceFactory> */
     use HasFactory, LogsActivity;
-    protected $fillable = ["business_branch_id", "worker_id", "status", "check_in", "check_out", "remarks"];
 
-    protected $casts = ["check_out" => "date"];
-    public function worker():BelongsTo{
+    protected $fillable = ['business_branch_id', 'worker_id', 'status', 'check_in', 'check_out', 'remarks'];
+
+    protected $casts = ['check_out' => 'date'];
+
+    public function worker(): BelongsTo
+    {
         return $this->belongsTo(Worker::class);
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\CoreSettings\PaymentMethod;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PaymentMethodSeeder extends Seeder

@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\CustomerCreditTransaction;
 use App\Models\Sale;
+use App\Models\SalePayment;
 use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
-use App\Models\SalePayment;
 use InvalidArgumentException;
 
 class CustomerCreditService
@@ -24,7 +24,7 @@ class CustomerCreditService
             'created_by' => $user->id,
             'type' => 'charge',
             'amount' => $amount,
-            'reference' => 'SALE-' . $sale->id,
+            'reference' => 'SALE-'.$sale->id,
             'notes' => 'POS credit sale',
         ]);
     }
@@ -73,7 +73,7 @@ class CustomerCreditService
             'created_by' => $user->id,
             'type' => 'refund',
             'amount' => $refundAmount,
-            'reference' => 'REFUND-' . $sale->id,
+            'reference' => 'REFUND-'.$sale->id,
             'notes' => 'Credit sale refund',
         ]);
     }

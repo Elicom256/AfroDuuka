@@ -68,6 +68,7 @@ class PurchaseReport extends Tool
             'last_month' => now()->subMonth()->startOfMonth(),
             default => now()->subDays(30),
         };
+
         return $date->toDateTimeString();
     }
 }

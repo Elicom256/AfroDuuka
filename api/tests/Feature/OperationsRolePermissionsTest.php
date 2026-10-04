@@ -28,6 +28,7 @@ class OperationsRolePermissionsTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected Business $business;
+
     protected BusinessBranch $branch;
 
     protected function setUp(): void

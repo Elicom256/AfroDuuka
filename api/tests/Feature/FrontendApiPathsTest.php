@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\Finder\Finder;
 use Tests\TestCase;
 
 /**
@@ -20,7 +21,7 @@ class FrontendApiPathsTest extends TestCase
     {
         $frontendDir = '/frontend/src/app/store/features';
 
-        $files = \Symfony\Component\Finder\Finder::create()
+        $files = Finder::create()
             ->files()
             ->in($frontendDir)
             ->name('*.ts');
@@ -70,11 +71,11 @@ class FrontendApiPathsTest extends TestCase
                 $url = preg_replace('/\$\{[^}]+\}/', '1', $url);
                 $url = parse_url($url, PHP_URL_PATH) ?: '/';
 
-                $fullPath = 'api' . rtrim($baseUrl, '/') . $url;
+                $fullPath = 'api'.rtrim($baseUrl, '/').$url;
                 $fullPath = preg_replace('#/+#', '/', $fullPath);
                 $fullPath = rtrim($fullPath, '/');
 
-                if (!$this->routeExists($fullPath, $method)) {
+                if (! $this->routeExists($fullPath, $method)) {
                     $errors[] = sprintf(
                         '  %s: %s %s%s → %s',
                         $file->getFilename(),
@@ -90,7 +91,7 @@ class FrontendApiPathsTest extends TestCase
         }
 
         $this->assertGreaterThan(0, $checked, 'No frontend API endpoints were found to check');
-        $this->assertEmpty($errors, "Frontend API paths that don't match backend routes:\n" . implode("\n", $errors));
+        $this->assertEmpty($errors, "Frontend API paths that don't match backend routes:\n".implode("\n", $errors));
     }
 
     private function routeExists(string $path, string $method): bool

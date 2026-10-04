@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFinancialAuditRequest;
 use App\Http\Requests\UpdateFinancialAuditRequest;
 use App\Models\FinancialAudit;
-use App\Services\FinancialAuditService;
 use App\Services\ActivityLogService;
+use App\Services\FinancialAuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FinancialAuditController extends Controller
 {
     protected FinancialAuditService $auditService;
+
     protected ActivityLogService $activityLog;
 
     public function __construct(FinancialAuditService $auditService, ActivityLogService $activityLog)
@@ -45,7 +46,7 @@ class FinancialAuditController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('audit_number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 
@@ -99,7 +100,7 @@ class FinancialAuditController extends Controller
 
     public function update(UpdateFinancialAuditRequest $request, FinancialAudit $financialAudit): JsonResponse
     {
-        if (!in_array($financialAudit->status, ['draft', 'in_progress'])) {
+        if (! in_array($financialAudit->status, ['draft', 'in_progress'])) {
             return response()->json(['message' => 'Only draft or in-progress audits can be edited'], 422);
         }
 
@@ -123,7 +124,7 @@ class FinancialAuditController extends Controller
 
     public function destroy(FinancialAudit $financialAudit): JsonResponse
     {
-        if (!in_array($financialAudit->status, ['draft', 'cancelled'])) {
+        if (! in_array($financialAudit->status, ['draft', 'cancelled'])) {
             return response()->json(['message' => 'Only draft or cancelled audits can be deleted'], 422);
         }
 

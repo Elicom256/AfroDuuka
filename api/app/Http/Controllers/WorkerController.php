@@ -11,26 +11,29 @@ use App\Services\WorkerService;
 class WorkerController extends Controller
 {
     protected $workerService;
+
     public function __construct(WorkerService $workerService)
     {
         $this->workerService = $workerService;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         // $business_id = Auth::user()->business_id;
-        $workers = Worker::with(["user.role", "user.businessBranch", "attendances"])
-                  ->whereHas("user.role", function($q){
-                    $q->where("name", "!=", "Executive");
-                  })
-                  ->with("attendances", function($q){
-                    $q->latest()
-                      ->limit(5);
-                  })
-                  ->get();
-        return response()->json(["message" => "Fetched all Workers", "workers" => $workers]);
+        $workers = Worker::with(['user.role', 'user.businessBranch', 'attendances'])
+            ->whereHas('user.role', function ($q) {
+                $q->where('name', '!=', 'Executive');
+            })
+            ->with('attendances', function ($q) {
+                $q->latest()
+                    ->limit(5);
+            })
+            ->get();
+
+        return response()->json(['message' => 'Fetched all Workers', 'workers' => $workers]);
     }
 
     /**
@@ -40,7 +43,8 @@ class WorkerController extends Controller
     {
         $validated = $request->validated();
         $worker = $this->workerService->addWorker($validated);
-        return response()->json(["message" => "Added Worker", "worker" => $worker]);
+
+        return response()->json(['message' => 'Added Worker', 'worker' => $worker]);
     }
 
     /**
@@ -48,19 +52,21 @@ class WorkerController extends Controller
      */
     public function show(Worker $worker)
     {
-        $worker = $worker->load("user.role", "attendances");
+        $worker = $worker->load('user.role', 'attendances');
         $att = $this->workerService->workerAttendanceHistory($worker->id);
-        return response()->json(["message" => "Fetched Worker", "worker" => $worker, "attendance_history" => $att]);
+
+        return response()->json(['message' => 'Fetched Worker', 'worker' => $worker, 'attendance_history' => $att]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-public function update(UpdateWorkerRequest $request, Worker $worker)
+    public function update(UpdateWorkerRequest $request, Worker $worker)
     {
         $validated = $request->validated();
         $worker = $this->workerService->updateWorker($worker, $validated);
-        return response()->json(["message" => "Updated Worker", "worker" => $worker]);
+
+        return response()->json(['message' => 'Updated Worker', 'worker' => $worker]);
     }
 
     /**

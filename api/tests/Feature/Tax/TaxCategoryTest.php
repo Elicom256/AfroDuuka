@@ -18,8 +18,11 @@ class TaxCategoryTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected BusinessBranch $otherBranch;
 
     protected function setUp(): void

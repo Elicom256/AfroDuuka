@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 class PurchaseService
 {
     protected CashFlowService $cashFlowService;
+
     protected AnalyticsTrendHelper $analyticsTrendHelper;
 
     public function __construct(CashFlowService $cashFlowService, AnalyticsTrendHelper $analyticsTrendHelper)
@@ -33,28 +34,28 @@ class PurchaseService
         if ($branchId && $resolved !== null) {
             [, $branchIds] = $resolved;
             if (! in_array($branchId, $branchIds, true)) {
-                throw new Exception("Branch is not within your allowed scope", 403);
+                throw new Exception('Branch is not within your allowed scope', 403);
             }
         }
 
-        $total_amount = collect($validated["items"])->sum(fn($i) => $i["cost_price"] * $i["quantity"]);
+        $total_amount = collect($validated['items'])->sum(fn ($i) => $i['cost_price'] * $i['quantity']);
 
         return DB::transaction(function () use ($validated, $branchId, $total_amount, $notificationService, $user) {
             $purchase = Purchase::create([
-                "supplier_id" => $validated["supplier_id"],
-                "business_branch_id" => $branchId,
-                "total_amount" => $total_amount,
-                "status" => $validated['status'] ?? 'pending',
-                "note" => $validated["note"] ?? null
+                'supplier_id' => $validated['supplier_id'],
+                'business_branch_id' => $branchId,
+                'total_amount' => $total_amount,
+                'status' => $validated['status'] ?? 'pending',
+                'note' => $validated['note'] ?? null,
             ]);
 
-            foreach ($validated["items"] as $item) {
+            foreach ($validated['items'] as $item) {
                 PurchaseItem::create([
-                    "purchase_id" => $purchase->id,
-                    "product_id" => $item["product_id"],
-                    "quantity" => $item["quantity"],
-                    "cost_price" => $item["cost_price"],
-                    "subtotal" => $item["cost_price"] * $item["quantity"]
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'cost_price' => $item['cost_price'],
+                    'subtotal' => $item['cost_price'] * $item['quantity'],
                 ]);
             }
 
@@ -62,7 +63,7 @@ class PurchaseService
             $this->cashFlowService->createCashFlowForPurchase($purchase, $total_amount, $validated);
             $notificationService->newPurchaseRecorded($user, $supplier?->company_name ?? 'Supplier', number_format($total_amount), $purchase->id);
 
-            return $purchase->load("purchaseItems");
+            return $purchase->load('purchaseItems');
         });
     }
 
@@ -99,7 +100,7 @@ class PurchaseService
         });
     }
 
-    public function analytics(string $period = "last_7_days")
+    public function analytics(string $period = 'last_7_days')
     {
         $query = Purchase::where('status', 'completed');
 
@@ -108,31 +109,31 @@ class PurchaseService
         $startDate = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
         $query->where('created_at', '>=', $startDate);
         $purchases = $query->get();
-        $totalPurchases = $purchases->sum("total_amount");
+        $totalPurchases = $purchases->sum('total_amount');
         $totalTransactions = $purchases->count();
         $avgPurchases = $totalPurchases ? $totalPurchases / $totalTransactions : 0;
-        $testAvg = $purchases->average("total_amount");
+        $testAvg = $purchases->average('total_amount');
 
         $purchaseTrend = $purchases->groupBy(function ($purchase) {
-            return Carbon::parse($purchase->created_at)->format("M d");
+            return Carbon::parse($purchase->created_at)->format('M d');
         })->map(function ($group) {
             return [
-                'date'   => $group->first()->created_at->format('M d'),
+                'date' => $group->first()->created_at->format('M d'),
                 'amount' => $group->sum('total_amount'),
-                'count'  => $group->count(),
+                'count' => $group->count(),
             ];
         })->values();
 
         $purchasesTrend = $this->analyticsTrendHelper->fillMissingDates($purchaseTrend, $days);
 
         return [
-            'total_purchases'        => round($totalPurchases, 2),
-            'avg_purchase'           => round($avgPurchases, 2),
-            'test_avg'               => round($testAvg, 2),
-            'total_transactions'     => $totalTransactions,
-            'purchase_trend'         => $purchasesTrend,
-            'period'                 => $period,
-            "lable"                  => "purchases"
+            'total_purchases' => round($totalPurchases, 2),
+            'avg_purchase' => round($avgPurchases, 2),
+            'test_avg' => round($testAvg, 2),
+            'total_transactions' => $totalTransactions,
+            'purchase_trend' => $purchasesTrend,
+            'period' => $period,
+            'lable' => 'purchases',
         ];
     }
 }

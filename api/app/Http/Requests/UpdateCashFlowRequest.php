@@ -46,36 +46,36 @@ class UpdateCashFlowRequest extends FormRequest
             'transaction_code' => [
                 'sometimes',
                 'string',
-                Rule::unique('cash_flows')->ignore($cashFlowId)
+                Rule::unique('cash_flows')->ignore($cashFlowId),
             ],
-            
+
             'type' => [
                 'sometimes',
                 'string',
                 Rule::in([
-                    'sale', 'purchase', 'expense', 'payment_in', 
-                    'payment_out', 'refund', 'adjustment'
-                ])
+                    'sale', 'purchase', 'expense', 'payment_in',
+                    'payment_out', 'refund', 'adjustment',
+                ]),
             ],
-            
+
             'amount' => 'sometimes|numeric|min:0',
             'currency' => 'sometimes|string|size:3',
-            
+
             'customer_id' => 'nullable|exists:customers,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'sale_id' => 'nullable|exists:sales,id',
             'purchase_id' => 'nullable|exists:purchases,id',
-            
+
             'description' => 'nullable|string|max:500',
             'category' => 'nullable|string|max:100',
             'business_branch_id' => ['nullable', 'integer', 'exists:business_branches,id'],
-            
+
             'payment_method' => [
-                'nullable', 
-                'string', 
-                Rule::in(['cash', 'mobile_money', 'bank_transfer', 'card', 'cheque', 'other'])
+                'nullable',
+                'string',
+                Rule::in(['cash', 'mobile_money', 'bank_transfer', 'card', 'cheque', 'other']),
             ],
-            
+
             'reference' => 'nullable|string|max:100',
             'status' => ['sometimes', Rule::in(['pending', 'completed', 'cancelled'])],
             'transaction_date' => 'sometimes|date',

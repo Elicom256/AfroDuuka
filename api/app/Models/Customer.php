@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Traits\LogsActivity;
 
 class Customer extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\CustomerFactory> */
+    /** @use HasFactory<CustomerFactory> */
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'user_id', 
-        'customer_code', 
+        'user_id',
+        'customer_code',
         'company_name',
         'status',
         'remarks',
@@ -39,8 +40,6 @@ class Customer extends BaseModel
 
     public function name(): string
     {
-        return $this->company_name ?: ($this->user ? trim($this->user->firstname . ' ' . $this->user->lastname) : 'Customer');
+        return $this->company_name ?: ($this->user ? trim($this->user->firstname.' '.$this->user->lastname) : 'Customer');
     }
-
-
 }

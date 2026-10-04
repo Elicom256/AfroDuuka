@@ -21,13 +21,13 @@ class SaleItem extends Model
     ];
 
     protected $casts = [
-        'unit_price'       => 'decimal:2',
-        'discount'         => 'decimal:2',
-        'tax_rate'         => 'decimal:4',
+        'unit_price' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'tax_rate' => 'decimal:4',
         'is_tax_inclusive' => 'boolean',
-        'taxable_amount'   => 'decimal:2',
-        'tax_amount'       => 'decimal:2',
-        'subtotal'         => 'decimal:2',
+        'taxable_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function sale(): BelongsTo

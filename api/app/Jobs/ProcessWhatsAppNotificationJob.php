@@ -29,13 +29,12 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
 
     public function __construct(
         public array $payload
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
-        $notificationService = new WhatsAppNotificationService();
-        $templateService = new WhatsAppTemplateService();
+        $notificationService = new WhatsAppNotificationService;
+        $templateService = new WhatsAppTemplateService;
 
         $normalized = $notificationService->buildPayload($this->payload);
         $businessId = (int) ($normalized['business_id'] ?? 0);
@@ -73,6 +72,7 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
                     'dedupe_key' => $dedupeKey,
                     'existing_log_id' => $existingLog->id,
                 ]);
+
                 return;
             }
         }

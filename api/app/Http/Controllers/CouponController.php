@@ -38,7 +38,7 @@ class CouponController extends Controller
         $businessName = $user->business->name ?? 'BUSI';
         $prefix = strtoupper(substr($businessName, 0, 4));
         $couponCount = Coupon::where('business_id', $user->business_id)->count();
-        $code = $prefix . str_pad($couponCount + 1, 3, '0', STR_PAD_LEFT);
+        $code = $prefix.str_pad($couponCount + 1, 3, '0', STR_PAD_LEFT);
 
         $coupon = Coupon::create([
             'code' => $code,
@@ -78,6 +78,7 @@ class CouponController extends Controller
         abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You cannot delete coupons.');
 
         $coupon->delete();
+
         return response()->json(['message' => 'Coupon deleted']);
     }
 }

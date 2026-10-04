@@ -81,7 +81,7 @@ class RouteModelBindingTest extends TestCase
         $this->assertGreaterThan(0, $checked, 'No bound model parameters were found to check');
         $this->assertEmpty(
             $problems,
-            "Controller model parameters that the route cannot bind:\n" . implode("\n", $problems)
+            "Controller model parameters that the route cannot bind:\n".implode("\n", $problems)
         );
     }
 

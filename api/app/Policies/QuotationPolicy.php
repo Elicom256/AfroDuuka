@@ -31,6 +31,7 @@ class QuotationPolicy
     public function delete(User $user, Quotation $quotation): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 

@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceSettingsRequest;
 use App\Http\Requests\UpdateAttendanceSettingsRequest;
-use App\Models\CoreSettings\AttendanceSettings;
 use App\Models\ActivityLog;
+use App\Models\CoreSettings\AttendanceSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-
 
 class AttendanceSettingsController extends Controller
 {
@@ -19,7 +18,8 @@ class AttendanceSettingsController extends Controller
     public function index()
     {
         $setting = AttendanceSettings::first();
-        return response()->json(["settings" =>$setting, "message" => "Attendance settings"]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Attendance settings']);
     }
 
     /**
@@ -60,7 +60,7 @@ class AttendanceSettingsController extends Controller
             ],
         ]);
 
-        return response()->json(["message" => "Setting updated", "setting" => $attendanceSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $attendanceSetting]);
     }
 
     /**

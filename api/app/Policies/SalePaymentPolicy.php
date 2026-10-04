@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\SalePayment;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class SalePaymentPolicy
 {
@@ -46,6 +45,7 @@ class SalePaymentPolicy
     public function delete(User $user, SalePayment $salePayment): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class SalePaymentPolicy
     public function forceDelete(User $user, SalePayment $salePayment): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

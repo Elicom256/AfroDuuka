@@ -13,9 +13,9 @@ class PosCustomerResource extends JsonResource
             'id' => $this->id,
             'customer_code' => $this->customer_code,
             'company_name' => $this->company_name,
-            'name' => $this->whenLoaded('user', fn() => trim(($this->user?->firstname ?? '') . ' ' . ($this->user?->lastname ?? ''))),
-            'phone' => $this->whenLoaded('user', fn() => $this->user?->phone),
-            'email' => $this->whenLoaded('user', fn() => $this->user?->email),
+            'name' => $this->whenLoaded('user', fn () => trim(($this->user?->firstname ?? '').' '.($this->user?->lastname ?? ''))),
+            'phone' => $this->whenLoaded('user', fn () => $this->user?->phone),
+            'email' => $this->whenLoaded('user', fn () => $this->user?->email),
             'status' => $this->status,
         ];
     }

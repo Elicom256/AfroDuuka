@@ -3,8 +3,8 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
+use App\Models\Customer;
 use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
 
 class CustomerPurchases extends Tool
 {
@@ -37,13 +37,13 @@ class CustomerPurchases extends Tool
         $customerId = $parameters['customer_id'] ?? null;
         $limit = min((int) ($parameters['limit'] ?? 20), 100);
 
-        if (!$customerId) {
+        if (! $customerId) {
             return ['message' => 'Please provide a customer ID.'];
         }
 
-        $customer = \App\Models\Customer::with('user')->find($customerId);
+        $customer = Customer::with('user')->find($customerId);
 
-        if (!$customer) {
+        if (! $customer) {
             return ['message' => 'Customer not found.'];
         }
 

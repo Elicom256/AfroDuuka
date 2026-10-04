@@ -23,6 +23,7 @@ class StoreSaleItemRequest extends FormRequest
             'business_branch_id' => $this->input('business_branch_id', Auth::user()->business_branch_id),
         ]);
     }
+
     public function rules(): array
     {
         $branchWithinSet = function ($attribute, $value, $fail) {
@@ -34,12 +35,12 @@ class StoreSaleItemRequest extends FormRequest
 
         return [
             'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
-             'items' => 'required|array|min:1',
-             'items.*.product_id' => 'required|exists:products,id',
-             'items.*.quantity' => 'required|integer|min:1',
-             'items.*.unit_price' => 'required|numeric|min:0',
-             'items.*.discount' => 'nullable|numeric|min:0',
-             'note' => 'nullable|string|min:1|max:255'
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'note' => 'nullable|string|min:1|max:255',
         ];
     }
 }

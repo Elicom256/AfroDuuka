@@ -18,7 +18,7 @@ class StoreTodoRequest extends FormRequest
         $this->merge([
             'user_id' => Auth::id(),
             'business_id' => Auth::user()->business_id,
-            'status' => "undone"
+            'status' => 'undone',
         ]);
     }
 

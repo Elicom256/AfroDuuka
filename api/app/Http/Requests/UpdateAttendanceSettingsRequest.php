@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Override;
 
 class UpdateAttendanceSettingsRequest extends FormRequest
 {
@@ -20,14 +18,16 @@ class UpdateAttendanceSettingsRequest extends FormRequest
     public function prepareForValidation()
     {
         $businessId = Auth::user()->business_id;
+
         return $this->merge([
-            "business_id" => $businessId
+            'business_id' => $businessId,
         ]);
     }
+
     public function rules(): array
     {
         return [
-            "status" => "required|in:enabled,disabled"
+            'status' => 'required|in:enabled,disabled',
         ];
     }
 }

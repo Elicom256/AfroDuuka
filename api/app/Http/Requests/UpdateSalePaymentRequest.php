@@ -11,7 +11,7 @@ class UpdateSalePaymentRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-   public function authorize(): bool
+    public function authorize(): bool
     {
         return Auth::check();
     }
@@ -24,10 +24,10 @@ class UpdateSalePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-              "sale_id" => "required|exists:sales,id",
-              "method" => "required|in:cash,mobile_money,card,debt",
-              "amount" => "required|numeric",
-              "status" => "required|in:paid,pending,partial"
+            'sale_id' => 'required|exists:sales,id',
+            'method' => 'required|in:cash,mobile_money,card,debt',
+            'amount' => 'required|numeric',
+            'status' => 'required|in:paid,pending,partial',
         ];
     }
 }

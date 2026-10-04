@@ -15,7 +15,8 @@ class DebitSettingController extends Controller
     public function index()
     {
         $setting = DebitSetting::first();
-        return response()->json(["settings" =>$setting, "message" => "Customer settings"]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Customer settings']);
     }
 
     /**
@@ -39,9 +40,10 @@ class DebitSettingController extends Controller
      */
     public function update(UpdateDebitSettingRequest $request, DebitSetting $debitSetting)
     {
-         $validated = $request->validated();
+        $validated = $request->validated();
         $setting = $debitSetting->update($validated);
-        return response()->json(["message" => "Setting updated", "setting" => $setting]);
+
+        return response()->json(['message' => 'Setting updated', 'setting' => $setting]);
     }
 
     /**

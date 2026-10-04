@@ -6,23 +6,23 @@ use App\Models\Attendance;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Worker;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class AttendanceSeeder extends Seeder
 {
     public function run(): void
     {
-        $businessId = Business::where("email", "testbusinessone@gmail.com")->value("id");
+        $businessId = Business::where('email', 'testbusinessone@gmail.com')->value('id');
 
-        $branchId = BusinessBranch::where("business_id", $businessId)
-            ->where("name", "Main Branch")
-            ->value("id");
+        $branchId = BusinessBranch::where('business_id', $businessId)
+            ->where('name', 'Main Branch')
+            ->value('id');
 
-        $workers = Worker::with(["user"])
-            ->whereHas("user", function ($q) use ($businessId, $branchId) {
-                $q->where("business_id", $businessId)
-                ->where("business_branch_id", $branchId);
+        $workers = Worker::with(['user'])
+            ->whereHas('user', function ($q) use ($businessId, $branchId) {
+                $q->where('business_id', $businessId)
+                    ->where('business_branch_id', $branchId);
             })
             ->get();
 
@@ -58,18 +58,18 @@ class AttendanceSeeder extends Seeder
             Attendance::updateOrCreate(
                 ['worker_id' => $worker->id, 'session' => 'morning', 'check_in' => $checkIn, 'check_out' => $checkOut],
                 [
-                'business_branch_id' => $branchId,
-                'status' => $status,
-                'remarks' => match ($status) {
-                    'present' => 'Arrived on time',
-                    'late' => 'Traffic delay',
-                    'excused' => 'Approved leave',
-                    'absent' => 'Did not report to work',
-                },
-            ]);
+                    'business_branch_id' => $branchId,
+                    'status' => $status,
+                    'remarks' => match ($status) {
+                        'present' => 'Arrived on time',
+                        'late' => 'Traffic delay',
+                        'excused' => 'Approved leave',
+                        'absent' => 'Did not report to work',
+                    },
+                ]);
         }
-            $num = $workers?->count();
-            $this->command->info("✅ Seeded $num Employee Attendances!");
-        
+        $num = $workers?->count();
+        $this->command->info("✅ Seeded $num Employee Attendances!");
+
     }
 }

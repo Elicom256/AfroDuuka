@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportsSettingsRequest;
 use App\Http\Requests\UpdateReportsSettingsRequest;
-use App\Models\CoreSettings\ReportsSettings;
 use App\Models\ActivityLog;
+use App\Models\CoreSettings\ReportsSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-
 
 class ReportsSettingsController extends Controller
 {
@@ -19,7 +18,8 @@ class ReportsSettingsController extends Controller
     public function index()
     {
         $setting = ReportsSettings::first();
-        return response()->json(["settings" =>$setting, "message" => "Reports settings"]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Reports settings']);
     }
 
     /**
@@ -60,7 +60,7 @@ class ReportsSettingsController extends Controller
             ],
         ]);
 
-        return response()->json(["message" => "Setting updated", "setting" => $reportsSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $reportsSetting]);
     }
 
     /**

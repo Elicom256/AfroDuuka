@@ -16,24 +16,25 @@ class CoreBusinessSettings
     public function coreSettings(string $businessId)
     {
         $settings = [];
-        $settings[] = SuppliersSettings::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = AttendanceSettings::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = CustomersSettings::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = PromotionsSettings::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = ReportsSettings::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = CreditSetting::create(["business_id" => $businessId, "status" => "disabled"]);
-        $settings[] = DebitSetting::create(["business_id" => $businessId, "status" => "disabled"]);
+        $settings[] = SuppliersSettings::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = AttendanceSettings::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = CustomersSettings::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = PromotionsSettings::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = ReportsSettings::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = CreditSetting::create(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = DebitSetting::create(['business_id' => $businessId, 'status' => 'disabled']);
 
-        $paymentMethods = ["mobile_money", "card", "cash", "credit", "cryptocurrency"];
-        
+        $paymentMethods = ['mobile_money', 'card', 'cash', 'credit', 'cryptocurrency'];
+
         foreach ($paymentMethods as $paymentMethod) {
-          $settings[] = PaymentMethod::create([
-            "business_id" => $businessId,
-            "method" => $paymentMethod,
-            "status" => "disabled",
+            $settings[] = PaymentMethod::create([
+                'business_id' => $businessId,
+                'method' => $paymentMethod,
+                'status' => 'disabled',
             ]);
         }
         $total = count($settings);
+
         return "created $total core settings along";
     }
 }

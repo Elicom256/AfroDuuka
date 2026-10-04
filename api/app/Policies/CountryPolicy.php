@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Country;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CountryPolicy
 {
@@ -46,6 +45,7 @@ class CountryPolicy
     public function delete(User $user, Country $country): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class CountryPolicy
     public function forceDelete(User $user, Country $country): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

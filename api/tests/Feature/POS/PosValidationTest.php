@@ -17,8 +17,11 @@ class PosValidationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected Product $product;
 
     protected function setUp(): void

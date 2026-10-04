@@ -6,18 +6,18 @@ use Carbon\Carbon;
 
 class AnalyticsTrendHelper
 {
-   /**
+    /**
      * Get number of days based on period
      */
     public function getDaysFromPeriod(string $period): int
     {
         return match (strtolower($period)) {
-            'today'       => 1,
-            'last_7_days'  => 7,
+            'today' => 1,
+            'last_7_days' => 7,
             'last_30_days' => 30,
-            'this_month'   => Carbon::now()->daysInMonth,
-            'last_month'   => Carbon::now()->subMonth()->daysInMonth,
-            default        => 7,
+            'this_month' => Carbon::now()->daysInMonth,
+            'last_month' => Carbon::now()->subMonth()->daysInMonth,
+            default => 7,
         };
     }
 
@@ -36,52 +36,53 @@ class AnalyticsTrendHelper
             $existing = $data->firstWhere('date', $dateLabel);
 
             $filled[] = [
-                'date'   => $dateLabel,
+                'date' => $dateLabel,
                 'amount' => $existing['amount'] ?? 0,
-                'count'  => $existing['count'] ?? 0,
+                'count' => $existing['count'] ?? 0,
             ];
         }
 
         return $filled;
     }
-// 
-public function getPeriodDates(string $period): array
-{
-    return match (strtolower($period)) {
 
-        'last_7_days' => [
-            'start' => Carbon::now()->subDays(7),
-            'end' => Carbon::now(),
-        ],
+    //
+    public function getPeriodDates(string $period): array
+    {
+        return match (strtolower($period)) {
 
-        'last_30_days' => [
-            'start' => Carbon::now()->subDays(30),
-            'end' => Carbon::now(),
-        ],
+            'last_7_days' => [
+                'start' => Carbon::now()->subDays(7),
+                'end' => Carbon::now(),
+            ],
 
-        'this_month' => [
-            'start' => Carbon::now()->startOfMonth(),
-            'end' => Carbon::now()->endOfMonth(),
-        ],
+            'last_30_days' => [
+                'start' => Carbon::now()->subDays(30),
+                'end' => Carbon::now(),
+            ],
 
-        'last_month' => [
-            'start' => Carbon::now()->subMonth()->startOfMonth(),
-            'end' => Carbon::now()->subMonth()->endOfMonth(),
-        ],
-        'this_year' => [
-            'start' => Carbon::now()->startOfYear(),
-            'end' => Carbon::now()->endOfYear(),
-        ],
+            'this_month' => [
+                'start' => Carbon::now()->startOfMonth(),
+                'end' => Carbon::now()->endOfMonth(),
+            ],
 
-        'last_year' => [
-            'start' => Carbon::now()->subYear()->startOfYear(),
-            'end' => Carbon::now()->subYear()->endOfYear(),
-        ],
+            'last_month' => [
+                'start' => Carbon::now()->subMonth()->startOfMonth(),
+                'end' => Carbon::now()->subMonth()->endOfMonth(),
+            ],
+            'this_year' => [
+                'start' => Carbon::now()->startOfYear(),
+                'end' => Carbon::now()->endOfYear(),
+            ],
 
-        default => [
-            'start' => Carbon::now()->subDays(7),
-            'end' => Carbon::now(),
-        ],
-    };
-}
+            'last_year' => [
+                'start' => Carbon::now()->subYear()->startOfYear(),
+                'end' => Carbon::now()->subYear()->endOfYear(),
+            ],
+
+            default => [
+                'start' => Carbon::now()->subDays(7),
+                'end' => Carbon::now(),
+            ],
+        };
+    }
 }

@@ -25,12 +25,12 @@ class StoreSupplierRequest extends FormRequest
         $user = Auth::user();
 
         $this->merge([
-            "business_id" => $user->business_id,
-            "status" => "active",
+            'business_id' => $user->business_id,
+            'status' => 'active',
 
-            "role_id" => Role::where("name", "supplier")
-                ->where("business_id", $user->business_id)
-                ->value("id"),
+            'role_id' => Role::where('name', 'supplier')
+                ->where('business_id', $user->business_id)
+                ->value('id'),
         ]);
 
         if ($user?->business_branch_id && ! $this->has('business_branch_id')) {

@@ -11,6 +11,7 @@ use App\Models\TaxRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -19,9 +20,13 @@ class TransactionTaxTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Product $exclusiveProduct;
+
     protected Product $inclusiveProduct;
+
     protected Product $untaxedProduct;
+
     protected TaxCategory $category;
 
     protected function setUp(): void
@@ -76,7 +81,7 @@ class TransactionTaxTest extends TestCase
         Sanctum::actingAs($this->user);
     }
 
-    protected function checkout(array $items, array $payments = []): \Illuminate\Testing\TestResponse
+    protected function checkout(array $items, array $payments = []): TestResponse
     {
         $total = collect($items)->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
         $payments = $payments ?: [['method' => 'cash', 'amount' => $total]];
@@ -329,7 +334,7 @@ class TransactionTaxTest extends TestCase
 
     public function test_pos_product_search_exposes_tax_rate(): void
     {
-        $response = $this->getJson('/api/pos/products/search?q=' . urlencode($this->exclusiveProduct->name));
+        $response = $this->getJson('/api/pos/products/search?q='.urlencode($this->exclusiveProduct->name));
 
         $response->assertStatus(200);
         $this->assertEquals(

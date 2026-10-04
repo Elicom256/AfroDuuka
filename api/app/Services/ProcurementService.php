@@ -9,9 +9,9 @@ use App\Models\SaleItem;
 use App\Models\Supplier;
 use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class ProcurementService
 {
@@ -32,8 +32,8 @@ class ProcurementService
         if ($branchId) {
             if ($resolved !== null) {
                 [, $branchIds] = $resolved;
-                if (!in_array((int) $branchId, $branchIds, true)) {
-                    throw new Exception("Branch is not within your allowed scope", 403);
+                if (! in_array((int) $branchId, $branchIds, true)) {
+                    throw new Exception('Branch is not within your allowed scope', 403);
                 }
             }
             $query->where('business_branch_id', $branchId);
@@ -123,16 +123,16 @@ class ProcurementService
 
         if ($branchId && $resolved !== null) {
             [, $branchIds] = $resolved;
-            if (!in_array((int) $branchId, $branchIds, true)) {
-                throw new Exception("Branch is not within your allowed scope", 403);
+            if (! in_array((int) $branchId, $branchIds, true)) {
+                throw new Exception('Branch is not within your allowed scope', 403);
             }
         }
 
         return DB::transaction(function () use ($data, $branchId, $user) {
             $orderCount = PurchaseOrder::where('business_id', $user->business_id)->count();
-            $orderNumber = "PO-" . str_pad($orderCount + 1, 6, "0", STR_PAD_LEFT);
+            $orderNumber = 'PO-'.str_pad($orderCount + 1, 6, '0', STR_PAD_LEFT);
 
-            $totalAmount = collect($data['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+            $totalAmount = collect($data['items'])->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
 
             $order = PurchaseOrder::create([
                 'business_id' => $user->business_id,
@@ -165,7 +165,7 @@ class ProcurementService
     public function approvePurchaseOrder(PurchaseOrder $order): PurchaseOrder
     {
         if ($order->status !== 'pending' && $order->status !== 'draft') {
-            throw new Exception("Only draft or pending purchase orders can be approved.", 422);
+            throw new Exception('Only draft or pending purchase orders can be approved.', 422);
         }
 
         $order->update([
@@ -179,7 +179,7 @@ class ProcurementService
     public function markAsOrdered(PurchaseOrder $order): PurchaseOrder
     {
         if ($order->status !== 'approved') {
-            throw new Exception("Only approved purchase orders can be marked as ordered.", 422);
+            throw new Exception('Only approved purchase orders can be marked as ordered.', 422);
         }
 
         $order->update([
@@ -192,8 +192,8 @@ class ProcurementService
 
     public function receivePurchaseOrder(PurchaseOrder $order, array $receivedItems): PurchaseOrder
     {
-        if (!in_array($order->status, ['ordered', 'partially_received'], true)) {
-            throw new Exception("Only ordered or partially received purchase orders can be received.", 422);
+        if (! in_array($order->status, ['ordered', 'partially_received'], true)) {
+            throw new Exception('Only ordered or partially received purchase orders can be received.', 422);
         }
 
         return DB::transaction(function () use ($order, $receivedItems) {
@@ -201,7 +201,7 @@ class ProcurementService
                 $receivedQty = (int) ($receivedItems[$item->id] ?? 0);
 
                 if ($receivedQty < 0) {
-                    throw new Exception("Received quantity cannot be negative.", 422);
+                    throw new Exception('Received quantity cannot be negative.', 422);
                 }
 
                 $newReceived = (int) $item->received_quantity + $receivedQty;
@@ -225,8 +225,8 @@ class ProcurementService
                 }
             }
 
-            $allReceived = $order->items->every(fn($item) => (int) $item->received_quantity >= (int) $item->quantity);
-            $anyReceived = $order->items->contains(fn($item) => (int) $item->received_quantity > 0);
+            $allReceived = $order->items->every(fn ($item) => (int) $item->received_quantity >= (int) $item->quantity);
+            $anyReceived = $order->items->contains(fn ($item) => (int) $item->received_quantity > 0);
 
             $newStatus = $allReceived ? 'received' : ($anyReceived ? 'partially_received' : $order->status);
 
@@ -243,7 +243,7 @@ class ProcurementService
     public function cancelPurchaseOrder(PurchaseOrder $order): PurchaseOrder
     {
         if (in_array($order->status, ['received', 'cancelled'], true)) {
-            throw new Exception("Received or already cancelled purchase orders cannot be cancelled.", 422);
+            throw new Exception('Received or already cancelled purchase orders cannot be cancelled.', 422);
         }
 
         $order->update(['status' => 'cancelled']);
@@ -262,8 +262,8 @@ class ProcurementService
         if ($branchId) {
             if ($resolved !== null) {
                 [, $branchIds] = $resolved;
-                if (!in_array((int) $branchId, $branchIds, true)) {
-                    throw new Exception("Branch is not within your allowed scope", 403);
+                if (! in_array((int) $branchId, $branchIds, true)) {
+                    throw new Exception('Branch is not within your allowed scope', 403);
                 }
             }
             $orderQuery->where('business_branch_id', $branchId);

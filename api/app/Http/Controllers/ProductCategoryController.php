@@ -12,8 +12,9 @@ class ProductCategoryController extends Controller
     public function index()
     {
         $business_id = Auth::user()->business_id;
-        $categories = ProductCategory::where("business_id", $business_id)->orderBy("id", "asc")->get();
-        return response()->json(["message"=>"Product categories fetched!", "categories" => $categories], 200);
+        $categories = ProductCategory::where('business_id', $business_id)->orderBy('id', 'asc')->get();
+
+        return response()->json(['message' => 'Product categories fetched!', 'categories' => $categories], 200);
     }
 
     public function store(StoreProductCategoryRequest $request)
@@ -22,14 +23,15 @@ class ProductCategoryController extends Controller
 
         $validated = $request->validated();
         $category = ProductCategory::create($validated);
-        return response()->json(["message" => "Category created successfully!", "category" => $category], 201);
+
+        return response()->json(['message' => 'Category created successfully!', 'category' => $category], 201);
     }
 
     public function show(ProductCategory $productCategory)
     {
         $this->authorize('view', $productCategory);
 
-        return response()->json(["message" => "Category fetched!", "category" => $productCategory], 200);
+        return response()->json(['message' => 'Category fetched!', 'category' => $productCategory], 200);
     }
 
     public function update(UpdateProductCategoryRequest $request, ProductCategory $productCategory)
@@ -38,7 +40,8 @@ class ProductCategoryController extends Controller
 
         $validated = $request->validated();
         $productCategory->update($validated);
-        return response()->json(["message" => "Category updated successfully!", "category" => $productCategory], 201);
+
+        return response()->json(['message' => 'Category updated successfully!', 'category' => $productCategory], 201);
     }
 
     public function destroy(ProductCategory $productCategory)
@@ -46,6 +49,7 @@ class ProductCategoryController extends Controller
         $this->authorize('delete', $productCategory);
 
         $productCategory->delete();
-        return response()->json(["message" => "Category with id $productCategory->id deleted successfully!"], 201);
+
+        return response()->json(['message' => "Category with id $productCategory->id deleted successfully!"], 201);
     }
 }

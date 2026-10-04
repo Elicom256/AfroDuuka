@@ -13,17 +13,16 @@ return new class extends Migration
     {
         Schema::create('business_branches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("business_id")->constrained()->cascadeOnDelete();
-            $table->string("name")->default("Main Branch");
-            $table->string("address")->nullable();
-            $table->string("phone")->nullable();
-            $table->enum("status", ["active", "innactive"])->default("active");
-            $table->unique(["business_id", "name"]);
+            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->string('name')->default('Main Branch');
+            $table->string('address')->nullable();
+            $table->string('phone')->nullable();
+            $table->enum('status', ['active', 'innactive'])->default('active');
+            $table->unique(['business_id', 'name']);
             $table->timestamps();
         });
     }
 
-    
     public function down(): void
     {
         Schema::dropIfExists('business_branches');

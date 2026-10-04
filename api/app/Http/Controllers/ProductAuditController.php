@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductAuditRequest;
 use App\Http\Requests\UpdateProductAuditRequest;
 use App\Models\ProductAudit;
-use App\Services\ProductAuditService;
 use App\Services\ActivityLogService;
+use App\Services\ProductAuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductAuditController extends Controller
 {
     protected ProductAuditService $auditService;
+
     protected ActivityLogService $activityLog;
 
     public function __construct(ProductAuditService $auditService, ActivityLogService $activityLog)
@@ -45,7 +46,7 @@ class ProductAuditController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('audit_number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 
@@ -97,7 +98,7 @@ class ProductAuditController extends Controller
 
     public function update(UpdateProductAuditRequest $request, ProductAudit $productAudit): JsonResponse
     {
-        if (!in_array($productAudit->status, ['draft', 'in_progress'])) {
+        if (! in_array($productAudit->status, ['draft', 'in_progress'])) {
             return response()->json(['message' => 'Only draft or in-progress audits can be edited'], 422);
         }
 
@@ -124,7 +125,7 @@ class ProductAuditController extends Controller
 
     public function destroy(ProductAudit $productAudit): JsonResponse
     {
-        if (!in_array($productAudit->status, ['draft', 'cancelled'])) {
+        if (! in_array($productAudit->status, ['draft', 'cancelled'])) {
             return response()->json(['message' => 'Only draft or cancelled audits can be deleted'], 422);
         }
 

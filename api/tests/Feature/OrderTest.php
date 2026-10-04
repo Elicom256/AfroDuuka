@@ -20,8 +20,11 @@ class OrderTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected Business $business;
+
     protected BusinessBranch $branch;
+
     protected Role $role;
+
     protected User $user;
 
     protected function setUp(): void
@@ -68,7 +71,7 @@ class OrderTest extends TestCase
 
         return Supplier::create([
             'user_id' => $user->id,
-            'supplier_code' => 'SUP-' . $this->faker->unique()->numerify('####'),
+            'supplier_code' => 'SUP-'.$this->faker->unique()->numerify('####'),
             'company_name' => $this->faker->company(),
             'status' => 'active',
         ]);
@@ -301,7 +304,7 @@ class OrderTest extends TestCase
             'items' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 100]],
         ])->assertStatus(201);
 
-        $this->putJson('/api/purchase-orders/' . $create->json('data.id'), ['status' => 'cancelled'])
+        $this->putJson('/api/purchase-orders/'.$create->json('data.id'), ['status' => 'cancelled'])
             ->assertStatus(200)
             ->assertJsonPath('data.status', 'cancelled');
     }

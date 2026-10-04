@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePromotionsSettingsRequest;
 use App\Http\Requests\UpdatePromotionsSettingsRequest;
-use App\Models\CoreSettings\PromotionsSettings;
 use App\Models\ActivityLog;
+use App\Models\CoreSettings\PromotionsSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,7 +18,8 @@ class PromotionsSettingsController extends Controller
     public function index()
     {
         $setting = PromotionsSettings::first();
-        return response()->json(["settings" =>$setting, "message" => "Promotions settings"]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Promotions settings']);
     }
 
     /**
@@ -34,7 +35,7 @@ class PromotionsSettingsController extends Controller
      */
     public function show(PromotionsSettings $promotionsSetting)
     {
-        return response()->json(["message" => "Setting updated", "setting" => $promotionsSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $promotionsSetting]);
     }
 
     /**
@@ -59,7 +60,7 @@ class PromotionsSettingsController extends Controller
             ],
         ]);
 
-        return response()->json(["message" => "Setting updated", "setting" => $promotionsSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $promotionsSetting]);
     }
 
     /**

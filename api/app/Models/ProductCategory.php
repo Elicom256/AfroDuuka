@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductCategory extends BaseModel
 {

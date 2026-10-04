@@ -3,9 +3,8 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\Sale;
 use App\Models\Purchase;
-use Illuminate\Support\Facades\DB;
+use App\Models\Sale;
 
 class SalesVsPurchases extends Tool
 {
@@ -75,6 +74,7 @@ class SalesVsPurchases extends Tool
             'last_month' => now()->subMonth()->startOfMonth(),
             default => now()->subDays(30),
         };
+
         return $date->toDateTimeString();
     }
 }

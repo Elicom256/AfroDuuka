@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\CashFlow;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CashFlowPolicy
 {
@@ -46,6 +45,7 @@ class CashFlowPolicy
     public function delete(User $user, CashFlow $cashFlow): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 
@@ -63,6 +63,7 @@ class CashFlowPolicy
     public function forceDelete(User $user, CashFlow $cashFlow): bool
     {
         $role = strtolower((string) $user->role?->name);
+
         return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
     }
 }

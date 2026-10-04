@@ -16,7 +16,7 @@ class UpdateProductCategoryRequest extends FormRequest
     {
         $user = Auth::user();
         $this->merge([
-            "business_id" => $user->business_id,
+            'business_id' => $user->business_id,
         ]);
     }
 

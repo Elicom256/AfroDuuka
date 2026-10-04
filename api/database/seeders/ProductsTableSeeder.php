@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\ProductCategory;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use Database\Seeders\Concerns\SeedsFixtureBusiness;
 use Illuminate\Database\Seeder;
 
@@ -55,7 +54,7 @@ class ProductsTableSeeder extends Seeder
                     ['business_branch_id' => $branch->id, 'name' => $productData['name']],
                     [
                         'product_category_id' => $category?->id,
-                        'sku' => $productData['sku'] . '-' . $branch->id,
+                        'sku' => $productData['sku'].'-'.$branch->id,
                         'barcode' => $productData['barcode'],
                         'quantity' => rand(10, 50),
                         'cost_price' => $amount,
@@ -69,6 +68,6 @@ class ProductsTableSeeder extends Seeder
             }
         }
 
-        $this->command->info("✅ Product categories and products seeded successfully!");
+        $this->command->info('✅ Product categories and products seeded successfully!');
     }
 }

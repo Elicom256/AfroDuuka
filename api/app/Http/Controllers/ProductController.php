@@ -27,11 +27,11 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(["productCategory", "taxCategory", "attachments"])
-            ->orderBy("id", "asc")
+        $products = Product::with(['productCategory', 'taxCategory', 'attachments'])
+            ->orderBy('id', 'asc')
             ->get();
 
-        return response()->json(["message" => "Products fetched", "products" => $products], 200);
+        return response()->json(['message' => 'Products fetched', 'products' => $products], 200);
     }
 
     public function store(StoreProductRequest $request)
@@ -41,29 +41,30 @@ class ProductController extends Controller
         $validated = $request->validated();
         $product = Product::create($validated);
 
-        return response()->json(["message" => "Product Created Successfully!", "product" => $product], 201);
+        return response()->json(['message' => 'Product Created Successfully!', 'product' => $product], 201);
     }
 
     public function show(string $product)
     {
-        $product = Product::with(["productCategory", "taxCategory", "attachments"])->findOrFail($product);
+        $product = Product::with(['productCategory', 'taxCategory', 'attachments'])->findOrFail($product);
         $this->authorize('view', $product);
 
-        return response()->json(["message" => "Product Fetched Successfully!", "product" => $product], 200);
+        return response()->json(['message' => 'Product Fetched Successfully!', 'product' => $product], 200);
     }
 
     public function inventoryAnalytics()
     {
         try {
             $inventory = $this->productService->analytics();
+
             return response()->json([
-                "message" => "Fetch inventory analytics!",
-                "data" => $inventory
+                'message' => 'Fetch inventory analytics!',
+                'data' => $inventory,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => "Failed to fetch inventory analytics!",
-                "error" => $e->getMessage()
+                'message' => 'Failed to fetch inventory analytics!',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -175,20 +176,21 @@ class ProductController extends Controller
     public function productMetrics(Product $product)
     {
         try {
-            $period = request()->query("period", "last_7_days");
+            $period = request()->query('period', 'last_7_days');
             $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'last_year'];
-            if (!in_array($period, $allowedPeriods)) {
+            if (! in_array($period, $allowedPeriods)) {
                 $period = 'last_7_days';
             }
             $data = $this->productService->productPerformance($product, $period);
+
             return response()->json([
-                "message" => "Fetched Product Metrics!",
-                "data" => $data
+                'message' => 'Fetched Product Metrics!',
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => "Failed to fetch Product Metrics!",
-                "error" => $e->getMessage()
+                'message' => 'Failed to fetch Product Metrics!',
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -210,7 +212,8 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
-        return response()->json(["message" => "Product Updated Successfully!", "product" => $product], 201);
+
+        return response()->json(['message' => 'Product Updated Successfully!', 'product' => $product], 201);
     }
 
     /**
@@ -236,8 +239,8 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            "message" => "Product stock adjusted successfully!",
-            "product" => $product->refresh(),
+            'message' => 'Product stock adjusted successfully!',
+            'product' => $product->refresh(),
         ], 201);
     }
 
@@ -247,6 +250,7 @@ class ProductController extends Controller
         $this->authorize('delete', $product);
 
         $product->delete();
-        return response()->json(["message" => "Product Deleted Successfully!", "product" => $product], 201);
+
+        return response()->json(['message' => 'Product Deleted Successfully!', 'product' => $product], 201);
     }
 }

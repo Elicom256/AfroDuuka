@@ -26,7 +26,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
 
     public function handle(): void
     {
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
 
         $subscriptions = Subscription::with(['business', 'plan'])
             ->where(function ($query) {
@@ -63,7 +63,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             return;
         }
 
-        $dedupeKey = 'notification:subscription:expired:business-' . $business->id . ':plan-' . ($subscription->plan?->id ?? 'none');
+        $dedupeKey = 'notification:subscription:expired:business-'.$business->id.':plan-'.($subscription->plan?->id ?? 'none');
 
         $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
             ->where('dedupe_key', $dedupeKey)
@@ -75,6 +75,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
                 'business_id' => $business->id,
                 'dedupe_key' => $dedupeKey,
             ]);
+
             return;
         }
 
@@ -114,7 +115,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             return;
         }
 
-        $dedupeKey = 'notification:subscription:overdue:business-' . $business->id . ':days-' . $daysOverdue;
+        $dedupeKey = 'notification:subscription:overdue:business-'.$business->id.':days-'.$daysOverdue;
 
         $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
             ->where('dedupe_key', $dedupeKey)
@@ -126,6 +127,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
                 'business_id' => $business->id,
                 'dedupe_key' => $dedupeKey,
             ]);
+
             return;
         }
 
@@ -150,7 +152,7 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
             ->where('starts_at', '<=', now())
             ->exists();
 
-        $dedupeKey = 'notification:subscription:free_trial_expired:business-' . $business->id;
+        $dedupeKey = 'notification:subscription:free_trial_expired:business-'.$business->id;
 
         $existingLog = WhatsAppMessageLog::where('business_id', $business->id)
             ->where('dedupe_key', $dedupeKey)

@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerCreditController extends Controller
 {
-    public function __construct(private CustomerCreditService $creditService)
-    {
-    }
+    public function __construct(private CustomerCreditService $creditService) {}
 
     public function balance(int $customer)
     {

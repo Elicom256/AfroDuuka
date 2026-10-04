@@ -4,8 +4,8 @@ namespace App\AI\Tools;
 
 use App\AI\Tool;
 use App\Models\Product;
-use App\Models\Sale;
 use App\Models\Purchase;
+use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
 
 class BusinessInsights extends Tool
@@ -56,9 +56,9 @@ class BusinessInsights extends Tool
             'purchases' => [
                 'this_month' => $monthPurchases,
             ],
-            'summary' => "You have {$activeProducts} active products out of {$totalProducts} total. " .
-                "{$lowStock} products need restocking and {$outOfStock} are out of stock. " .
-                "Today's sales: {$todaySales} (" . ($todaySales > $monthPurchases ? 'profitable' : 'watch spending') . ').',
+            'summary' => "You have {$activeProducts} active products out of {$totalProducts} total. ".
+                "{$lowStock} products need restocking and {$outOfStock} are out of stock. ".
+                "Today's sales: {$todaySales} (".($todaySales > $monthPurchases ? 'profitable' : 'watch spending').').',
         ];
     }
 }

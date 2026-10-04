@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\EmployeeRemunerationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\LogsActivity;
 
 class EmployeeRemuneration extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\EmployeeRemunerationFactory> */
+    /** @use HasFactory<EmployeeRemunerationFactory> */
     use HasFactory, LogsActivity;
 
     protected $fillable = [

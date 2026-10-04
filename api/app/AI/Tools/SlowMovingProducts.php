@@ -40,7 +40,7 @@ class SlowMovingProducts extends Tool
 
         $products = Product::where(function ($q) use ($threshold) {
             $q->whereNull('last_sold_at')
-              ->orWhere('last_sold_at', '<', $threshold);
+                ->orWhere('last_sold_at', '<', $threshold);
         })
             ->where('quantity', '>', 0)
             ->with('productCategory')

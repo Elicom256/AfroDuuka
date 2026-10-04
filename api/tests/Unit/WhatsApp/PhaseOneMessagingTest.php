@@ -15,7 +15,7 @@ class PhaseOneMessagingTest extends TestCase
     #[Test]
     public function it_renders_template_variables_for_a_whatsapp_message(): void
     {
-        $service = new WhatsAppTemplateService();
+        $service = new WhatsAppTemplateService;
 
         $rendered = $service->render('Hello {{business_name}}, your stock alert for {{product_name}} is at {{current_stock}}.', [
             'business_name' => 'DuukaFlow Demo',
@@ -29,7 +29,7 @@ class PhaseOneMessagingTest extends TestCase
     #[Test]
     public function it_builds_a_notification_payload_with_a_dedupe_key(): void
     {
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
 
         $payload = $service->buildPayload([
             'business_id' => 12,
@@ -75,7 +75,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueBusinessNotification([
             'business_id' => 99,
             'type' => 'registration',
@@ -97,7 +97,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueBusinessNotification([
             'business_id' => 99,
             'type' => 'subscription.created',
@@ -123,7 +123,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueLowStockAlert([
             'business_id' => 12,
             'branch_id' => 3,
@@ -147,7 +147,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueOutOfStockAlert([
             'business_id' => 12,
             'branch_id' => 3,
@@ -170,7 +170,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueSubscriptionExpiryAlert([
             'business_id' => 22,
             'branch_id' => 4,
@@ -194,7 +194,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueSubscriptionReminderAlert([
             'business_id' => 22,
             'branch_id' => 4,
@@ -218,7 +218,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueFreeTrialExpiryAlert([
             'business_id' => 22,
             'branch_id' => 4,
@@ -241,7 +241,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queuePurchaseOrderAlert([
             'business_id' => 33,
             'branch_id' => 5,
@@ -266,7 +266,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueSaleOrderAlert([
             'business_id' => 33,
             'branch_id' => 5,
@@ -291,7 +291,7 @@ class PhaseOneMessagingTest extends TestCase
     {
         Queue::fake();
 
-        $service = new WhatsAppNotificationService();
+        $service = new WhatsAppNotificationService;
         $payload = $service->queueMonthlyReportAlert([
             'business_id' => 33,
             'branch_id' => 5,

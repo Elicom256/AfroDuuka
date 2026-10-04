@@ -43,7 +43,7 @@ class EmployeeRemunerationSeeder extends Seeder
                     'type' => $rem['type'],
                     'amount' => $rem['amount'] + ($rem['type'] === 'salary' ? $index * 250000 : 0),
                     'payment_date' => $rem['payment_date'],
-                    'reference' => $rem['reference'] . '-' . $worker->id,
+                    'reference' => $rem['reference'].'-'.$worker->id,
                     'status' => $rem['status'],
                     'description' => $rem['description'],
                 ]);

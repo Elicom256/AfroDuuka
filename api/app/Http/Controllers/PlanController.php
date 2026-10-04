@@ -11,7 +11,8 @@ class PlanController extends Controller
     public function index()
     {
         $plans = Plan::orderBy('sort_order')->get();
-        return response()->json(["plans" => $plans, "message" => "Plans retrieved"]);
+
+        return response()->json(['plans' => $plans, 'message' => 'Plans retrieved']);
     }
 
     public function store(StorePlanRequest $request)
@@ -20,14 +21,15 @@ class PlanController extends Controller
 
         $validated = $request->validated();
         $plan = Plan::create($validated);
-        return response()->json(["plan" => $plan, "message" => "Plan created"], 201);
+
+        return response()->json(['plan' => $plan, 'message' => 'Plan created'], 201);
     }
 
     public function show(Plan $plan)
     {
         $this->authorize('view', $plan);
 
-        return response()->json(["plan" => $plan, "message" => "Plan retrieved"]);
+        return response()->json(['plan' => $plan, 'message' => 'Plan retrieved']);
     }
 
     public function update(UpdatePlanRequest $request, Plan $plan)
@@ -36,7 +38,8 @@ class PlanController extends Controller
 
         $validated = $request->validated();
         $plan->update($validated);
-        return response()->json(["plan" => $plan->fresh(), "message" => "Plan updated"]);
+
+        return response()->json(['plan' => $plan->fresh(), 'message' => 'Plan updated']);
     }
 
     public function destroy(Plan $plan)
@@ -44,6 +47,7 @@ class PlanController extends Controller
         $this->authorize('delete', $plan);
 
         $plan->delete();
-        return response()->json(["message" => "Plan deleted"]);
+
+        return response()->json(['message' => 'Plan deleted']);
     }
 }

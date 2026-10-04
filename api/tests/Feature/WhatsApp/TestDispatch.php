@@ -1,16 +1,9 @@
 <?php
 
 use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
-use App\Jobs\ProcessWhatsAppNotificationJob;
-use App\Models\Business;
-use App\Models\BusinessCategory;
-use App\Models\Country;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class TestDispatch extends TestCase
@@ -27,12 +20,12 @@ class TestDispatch extends TestCase
         $prop = $ref->getProperty('listeners');
         $prop->setAccessible(true);
         $allListeners = $prop->getValue($dispatcher);
-        
+
         if (isset($allListeners[BusinessRegistered::class])) {
             $listeners = $allListeners[BusinessRegistered::class];
-            echo "=== Raw listeners for BusinessRegistered: " . count($listeners) . " ===\n";
+            echo '=== Raw listeners for BusinessRegistered: '.count($listeners)." ===\n";
             foreach ($listeners as $i => $listener) {
-                echo "  [$i] " . var_export($listener, true) . "\n";
+                echo "  [$i] ".var_export($listener, true)."\n";
             }
         }
 
@@ -42,9 +35,9 @@ class TestDispatch extends TestCase
             echo "\n=== Cached events file exists ===\n";
             $cached = require $cachedEvents;
             if (isset($cached[BusinessRegistered::class])) {
-                echo "Cached listeners: " . count($cached[BusinessRegistered::class]) . "\n";
+                echo 'Cached listeners: '.count($cached[BusinessRegistered::class])."\n";
                 foreach ($cached[BusinessRegistered::class] as $i => $listener) {
-                    echo "  [$i] " . var_export($listener, true) . "\n";
+                    echo "  [$i] ".var_export($listener, true)."\n";
                 }
             }
         } else {

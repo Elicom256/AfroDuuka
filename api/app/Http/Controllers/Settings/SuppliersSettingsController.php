@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSuppliersSettingsRequest;
 use App\Http\Requests\UpdateSuppliersSettingsRequest;
-use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\ActivityLog;
+use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,7 +18,8 @@ class SuppliersSettingsController extends Controller
     public function index()
     {
         $setting = SuppliersSettings::first();
-        return response()->json(["settings" =>$setting, "message" => "Supplier settings"]);
+
+        return response()->json(['settings' => $setting, 'message' => 'Supplier settings']);
     }
 
     /**
@@ -59,7 +60,7 @@ class SuppliersSettingsController extends Controller
             ],
         ]);
 
-        return response()->json(["message" => "Setting updated", "setting" => $suppliersSetting]);
+        return response()->json(['message' => 'Setting updated', 'setting' => $suppliersSetting]);
     }
 
     /**

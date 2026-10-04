@@ -70,6 +70,7 @@ class PromotionController extends Controller
         abort_unless(RolePermissions::canDelete(Auth::user()), 403, 'You cannot delete promotions.');
 
         $promotion->delete();
+
         return response()->json(['message' => 'Promotion deleted']);
     }
 }

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Database\Factories\TodoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\LogsActivity;
 
 class Todo extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\TodoFactory> */
+    /** @use HasFactory<TodoFactory> */
     use HasFactory, LogsActivity;
 
     protected $fillable = [

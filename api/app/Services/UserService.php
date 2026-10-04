@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Worker;
-use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +28,7 @@ class UserService
             return null;
         }
 
-        return '@' . strtolower($bare);
+        return '@'.strtolower($bare);
     }
 
     /**
@@ -50,7 +50,7 @@ class UserService
         $suffix = strlen($candidate) - strlen($root);
 
         do {
-            $candidate = $root . ($suffix + 1);
+            $candidate = $root.($suffix + 1);
             $suffix++;
         } while (User::where('username', $candidate)->exists());
 
@@ -70,11 +70,11 @@ class UserService
         $user = User::where('email', $input)
             ->orWhere('username', $input)
             ->orWhere('username', $bare)
-            ->orWhere('username', '@' . $bare)
+            ->orWhere('username', '@'.$bare)
             ->first();
 
         // Verify user exists and password matches
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are invalid.'],
             ]);
@@ -98,26 +98,24 @@ class UserService
         ];
     }
 
-
-
     //  * Create a new user account (adding worker)
     public function signupUser(array $data)
     {
         $executive = Auth::user();
-            $user = User::create([
+        $user = User::create([
             'email' => $data['email'],
-            "firstname" => $data["firstname"] ?? $data["name"] ?? null,
-            "lastname" => $data["lastname"] ?? null,
+            'firstname' => $data['firstname'] ?? $data['name'] ?? null,
+            'lastname' => $data['lastname'] ?? null,
             'username' => self::uniqueUsername($data['name'] ?? $data['firstname'] ?? $data['email']),
             'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
             'business_id' => $executive->business_id,
             'role_id' => $data['role_id'],
-            "nin" => $data["nin"] ?? null
+            'nin' => $data['nin'] ?? null,
         ]);
 
         Worker::create([
-            "user_id" => $user->id,
+            'user_id' => $user->id,
         ]);
 
         $role = Role::find($data['role_id']);
@@ -134,9 +132,9 @@ class UserService
         return $user;
     }
 
-
     // create account for executive
-    public function createAccount(array $data){
+    public function createAccount(array $data)
+    {
         // The signup form historically posted a single `name` field while the columns
         // are firstname/lastname, and the validation rules for those two were commented
         // out — so $request->validated() dropped them and every signup stored a NULL
@@ -144,8 +142,8 @@ class UserService
         [$firstName, $lastName] = $this->splitName($data);
 
         return User::create([
-            "firstname" => $firstName,
-            "lastname" => $lastName,
+            'firstname' => $firstName,
+            'lastname' => $lastName,
             'email' => $data['email'],
             'username' => self::uniqueUsername(
                 $data['username'] ?? $data['firstname'] ?? $data['name'] ?? $data['email']
@@ -192,7 +190,6 @@ class UserService
      * Get all users with relations
      */
 
-
     /**
      * Get a single user by ID with relations
      */
@@ -215,12 +212,12 @@ class UserService
                 : $user->username,
             'role_id' => $validated['role_id'] ?? $user->role_id,
         ]);
-        $worker = Worker::where("user_id", $user?->id)->first();
+        $worker = Worker::where('user_id', $user?->id)->first();
         if ($worker) {
             $worker->update([
-                "firstname" => $validated["firstname"] ?? $worker->firstname ,
-                "lastname" => $validated["lastname"] ?? $worker->lastname,
-                "nin" => $validated["nin"] ?? $worker->nin
+                'firstname' => $validated['firstname'] ?? $worker->firstname,
+                'lastname' => $validated['lastname'] ?? $worker->lastname,
+                'nin' => $validated['nin'] ?? $worker->nin,
             ]);
         }
 
@@ -247,5 +244,4 @@ class UserService
     /**
      * Delete a user
      */
-
 }

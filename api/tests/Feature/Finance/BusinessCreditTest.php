@@ -17,7 +17,9 @@ class BusinessCreditTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected BusinessBranch $branch;
+
     protected Customer $customer;
 
     protected function setUp(): void

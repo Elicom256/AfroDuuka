@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\Plan;
 use App\Models\Role;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Notifications\RecipientProvisioner;
 use Illuminate\Support\Facades\DB;
@@ -182,7 +184,7 @@ class BusinessService
     private function attachTrialSubscription(Business $business): void
     {
         try {
-            $plan = \App\Models\Plan::where('is_active', true)
+            $plan = Plan::where('is_active', true)
                 ->orWhere('status', 'active')
                 ->orderBy('sort_order')
                 ->orderBy('id')
@@ -194,7 +196,7 @@ class BusinessService
 
             $now = now();
 
-            \App\Models\Subscription::create([
+            Subscription::create([
                 'business_id' => $business->id,
                 'plan_id' => $plan->id,
                 'status' => 'active',

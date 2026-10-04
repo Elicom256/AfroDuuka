@@ -10,10 +10,12 @@ use App\Services\CashFlowService;
 class CashFlowController extends Controller
 {
     protected CashFlowService $cashFlowService;
+
     public function __construct(CashFlowService $cashFlowService)
     {
         $this->cashFlowService = $cashFlowService;
     }
+
     /**
      * Display a paginated listing of cashflows.
      */
@@ -24,8 +26,8 @@ class CashFlowController extends Controller
             ->paginate(15);
 
         return response()->json([
-            "message" => "Fetched cashflow records",
-            "data" => $cashFlow
+            'message' => 'Fetched cashflow records',
+            'data' => $cashFlow,
         ]);
     }
 
@@ -36,10 +38,11 @@ class CashFlowController extends Controller
     {
         $validated = $request->validated();
         $cashFlow = CashFlow::create($validated);
+
         return response()->json([
-        'message' => 'Cash flow created successfully',
-        'data' => $cashFlow
-    ]);
+            'message' => 'Cash flow created successfully',
+            'data' => $cashFlow,
+        ]);
     }
 
     /**
@@ -47,11 +50,10 @@ class CashFlowController extends Controller
      */
     public function show(CashFlow $cashFlow)
     {
-        return response()->json(["message" => "Fetched cashflow", "data" => $cashFlow]);
+        return response()->json(['message' => 'Fetched cashflow', 'data' => $cashFlow]);
     }
 
-
- /**
+    /**
      * Analytics
      */
     public function analytics()
@@ -59,19 +61,20 @@ class CashFlowController extends Controller
         try {
             $period = request()->query('period', 'last_7_days');
             $allowedPeriods = ['last_7_days', 'last_30_days', 'this_month', 'last_month', 'this_year', 'last_year'];
-            if (!in_array($period, $allowedPeriods)) {
+            if (! in_array($period, $allowedPeriods)) {
                 $period = 'last_7_days'; // fallback
             }
             $cashFlow = $this->cashFlowService->analytics($period);
+
             return response()->json([
-            "message" => "Fetched inventory analytics!",
-            "data" => $cashFlow
-           ]);
+                'message' => 'Fetched inventory analytics!',
+                'data' => $cashFlow,
+            ]);
         } catch (\Exception $e) {
-           return response()->json([
-            "message" => "Failed to fetch inventory analytics!",
-            "error" => $e->getMessage()
-           ]);
+            return response()->json([
+                'message' => 'Failed to fetch inventory analytics!',
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -79,14 +82,14 @@ class CashFlowController extends Controller
      * Update the specified resource in storage.
      */
     public function update(UpdateCashFlowRequest $request, CashFlow $cashFlow)
-{
-    $cashFlow->update($request->validated());
-    
-    return response()->json([
-        'message' => 'Cash flow updated successfully!',
-        'data' => $cashFlow
-    ]);
-}
+    {
+        $cashFlow->update($request->validated());
+
+        return response()->json([
+            'message' => 'Cash flow updated successfully!',
+            'data' => $cashFlow,
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -94,6 +97,7 @@ class CashFlowController extends Controller
     public function destroy(CashFlow $cashFlow)
     {
         $cashFlow->delete();
-        return response()->json(["message" => "Deleted cashflow!"]);
+
+        return response()->json(['message' => 'Deleted cashflow!']);
     }
 }

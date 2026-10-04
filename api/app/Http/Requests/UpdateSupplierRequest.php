@@ -26,8 +26,8 @@ class UpdateSupplierRequest extends FormRequest
         $user = Auth::user();
 
         $this->merge([
-            'business_id'        => $user->business_id,
-            'status'             => $this->input('status', 'active'),
+            'business_id' => $user->business_id,
+            'status' => $this->input('status', 'active'),
 
             'role_id' => Role::where('name', 'supplier')
                 ->where('business_id', $user->business_id)
@@ -65,7 +65,7 @@ class UpdateSupplierRequest extends FormRequest
             */
 
             'firstname' => 'nullable|string|max:255',
-            'lastname'  => 'nullable|string|max:255',
+            'lastname' => 'nullable|string|max:255',
 
             'email' => [
                 'nullable',
@@ -95,7 +95,7 @@ class UpdateSupplierRequest extends FormRequest
             ],
 
             'password' => 'nullable|string|min:6',
-            'address'  => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
 
             /*
             |--------------------------------------------------------------------------
@@ -103,11 +103,11 @@ class UpdateSupplierRequest extends FormRequest
             |--------------------------------------------------------------------------
             */
 
-            'status'             => 'required|in:active,inactive',
-            'business_id'        => 'required|exists:businesses,id',
+            'status' => 'required|in:active,inactive',
+            'business_id' => 'required|exists:businesses,id',
             'business_branch_id' => ['required', 'integer', 'exists:business_branches,id', $branchWithinSet],
-            'role_id'            => 'required|exists:roles,id',
-            'branch_powers'      => 'nullable|in:allowed,none',
+            'role_id' => 'required|exists:roles,id',
+            'branch_powers' => 'nullable|in:allowed,none',
 
             /*
             |--------------------------------------------------------------------------
@@ -125,10 +125,10 @@ class UpdateSupplierRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique'    => 'Email is already in use.',
+            'email.unique' => 'Email is already in use.',
             'username.unique' => 'Username is already in use.',
-            'phone.unique'    => 'Phone number is already in use.',
-            'nin.unique'      => 'NIN is already in use.',
+            'phone.unique' => 'Phone number is already in use.',
+            'nin.unique' => 'NIN is already in use.',
         ];
     }
 }

@@ -18,7 +18,9 @@ class PosSearchTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Business $business;
+
     protected BusinessBranch $branch;
 
     protected function setUp(): void

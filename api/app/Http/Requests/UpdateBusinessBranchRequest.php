@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,12 +15,13 @@ class UpdateBusinessBranchRequest extends FormRequest
         return Auth::check();
     }
 
-    public function prepareForValidation(){
+    public function prepareForValidation()
+    {
         $user = Auth::user();
         $phone = $this->input('phone');
 
         $this->merge([
-            "business_id" => $user->business_id,
+            'business_id' => $user->business_id,
             // Same normalisation StoreUserRequest applies. The branch form asks for a
             // human-typed number and its own placeholder shows a formatted one, so the
             // value arriving here is routinely "+256 700 000 000" — 12 digits, which
@@ -31,6 +31,7 @@ class UpdateBusinessBranchRequest extends FormRequest
                 : $phone,
         ]);
     }
+
     public function rules(): array
     {
         return [

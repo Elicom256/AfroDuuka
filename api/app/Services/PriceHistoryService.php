@@ -42,15 +42,15 @@ class PriceHistoryService
         $query = PriceHistory::with('product')->whereHas('product')->orderBy('created_at', 'desc');
 
         // Filter by specific product
-        if (!empty($filters['product_id'])) {
+        if (! empty($filters['product_id'])) {
             $query->where('product_id', $filters['product_id']);
         }
 
         // Filter by date range
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
@@ -69,9 +69,9 @@ class PriceHistoryService
         // Get daily count of price changes and average change amounts
         $rawTrend = PriceHistory::whereHas('product')->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->selectRaw("DATE_FORMAT(created_at, '%b %d') as date")
-            ->selectRaw("COUNT(*) as count")
-            ->selectRaw("COALESCE(AVG(new_cost_price - old_cost_price), 0) as avg_cost_change")
-            ->selectRaw("COALESCE(AVG(new_sale_price - old_sale_price), 0) as avg_sale_change")
+            ->selectRaw('COUNT(*) as count')
+            ->selectRaw('COALESCE(AVG(new_cost_price - old_cost_price), 0) as avg_cost_change')
+            ->selectRaw('COALESCE(AVG(new_sale_price - old_sale_price), 0) as avg_sale_change')
             ->groupBy('date')
             ->orderBy('created_at')
             ->get()
@@ -87,8 +87,8 @@ class PriceHistoryService
             $existing = $rawTrend->get($dateLabel);
 
             $trend[] = [
-                'date'            => $dateLabel,
-                'count'           => $existing->count ?? 0,
+                'date' => $dateLabel,
+                'count' => $existing->count ?? 0,
                 'avg_cost_change' => round((float) ($existing->avg_cost_change ?? 0), 2),
                 'avg_sale_change' => round((float) ($existing->avg_sale_change ?? 0), 2),
             ];
@@ -108,10 +108,10 @@ class PriceHistoryService
             ->get();
 
         return [
-            'period'        => $period,
+            'period' => $period,
             'total_changes' => $totalChanges,
-            'trend'         => $trend,
-            'most_changed'  => $mostChanged,
+            'trend' => $trend,
+            'most_changed' => $mostChanged,
         ];
     }
 }

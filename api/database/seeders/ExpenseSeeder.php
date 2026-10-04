@@ -83,6 +83,6 @@ class ExpenseSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('✅ Seeded ' . count($expenses) . ' expenses');
+        $this->command->info('✅ Seeded '.count($expenses).' expenses');
     }
 }

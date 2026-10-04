@@ -69,7 +69,7 @@ class TaxRateController extends Controller
 
     private function assertOwnsCategory(TaxRate $taxRate): void
     {
-        if (!TaxCategory::whereKey($taxRate->tax_category_id)->exists()) {
+        if (! TaxCategory::whereKey($taxRate->tax_category_id)->exists()) {
             abort(404, 'Tax rate not found.');
         }
     }

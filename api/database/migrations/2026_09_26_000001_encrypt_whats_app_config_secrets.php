@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -37,8 +38,9 @@ return new class extends Migration
                 // Already encrypted (e.g. the migration is re-run) — leave it alone.
                 try {
                     Crypt::decryptString($value);
+
                     continue;
-                } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                } catch (DecryptException) {
                     // Plaintext, fall through and encrypt it.
                 }
 
@@ -69,7 +71,7 @@ return new class extends Migration
 
                 try {
                     $updates[$column] = Crypt::decryptString($value);
-                } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                } catch (DecryptException) {
                     continue;
                 }
             }

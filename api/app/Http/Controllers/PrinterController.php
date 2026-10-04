@@ -15,6 +15,7 @@ class PrinterController extends Controller
     public function index()
     {
         $printers = Printer::all();
+
         return response()->json(['message' => 'Fetched printers', 'data' => $printers]);
     }
 
@@ -59,6 +60,7 @@ class PrinterController extends Controller
     public function destroy(Printer $printer)
     {
         $printer->delete();
+
         return response()->json(['message' => 'Printer deleted']);
     }
 }

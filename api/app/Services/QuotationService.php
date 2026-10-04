@@ -34,18 +34,18 @@ class QuotationService
         return DB::transaction(function () use ($payload, $user, $branchId, $lines, $discount, $subtotal, $tax, $total) {
             $quotation = Quotation::create([
                 'business_branch_id' => $branchId,
-                'user_id'            => $user->id,
-                'customer_id'        => $payload['customer_id'] ?? null,
-                'quotation_number'   => $this->generateQuotationNumber($user),
-                'status'             => 'draft',
-                'valid_until'        => $payload['valid_until'] ?? null,
-                'currency'           => $payload['currency'] ?? 'UGX',
-                'subtotal'           => round($subtotal, 2),
-                'tax_amount'         => round($tax, 2),
-                'discount'           => round($discount, 2),
-                'total_amount'       => round($total, 2),
-                'notes'              => $payload['notes'] ?? null,
-                'terms'              => $payload['terms'] ?? null,
+                'user_id' => $user->id,
+                'customer_id' => $payload['customer_id'] ?? null,
+                'quotation_number' => $this->generateQuotationNumber($user),
+                'status' => 'draft',
+                'valid_until' => $payload['valid_until'] ?? null,
+                'currency' => $payload['currency'] ?? 'UGX',
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($tax, 2),
+                'discount' => round($discount, 2),
+                'total_amount' => round($total, 2),
+                'notes' => $payload['notes'] ?? null,
+                'terms' => $payload['terms'] ?? null,
             ]);
 
             $this->storeItems($quotation, $lines);
@@ -65,15 +65,15 @@ class QuotationService
 
         return DB::transaction(function () use ($quotation, $payload, $lines, $discount, $subtotal, $tax, $total) {
             $quotation->update([
-                'customer_id'  => $payload['customer_id'] ?? $quotation->customer_id,
-                'valid_until'  => $payload['valid_until'] ?? $quotation->valid_until,
-                'currency'     => $payload['currency'] ?? $quotation->currency,
-                'subtotal'     => round($subtotal, 2),
-                'tax_amount'   => round($tax, 2),
-                'discount'     => round($discount, 2),
+                'customer_id' => $payload['customer_id'] ?? $quotation->customer_id,
+                'valid_until' => $payload['valid_until'] ?? $quotation->valid_until,
+                'currency' => $payload['currency'] ?? $quotation->currency,
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($tax, 2),
+                'discount' => round($discount, 2),
                 'total_amount' => round($total, 2),
-                'notes'        => $payload['notes'] ?? $quotation->notes,
-                'terms'        => $payload['terms'] ?? $quotation->terms,
+                'notes' => $payload['notes'] ?? $quotation->notes,
+                'terms' => $payload['terms'] ?? $quotation->terms,
             ]);
 
             $quotation->items()->delete();
@@ -124,15 +124,15 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $user, $branchId) {
             $order = SaleOrder::create([
                 'business_branch_id' => $branchId,
-                'user_id'            => $user->id,
-                'customer_id'        => $quotation->customer_id,
-                'quotation_id'       => $quotation->id,
-                'order_number'       => $this->generateOrderNumber($user),
-                'total_amount'       => $quotation->total_amount,
-                'status'             => 'approved',
-                'notes'              => ($quotation->notes ?? '') === ''
-                    ? 'From quotation ' . $quotation->quotation_number
-                    : $quotation->notes . ' (from ' . $quotation->quotation_number . ')',
+                'user_id' => $user->id,
+                'customer_id' => $quotation->customer_id,
+                'quotation_id' => $quotation->id,
+                'order_number' => $this->generateOrderNumber($user),
+                'total_amount' => $quotation->total_amount,
+                'status' => 'approved',
+                'notes' => ($quotation->notes ?? '') === ''
+                    ? 'From quotation '.$quotation->quotation_number
+                    : $quotation->notes.' (from '.$quotation->quotation_number.')',
             ]);
 
             $quotation->load('items');
@@ -140,16 +140,16 @@ class QuotationService
             foreach ($quotation->items as $item) {
                 SaleOrderItem::create([
                     'sale_order_id' => $order->id,
-                    'product_id'    => $item->product_id,
-                    'quantity'      => $item->quantity,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
                     'allocated_qty' => $item->quantity,
-                    'unit_price'    => $item->unit_price,
-                    'subtotal'      => $item->subtotal,
+                    'unit_price' => $item->unit_price,
+                    'subtotal' => $item->subtotal,
                 ]);
             }
 
             $quotation->update([
-                'status'           => 'accepted',
+                'status' => 'accepted',
                 'accepted_order_id' => $order->id,
             ]);
 
@@ -172,17 +172,20 @@ class QuotationService
             $product = $products->get($item['product_id']);
 
             if (! $product) {
-                $errors[] = 'Item #' . ($index + 1) . ': Product not found in this branch.';
+                $errors[] = 'Item #'.($index + 1).': Product not found in this branch.';
+
                 continue;
             }
 
             if ($product->status !== 'active') {
                 $errors[] = "{$product->name}: Product is not available for sale.";
+
                 continue;
             }
 
             if ($product->availableQuantity() < (int) $item['quantity']) {
                 $errors[] = "{$product->name}: Only {$product->availableQuantity()} available, but {$item['quantity']} requested.";
+
                 continue;
             }
 
@@ -194,14 +197,14 @@ class QuotationService
             );
 
             $lines[] = [
-                'product'          => $product,
-                'quantity'         => (int) $item['quantity'],
-                'unit_price'       => (float) $item['unit_price'],
-                'discount'         => (float) ($item['discount'] ?? 0),
-                'rate'             => $tax['rate'],
+                'product' => $product,
+                'quantity' => (int) $item['quantity'],
+                'unit_price' => (float) $item['unit_price'],
+                'discount' => (float) ($item['discount'] ?? 0),
+                'rate' => $tax['rate'],
                 'is_tax_inclusive' => $tax['is_tax_inclusive'],
-                'taxable_amount'   => $tax['taxable_amount'],
-                'tax_amount'       => $tax['tax_amount'],
+                'taxable_amount' => $tax['taxable_amount'],
+                'tax_amount' => $tax['tax_amount'],
                 'discounted_amount' => $tax['discounted_amount'],
             ];
         }
@@ -219,18 +222,18 @@ class QuotationService
             $product = $line['product'];
 
             QuotationItem::create([
-                'quotation_id'    => $quotation->id,
-                'product_id'      => $product->id,
-                'product_name'    => $product->name,
-                'sku'             => $product->sku,
-                'quantity'        => $line['quantity'],
-                'unit_price'      => round($line['unit_price'], 2),
-                'discount'        => round($line['discount'], 2),
-                'tax_rate'        => $line['rate'],
+                'quotation_id' => $quotation->id,
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'sku' => $product->sku,
+                'quantity' => $line['quantity'],
+                'unit_price' => round($line['unit_price'], 2),
+                'discount' => round($line['discount'], 2),
+                'tax_rate' => $line['rate'],
                 'is_tax_inclusive' => $line['is_tax_inclusive'],
-                'taxable_amount'  => round($line['taxable_amount'], 2),
-                'tax_amount'      => round($line['tax_amount'], 2),
-                'subtotal'        => round($line['discounted_amount'], 2),
+                'taxable_amount' => round($line['taxable_amount'], 2),
+                'tax_amount' => round($line['tax_amount'], 2),
+                'subtotal' => round($line['discounted_amount'], 2),
             ]);
         }
     }
@@ -258,7 +261,7 @@ class QuotationService
             ->whereDate('created_at', today())
             ->count();
 
-        return 'QT-' . now()->format('Ymd') . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+        return 'QT-'.now()->format('Ymd').'-'.str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
     protected function generateOrderNumber($user): string
@@ -267,7 +270,7 @@ class QuotationService
             ->whereDate('created_at', today())
             ->count();
 
-        return 'SO-' . now()->format('Ymd') . '-' . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+        return 'SO-'.now()->format('Ymd').'-'.str_pad($last + 1, 4, '0', STR_PAD_LEFT);
     }
 
     protected function assertBranchInScope(?int $branchId, $user): void

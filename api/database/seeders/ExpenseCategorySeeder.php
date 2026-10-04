@@ -30,6 +30,6 @@ class ExpenseCategorySeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Seeded ' . count($categories) . ' expense categories');
+        $this->command->info('✅ Seeded '.count($categories).' expense categories');
     }
 }

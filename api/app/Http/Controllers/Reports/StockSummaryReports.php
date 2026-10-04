@@ -9,15 +9,13 @@ use Illuminate\Support\Facades\Auth;
 
 class StockSummaryReports extends Controller
 {
-    public function __construct(protected StockSummaryReportsService $service)
-    {
-    }
+    public function __construct(protected StockSummaryReportsService $service) {}
 
     public function index(Request $request)
     {
         $perPage = (int) $request->get('per_page', 15);
         $params = $request->all();
-        if ($request->has('period') && !$request->has('filter')) {
+        if ($request->has('period') && ! $request->has('filter')) {
             $params['filter'] = $request->input('period');
         }
         $report = $this->service->stockSummary($params, Auth::user(), $perPage);

@@ -24,7 +24,8 @@ class SubscriptionPaymentController extends Controller
     public function index()
     {
         $payments = SubscriptionPayment::with(['subscription.plan', 'subscription.business', 'paymentMethod', 'verifiedBy'])->get();
-        return response()->json(["subscription_payments" => $payments, "message" => "Subscription payments retrieved"]);
+
+        return response()->json(['subscription_payments' => $payments, 'message' => 'Subscription payments retrieved']);
     }
 
     public function store(StoreSubscriptionPaymentRequest $request)
@@ -34,7 +35,7 @@ class SubscriptionPaymentController extends Controller
         $validated = $request->validated();
 
         // Default payment_status to pending when not provided
-        if (!isset($validated['payment_status'])) {
+        if (! isset($validated['payment_status'])) {
             $validated['payment_status'] = 'pending';
         }
 
@@ -49,9 +50,10 @@ class SubscriptionPaymentController extends Controller
         abort_if($paymentMethod->status !== 'enabled', 422, 'Payment method is not enabled');
 
         $payment = SubscriptionPayment::create($validated);
+
         return response()->json([
             'subscription_payment' => $payment->load(['subscription.plan', 'paymentMethod', 'verifiedBy']),
-            'message' => 'Subscription payment created'
+            'message' => 'Subscription payment created',
         ], 201);
     }
 
@@ -61,7 +63,7 @@ class SubscriptionPaymentController extends Controller
 
         return response()->json([
             'subscription_payment' => $subscriptionPayment->load(['subscription.plan', 'paymentMethod', 'verifiedBy']),
-            'message' => 'Subscription payment retrieved'
+            'message' => 'Subscription payment retrieved',
         ]);
     }
 
@@ -103,9 +105,10 @@ class SubscriptionPaymentController extends Controller
         }
 
         $subscriptionPayment->update($validated);
+
         return response()->json([
             'subscription_payment' => $subscriptionPayment->fresh()->load(['subscription.plan', 'paymentMethod', 'verifiedBy']),
-            'message' => 'Subscription payment updated'
+            'message' => 'Subscription payment updated',
         ]);
     }
 
@@ -121,6 +124,7 @@ class SubscriptionPaymentController extends Controller
         }
 
         $subscriptionPayment->delete();
+
         return response()->json(['message' => 'Subscription payment deleted']);
     }
 }

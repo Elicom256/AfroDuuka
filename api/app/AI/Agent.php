@@ -32,25 +32,28 @@ class Agent
             if ($greetingTool) {
                 try {
                     $result = $greetingTool->handle(['message' => $prompt]);
+
                     return $this->success($result, 'greeting');
                 } catch (\Exception $e) {
                     // fall through to default
                 }
             }
+
             return $this->success(['response' => 'How can I help you with your inventory today? Ask me about products, sales, stock, or any business data.'], 'general');
         }
 
         $tool = $this->registry->find($intent['tool']);
 
-        if (!$tool) {
+        if (! $tool) {
             return $this->error(
-                "I couldn't find a tool to handle that request. Available tools: " .
+                "I couldn't find a tool to handle that request. Available tools: ".
                 implode(', ', array_keys($this->registry->all()))
             );
         }
 
         try {
             $result = $tool->handle($intent['parameters']);
+
             return $this->success($result, $tool->name());
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -84,17 +87,17 @@ class Agent
                     responseMimeType: ResponseMimeType::APPLICATION_JSON,
                     temperature: 0.1,
                 ))
-                ->generateContent($systemPrompt . "\n\nUser: " . $prompt);
+                ->generateContent($systemPrompt."\n\nUser: ".$prompt);
 
             $text = $response->text();
             $decoded = json_decode($text, true);
 
-            if (!is_array($decoded)) {
+            if (! is_array($decoded)) {
                 return null;
             }
 
             // Gemini chose not to use a tool (general conversation)
-            if (!isset($decoded['tool']) || $decoded['tool'] === null) {
+            if (! isset($decoded['tool']) || $decoded['tool'] === null) {
                 return false;
             }
 

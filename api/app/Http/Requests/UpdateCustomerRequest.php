@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -25,12 +24,12 @@ class UpdateCustomerRequest extends FormRequest
      */
     public function rules(): array
     {
-            $userId = $this->customer->user_id;
+        $userId = $this->customer->user_id;
 
         return [
-              // both
+            // both
             'status' => 'nullable|in:active,inactive',
-            
+
             // 'customer_code' => 'nullable|string|max:255|unique:customers,customer_code',
             'company_name' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
@@ -40,19 +39,19 @@ class UpdateCustomerRequest extends FormRequest
             // 'phone' => 'required|string|digits:10|unique:users,phone',
             // 'nin' => 'required|string|max:255|unique:users,nin',
 
-        'phone' => [
-            'nullable',
-            'string',
-            'digits:10',
-            Rule::unique('users', 'phone')->ignore($userId),
-        ],
-        'nin' => [
-            'sometimes',
-            'nullable',
-            'string',
-            'digits:10',
-            Rule::unique('users', 'nin')->ignore($userId),
-        ],
+            'phone' => [
+                'nullable',
+                'string',
+                'digits:10',
+                Rule::unique('users', 'phone')->ignore($userId),
+            ],
+            'nin' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'digits:10',
+                Rule::unique('users', 'nin')->ignore($userId),
+            ],
 
             'email' => 'nullable|email',
             'password' => 'nullable|string|min:6',

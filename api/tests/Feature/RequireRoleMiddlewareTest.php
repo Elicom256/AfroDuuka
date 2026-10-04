@@ -23,6 +23,7 @@ class RequireRoleMiddlewareTest extends TestCase
     use RefreshDatabase;
 
     protected Business $business;
+
     protected BusinessBranch $branch;
 
     protected function setUp(): void

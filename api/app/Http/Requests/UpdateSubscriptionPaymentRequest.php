@@ -17,7 +17,7 @@ class UpdateSubscriptionPaymentRequest extends FormRequest
             'subscription_id' => 'sometimes|exists:subscriptions,id',
             'payment_method_id' => 'sometimes|exists:payment_methods,id',
             'amount_paid' => 'sometimes|numeric|min:0',
-            'transaction_id' => 'nullable|string|max:50|unique:subscription_payments,transaction_id,' . $this->route('subscription_payment'),
+            'transaction_id' => 'nullable|string|max:50|unique:subscription_payments,transaction_id,'.$this->route('subscription_payment'),
             'number_paid' => 'nullable|string|max:14',
             'payment_status' => 'sometimes|in:pending,completed,failed,rejected',
             'payment_proof' => 'nullable|string|max:255',

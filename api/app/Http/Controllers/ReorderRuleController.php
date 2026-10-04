@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ReorderRule;
 use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
+
 /**
  * Manages automatic reorder rules for inventory products.
  */
@@ -32,14 +33,16 @@ class ReorderRuleController extends Controller
         abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403, 'You cannot manage reorder rules.');
 
         $rule = ReorderRule::create($request->validated());
-        //  update product re-order level 
-        $rule->product->update(["reorder_level" => $rule->reorder_quantity]);
+        //  update product re-order level
+        $rule->product->update(['reorder_level' => $rule->reorder_quantity]);
+
         return response()->json(['message' => 'Reorder rule created', 'data' => $rule], 201);
     }
 
     public function show(ReorderRule $reorderRule)
     {
         $reorderRule->load(['product', 'preferredSupplier']);
+
         return response()->json(['message' => 'Fetched reorder rule', 'data' => $reorderRule]);
     }
 
@@ -48,14 +51,15 @@ class ReorderRuleController extends Controller
         abort_unless(RolePermissions::canCreatePurchaseOrder($request->user()), 403, 'You cannot manage reorder rules.');
 
         $reorderRule->update($request->validated());
-        $reorderRule->product->update(["reorder_level" => $reorderRule->reorder_quantity]);
-        
+        $reorderRule->product->update(['reorder_level' => $reorderRule->reorder_quantity]);
+
         return response()->json(['message' => 'Reorder rule updated', 'data' => $reorderRule]);
     }
 
     public function destroy(ReorderRule $reorderRule)
     {
         $reorderRule->delete();
+
         return response()->json(['message' => 'Reorder rule deleted']);
     }
 }

@@ -18,18 +18,17 @@ class StoreWorkerRequest extends FormRequest
         return Auth::check();
     }
 
-
     /**
      * Prepare data before validation
      */
     protected function prepareForValidation(): void
     {
         $user = Auth::user();
-        $role_id = Role::where("business_id", $user->business_id)->where("name", "Operations")->value("id");
+        $role_id = Role::where('business_id', $user->business_id)->where('name', 'Operations')->value('id');
         $this->merge([
-            "business_id" => $user->business_id,
-            "status" => "active",
-            "role_id" => $this->role_id ?? $role_id
+            'business_id' => $user->business_id,
+            'status' => 'active',
+            'role_id' => $this->role_id ?? $role_id,
         ]);
 
         if ($user?->business_branch_id && ! $this->has('business_branch_id')) {
@@ -50,7 +49,7 @@ class StoreWorkerRequest extends FormRequest
                 $fail('The selected business branch is outside your scope.');
             }
         };
-        
+
         return [
             /*
             |--------------------------------------------------------------------------

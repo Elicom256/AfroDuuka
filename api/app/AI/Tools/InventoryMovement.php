@@ -47,7 +47,7 @@ class InventoryMovement extends Tool
             )
             ->groupBy('type')
             ->get()
-           ->keyBy('type');
+            ->keyBy('type');
 
         $recent = (clone $query)
             ->with('product')
@@ -89,6 +89,7 @@ class InventoryMovement extends Tool
             'last_month' => now()->subMonth()->startOfMonth(),
             default => now()->subDays(30),
         };
+
         return $date->toDateTimeString();
     }
 }

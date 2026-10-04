@@ -24,10 +24,10 @@ class StoreSalePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "sale_id" => "required|exists:sales,id",
-            "method" => "required|in:cash,mobile_money,card,debt",
-            "amount" => "required|numeric",
-            "status" => "required|in:paid,pending,partial"
+            'sale_id' => 'required|exists:sales,id',
+            'method' => 'required|in:cash,mobile_money,card,debt',
+            'amount' => 'required|numeric',
+            'status' => 'required|in:paid,pending,partial',
         ];
     }
 }

@@ -14,7 +14,7 @@ class TaxRateFactory extends Factory
     {
         return [
             'tax_category_id' => TaxCategory::factory(),
-            'name' => fake()->unique()->words(2, true) . ' Rate',
+            'name' => fake()->unique()->words(2, true).' Rate',
             'rate' => fake()->randomFloat(4, 0.05, 0.30),
             'jurisdiction_zone' => 'Uganda',
             'is_active' => true,

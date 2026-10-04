@@ -109,9 +109,9 @@ class DatabaseBackup extends Command
                         'pg_dump',
                         '--format=custom',
                         '--no-owner',
-                        '--file=' . $temporaryPath,
+                        '--file='.$temporaryPath,
                         ...$this->connectionArguments(),
-                        '--dbname=' . config('database.connections.pgsql.database'),
+                        '--dbname='.config('database.connections.pgsql.database'),
                     ]);
                     $process->setEnv(['PGPASSWORD' => (string) config('database.connections.pgsql.password')]);
                     $process->setTimeout(null);
@@ -286,7 +286,7 @@ class DatabaseBackup extends Command
                 '--clean',
                 '--if-exists',
                 '--no-owner',
-                '--dbname=' . config('database.connections.pgsql.database'),
+                '--dbname='.config('database.connections.pgsql.database'),
                 ...$this->connectionArguments(),
                 $restorePath,
             ]);
@@ -321,9 +321,9 @@ class DatabaseBackup extends Command
         $connection = config('database.connections.pgsql');
 
         return [
-            '--host=' . $connection['host'],
-            '--port=' . $connection['port'],
-            '--username=' . $connection['username'],
+            '--host='.$connection['host'],
+            '--port='.$connection['port'],
+            '--username='.$connection['username'],
         ];
     }
 }

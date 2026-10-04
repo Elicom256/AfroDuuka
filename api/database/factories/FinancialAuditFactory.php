@@ -14,8 +14,9 @@ class FinancialAuditFactory extends Factory
     {
         $expected = fake()->randomFloat(2, 1000, 100000);
         $actual = fake()->randomFloat(2, 1000, 100000);
+
         return [
-            'audit_number' => 'FAUDIT-' . fake()->unique()->numerify('########'),
+            'audit_number' => 'FAUDIT-'.fake()->unique()->numerify('########'),
             'audit_date' => fake()->date(),
             'expected_balance' => $expected,
             'actual_balance' => $actual,

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Business;
 use App\Models\Report;
 use Illuminate\Database\Seeder;
 
@@ -9,9 +10,9 @@ class ReportSeeder extends Seeder
 {
     public function run(): void
     {
-        $businessId = \App\Models\Business::where('email', 'testbusinessone@gmail.com')->value('id');
+        $businessId = Business::where('email', 'testbusinessone@gmail.com')->value('id');
 
-        if (!$businessId) {
+        if (! $businessId) {
             return;
         }
 

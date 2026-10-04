@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCashFlowRequest;
 use App\Models\CashFlow;
+use App\Models\User;
 use App\Services\FinanceService;
 use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
@@ -19,7 +20,7 @@ class FinanceController extends Controller
         $this->financeService = $financeService;
     }
 
-    private function resolveBranchId(?string $branchId, ?\App\Models\User $user): ?string
+    private function resolveBranchId(?string $branchId, ?User $user): ?string
     {
         $resolved = EffectiveBranchScope::branchesFor($user);
 
@@ -33,6 +34,7 @@ class FinanceController extends Controller
             if (! in_array($branchId, $branchIds, true)) {
                 abort(403, 'Branch is not within your allowed scope');
             }
+
             return $branchId;
         }
 

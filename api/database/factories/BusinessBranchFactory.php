@@ -12,7 +12,7 @@ class BusinessBranchFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company() . ' Branch',
+            'name' => fake()->company().' Branch',
             'phone' => fake()->phoneNumber(),
             'status' => 'active',
         ];

@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Support\Auth\RolePermissions;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateExpenseRequest extends FormRequest

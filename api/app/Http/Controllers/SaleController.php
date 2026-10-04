@@ -12,18 +12,19 @@ use Illuminate\Support\Facades\Request;
 class SaleController extends Controller
 {
     protected $saleItemService;
+
     public function __construct(SaleItemService $saleItemService)
     {
         $this->saleItemService = $saleItemService;
     }
-    
+
     public function index()
     {
-        $sales = Sale::with("saleItems", "businessBranch")
-                 ->orderByDesc("created_at")
-                 ->get();
+        $sales = Sale::with('saleItems', 'businessBranch')
+            ->orderByDesc('created_at')
+            ->get();
 
-        return response()->json(["message" => "All sales fetched", "sales" => $sales]);
+        return response()->json(['message' => 'All sales fetched', 'sales' => $sales]);
     }
 
     /**
@@ -34,7 +35,8 @@ class SaleController extends Controller
         $business_branch_id = Auth::user()->business_branch_id;
         $validated = $request->validated();
         $sale = $this->saleItemService->handleSaveSaleItem($validated, $business_branch_id);
-        return response()->json([ 'message' => 'Sale completed successfully!', 'sale' => $sale ], 200);
+
+        return response()->json(['message' => 'Sale completed successfully!', 'sale' => $sale], 200);
     }
 
     /**
@@ -42,37 +44,37 @@ class SaleController extends Controller
      */
     public function show(string $sale)
     {
-        $newSale = Sale::with(["saleItems.product", "receipt"])->findOrFail($sale);
-        return response()->json(["message" => "Sale Fetched!", "sale" => $newSale]);
+        $newSale = Sale::with(['saleItems.product', 'receipt'])->findOrFail($sale);
+
+        return response()->json(['message' => 'Sale Fetched!', 'sale' => $newSale]);
     }
 
+    /**
+     * Get Sales Analytics
+     */
+    public function salesAnalytics()
+    {
+        try {
+            // $period = request()->query('period', 'last_7_days');
+            $period = request()->query('period', 'last_7_days');
+            $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
+            if (! in_array($period, $allowedPeriods)) {
+                $period = 'last_7_days'; // fallback
+            }
+            $analytics = $this->saleItemService->analytics($period);
 
-   /**
- * Get Sales Analytics
- */
-public function salesAnalytics()
-{
-    try {
-        // $period = request()->query('period', 'last_7_days');
-        $period = request()->query("period", "last_7_days");
-        $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
-        if (!in_array($period, $allowedPeriods)) {
-            $period = 'last_7_days'; // fallback
+            return response()->json([
+                'message' => 'Sales analytics fetched successfully',
+                'data' => $analytics,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch purchases analytics',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        $analytics = $this->saleItemService->analytics($period);
-
-        return response()->json([
-            "message" => "Sales analytics fetched successfully",
-            "data" => $analytics
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            "message" => "Failed to fetch purchases analytics",
-            "error" => $e->getMessage()
-        ], 500);
     }
-}
 
     /**
      * Update the specified resource in storage.
@@ -87,7 +89,8 @@ public function salesAnalytics()
 
         $validated = $request->validated();
         $sale->update($validated);
-        return response()->json(["message" => "Sale Updated", "sale" => $sale]);
+
+        return response()->json(['message' => 'Sale Updated', 'sale' => $sale]);
     }
 
     /**

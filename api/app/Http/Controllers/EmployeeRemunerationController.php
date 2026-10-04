@@ -14,42 +14,45 @@ use Illuminate\Http\JsonResponse;
 class EmployeeRemunerationController extends Controller
 {
     protected ActivityLogService $activity_log;
+
     protected CashFlowService $cashFlowService;
+
     public function __construct(ActivityLogService $activityLog, CashFlowService $cashFlowService)
     {
         $this->activity_log = $activityLog;
         $this->cashFlowService = $cashFlowService;
     }
+
     public function index(): JsonResponse
-{
-    $query = EmployeeRemuneration::with([
-        'worker.user.businessBranch',
-    ]);
+    {
+        $query = EmployeeRemuneration::with([
+            'worker.user.businessBranch',
+        ]);
 
-    $totalPaid = (clone $query)
-        ->where('status', 'paid')
-        ->sum('amount');
+        $totalPaid = (clone $query)
+            ->where('status', 'paid')
+            ->sum('amount');
 
-    $employeeCount = (clone $query)
-        ->distinct('worker_id')
-        ->count('worker_id');
+        $employeeCount = (clone $query)
+            ->distinct('worker_id')
+            ->count('worker_id');
 
-    $pending = (clone $query)
-        ->where('status', 'pending')
-        ->count();
+        $pending = (clone $query)
+            ->where('status', 'pending')
+            ->count();
 
-    $remunerations = $query
-        ->orderByDesc('payment_date')
-        ->paginate(10);
+        $remunerations = $query
+            ->orderByDesc('payment_date')
+            ->paginate(10);
 
-    return response()->json([
-        'message' => 'Fetched employee remunerations',
-        'employee_remunerations' => $remunerations,
-        'totalPaid' => $totalPaid,
-        'employeeCount' => $employeeCount,
-        'pending' => $pending,
-    ]);
-}
+        return response()->json([
+            'message' => 'Fetched employee remunerations',
+            'employee_remunerations' => $remunerations,
+            'totalPaid' => $totalPaid,
+            'employeeCount' => $employeeCount,
+            'pending' => $pending,
+        ]);
+    }
 
     public function store(StoreEmployeeRemunerationRequest $request): JsonResponse
     {
@@ -58,12 +61,12 @@ class EmployeeRemunerationController extends Controller
         $worker = Worker::with('user')->findOrFail($validated['worker_id']);
 
         $remuneration = EmployeeRemuneration::create($validated);
-        $employee =$worker->load("user");
+        $employee = $worker->load('user');
 
         // Record cash outflow for worker payment
         $this->cashFlowService->createCashFlowForWorkerPayment($remuneration, (float) $validated['amount']);
 
-        $this->activity_log->activity("Recorded Employee Remuneration", $employee->user->name ." ". "has been paid");
+        $this->activity_log->activity('Recorded Employee Remuneration', $employee->user->name.' '.'has been paid');
 
         return response()->json([
             'message' => 'Employee remuneration created successfully',

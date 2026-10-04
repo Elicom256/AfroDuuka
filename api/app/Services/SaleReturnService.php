@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Product;
 use App\Models\Receipt;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -15,7 +14,9 @@ use Illuminate\Support\Facades\DB;
 class SaleReturnService
 {
     protected CashFlowService $cashFlowService;
+
     protected InventoryService $inventoryService;
+
     protected CustomerCreditService $customerCreditService;
 
     public function __construct(CashFlowService $cashFlowService, InventoryService $inventoryService, CustomerCreditService $customerCreditService)
@@ -28,94 +29,94 @@ class SaleReturnService
     public function handleCreateSaleReturn(array $validated, ?string $business_branch_id = null)
     {
         return DB::transaction(function () use ($validated, $business_branch_id) {
-        $totalRefund = 0;
-        $returnItems = [];
+            $totalRefund = 0;
+            $returnItems = [];
 
-        $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($validated['items'][0]['sale_item_id'] ?? null);
-        $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
+            $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($validated['items'][0]['sale_item_id'] ?? null);
+            $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
 
-        if (!$sale) {
-            throw new Exception("Sale not found.", 404);
-        }
-
-        $branchId = $business_branch_id ?: $sale->business_branch_id;
-
-        foreach ($validated['items'] as $item) {
-            $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
-            if (!$saleItem) {
-                throw new Exception("Sale item not found.", 404);
+            if (! $sale) {
+                throw new Exception('Sale not found.', 404);
             }
 
-            if ($saleItem->sale_id !== $sale->id) {
-                throw new Exception("Sale item does not belong to this sale.", 404);
+            $branchId = $business_branch_id ?: $sale->business_branch_id;
+
+            foreach ($validated['items'] as $item) {
+                $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
+                if (! $saleItem) {
+                    throw new Exception('Sale item not found.', 404);
+                }
+
+                if ($saleItem->sale_id !== $sale->id) {
+                    throw new Exception('Sale item does not belong to this sale.', 404);
+                }
+
+                $alreadyReturned = SaleReturnItem::where('sale_item_id', $item['sale_item_id'])
+                    ->sum('quantity');
+
+                $available = $saleItem->quantity - $alreadyReturned;
+                if ($item['quantity'] > $available) {
+                    throw new Exception(
+                        "Cannot return more than {$available} of this product.",
+                        422
+                    );
+                }
+
+                $subtotal = $item['quantity'] * $saleItem->unit_price;
+                $totalRefund += $subtotal;
+
+                $returnItems[] = [
+                    'sale_item_id' => $item['sale_item_id'],
+                    'quantity' => $item['quantity'],
+                    'subtotal' => $subtotal,
+                    'condition' => $item['condition'] ?? null,
+                    'product' => $saleItem->product,
+                ];
             }
 
-            $alreadyReturned = SaleReturnItem::where('sale_item_id', $item['sale_item_id'])
-                ->sum('quantity');
-
-            $available = $saleItem->quantity - $alreadyReturned;
-            if ($item['quantity'] > $available) {
-                throw new Exception(
-                    "Cannot return more than {$available} of this product.",
-                    422
-                );
-            }
-
-            $subtotal = $item['quantity'] * $saleItem->unit_price;
-            $totalRefund += $subtotal;
-
-            $returnItems[] = [
-                'sale_item_id' => $item['sale_item_id'],
-                'quantity' => $item['quantity'],
-                'subtotal' => $subtotal,
-                'condition' => $item['condition'] ?? null,
-                'product' => $saleItem->product,
-            ];
-        }
-
-        $saleReturn = SaleReturn::create([
-            'business_branch_id' => $branchId,
-            'reason' => $validated['reason'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'refund_amount' => $totalRefund,
-            'restock' => $validated['restock'] ?? true,
-            'processed_by' => Auth::id(),
-            'status' => 'completed',
-        ]);
-
-        foreach ($returnItems as $ri) {
-            SaleReturnItem::create([
-                'sale_return_id' => $saleReturn->id,
-                'sale_item_id' => $ri['sale_item_id'],
-                'quantity' => $ri['quantity'],
-                'subtotal' => $ri['subtotal'],
-                'condition' => $ri['condition'],
+            $saleReturn = SaleReturn::create([
+                'business_branch_id' => $branchId,
+                'reason' => $validated['reason'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'refund_amount' => $totalRefund,
+                'restock' => $validated['restock'] ?? true,
+                'processed_by' => Auth::id(),
+                'status' => 'completed',
             ]);
 
-            if ($saleReturn->restock) {
-                $this->inventoryService->stockIn(
-                    $ri['product'],
-                    $ri['quantity'],
-                    'sale_return',
-                    $saleReturn->id
-                );
+            foreach ($returnItems as $ri) {
+                SaleReturnItem::create([
+                    'sale_return_id' => $saleReturn->id,
+                    'sale_item_id' => $ri['sale_item_id'],
+                    'quantity' => $ri['quantity'],
+                    'subtotal' => $ri['subtotal'],
+                    'condition' => $ri['condition'],
+                ]);
+
+                if ($saleReturn->restock) {
+                    $this->inventoryService->stockIn(
+                        $ri['product'],
+                        $ri['quantity'],
+                        'sale_return',
+                        $saleReturn->id
+                    );
+                }
             }
-        }
 
-        $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
-        $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
+            $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
+            $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
 
-        $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
-            ->sum('quantity');
-        $soldQuantity = $sale->saleItems->sum('quantity');
+            $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
+                ->sum('quantity');
+            $soldQuantity = $sale->saleItems->sum('quantity');
 
-        if ($returnedQuantity >= $soldQuantity) {
-            Receipt::where('sale_id', $sale->id)
-                ->where('status', 'completed')
-                ->update(['status' => 'refunded']);
-        }
+            if ($returnedQuantity >= $soldQuantity) {
+                Receipt::where('sale_id', $sale->id)
+                    ->where('status', 'completed')
+                    ->update(['status' => 'refunded']);
+            }
 
-        return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
+            return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
         });
     }
 }

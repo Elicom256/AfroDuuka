@@ -15,11 +15,11 @@ class PurchaseOrderController extends Controller
 {
     public function index(): JsonResponse
     {
-        $orders = PurchaseOrder::with("items.product", "supplier")
-            ->orderByDesc("created_at")
+        $orders = PurchaseOrder::with('items.product', 'supplier')
+            ->orderByDesc('created_at')
             ->get();
 
-        return response()->json(["message" => "Purchase orders fetched", "data" => $orders]);
+        return response()->json(['message' => 'Purchase orders fetched', 'data' => $orders]);
     }
 
     public function store(StorePurchaseOrderRequest $request): JsonResponse
@@ -30,37 +30,37 @@ class PurchaseOrderController extends Controller
         $validated = $request->validated();
 
         return DB::transaction(function () use ($validated, $user) {
-            $orderCount = PurchaseOrder::where("business_id", $user->business_id)->count();
-            $orderNumber = "PO-" . str_pad($orderCount + 1, 6, "0", STR_PAD_LEFT);
+            $orderCount = PurchaseOrder::where('business_id', $user->business_id)->count();
+            $orderNumber = 'PO-'.str_pad($orderCount + 1, 6, '0', STR_PAD_LEFT);
 
-            $totalAmount = collect($validated["items"])->sum(fn($i) => $i["quantity"] * $i["unit_price"]);
+            $totalAmount = collect($validated['items'])->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
 
             $order = PurchaseOrder::create([
-                "user_id" => $user->id,
-                "supplier_id" => $validated["supplier_id"],
-                "order_number" => $orderNumber,
-                "total_amount" => $totalAmount,
-                "status" => "pending",
-                "notes" => $validated["notes"] ?? null,
+                'user_id' => $user->id,
+                'supplier_id' => $validated['supplier_id'],
+                'order_number' => $orderNumber,
+                'total_amount' => $totalAmount,
+                'status' => 'pending',
+                'notes' => $validated['notes'] ?? null,
             ]);
 
-            foreach ($validated["items"] as $item) {
+            foreach ($validated['items'] as $item) {
                 PurchaseOrderItem::create([
-                    "purchase_order_id" => $order->id,
-                    "product_id" => $item["product_id"],
-                    "quantity" => $item["quantity"],
-                    "unit_price" => $item["unit_price"],
-                    "subtotal" => $item["quantity"] * $item["unit_price"],
+                    'purchase_order_id' => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['quantity'] * $item['unit_price'],
                 ]);
             }
 
-            return response()->json(["message" => "Purchase order created", "data" => $order->load("items.product", "supplier")], 201);
+            return response()->json(['message' => 'Purchase order created', 'data' => $order->load('items.product', 'supplier')], 201);
         });
     }
 
     public function show(PurchaseOrder $purchase_order): JsonResponse
     {
-        return response()->json(["message" => "Purchase order fetched", "data" => $purchase_order->load("items.product", "supplier")]);
+        return response()->json(['message' => 'Purchase order fetched', 'data' => $purchase_order->load('items.product', 'supplier')]);
     }
 
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchase_order): JsonResponse
@@ -75,7 +75,7 @@ class PurchaseOrderController extends Controller
 
         $purchase_order->update($validated);
 
-        return response()->json(["message" => "Purchase order updated", "data" => $purchase_order->load("items.product", "supplier")]);
+        return response()->json(['message' => 'Purchase order updated', 'data' => $purchase_order->load('items.product', 'supplier')]);
     }
 
     public function destroy(PurchaseOrder $purchase_order): JsonResponse
@@ -84,6 +84,7 @@ class PurchaseOrderController extends Controller
 
         $purchase_order->items()->delete();
         $purchase_order->delete();
-        return response()->json(["message" => "Purchase order deleted"]);
+
+        return response()->json(['message' => 'Purchase order deleted']);
     }
 }

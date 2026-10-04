@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class MakeService extends Command
 {
     protected $signature = 'make:service {name} {--force}';
+
     protected $description = 'Create a new service class';
 
     public function handle()
@@ -18,16 +19,17 @@ class MakeService extends Command
         $className = Str::studly($name);
 
         $directory = app_path('Services');
-        $path = $directory . '/' . $className . '.php';
+        $path = $directory.'/'.$className.'.php';
 
         // Check if exists
-        if (file_exists($path) && !$this->option('force')) {
-            $this->error("Service already exists!");
+        if (file_exists($path) && ! $this->option('force')) {
+            $this->error('Service already exists!');
+
             return;
         }
 
         // Create directory if missing
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
 

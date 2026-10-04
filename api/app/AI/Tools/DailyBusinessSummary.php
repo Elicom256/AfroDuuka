@@ -3,9 +3,9 @@
 namespace App\AI\Tools;
 
 use App\AI\Tool;
-use App\Models\Sale;
-use App\Models\Purchase;
 use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Sale;
 
 class DailyBusinessSummary extends Tool
 {
@@ -31,7 +31,7 @@ class DailyBusinessSummary extends Tool
 
     public function handle(array $parameters): array
     {
-        $date = !empty($parameters['date']) ? $parameters['date'] : today()->toDateString();
+        $date = ! empty($parameters['date']) ? $parameters['date'] : today()->toDateString();
 
         $sales = Sale::whereDate('created_at', $date)->get();
         $purchases = Purchase::whereDate('created_at', $date)->get();

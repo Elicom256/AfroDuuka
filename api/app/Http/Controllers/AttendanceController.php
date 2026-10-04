@@ -10,101 +10,106 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
-     protected ActivityLogService $activity_log;
+    protected ActivityLogService $activity_log;
+
     public function __construct(ActivityLogService $activityLog)
     {
         $this->activity_log = $activityLog;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
-{
-    $query = Attendance::with(['worker.user.businessBranch']);
+    {
+        $query = Attendance::with(['worker.user.businessBranch']);
 
-    // stats (global, not paginated)
-    $presentCount = (clone $query)
-        ->where('status', 'present')
-        ->count();
+        // stats (global, not paginated)
+        $presentCount = (clone $query)
+            ->where('status', 'present')
+            ->count();
 
-    $absentCount = (clone $query)
-        ->where('status', 'absent')
-        ->count();
+        $absentCount = (clone $query)
+            ->where('status', 'absent')
+            ->count();
 
-    // paginated data
-    $attendances = $query
-        ->orderByDesc('created_at')
-        ->paginate(10);
+        // paginated data
+        $attendances = $query
+            ->orderByDesc('created_at')
+            ->paginate(10);
 
-    return response()->json([
-        'message' => 'Attendances fetched',
-        'attendances' => $attendances,
-        'presentCount' => $presentCount,
-        'absentCount' => $absentCount,
-    ]);
-}
+        return response()->json([
+            'message' => 'Attendances fetched',
+            'attendances' => $attendances,
+            'presentCount' => $presentCount,
+            'absentCount' => $absentCount,
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
-   public function store(StoreAttendanceRequest $request)
-{
-    $user = Auth::user();
-    $workerIds = collect($request->validated()['attendances'])->pluck('worker_id');
+    public function store(StoreAttendanceRequest $request)
+    {
+        $user = Auth::user();
+        $workerIds = collect($request->validated()['attendances'])->pluck('worker_id');
 
-    // Scoped lookup: only workers the current user may touch (L1 on Worker).
-    $branchById = Worker::whereIn('id', $workerIds)->pluck('business_branch_id', 'id');
+        // Scoped lookup: only workers the current user may touch (L1 on Worker).
+        $branchById = Worker::whereIn('id', $workerIds)->pluck('business_branch_id', 'id');
 
-    $records = collect($request->validated()['attendances'])
-        ->map(function ($attendance) use ($user, $branchById) {
-            $workerId = $attendance['worker_id'];
-            $branchId = $branchById->get($workerId)
-                ?? $attendance['business_branch_id']
-                ?? $user->business_branch_id;
+        $records = collect($request->validated()['attendances'])
+            ->map(function ($attendance) use ($user, $branchById) {
+                $workerId = $attendance['worker_id'];
+                $branchId = $branchById->get($workerId)
+                    ?? $attendance['business_branch_id']
+                    ?? $user->business_branch_id;
 
-            if (!$branchId) {
-                abort(422, "Worker {$workerId} is not accessible.");
-            }
+                if (! $branchId) {
+                    abort(422, "Worker {$workerId} is not accessible.");
+                }
 
-            return [
-                ...$attendance,
-                'business_branch_id' => $branchId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        })
-        ->toArray();
+                return [
+                    ...$attendance,
+                    'business_branch_id' => $branchId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })
+            ->toArray();
 
-    Attendance::insert($records);
-    $this->activity_log->activity("Recorded Employee Attendance", count($records) . " ". "employees have been recorded");
-    return response()->json([
-        'message' => count($records) . ' attendance records saved successfully'
-    ]);
-}
+        Attendance::insert($records);
+        $this->activity_log->activity('Recorded Employee Attendance', count($records).' '.'employees have been recorded');
+
+        return response()->json([
+            'message' => count($records).' attendance records saved successfully',
+        ]);
+    }
 
     /**
      * Display the specified resource.
      */
     public function show(Attendance $attendance)
     {
-        $attendance->load("worker.user");
+        $attendance->load('worker.user');
+
         return response()->json([
-        'message' => 'Attendance fetched successfully!',
-        'data' => $attendance,
-    ]);
+            'message' => 'Attendance fetched successfully!',
+            'data' => $attendance,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-   public function update(UpdateAttendanceRequest $request, Attendance $attendance)
-{
-    $attendance->update($request->validated());
+    public function update(UpdateAttendanceRequest $request, Attendance $attendance)
+    {
+        $attendance->update($request->validated());
 
-    return response()->json([
-        'message' => 'Attendance updated successfully',
-        'data' => $attendance->fresh(),
-    ]);
-}
+        return response()->json([
+            'message' => 'Attendance updated successfully',
+            'data' => $attendance->fresh(),
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -112,9 +117,10 @@ class AttendanceController extends Controller
     public function destroy(Attendance $attendance)
     {
         $attendance->delete();
+
         return response()->json([
-        'message' => 'Attendance Deleted successfully!',
-        'data' => $attendance,
-    ]);
+            'message' => 'Attendance Deleted successfully!',
+            'data' => $attendance,
+        ]);
     }
 }

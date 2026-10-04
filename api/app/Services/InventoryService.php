@@ -18,7 +18,7 @@ class InventoryService
     {
         DB::transaction(function () use ($product, $quantity, $referenceType, $referenceId, $movementKey) {
             $lockedProduct = Product::whereKey($product->getKey())->lockForUpdate()->firstOrFail();
-            $resolvedMovementKey = $movementKey ?? md5($product->id . ':' . $referenceType . ':' . $referenceId . ':' . $quantity . ':' . now()->timestamp);
+            $resolvedMovementKey = $movementKey ?? md5($product->id.':'.$referenceType.':'.$referenceId.':'.$quantity.':'.now()->timestamp);
 
             $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
             if ($existing) {
@@ -48,7 +48,7 @@ class InventoryService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $resolvedMovementKey = $movementKey ?? md5($product->id . ':' . $referenceType . ':' . $referenceId . ':' . $quantity . ':' . now()->timestamp);
+            $resolvedMovementKey = $movementKey ?? md5($product->id.':'.$referenceType.':'.$referenceId.':'.$quantity.':'.now()->timestamp);
 
             $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
             if ($existing) {
@@ -89,7 +89,7 @@ class InventoryService
                 throw new \InvalidArgumentException("Unsupported stock adjustment reason: {$normalizedReason}");
             }
 
-            $resolvedMovementKey = $movementKey ?? md5($product->id . ':adjustment:' . $normalizedReason . ':' . $quantity . ':' . now()->timestamp);
+            $resolvedMovementKey = $movementKey ?? md5($product->id.':adjustment:'.$normalizedReason.':'.$quantity.':'.now()->timestamp);
 
             $existing = StockMovement::where('movement_key', $resolvedMovementKey)->first();
             if ($existing) {
@@ -121,10 +121,10 @@ class InventoryService
 
         $allowedReasons = ['damaged', 'expired', 'lost'];
         if (! in_array($reason, $allowedReasons, true)) {
-            throw new \InvalidArgumentException("Write-off reason must be one of: " . implode(', ', $allowedReasons));
+            throw new \InvalidArgumentException('Write-off reason must be one of: '.implode(', ', $allowedReasons));
         }
 
-        $resolvedMovementKey = $movementKey ?? md5($product->id . ':writeoff:' . $reason . ':' . $quantity . ':' . ($lossDate ?? now()->toDateString()));
+        $resolvedMovementKey = $movementKey ?? md5($product->id.':writeoff:'.$reason.':'.$quantity.':'.($lossDate ?? now()->toDateString()));
 
         return DB::transaction(function () use ($product, $quantity, $reason, $notes, $resolvedMovementKey, $lossDate) {
             $lockedProduct = Product::whereKey($product->getKey())->lockForUpdate()->firstOrFail();
@@ -166,7 +166,7 @@ class InventoryService
             ]);
 
             CashFlow::create([
-                'transaction_code' => 'CF-LOSS-' . str_pad((string) $loss->id, 6, '0', STR_PAD_LEFT),
+                'transaction_code' => 'CF-LOSS-'.str_pad((string) $loss->id, 6, '0', STR_PAD_LEFT),
                 'type' => 'expense',
                 'amount' => Money::fromCents($totalLossCents),
                 'currency' => 'UGX',

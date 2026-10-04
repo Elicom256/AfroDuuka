@@ -94,7 +94,7 @@ class BlockRestrictedRoleActionsTest extends TestCase
     {
         $user = $this->userWithRole('Operations');
         $request = Request::create('/api/products', 'GET');
-        $request->headers->set('Authorization', 'Bearer ' . $user->createToken('t')->plainTextToken);
+        $request->headers->set('Authorization', 'Bearer '.$user->createToken('t')->plainTextToken);
 
         $middleware = new BlockRestrictedRoleActions;
         $response = $middleware->handle($request, fn () => new Response('reached controller'));

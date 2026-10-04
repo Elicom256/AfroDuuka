@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Support\Tenant\BusinessContext;
 
 class ProductLoss extends BaseModel
 {

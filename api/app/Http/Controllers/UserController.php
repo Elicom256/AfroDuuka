@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     protected UserService $userService;
-// Dipendency Injection(DI)
+
+    // Dipendency Injection(DI)
     public function __construct(UserService $userService)
     {
         // Inject UserService for business logic
@@ -31,6 +32,7 @@ class UserController extends Controller
     {
         try {
             $result = $this->userService->login($request->validated());
+
             return response()->json([
                 'message' => 'Login successful!',
                 'data' => $result,
@@ -49,7 +51,7 @@ class UserController extends Controller
     public function me(Request $request)
     {
         // Return currently authenticated user with relations
-        $user = $request->user()->load("business.country", "businessBranch", "role");
+        $user = $request->user()->load('business.country', 'businessBranch', 'role');
         $country = $user->business ? Country::find($user->business->country_id) : null;
 
         // The client uses this to decide whether to send a brand-new signup to the
@@ -66,8 +68,8 @@ class UserController extends Controller
         return response()->json([
             'message' => 'User retrieved successfully',
             'data' => $user,
-            "country" => $country ?? "N/A",
-            "onboarding" => $onboarding,
+            'country' => $country ?? 'N/A',
+            'onboarding' => $onboarding,
         ], 200);
     }
 
@@ -89,6 +91,7 @@ class UserController extends Controller
     {
         // Revoke all tokens for authenticated user
         $request->user()->tokens()->delete();
+
         return response()->json([
             'message' => 'Logout successful!',
         ], 200);
@@ -102,10 +105,11 @@ class UserController extends Controller
         $roles = ['customer', 'supplier', 'Executive'];
         $users = User::tenantVisible()
             ->whereHas('role', function ($q) use ($roles) {
-            $q->whereNotIn('name', $roles);
-          })
-        ->with(['business', 'role', "businessBranch"])
-        ->get();
+                $q->whereNotIn('name', $roles);
+            })
+            ->with(['business', 'role', 'businessBranch'])
+            ->get();
+
         return response()->json([
             'message' => 'Users retrieved successfully',
             'data' => $users,
@@ -113,26 +117,27 @@ class UserController extends Controller
     }
 
     // all branch workers
-     public function workers()
+    public function workers()
     {
         $users = User::tenantVisible()
             ->whereHas('role', function ($q) {
-            $q->where('name', '!=', 'Executive');
-          })
-        ->with(['business', 'role', "businessBranch"])
-        ->get();
+                $q->where('name', '!=', 'Executive');
+            })
+            ->with(['business', 'role', 'businessBranch'])
+            ->get();
+
         return response()->json([
             'message' => 'Workers retrieved successfully',
             'data' => $users,
         ], 200);
     }
 
-
- //  branch worker
-     public function worker(User $user)
+    //  branch worker
+    public function worker(User $user)
     {
         abort_unless($user->business_id === Auth::user()?->business_id, 404);
-        $user = $user->load("role");
+        $user = $user->load('role');
+
         return response()->json([
             'message' => 'Worker retrieved successfully',
             'worker' => $user,
@@ -156,6 +161,7 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->signupUser($request->validated());
+
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user->load('business', 'role'),
@@ -173,13 +179,13 @@ class UserController extends Controller
     {
         try {
             $validated = $request->validated();
-            
+
             // Create the user account first. business_id stays null on purpose: the
             // person exists before they are a tenant. The account is immediately
             // restricted to onboarding by RequireBusiness until BusinessService::create()
             // links it to a business.
             $user = $this->userService->createAccount($validated);
-            
+
             return response()->json([
                 'message' => 'User created successfully',
                 'data' => $user->load('business', 'role'),
@@ -203,6 +209,7 @@ class UserController extends Controller
     {
         abort_unless($user->business_id === Auth::user()?->business_id, 404);
         $user = $this->userService->getUserById($user->id);
+
         return response()->json([
             'message' => 'Single User retrieved successfully!',
             'data' => $user,
@@ -218,7 +225,8 @@ class UserController extends Controller
             // $user = Auth::user();
             abort_unless($user->business_id === Auth::user()?->business_id, 404);
             $validated = $request->validated();
-            $user = $this->userService->updateUser($user,$validated);
+            $user = $this->userService->updateUser($user, $validated);
+
             // $updated_user = $worker->update($validated);
             return response()->json([
                 'message' => 'User updated successfully',
@@ -244,6 +252,7 @@ class UserController extends Controller
             abort_unless($user->id !== Auth::id(), 403, 'You cannot delete your own account.');
 
             $user->delete();
+
             return response()->json([
                 'message' => 'User deleted successfully',
             ], 200);

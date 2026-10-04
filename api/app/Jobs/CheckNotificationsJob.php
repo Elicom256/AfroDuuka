@@ -116,7 +116,7 @@ class CheckNotificationsJob implements ShouldQueue
                     ->where('created_at', '>=', now()->subHours(24))
                     ->exists();
 
-                if (!$alreadyNotified) {
+                if (! $alreadyNotified) {
                     $service->lowStockAlert(
                         $recipient,
                         $item->name,
@@ -138,7 +138,7 @@ class CheckNotificationsJob implements ShouldQueue
         $overdueCustomers = Customer::where('business_id', $business->id)
             ->whereHas('sales', function ($q) {
                 $q->where('status', 'pending')
-                  ->where('created_at', '<=', now()->subDays(30));
+                    ->where('created_at', '<=', now()->subDays(30));
             })->get();
 
         foreach ($overdueCustomers as $customer) {
@@ -151,12 +151,12 @@ class CheckNotificationsJob implements ShouldQueue
                     ->where('created_at', '>=', now()->subHours(24))
                     ->exists();
 
-                if (!$alreadyNotified) {
+                if (! $alreadyNotified) {
                     $service->create(
                         $recipient,
                         'overdue_payment',
                         'Overdue Payment Alert',
-                        'Customer ' . $customer->name() . ' has overdue payments.',
+                        'Customer '.$customer->name().' has overdue payments.',
                         ['customer_id' => $customer->id],
                         Customer::class,
                         $customer->id
