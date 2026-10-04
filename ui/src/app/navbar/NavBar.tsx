@@ -7,20 +7,23 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '../../../public/afroduuka.png';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
+import { getToken } from '@/lib/session';
+import { PUBLIC_NAV_LINKS } from '@/lib/routes';
 
-const navLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'Pricing', to: '/pricing' },
-  { label: 'About', to: '/about' },
-  { label: 'Documentation', to: '/documentation' },
-];
+// Kept beside the navbar rather than inside it: PUBLIC_PATHS in lib/routes.ts is
+// the router's list of pages that must render without a session, and a nav link
+// pointing anywhere outside that list would build the exact bug this file was
+// audited for — a link that looks public and lands on a redirect.
+const navLinks = PUBLIC_NAV_LINKS;
 
 export const NavBar: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const { data } = useLoggedinUserQuery();
+
+  // The navbar is mounted on every page outside /dashboard, so this hook is the
+  // most frequently mounted query in the app. Skipping it when there is no token
+  // keeps a logged-out visitor from firing a request that can only ever 401.
+  const { data } = useLoggedinUserQuery({ skip: !getToken() });
   const role = data?.data?.role?.name;
-  const dashboardLink = DASHBOARD_PREFIX;
   const businessName = data?.data?.business?.name ?? 'DuukaFlow';
   const businessLogo = data?.data?.business?.logo ?? logo;
   // Eloquent serialises the businessBranch() relation under its snake_case key, so
@@ -68,11 +71,28 @@ export const NavBar: React.FC = () => {
         <div className='hidden items-center gap-4 md:flex'>
           <ThemeToggle compact />
           {data && role ? (
-            <Link to={dashboardLink}>Dashboard</Link>
+            <Link to='/dashboard'>Dashboard</Link>
           ) : (
-            <Button asChild size='sm'>
-              <Link to='/onboarding'>Start onboarding</Link>
-            </Button>
+            <>
+              {/* Signing in and signing up are different decisions, so both are offered.
+                  This used to be an either/or that only offered the trial, leaving a
+                  returning customer with no way to reach the login screen. */}
+              <Link
+                to='/login'
+                className='rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground'
+              >
+                Log in
+              </Link>
+              <Button asChild size='sm'>
+                {/* /signup, not /onboarding. Onboarding is the post-registration
+                    business setup flow and it requires a session — it renders a login
+                    form for anyone without one — so pointing the primary marketing CTA
+                    at it meant the people most likely to click it were the only ones
+                    who could not finish. Signup creates the account; the app sends the
+                    new user to onboarding from there. */}
+                <Link to='/signup'>Start Free Trial</Link>
+              </Button>
+            </>
           )}
         </div>
 
@@ -111,9 +131,29 @@ export const NavBar: React.FC = () => {
               <span className='text-sm text-muted-foreground'>Appearance</span>
               <ThemeToggle compact />
             </div>
-            <Button asChild size='sm' className='w-full'>
-              <Link to='/onboarding'>Get started with onboarding</Link>
-            </Button>
+            {/* Same pair as the desktop bar: log in, or start a trial. Offering only the
+                trial here left mobile users with no route back to the login screen. */}
+            {data && role ? (
+              <Button asChild size='sm' className='w-full'>
+                <Link to='/dashboard'>Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  to='/login'
+                  onClick={() => setOpen(false)}
+                  className='block rounded-2xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground'
+                >
+                  Log in
+                </Link>
+                <Button asChild size='sm' className='mt-2 w-full'>
+                  {/* Same reason as the desktop CTA above. */}
+                  <Link to='/signup' onClick={() => setOpen(false)}>
+                    Start Free Trial
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       ) : null}

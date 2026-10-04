@@ -25,7 +25,6 @@ import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { UserProfile } from '../auth/UserProfile';
 import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 
 const navSections: Array<{
   title: string;
@@ -87,7 +86,7 @@ export const OperationsSidebar = ({ onNavigate }: OperationsSidebarProps) => {
   const features = useFeatureSettings();
 
   const role = data?.data?.role?.name;
-  const prefix = DASHBOARD_PREFIX;
+  const prefix = '/dashboard';
 
   const filteredSections = navSections
     .map((section) => ({

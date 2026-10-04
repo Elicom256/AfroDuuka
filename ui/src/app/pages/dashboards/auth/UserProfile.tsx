@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useLogoutMutation } from '@/app/store/features/auth/authQuery';
+import { clearToken } from '@/lib/session';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
@@ -32,9 +33,20 @@ export const UserProfile = ({ data, compact = false }: { data: ProfileData; comp
       if (res) {
         toast.success(res.message);
       }
-      return (window.location.href = '/login');
     } catch {
-      toast.error('Failed to log out. Please try again.');
+      // Deliberately not fatal, and deliberately not the end of the flow either.
+      // The server may already have revoked this token, or the request may have
+      // failed on a network that is down. Either way the person asked to be signed
+      // out, and leaving a token in localStorage because the confirmation call
+      // failed is how you end up unable to browse your own marketing site.
+      toast.error('Could not reach the server, but you have been signed out locally.');
+    } finally {
+      // Must happen even when the request above failed. This omission was the whole
+      // bug: the server revoked the token, localStorage kept it, and every public
+      // page then redirected to /login forever because the app had no way to tell a
+      // logged-out visitor from a stale-token one.
+      clearToken();
+      window.location.href = '/login';
     }
   };
   return (

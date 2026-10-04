@@ -10,12 +10,14 @@ function App() {
   const location = useLocation();
   // Every role mounts under /dashboard/* (see AppRoutes), so that prefix is the only
   // signal needed. The old per-role prefixes (/executive, /branchmanager, /coresupport,
-  // …) no longer have routes and never matched.
-  const isDashboard = location.pathname.startsWith('/dashboard');
+  // …) no longer have routes and never matched. Compared on the segment boundary so a
+  // URL like /dashboard-notes is not mistaken for the dashboard.
+  const { pathname } = location;
+  const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [location.pathname]);
+  }, [pathname]);
 
   return (
     <div className='flex min-h-screen flex-col bg-background text-foreground'>

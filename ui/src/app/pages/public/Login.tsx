@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DASHBOARD_PREFIX } from '@/lib/rolePrefix';
 import { setToken } from '@/lib/session';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +27,7 @@ export const Login: React.FC = () => {
         const token = await res.data.token;
         toast.success(res.message);
         setToken(token);
-        return (window.location.href = DASHBOARD_PREFIX);
+        return (window.location.href = '/dashboard');
       }
     } catch (error) {
       console.error('Login failed:', error);
