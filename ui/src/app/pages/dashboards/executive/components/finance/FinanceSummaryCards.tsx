@@ -4,6 +4,8 @@ import { TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils'; // assuming you have this from shadcn
 
 type FinanceSummaryCardsProps = {
+  gross_revenue?: number;
+  total_refunds?: number;
   total_revenue: number;
   total_expenses: number;
   net_profit: number;
@@ -11,6 +13,8 @@ type FinanceSummaryCardsProps = {
 };
 
 export const FinanceSummaryCards = ({
+  gross_revenue,
+  total_refunds,
   total_revenue,
   total_expenses,
   net_profit,
@@ -32,7 +36,7 @@ export const FinanceSummaryCards = ({
       <Card className="group border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/50 transition-all hover:shadow-md hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-            Total Revenue
+            Net Revenue
           </CardTitle>
           <div className="rounded-full bg-emerald-100 p-1.5 dark:bg-emerald-900">
             <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -42,6 +46,16 @@ export const FinanceSummaryCards = ({
           <p className="text-3xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">
             {currency} {formatCurrency(total_revenue)}
           </p>
+          {gross_revenue !== undefined && total_refunds !== undefined && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-muted-foreground">
+                Gross: {currency} {formatCurrency(gross_revenue)}
+              </p>
+              <p className="text-xs text-red-500">
+                Refunds: -{currency} {formatCurrency(total_refunds)}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

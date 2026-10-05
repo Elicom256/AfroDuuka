@@ -11,6 +11,8 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 type RevenueData = {
   date: string;
   revenue: number;
+  gross_revenue?: number;
+  refunds?: number;
 };
 
 type RevenueChartProps = {
@@ -23,6 +25,8 @@ export const RevenueChart = ({ data, currency: propCurrency }: RevenueChartProps
   const currency = propCurrency || hookCurrency || 'USD';
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
+  const hasReturnData = data.some((d) => d.gross_revenue !== undefined || d.refunds !== undefined);
+
   const chartData = {
     labels: data.map((d) => {
       try {
@@ -31,15 +35,39 @@ export const RevenueChart = ({ data, currency: propCurrency }: RevenueChartProps
         return d.date;
       }
     }),
-    datasets: [
-      {
-        label: `Revenue (${currency})`,
-        data: data.map((d) => Number(d.revenue)),
-        backgroundColor: '#10b981',
-        borderRadius: 6,
-        barThickness: 40,
-      },
-    ],
+    datasets: hasReturnData
+      ? [
+          {
+            label: `Gross Revenue (${currency})`,
+            data: data.map((d) => Number(d.gross_revenue ?? d.revenue)),
+            backgroundColor: '#10b981',
+            borderRadius: 6,
+            barThickness: 30,
+          },
+          {
+            label: `Refunds (${currency})`,
+            data: data.map((d) => Number(d.refunds ?? 0)),
+            backgroundColor: '#f59e0b',
+            borderRadius: 6,
+            barThickness: 30,
+          },
+          {
+            label: `Net Revenue (${currency})`,
+            data: data.map((d) => Number(d.revenue)),
+            backgroundColor: '#059669',
+            borderRadius: 6,
+            barThickness: 30,
+          },
+        ]
+      : [
+          {
+            label: `Revenue (${currency})`,
+            data: data.map((d) => Number(d.revenue)),
+            backgroundColor: '#10b981',
+            borderRadius: 6,
+            barThickness: 40,
+          },
+        ],
   };
 
   const chartOptions = {
@@ -97,13 +125,15 @@ export const RevenueChart = ({ data, currency: propCurrency }: RevenueChartProps
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead className='text-right'>Revenue</TableHead>
+              {hasReturnData && <TableHead className="text-right">Gross Revenue</TableHead>}
+              {hasReturnData && <TableHead className="text-right">Refunds</TableHead>}
+              <TableHead className="text-right">Net Revenue</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={2} className='py-10 text-center text-muted-foreground'>
+                <TableCell colSpan={hasReturnData ? 4 : 2} className="py-10 text-center text-muted-foreground">
                   No revenue data available.
                 </TableCell>
               </TableRow>
@@ -111,7 +141,17 @@ export const RevenueChart = ({ data, currency: propCurrency }: RevenueChartProps
               data.map((d, i) => (
                 <TableRow key={i}>
                   <TableCell>{d.date}</TableCell>
-                  <TableCell className='text-right font-medium'>
+                  {hasReturnData && (
+                    <TableCell className="text-right">
+                      {currency} {Number(d.gross_revenue ?? d.revenue).toLocaleString()}
+                    </TableCell>
+                  )}
+                  {hasReturnData && (
+                    <TableCell className="text-right text-red-500">
+                      -{currency} {Number(d.refunds ?? 0).toLocaleString()}
+                    </TableCell>
+                  )}
+                  <TableCell className="text-right font-medium">
                     {currency} {Number(d.revenue).toLocaleString()}
                   </TableCell>
                 </TableRow>

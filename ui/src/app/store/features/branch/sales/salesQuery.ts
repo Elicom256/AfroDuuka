@@ -36,6 +36,14 @@ export const salesQuery = createApi({
       }),
       providesTags: ['SalesAPI'],
     }),
+    getReturnAnalytics: builder.query({
+      query: (period = 'last_7_days') => ({
+        url: '/return-analytics',
+        method: 'GET',
+        params: { period },
+      }),
+      providesTags: ['SalesAPI', 'SaleReturnsAPI'],
+    }),
     addSale: builder.mutation<any, any>({
       query: (body) => ({
         url: '/',
@@ -55,5 +63,11 @@ export const salesQuery = createApi({
   }),
 });
 
-export const { useSalesQuery, useSaleQuery, useAddSaleMutation, useUpdateSaleMutation, useGetSalesAnalyticsQuery } =
-  salesQuery;
+export const {
+  useSalesQuery,
+  useSaleQuery,
+  useAddSaleMutation,
+  useUpdateSaleMutation,
+  useGetSalesAnalyticsQuery,
+  useGetReturnAnalyticsQuery,
+} = salesQuery;

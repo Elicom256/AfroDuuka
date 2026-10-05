@@ -34,16 +34,16 @@ export const CashFlowAnalytics = () => {
       <QueryEmptyState title='No cash-flow analytics' description='No cash-flow data is available for this period.' />
     );
 
-  const { total_revenue, total_expenses, net_cash_flow } = analytics;
+  const { gross_revenue, total_refunds, total_revenue, total_expenses, net_cash_flow } = analytics;
   const isPositive = net_cash_flow >= 0;
 
   const chartData = {
-    labels: ['Revenue', 'Expenses'],
+    labels: ['Gross Revenue', 'Refunds', 'Net Revenue', 'Expenses'],
     datasets: [
       {
         label: `Amount (${currency})`,
-        data: [Number(total_revenue), Number(total_expenses)],
-        backgroundColor: ['#10b981', '#ef4444'],
+        data: [Number(gross_revenue || total_revenue), Number(total_refunds || 0), Number(total_revenue), Number(total_expenses)],
+        backgroundColor: ['#10b981', '#f59e0b', '#059669', '#ef4444'],
         borderRadius: 8,
         barThickness: 60,
       },
