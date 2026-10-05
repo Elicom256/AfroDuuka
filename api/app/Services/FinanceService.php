@@ -37,7 +37,7 @@ class FinanceService
 
         $recentTransactions = (clone $query)
             ->with(['branch', 'createdBy'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->limit(10)
             ->get();
@@ -68,6 +68,10 @@ class FinanceService
      * Net cash movement of the ledger, optionally counting only the rows ordered before
      * a given position.
      *
+     * Ordered by transaction_date rather than created_at, matching the ledger the user
+     * reads. created_at records when a row was typed, so a backdated adjustment used to
+     * sit in the list away from the date it carries.
+     *
      * The CASE mirrors CashFlow::cashEffect(). The two are kept honest by
      * FinanceCashBalanceTest, which asserts the headline balance equals the running
      * balance of the newest row.
@@ -77,9 +81,9 @@ class FinanceService
         $net = (clone $query)
             ->when($position !== null, function ($q) use ($position, $beforeId) {
                 $q->where(function ($q) use ($position, $beforeId) {
-                    $q->where('created_at', '<', $position)
+                    $q->where('transaction_date', '<', $position)
                         ->orWhere(function ($tie) use ($position, $beforeId) {
-                            $tie->where('created_at', $position)
+                            $tie->where('transaction_date', $position)
                                 ->when($beforeId !== null, fn ($t) => $t->where('id', '<', $beforeId));
                         });
                 });
@@ -102,9 +106,11 @@ class FinanceService
      * Give each listed row the cash balance that follows it, oldest first.
      *
      * The listed rows are only the tail of the ledger, so the walk starts from the
-     * balance of everything ordered before the oldest of them. The value is attached to
-     * the model for rendering and then marked clean, so it reads as a derived figure
-     * and cannot be written back as if it were stored state.
+     * balance of everything ordered before the oldest of them, in the same
+     * transaction_date order the caller listed them in.
+     *
+     * The value is attached to the model for rendering and then marked clean, so it
+     * reads as a derived figure and cannot be written back as if it were stored state.
      */
     private function attachRunningBalances($transactions, $baseQuery): void
     {
@@ -113,7 +119,7 @@ class FinanceService
         }
 
         $oldest = $transactions->last();
-        $balance = $this->netCashMovement(clone $baseQuery, $oldest->created_at, $oldest->id);
+        $balance = $this->netCashMovement(clone $baseQuery, $oldest->transaction_date, $oldest->id);
 
         foreach ($transactions->reverse() as $transaction) {
             $balance += $transaction->cashEffect();

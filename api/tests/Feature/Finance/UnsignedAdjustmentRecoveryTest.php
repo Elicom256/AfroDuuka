@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\FinanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -40,10 +41,25 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
         $this->actingAs($this->user);
     }
 
+    /**
+     * Runs $callback with the direction constraint removed.
+     *
+     * The rule is declared in the create migration, so a signless adjustment cannot be
+     * written at all now. This file still has to recreate the rows the rule exists to
+     * prevent, because those rows are exactly what the recovery command and the
+     * unsigned count are for. Postgres rolls DDL back with the transaction, so the
+     * constraint comes back when the test ends and no other file sees a weakened schema.
+     */
+    private function withoutDirectionConstraint(callable $callback)
+    {
+        DB::statement('ALTER TABLE cash_flows DROP CONSTRAINT IF EXISTS cash_flows_adjustment_requires_direction');
+
+        return $callback();
+    }
+
     private function legacyAdjustment(string $code, float $amount = 10000): CashFlow
     {
-        // Written the way the old endpoint did: type forced to adjustment, no direction.
-        return CashFlow::create([
+        return $this->withoutDirectionConstraint(fn () => CashFlow::create([
             'transaction_code' => $code,
             'type' => 'adjustment',
             'amount' => $amount,
@@ -54,7 +70,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
             'status' => 'completed',
             'transaction_date' => now()->subMonth()->toDateString(),
             'created_by' => $this->user->id,
-        ]);
+        ]));
     }
 
     public function test_an_unsigned_adjustment_is_excluded_from_the_balance_and_counted(): void

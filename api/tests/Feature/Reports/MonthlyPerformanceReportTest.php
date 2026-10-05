@@ -93,7 +93,9 @@ class MonthlyPerformanceReportTest extends TestCase
         $this->cashFlow('payment_in', 300_000, '2026-08-04');
         $this->cashFlow('payment_out', 40_000, '2026-08-05');
         $this->cashFlow('refund', 20_000, '2026-08-06');
-        $this->cashFlow('adjustment', 10_000, '2026-08-07');
+        // An adjustment carries a direction; the report still ignores it, because it is
+        // not trading income, cost or overhead. Ignored by type, not by its sign.
+        $this->cashFlow('adjustment', 10_000, '2026-08-07', ['direction' => 'credit']);
 
         $this->getJson('/api/reports/monthly-performance?month=2026-08')
             ->assertOk()

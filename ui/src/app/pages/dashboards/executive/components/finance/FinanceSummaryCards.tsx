@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useCurrency } from '@/app/hooks/useCurrency';
-import { TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Wallet, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils'; // assuming you have this from shadcn
 
 type FinanceSummaryCardsProps = {
@@ -10,6 +11,13 @@ type FinanceSummaryCardsProps = {
   total_expenses: number;
   net_profit: number;
   cash_balance: number;
+
+  /**
+   * Adjustments recorded before a direction became required. They are excluded from
+   * cash_balance, because nothing says which way the money moved, so the figure is only
+   * as complete as this count allows.
+   */
+  unsigned_adjustments?: number;
 };
 
 export const FinanceSummaryCards = ({
@@ -19,6 +27,7 @@ export const FinanceSummaryCards = ({
   total_expenses,
   net_profit,
   cash_balance,
+  unsigned_adjustments = 0,
 }: FinanceSummaryCardsProps) => {
   const { currency } = useCurrency();
   const isProfitPositive = net_profit >= 0;
@@ -32,6 +41,23 @@ export const FinanceSummaryCards = ({
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {unsignedAdjustments > 0 && (
+        <Alert className='col-span-full border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/50'>
+          <AlertTriangle className='text-amber-600 dark:text-amber-400' />
+          <AlertTitle className='text-amber-800 dark:text-amber-300'>
+            Cash balance may be incomplete
+          </AlertTitle>
+          <AlertDescription className='text-amber-700 dark:text-amber-400'>
+            {unsignedAdjustments === 1
+              ? '1 manual adjustment has no recorded direction'
+              : `${unsignedAdjustments} manual adjustments have no recorded direction`}
+            , so {unsignedAdjustments === 1 ? 'it is' : 'they are'} excluded from the cash balance below. An
+            administrator needs to mark {unsignedAdjustments === 1 ? 'it' : 'each one'} as money in or money out
+            before {unsignedAdjustments === 1 ? 'it' : 'they'} count.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Revenue */}
       <Card className="group border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/50 transition-all hover:shadow-md hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between pb-2">

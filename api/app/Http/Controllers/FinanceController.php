@@ -109,7 +109,12 @@ class FinanceController extends Controller
                 });
             }
 
-            $transactions = $query->orderBy('created_at', 'desc')->paginate(15);
+            // Same ordering as CashFlowController::index(), so the running balance
+            // attached by FinanceService reads monotonically down this list.
+            $transactions = $query
+                ->orderBy('transaction_date', 'desc')
+                ->orderBy('id', 'desc')
+                ->paginate(15);
 
             return response()->json([
                 'message' => 'Fetched transactions',
