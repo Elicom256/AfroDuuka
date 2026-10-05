@@ -193,10 +193,17 @@ class SaleItemService
 
         $sales = $query->with('saleItems')->get();
 
-        $totalSales = $sales->sum('total_amount');
+        // Returns never mutate sales/sale_items; they are recorded separately and
+        // reconciled here so revenue and items sold read net of returns.
+        $returns = $this->returnsForSales($sales->pluck('id'));
+        $returnedRevenue = $returns['revenue'];
+        $returnedQuantity = $returns['quantity'];
+
+        $grossSales = $sales->sum('total_amount');
+        $totalSales = $grossSales - $returnedRevenue;
         $totalTransactions = $sales->count();
         $avgSale = $totalTransactions > 0 ? $totalSales / $totalTransactions : 0;
-        $itemsSold = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
+        $itemsSold = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity')) - $returnedQuantity;
 
         $previousStart = match ($period) {
             'today' => Carbon::yesterday(),
@@ -213,10 +220,15 @@ class SaleItemService
             ->with('saleItems')
             ->get();
 
-        $previousTotalSales = $previousSales->sum('total_amount');
+        $previousReturns = $this->returnsForSales($previousSales->pluck('id'));
+        $previousReturnedRevenue = $previousReturns['revenue'];
+        $previousReturnedQuantity = $previousReturns['quantity'];
+
+        $previousGrossSales = $previousSales->sum('total_amount');
+        $previousTotalSales = $previousGrossSales - $previousReturnedRevenue;
         $previousTransactions = $previousSales->count();
         $previousAvg = $previousTransactions > 0 ? $previousTotalSales / $previousTransactions : 0;
-        $previousItemsSold = $previousSales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
+        $previousItemsSold = $previousSales->sum(fn ($sale) => $sale->saleItems->sum('quantity')) - $previousReturnedQuantity;
 
         $salesTrend = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('M d');
@@ -232,7 +244,10 @@ class SaleItemService
         $salesTrend = $this->analyticsTrendHelper->fillMissingDates($salesTrend, $days);
 
         return [
+            'gross_sales' => round($grossSales, 2),
+            'sales_returns' => round($returnedRevenue, 2),
             'total_sales' => round($totalSales, 2),
+            'returned_quantity' => $returnedQuantity,
             'avg_sale' => round($avgSale, 2),
             'total_transactions' => $totalTransactions,
             'items_sold' => $itemsSold,
@@ -245,6 +260,40 @@ class SaleItemService
                 'items_sold' => $previousItemsSold,
             ],
             'lable' => 'sales',
+        ];
+    }
+
+    /**
+     * Total returned revenue and quantity across the given sales.
+     *
+     * A return is financially dated by when it was processed, but the quantity it
+     * removes belongs to the original sale. Joining through sale_item_id keeps the
+     * deduction attached to the sale that earned the revenue, so a return processed
+     * today still reduces the sale it belongs to.
+     *
+     * @return array{revenue: float, quantity: int}
+     */
+    protected function returnsForSales($saleIds): array
+    {
+        $unitPrices = SaleItem::whereIn('sale_id', $saleIds->filter()->all())
+            ->pluck('unit_price', 'id');
+
+        if ($unitPrices->isEmpty()) {
+            return ['revenue' => 0.0, 'quantity' => 0];
+        }
+
+        $quantities = SaleReturnItem::whereIn('sale_item_id', $unitPrices->keys())
+            ->selectRaw('sale_item_id, SUM(quantity) as quantity')
+            ->groupBy('sale_item_id')
+            ->pluck('quantity', 'sale_item_id');
+
+        $revenue = $quantities->sum(
+            fn ($quantity, $saleItemId) => (float) $quantity * (float) ($unitPrices[$saleItemId] ?? 0)
+        );
+
+        return [
+            'revenue' => (float) $revenue,
+            'quantity' => (int) $quantities->sum(),
         ];
     }
 
