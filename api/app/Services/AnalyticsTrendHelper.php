@@ -23,6 +23,12 @@ class AnalyticsTrendHelper
 
     /**
      * Fill missing dates with zero values for clean chart
+     *
+     * Only date/amount/count are hardcoded. Any further keys a caller puts on its
+     * trend points are carried through, defaulting to zero on empty days. Callers
+     * build different shapes here (sales carries items, returns carries quantity),
+     * and dropping the extras would quietly delete those series before they ever
+     * reach the client.
      */
     public function fillMissingDates($data, int $days = 7)
     {
@@ -35,11 +41,21 @@ class AnalyticsTrendHelper
 
             $existing = $data->firstWhere('date', $dateLabel);
 
-            $filled[] = [
+            $point = [
                 'date' => $dateLabel,
                 'amount' => $existing['amount'] ?? 0,
                 'count' => $existing['count'] ?? 0,
             ];
+
+            $extraKeys = collect($existing ?? [])
+                ->keys()
+                ->reject(fn ($key) => in_array($key, ['date', 'amount', 'count'], true));
+
+            foreach ($extraKeys as $key) {
+                $point[$key] = $existing[$key] ?? 0;
+            }
+
+            $filled[] = $point;
         }
 
         return $filled;
