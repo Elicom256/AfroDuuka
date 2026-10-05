@@ -72,8 +72,22 @@ class WorkerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    /**
+     * Remove the specified resource from storage.
+     *
+     * Refuses rather than silently succeeding. This was an empty body behind
+     * `Route::apiResource('workers')`, which still includes destroy — so the endpoint
+     * answered 200 to a caller that had just been told a worker was removed. See
+     * checked.md P1-24.
+     *
+     * Removing a worker is done on the user record, by UserController::destroy(), which
+     * checks the tenant, the permission and the "not yourself" case and enforces the
+     * restriction on restricted roles. Deliberately having two delete paths would let
+     * one of them be the unguarded one, so this answers 405 and points at the real one
+     * instead of growing a second implementation.
+     */
     public function destroy(Worker $worker)
     {
-        //
+        abort(405, 'Delete the worker through their user account: DELETE /api/users/workers/{user}.');
     }
 }

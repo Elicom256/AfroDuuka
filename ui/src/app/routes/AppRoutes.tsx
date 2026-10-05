@@ -12,7 +12,6 @@ import { Onboarding } from '../pages/public/Onboarding';
 import { ExecutiveRoutes } from './ExecutiveRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { OperationsRoutes } from './OperationsRoutes';
-import { StaffDashboard } from './StaffDashboard';
 import { NotFound } from './NotFound';
 import { NoDashboardAccess } from './NoDashboardAccess';
 import { SuperadminRoutes } from './Superadmin';
@@ -39,7 +38,6 @@ const ROLE_TREES = {
   siteadmin: SuperadminRoutes,
   operations: OperationsRoutes,
   procurement: ProcurementRoutes,
-  staff: StaffDashboard,
 } as const;
 
 /**

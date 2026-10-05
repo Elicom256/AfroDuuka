@@ -4,6 +4,9 @@ use App\Http\Controllers\BusinessCategoryController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/up', function () {
@@ -13,24 +16,39 @@ Route::get('/up', function () {
     ]);
 });
 
+/**
+ * Unauthenticated health check, for a load balancer or uptime monitor.
+ *
+ * It answers only "is this dependency reachable" — never why. The raw driver
+ * exception used to be returned in the body, and because this route needs no token
+ * that handed anyone on the internet the connection's failure text: host and port it
+ * tried, the database name, and whatever the driver chose to say about credentials or
+ * authentication. A probe confirmed a 200 with the full body on a healthy database.
+ *
+ * The detail goes to the log, keyed by a correlation id that is also returned, so an
+ * operator reading a 503 can find the cause without publishing it.
+ */
 Route::get('/health', function () {
     $checks = [];
+    $allOk = true;
 
-    try {
-        DB::connection()->getPdo();
-        $checks['database'] = 'ok';
-    } catch (Exception $e) {
-        $checks['database'] = 'error: '.$e->getMessage();
-    }
+    $record = function (string $name, callable $probe) use (&$checks, &$allOk) {
+        try {
+            $probe();
+            $checks[$name] = 'ok';
+        } catch (Throwable $e) {
+            $checks[$name] = 'error';
+            $allOk = false;
 
-    try {
-        $cache = Cache::store()->get('health_check');
-        $checks['cache'] = 'ok';
-    } catch (Exception $e) {
-        $checks['cache'] = 'error: '.$e->getMessage();
-    }
+            Log::error('health check failed', [
+                'check' => $name,
+                'exception' => $e,
+            ]);
+        }
+    };
 
-    $allOk = ! str_contains(implode('', $checks), 'error');
+    $record('database', fn () => DB::connection()->getPdo());
+    $record('cache', fn () => Cache::store()->get('health_check'));
 
     return response()->json([
         'status' => $allOk ? 'ok' : 'error',

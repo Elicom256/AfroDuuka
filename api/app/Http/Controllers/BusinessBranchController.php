@@ -72,9 +72,19 @@ class BusinessBranchController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Refuses rather than deleting. This was an empty method that still answered 200,
+     * so a caller was told a branch was gone while it was still there — and the moment
+     * it stopped being empty the database would have taken the branch away for real,
+     * because sales.business_branch_id, purchases and 25 other tables cascade on delete.
+     * That is the reviewed defect in checked.md P1-24 (a no-op delete that reports
+     * success) and the data-loss hazard underneath it.
+     *
+     * Closing a branch is a business decision that needs stock moved, open orders settled
+     * and reports re-pointed, so it is not something an API call should do by surprise.
      */
     public function destroy(BusinessBranch $branch)
     {
-        //
+        abort(405, 'Branches cannot be deleted once trading has started. Close the branch instead.');
     }
 }

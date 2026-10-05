@@ -31,10 +31,17 @@ export const normaliseRoleName = (name: unknown): string =>
  * `role === '...'` conditionals so there is a single place to look when a role
  * gains or loses a dashboard.
  *
- * `staff` is here because `StaffDashboard` and its sidebar exist and are built
- * against real components. No `staff` row is seeded, so in practice the branch is
- * unreachable — see NoDashboardAccess for what happens to a role that is
- * authenticated but absent from this map.
+ * There is deliberately no `staff` entry. Every person in a business is staff, so a
+ * separate role with its own dashboard split one job across two vocabularies: the
+ * seeder never created a `staff` row, so its tree and six pages were unreachable, and
+ * the roles people actually hold (Executive, BranchManager, Operations, Procurement)
+ * all cover that work. The tree has been removed rather than seeded.
+ *
+ * `editor`, `supplier` and `customer` are also absent, and that is a real gap rather
+ * than dead code — they are seeded and have no dashboard yet. They stay seeded because
+ * a business needs to record the people and companies it buys from and sells to; the
+ * missing piece is the portal UI, not the role. See NoDashboardAccess for what a signed
+ * -in user without a tree currently sees.
  */
 export const ROLE_DASHBOARD_TREE = {
   executive: 'ExecutiveRoutes',
@@ -43,7 +50,6 @@ export const ROLE_DASHBOARD_TREE = {
   siteadmin: 'SuperadminRoutes',
   operations: 'OperationsRoutes',
   procurement: 'ProcurementRoutes',
-  staff: 'StaffDashboard',
 } as const;
 
 export type RoleDashboardKey = keyof typeof ROLE_DASHBOARD_TREE;

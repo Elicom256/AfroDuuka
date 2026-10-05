@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authListenerMiddleware } from './authListener';
+import { apiErrorMiddleware } from '../apiErrorMiddleware';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
 import { productCategoriesQuery } from '../features/business/products/productsQuery';
@@ -207,6 +208,9 @@ export const store = configureStore({
       // above. This middleware was written but never added to this chain, which is
       // why nothing ever cleared a dead token: see authListener.ts.
       authListenerMiddleware.middleware,
+      // Reports failures no component handled, so a failed request is not mistaken for an
+      // empty one. Must stay after every slice's middleware to see their rejections.
+      apiErrorMiddleware,
     ),
 });
 
