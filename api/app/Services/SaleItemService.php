@@ -81,11 +81,20 @@ class SaleItemService
                 if ($product->quantity < $requestedQuantities->get((int) $product->id)) {
                     throw new Exception('Products available are few to what you want to sale', 301);
                 }
-                if ($product->quantity <= $product->reorder_level) {
+
+                // Evaluated against the quantity this sale leaves behind, not the one it
+                // starts with. The decrement happens further down, so reading
+                // $product->quantity here reported stock that was about to change: a
+                // product at 11 with a reorder level of 10, selling 3, lands on 8 and
+                // this branch stayed silent because 11 > 10. PosService::checkout
+                // decrements first and then checks, which is why it did not have this.
+                $remaining = (int) $product->quantity - (int) $requestedQuantities->get((int) $product->id);
+
+                if ($remaining <= (int) $product->reorder_level) {
                     $notificationService->lowStockAlert(
                         $user,
                         $product->name ?? $product->id,
-                        $product->quantity,
+                        $remaining,
                         $product->reorder_level,
                         $product->id
                     );

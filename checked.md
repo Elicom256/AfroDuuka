@@ -129,11 +129,24 @@ gained a body it would have deleted a branch's trading history for real.
 ## P2 — Medium
 
 ### Backend
-- **`PurchaseItem` has no `SoftDeletes` trait** while its migration has the column — soft-deleted rows are invisible-but-present. (`PurchaseItem.php:9`)
-- **`SaleItemService` never branch-matches products.** An Executive sale can draw down another branch's stock; `PosService` gets this right. (`SaleItemService.php`, product lookup)
-- **Low-stock alerts read the pre-decrement quantity** — the threshold fires one sale late.
-- **`stock_movements.reference_type/id` are unconstrained polymorphic strings.** Deleting a sale orphans movements and never reverses stock.
-- **Jobs never wrap work in `BusinessContext::run()`.** Any future job that forgets it reads and writes across every tenant silently.
+- ✅ **`PurchaseItem` had no `SoftDeletes`** while its migration has the column — trait
+  added. A deleted line is now recoverable and stays out of the normal listing; before,
+  it was indistinguishable from one that never existed.
+- ✅ **`SaleItemService` low-stock alert read the pre-sale quantity** — the alert fired on
+  stock that was about to change and stayed silent about stock that had. Now assessed on
+  the quantity the sale leaves behind, matching `PosService::checkout`, which decrements
+  before checking. A product at 11 with a threshold of 10, selling 3, lands on 8: nothing
+  fired before.
+- ✅ **`SaleItemService` branch matching** — already present in the service (added with
+  the `lockForUpdate()` change) but untested. `SaleItemBranchMatchingTest` now pins it,
+  and pins the mirror case too: `EffectiveBranchScope` refuses a branch outside the
+  caller's scope with 403 before the product lookup is reached, so there are two
+  independent guards.
+- ⬜ **`stock_movements.reference_type/id` are unconstrained polymorphic strings.**
+  Deleting a sale orphans movements and never reverses stock. Needs a schema decision —
+  either real foreign keys per type, or a documented reversal job — not a code patch.
+- ⬜ **Jobs never wrap work in `BusinessContext::run()`.** Any future job that forgets it
+  reads and writes across every tenant silently.
 
 ### Frontend
 - **Dark theme is still the default and still fails WCAG AA.** `--muted-foreground: oklch(0.48 …)` in dark (`App.css:121`), used across hundreds of files. Light passes.
