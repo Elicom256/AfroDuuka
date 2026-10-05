@@ -270,6 +270,33 @@ class FinanceCashBalanceTest extends TestCase
         $this->assertEquals(0.0, $dashboard['total_expenses'], 'A credit adjustment is not an expense.');
     }
 
+    /**
+     * A branch manager is documented as having near-executive powers inside their own
+     * branch, so they must be able to post an adjustment. They could not: the gate
+     * compared a raw lowercased role name against 'branch_manager', while the role is
+     * stored as 'BranchManager' and RolePermissions::roleName() strips separators.
+     */
+    public function test_a_branch_manager_can_post_an_adjustment(): void
+    {
+        $role = Role::factory()->create([
+            'business_id' => $this->user->business_id,
+            'name' => 'BranchManager',
+        ]);
+
+        $manager = User::factory()->create([
+            'business_id' => $this->user->business_id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => $role->id,
+        ]);
+
+        $this->actingAs($manager);
+
+        $this->postJson('/api/finances/adjustments', $this->adjustmentPayload())
+            ->assertOk();
+
+        $this->assertEquals(1, CashFlow::count());
+    }
+
     public function test_an_adjustment_without_a_direction_is_rejected(): void
     {
         $this->actAsFinanceRole();

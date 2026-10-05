@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Business;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 
 class SiteAdminPolicy
 {
@@ -12,7 +13,7 @@ class SiteAdminPolicy
      */
     public function manageAny(User $user): bool
     {
-        return $user->role?->name === 'siteadmin';
+        return RolePermissions::hasAnyRole($user, ['siteadmin']);
     }
 
     /**
@@ -20,6 +21,6 @@ class SiteAdminPolicy
      */
     public function manage(User $user, Business $business): bool
     {
-        return $user->role?->name === 'siteadmin';
+        return RolePermissions::hasAnyRole($user, ['siteadmin']);
     }
 }

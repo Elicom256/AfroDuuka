@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\BusinessCredit;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 
 class BusinessCreditPolicy
 {
@@ -44,9 +45,7 @@ class BusinessCreditPolicy
      */
     public function delete(User $user, BusinessCredit $businessCredit): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 
     /**
@@ -62,8 +61,6 @@ class BusinessCreditPolicy
      */
     public function forceDelete(User $user, BusinessCredit $businessCredit): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 }
