@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const PaymentGatewaysTable = ({ gateways, onDelete }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +40,14 @@ export const PaymentGatewaysTable = ({ gateways, onDelete }: any) => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button variant='ghost' size='icon' onClick={() => handleDelete(g.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                <ConfirmDeleteButton
+                  onConfirm={() => handleDelete(g.id)}
+                  title='Delete this payment gateway?'
+                  description='Payments routed through it will stop working. This cannot be undone.'
+                  trigger={
+                    <Button variant='ghost' size='icon'><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                  }
+                />
               </TableCell>
             </TableRow>
           ))}

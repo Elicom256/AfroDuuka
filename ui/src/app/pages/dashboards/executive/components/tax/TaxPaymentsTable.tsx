@@ -15,6 +15,7 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddTaxPayment } from './AddTaxPayment';
 import { EditTaxPayment } from './EditTaxPayment';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const TaxPaymentsTable = () => {
   const { currencySymbol } = useCurrency();
@@ -33,7 +34,6 @@ export const TaxPaymentsTable = () => {
   const categories = categoriesData?.categories ?? [];
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this payment record?')) return;
     try {
       const res = await deletePayment(id).unwrap();
       toast.success(res?.message || 'Tax payment deleted');
@@ -103,9 +103,16 @@ export const TaxPaymentsTable = () => {
                     <TableCell>
                       <div className='flex gap-2'>
                         <EditTaxPayment payment={payment} />
-                        <Button variant='ghost' size='icon' onClick={() => handleDelete(payment.id)}>
-                          <Trash2 className='h-4 w-4' />
-                        </Button>
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(payment.id)}
+                          title='Delete this payment record?'
+                          description='The record of tax paid is removed. This cannot be undone.'
+                          trigger={
+                            <Button variant='ghost' size='icon'>
+                                                      <Trash2 className='h-4 w-4' />
+                                                    </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

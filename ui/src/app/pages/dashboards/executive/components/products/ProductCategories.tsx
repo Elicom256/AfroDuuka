@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { AddProductCategory } from './AddProductCategory';
 import { EditProductCategory } from './EditProductCategory';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const ProductCategories = () => {
   const { data, isLoading, isFetching, error, refetch } = useProductCategoriesQuery();
@@ -106,16 +107,22 @@ export const ProductCategories = () => {
             <CardContent>
               <div className='flex gap-2'>
                 <EditProductCategory category={category} />
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='text-red-400 hover:text-red-600'
-                  onClick={() => handleDelete(category.id)}
-                  disabled={deleting}
-                >
-                  <Trash2 className='w-4 h-4 mr-2' />
-                  Delete
-                </Button>
+                <ConfirmDeleteButton
+                  onConfirm={() => handleDelete(category.id)}
+                  title='Delete this category?'
+                  description='Products already in it are not deleted.'
+                  trigger={
+                    <Button
+                                      variant='outline'
+                                      size='sm'
+                                      className='text-red-400 hover:text-red-600'
+                 
+                                      disabled={deleting}>
+                                      <Trash2 className='w-4 h-4 mr-2' />
+                                      Delete
+                                    </Button>
+                  }
+                />
               </div>
             </CardContent>
           </Card>

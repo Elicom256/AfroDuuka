@@ -25,35 +25,26 @@ export const apiErrorMiddleware: Middleware = (api) => (next) => (action) => {
   if (isRejectedWithValue(action)) {
     const payload = action.payload as { status?: number | string; data?: unknown } | undefined;
     const status = payload?.status;
-    const url = extractUrl(action);
 
     // A 401 or 403 is a session or permission problem, which authListener and the
     // component's own handling deal with. Toasting "request failed" on top of a login
     // redirect is noise.
     if (status !== 401 && status !== 403) {
-      toast.error(requestFailureMessage(status, url));
+      toast.error(requestFailureMessage(status));
     }
   }
 
   return next(action);
 };
 
-const extractUrl = (action: unknown): string | undefined => {
-  const meta = (action as { meta?: { arg?: { originalArgs?: unknown } } })?.meta;
-  const args = meta?.arg?.originalArgs;
+/**
+ * No request URL is included: RTK Query does not put the resolved URL on the action,
+ * only the endpoint's own arguments, which are usually an id rather than a path. Naming
+ * an endpoint that does not match what failed would be worse than saying nothing.
+ */
+const requestFailureMessage = (status: number | string | undefined): string => {
 
-  if (typeof args === 'string') return args;
-  if (args && typeof args === 'object' && 'url' in args) {
-    return String((args as { url: unknown }).url);
-  }
-
-  return undefined;
-};
-
-const requestFailureMessage = (status: number | string | undefined, url?: string): string => {
-  const where = url ? ` (${url})` : '';
-
-  if (status === 404) return `Not found${where}. The record may have been removed.`;
+  if (status === 404) return `Not found. The record may have been removed.`;
   if (status === 422) return 'The server rejected that request. Check the values and try again.';
   if (status === 429) return 'Too many requests. Wait a moment and try again.';
   if (typeof status === 'number' && status >= 500) {

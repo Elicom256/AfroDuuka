@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
 import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { Button } from '@/components/ui/button';
 
 
 interface Product {
@@ -93,10 +94,16 @@ export const ProductTable = () => {
                     {isLoading && prodId === product.id ? (
                       <Spinner className='size-4' />
                     ) : (
-                      <Trash2
-                        size={20}
-                        className='text-red-400 cursor-pointer'
-                        onClick={() => handleDelete(product.id)}
+                      <ConfirmDeleteButton
+                        isDeleting={isLoading && prodId === product.id}
+                        onConfirm={() => handleDelete(product.id)}
+                        title={`Delete ${product?.name || 'this product'}?`}
+                        description='It is removed from the catalogue. Sales that included it are not deleted.'
+                        trigger={
+                          <Button variant='ghost' size='icon' aria-label='Delete product'>
+                            <Trash2 size={20} className='text-red-400' />
+                          </Button>
+                        }
                       />
                     )}
                   </div>

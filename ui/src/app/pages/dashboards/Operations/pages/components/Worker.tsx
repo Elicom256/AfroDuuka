@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Phone, Mail, ShieldCheck, Fingerprint } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const Worker: React.FC = () => {
   const { id } = useParams();
@@ -148,11 +149,14 @@ export const Worker: React.FC = () => {
               type='button'
               value='Suspend'
             />
-            <input
-              onClick={handleDeleteWorker}
-              className='bg-red-500 p-2 rounded cursor-pointer'
-              type='button'
-              value='Delete'
+            <ConfirmDeleteButton
+              isDeleting={isDeleting}
+              onConfirm={handleDeleteWorker}
+              title='Delete this worker?'
+              description='Their account and record are removed. This cannot be undone.'
+              trigger={
+                <input className='bg-red-500 p-2 rounded cursor-pointer' type='button' value='Delete' />
+              }
             />
           </div>
         </CardContent>

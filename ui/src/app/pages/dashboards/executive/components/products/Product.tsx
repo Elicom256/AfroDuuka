@@ -100,7 +100,16 @@ export const Product = () => {
 
             <div className='flex items-center gap-4'>
               <Button onClick={() => setEditOpen(true)}>Edit Product</Button>
-              <Trash2 size={20} className='text-red-400 cursor-pointer' onClick={() => handleDelete(product.id)} />
+              <ConfirmDeleteButton
+                onConfirm={() => handleDelete(product.id)}
+                title={`Delete ${product?.name || 'this product'}?`}
+                description='It is removed from the catalogue. Sales that included it are not deleted.'
+                trigger={
+                  <Button variant='ghost' size='icon' aria-label='Delete product'>
+                    <Trash2 size={20} className='text-red-400' />
+                  </Button>
+                }
+              />
             </div>
           </div>
 

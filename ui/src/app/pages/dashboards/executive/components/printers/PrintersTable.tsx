@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Wifi, Bluetooth, Cable } from 'lucide-react';
 import { toast } from 'sonner';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 const typeIcons: Record<string, any> = { bluetooth: Bluetooth, usb: Cable, network: Wifi };
 
@@ -47,7 +48,14 @@ export const PrintersTable = ({ printers, onDelete }: any) => {
                 <TableCell>{p.business_branch?.name || '—'}</TableCell>
                 <TableCell>{p.is_default ? <Badge variant='default'>Default</Badge> : <Badge variant='secondary'>—</Badge>}</TableCell>
                 <TableCell>
-                  <Button variant='ghost' size='icon' onClick={() => handleDelete(p.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() => handleDelete(p.id)}
+                    title='Remove this printer?'
+                    description='Receipts will stop printing to it. This cannot be undone.'
+                    trigger={
+                      <Button variant='ghost' size='icon'><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             );

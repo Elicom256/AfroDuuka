@@ -12,6 +12,7 @@ import {
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddTaxCategory } from './AddTaxCategory';
 import { EditTaxCategory } from './EditTaxCategory';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const TaxCategoriesTable = () => {
   const { data, isLoading } = useTaxCategoriesQuery();
@@ -19,7 +20,6 @@ export const TaxCategoriesTable = () => {
   const [toggleCategory] = useUpdateTaxCategoryMutation();
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Deleting a referenced category is blocked. Prefer deactivating it. Continue?')) return;
     try {
       const res = await deleteCategory(id).unwrap();
       toast.success(res?.message || 'Tax category deleted');
@@ -79,9 +79,16 @@ export const TaxCategoriesTable = () => {
                         {category.is_active ? 'Deactivate' : 'Activate'}
                       </Button>
                       <EditTaxCategory category={category} />
-                      <Button variant='ghost' size='icon' onClick={() => handleDelete(category.id)}>
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
+                      <ConfirmDeleteButton
+                        onConfirm={() => handleDelete(category.id)}
+                        title='Delete this tax category?'
+                        description='Deleting a referenced category is blocked by the server; deactivating it is usually what you want.'
+                        trigger={
+                          <Button variant='ghost' size='icon'>
+                                                  <Trash2 className='h-4 w-4' />
+                                                </Button>
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

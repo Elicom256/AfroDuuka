@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import { EmployeeSalaryForm } from './EmployeeSalaryForm';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 type EmployeeSalaryPanelProps = {
   salaries: any[];
@@ -97,9 +98,14 @@ export const EmployeeSalaryPanel = ({
                         <Button variant='outline' size='sm' onClick={() => onEditRow?.(item)}>
                           Edit
                         </Button>
-                        <Button variant='destructive' size='sm' onClick={() => onDeleteRow?.(item.id)}>
+<ConfirmDeleteButton
+  onConfirm={() => onDeleteRow?.(item.id)}
+  title='Delete this salary record?'
+  description='The payment record is removed. This cannot be undone.'
+  trigger={                        <Button variant='destructive' size='sm' onClick={() => onDeleteRow?.(item.id)}>
                           Delete
-                        </Button>
+                        </Button> }
+/>
                       </div>
                     </TableCell>
                   </TableRow>

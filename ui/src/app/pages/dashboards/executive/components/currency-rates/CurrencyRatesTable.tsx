@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const CurrencyRatesTable = ({ rates, onDelete }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +38,14 @@ export const CurrencyRatesTable = ({ rates, onDelete }: any) => {
               <TableCell>{Number(r.rate).toLocaleString()}</TableCell>
               <TableCell className='capitalize'>{r.source?.replace(/_/g, ' ')}</TableCell>
               <TableCell>
-                <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                <ConfirmDeleteButton
+                  onConfirm={() => handleDelete(r.id)}
+                  title='Delete this currency rate?'
+                  description='Prices using this rate will no longer convert. This cannot be undone.'
+                  trigger={
+                    <Button variant='ghost' size='icon'><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                  }
+                />
               </TableCell>
             </TableRow>
           ))}

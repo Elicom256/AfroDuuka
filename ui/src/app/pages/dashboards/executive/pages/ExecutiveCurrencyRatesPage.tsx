@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const ExecutiveCurrencyRatesPage = () => {
   const { currency } = useCurrency();
@@ -39,7 +40,14 @@ export const ExecutiveCurrencyRatesPage = () => {
               {rates.map((r: any) => (
                 <div key={r.id} className='flex items-center justify-between p-3 bg-muted/50 rounded-lg'>
                   <span className='font-medium'>{currency} → {r.target_currency}: <span className='text-muted-foreground'>{Number(r.rate).toLocaleString()}</span></span>
-                  <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() => handleDelete(r.id)}
+                    title='Delete this currency rate?'
+                    description='Prices using this rate will no longer convert. This cannot be undone.'
+                    trigger={
+                      <Button variant='ghost' size='icon'><Trash2 className='h-4 w-4 text-destructive' /></Button>
+                    }
+                  />
                 </div>
               ))}
             </div>

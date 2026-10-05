@@ -19,6 +19,7 @@ import {
   useUpdateExpenseCategoryMutation,
   useDeleteExpenseCategoryMutation,
 } from '@/app/store/features/business/executive/expenseCategoriesQuery';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 type ExpenseCategoryTableProps = {
   categories: any[];
@@ -51,7 +52,6 @@ export const ExpenseCategoryTable = ({ categories }: ExpenseCategoryTableProps) 
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
     try {
       await deleteCategory(id).unwrap();
       toast.success('Category deleted');
@@ -90,9 +90,16 @@ export const ExpenseCategoryTable = ({ categories }: ExpenseCategoryTableProps) 
                         <Button variant='ghost' size='icon' onClick={() => handleEdit(cat)}>
                           <Pencil className='h-4 w-4' />
                         </Button>
-                        <Button variant='ghost' size='icon' onClick={() => handleDelete(cat.id)}>
-                          <Trash2 className='h-4 w-4' />
-                        </Button>
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(cat.id)}
+                          title='Delete this category?'
+                          description='Expenses already recorded under it are not deleted.'
+                          trigger={
+                            <Button variant='ghost' size='icon'>
+                                                      <Trash2 className='h-4 w-4' />
+                                                    </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

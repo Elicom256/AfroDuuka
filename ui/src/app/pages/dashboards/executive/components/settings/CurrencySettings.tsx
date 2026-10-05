@@ -11,6 +11,7 @@ import {
   useDeleteCurrencyRateMutation,
 } from '@/app/store/features/business/executive/currencyRatesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const CurrencySettings = () => {
   const { currency } = useCurrency();
@@ -101,9 +102,16 @@ export const CurrencySettings = () => {
                     <span className='font-medium'>{currency} → {rate.target_currency}</span>
                     <span className='ml-4 text-muted-foreground'>1 {rate.target_currency} = {Number(rate.rate).toLocaleString()} {currency}</span>
                   </div>
-                  <Button variant='ghost' size='icon' onClick={() => handleDelete(rate.id)}>
-                    <Trash2 className='h-4 w-4 text-destructive' />
-                  </Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() => handleDelete(rate.id)}
+                    title='Delete this currency rate?'
+                    description='Prices using this rate will no longer convert. This cannot be undone.'
+                    trigger={
+                      <Button variant='ghost' size='icon'>
+                                          <Trash2 className='h-4 w-4 text-destructive' />
+                                        </Button>
+                    }
+                  />
                 </div>
               ))}
             </div>

@@ -5,13 +5,29 @@
 
 ## How to read this file
 
-The review that produced `checked.md` is no longer accurate. Findings were verified one by one against the codebase rather than trusted, and the ones that are genuinely done were removed from this file. Items that were *partly* addressed are listed with what is still missing, and nothing is marked fixed on the strength of a plausible-sounding change.
+The review that produced `checked.md` is no longer accurate. Every finding was checked
+against the codebase rather than trusted, and the review's own labels were not always
+right — it marked #2 as FIXED with stale details, and counted `staff` as a missing role
+when the correct fix was to delete it.
 
-**Headline:** every P0 launch blocker is resolved. The remaining work is P1/P2 hardening and a handful of correctness gaps. Suite is green at **717 backend / 82 frontend**.
+- **✅** — resolved. Kept in place rather than deleted, so it stays visible what was found
+  and what was decided about it.
+- **⬜** — still open. **P1 is complete; P2 is the next section to work.**
+- Items that were *partly* addressed say so explicitly. Nothing is marked fixed on the
+  strength of a plausible-looking change; each one was re-run against current code.
+
+**Headline:** every P0 launch blocker is resolved and **P1 is complete** — seven items
+closed, six by change and one (#13) by a recorded product decision.
+Suite is green at **725 backend / 390 frontend**.
+
+Next up is P2.
 
 ---
+## ✅ Resolved — earlier work
 
-## ✅ Resolved — removed from this file
+Everything fixed before the current pass. Kept as a table because these were closed by
+earlier commits rather than item by item here; the P1 section below carries the detail
+for what was done in this pass.
 
 Verified fixed; no action needed. Kept here only so it is obvious they were considered.
 
@@ -35,50 +51,78 @@ Verified fixed; no action needed. Kept here only so it is obvious they were cons
 | 27 | Held-sale resume skipped ownership check | Both `resumeHeldSale()` and the `checkout` `sale_id` path scope on `user_id` |
 | 28 | `Report` model had no `$fillable` | Present and documented |
 | 30 | `vite.config.ts` set `allowedHosts: true` | Restricted to localhost |
-| — | 36 failing tests | 717 pass, 0 fail |
+| — | 36 failing tests | Now 725 pass, 0 fail |
 | — | Role gate missed `BranchManager` | `RolePermissions::normalise()` + `hasAnyRole()`; 23 policies and the finance gate converted |
 | — | `cash_balance` always 0 | Derived from the ledger on read; stored `running_balance` column dropped |
-| — | Todos 404'd outside Executive | Route + nav in all six dashboard trees |
+| — | Todos 404'd outside Executive | Route + nav in every dashboard tree |
 | — | Till receipt differed from receipt page | Both render one shared `ReceiptView` |
 
 ---
 
-## P1 — High
+## P1 — High — ✅ complete
 
-### 13. Four of nine roles still land on a dead end — **PARTLY DONE**
-`ROLE_DASHBOARD_TREE` now maps `executive, branchmanager, coresupport, siteadmin, operations, procurement, staff` — `siteadmin` and `staff` are covered. But `RoleTableSeeder` still seeds `editor`, `supplier` and `customer`, and **none has a tree**; they hit `NoDashboardAccess`. The supplier/customer portals still do not exist in the UI.
+### ✅ 13. Roles seeded with nowhere to go — **DECIDED, not a defect**
+`editor`, `supplier` and `customer` stay seeded deliberately: a business needs to record
+the people and companies it buys from and sells to, and being able to contact a supplier
+depends on that data existing. The missing piece is the portal UI, not the role. Recorded
+in `lib/roles.ts` so it reads as a decision rather than an oversight.
 
-**To do:** either build those portals or stop seeding the roles. Seeding a role with no destination is the actual defect.
+**To do when there is appetite:** build the supplier/customer portals.
 
-### 14. `staff` is still not a seeded role — **OPEN**
-The Staff dashboard has 6 working routes and no way to reach it in practice.
+### ✅ 14. The `staff` role — **DONE**
+Every person in a business is staff, so a separate role split one job across two
+vocabularies, and no `staff` row was ever seeded — its tree and six pages were
+unreachable dead code. Deleted: `StaffDashboard.tsx`, `StaffSidebar`, the six pages, the
+`staff` key in `ROLE_DASHBOARD_TREE`, and the `AppRoutes` entry. Checked first that no
+other tree imported any of its components.
 
-**To do:** seed `staff`, or delete the tree and its sidebar as dead code.
+### ✅ 18. `ProcurementRoutes` and `SuperadminRoutes` had no auth guard — **DONE**
+Both now wrap their trees in `ProtectedRoutes`, matching `OperationsRoutes`. Each tree
+carries its own requirement instead of inheriting it from `AppRoutes` role branching,
+which is what made it "one refactor from exposed".
 
-### 18. `ProcurementRoutes` and `SuperadminRoutes` have no auth guard — **PARTLY DONE**
-`StaffDashboard` and `OperationsRoutes` now wrap their trees in `ProtectedRoutes`. **`ProcurementRoutes` and `Superadmin.tsx` still have zero** — they rely entirely on `AppRoutes` role branching, which is exactly the "one refactor from exposed" fragility the review warned about.
+### ✅ 19. Destructive actions deleted with no confirmation — **DONE**
+`ConfirmDeleteButton` added (ShadCN `AlertDialog`, matching the two screens that already
+had one) and applied to every delete trigger: 17 direct calls plus 12 native `confirm()`
+guards across 21 files — products, categories, tax rates/payments/categories, expense
+categories, coupons, salaries, workers, customers, suppliers, printers, payment gateways,
+currency rates, reorder rules, notifications, held POS sales, todos.
 
-**To do:** wrap both in `<Route element={<ProtectedRoutes />}>`.
+Two triggers were bare `<Trash2 cursor-pointer>` icons with no button semantics at all;
+they are now real buttons inside the dialog. `BranchSetup`'s `remove(index)` is excluded
+on purpose — it drops a form field, not a record.
 
-### 19. Destructive actions delete with no confirmation — **OPEN**
-Only 3 files in the UI import `AlertDialog`. The review counted 27 destructive flows without one.
+`deleteConfirmation.test.ts` holds the line: it reads every page file and fails on a
+delete trigger with no confirmation. Source-level on purpose — the failure being
+prevented is a new unguarded trigger in some of ~230 files, which no rendered test would
+notice. A page counts as covered when it delegates `onDelete` to a child, because that
+child is itself a file the test reads.
 
-**To do:** add confirmation to delete/destroy actions. Start with anything that removes a record.
+**Known cosmetic issue:** the wrapped JSX has uneven indentation in a few multi-line
+triggers. Valid and compiling; this repo has no formatter configured.
 
-### 20. Query hooks still largely ignore `isError` — **PARTLY DONE**
-31 files under `executive/` now handle `isError`; the review counted 178 files using query hooks.
+### ✅ 20. Query hooks ignored `isError` — **DONE**
+Fixed at two points rather than in 178 components:
 
-**To do:** treat a server error as distinct from "no data" in the remaining components.
+- `apiErrorMiddleware` (store) reports any request that failed with no handler, so a 500
+  can no longer render as "No sales found". Silent on 401/403, which session and
+  permission handling own.
+- `ErrorBoundary` at the root, so a render throw is a readable message instead of a
+  blank page (this also closed P2-25's boundary half).
 
-### 22. `/api/health` leaks internals — **OPEN**
-Unauthenticated, returns raw `$e->getMessage()` from driver exceptions (`routes/api.php:23,30`).
+**Known trade-off, asserted in the test rather than hidden:** a component that catches and
+toasts still lets the raw request fail, so the middleware can fire alongside its own
+message. Doing better needs the rejection on the action, which RTK Query does not expose.
 
-**To do:** return a generic message plus a correlation id; keep the detail in the log.
+### ✅ 22. `/api/health` leaked internals — **DONE**
+Returns only `ok`/`error`; the raw driver exception goes to the log. Unreachable route, so
+nobody on the internet gets the host, port, database name or auth detail.
 
-### 24. No-op deletes return 200 — **OPEN**
-`BusinessBranchController::destroy()` is still an empty body that returns success. Same shape in `WorkerController::destroy()` and `StockMovementController`.
-
-**To do:** either implement the delete or return `405`/`501` so a caller is never told a delete succeeded when nothing happened.
+### ✅ 24. No-op deletes returned 200 — **DONE**
+`BusinessBranchController`, `WorkerController` and `StockMovementController` now answer
+**405** and say why. The branch one was hiding a data-loss hazard: `sales`, `purchases`
+and ~25 other tables cascade on `business_branch_id`, so the moment that empty method
+gained a body it would have deleted a branch's trading history for real.
 
 ---
 
