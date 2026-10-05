@@ -20,7 +20,12 @@ return new class extends Migration
             $table->string('type');                         // 'sale', 'purchase', 'expense', 'payment_in', 'payment_out', 'refund', 'adjustment'
             $table->enum('direction', ['credit', 'debit'])->nullable();
             $table->decimal('amount', 15, 2);               // Positive for inflows, Negative for outflows (or use separate sign logic)
-            $table->decimal('running_balance', 15, 2)->nullable();
+            // No running_balance column. It was a stored copy of a value that is a
+            // function of every row before it, so it could not be kept correct: the
+            // method meant to maintain it had no callers, which left every row null and
+            // the reported cash balance at 0. A balance is now summed from the ledger
+            // on read (FinanceService::netCashMovement), and the per-row figure the
+            // transaction table shows is derived the same way and never written back.
             $table->string('currency')->default('UGX');
 
             // Relationship to business

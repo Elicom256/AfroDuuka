@@ -34,7 +34,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 
-    // ================== Todos =============================== ->only(["index", "store", "show", "update", "destroy"]);
-    Route::apiResource('todos', TodoController::class);
+    // ================== Todos ===============================
+    // apiResource already covers exactly these five actions — unlike resource it never
+    // registers the HTML form endpoints. Naming them anyway matches the notifications
+    // resource above and keeps the surface explicit if that default ever changes.
+    Route::apiResource('todos', TodoController::class)->only([
+        'index', 'store', 'show', 'update', 'destroy',
+    ]);
 
 });

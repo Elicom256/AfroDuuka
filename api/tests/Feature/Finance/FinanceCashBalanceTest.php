@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\FinanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -324,20 +325,24 @@ class FinanceCashBalanceTest extends TestCase
     }
 
     /**
-     * Guards the write that would reintroduce the original fault: a stored balance that
-     * only some code path keeps up to date.
+     * Guards the fault that started all this: a stored balance only some code path kept
+     * up to date. The column is gone entirely, so there is nothing left to fall out of
+     * step with the ledger.
      */
-    public function test_the_balance_is_not_stored_on_the_rows(): void
+    public function test_there_is_no_stored_balance_column_to_fall_out_of_step(): void
     {
+        $this->assertFalse(
+            Schema::hasColumn('cash_flows', 'running_balance'),
+            'The stored balance column has to stay gone; a derived figure must not become stored state again.'
+        );
+
         $this->inflow('sale', 500000);
         $this->inflow('refund', 200000, code: 'CF-SR-000001');
 
-        $this->assertSame(0, CashFlow::whereNotNull('running_balance')->count(), 'No row may carry a stored balance.');
-
-        // And the column cannot be written through mass assignment.
-        $cashFlow = CashFlow::first();
-        $cashFlow->forceFill(['running_balance' => 999999])->save();
-        $cashFlow->update(['running_balance' => 888888]);
+        // The per-row figure the transaction table renders is still produced, it is just
+        // not persisted.
+        $rows = collect($this->dashboard()['recent_transactions']);
+        $this->assertNotNull($rows->first()->running_balance);
 
         $this->assertEquals(300000.0, $this->dashboard()['cash_balance']);
     }
