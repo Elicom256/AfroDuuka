@@ -46,4 +46,25 @@ class SaleReturnController extends Controller
 
         return response()->json(['message' => 'Sale return fetched!', 'sale_return' => $saleReturn]);
     }
+
+    public function update(StoreSaleReturnRequest $request, string $saleReturn)
+    {
+        abort_unless(RolePermissions::canModifyStock($request->user()), 403, 'You cannot process sale returns.');
+
+        $saleReturn = SaleReturn::findOrFail($saleReturn);
+        $validated = $request->validated();
+        $updated = $this->saleReturnService->handleUpdateSaleReturn($saleReturn, $validated);
+
+        return response()->json(['message' => 'Sale return updated successfully!', 'sale_return' => $updated]);
+    }
+
+    public function destroy(string $saleReturn)
+    {
+        abort_unless(RolePermissions::canModifyStock(request()->user()), 403, 'You cannot process sale returns.');
+
+        $saleReturn = SaleReturn::findOrFail($saleReturn);
+        $this->saleReturnService->handleDeleteSaleReturn($saleReturn);
+
+        return response()->json(['message' => 'Sale return deleted successfully!']);
+    }
 }

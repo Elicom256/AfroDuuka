@@ -21,7 +21,9 @@ class FinanceService
             $query->where('business_branch_id', $branchId);
         }
 
-        $totalRevenue = (clone $query)->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $grossRevenue = (clone $query)->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $totalRefunds = (clone $query)->where('type', 'refund')->sum('amount');
+        $totalRevenue = $grossRevenue - $totalRefunds;
         $totalExpenses = (clone $query)->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
         $netProfit = $totalRevenue - $totalExpenses;
 
@@ -35,6 +37,8 @@ class FinanceService
             ->get();
 
         return [
+            'gross_revenue' => $grossRevenue,
+            'total_refunds' => $totalRefunds,
             'total_revenue' => $totalRevenue,
             'total_expenses' => $totalExpenses,
             'net_profit' => $netProfit,
@@ -65,7 +69,7 @@ class FinanceService
 
     public function revenueReport(?string $branchId, string $startDate, string $endDate, string $groupBy = 'day'): array
     {
-        $query = CashFlow::whereIn('type', ['sale', 'payment_in'])
+        $query = CashFlow::whereIn('type', ['sale', 'payment_in', 'refund'])
             ->whereBetween('transaction_date', [$startDate, $endDate]);
 
         if ($branchId) {
@@ -80,7 +84,9 @@ class FinanceService
 
         $records = $query->select(
             DB::raw("TO_CHAR(transaction_date, '$dateFormat') as date"),
-            DB::raw('SUM(amount) as revenue'),
+            DB::raw("SUM(CASE WHEN type IN ('sale', 'payment_in') THEN amount ELSE 0 END) as gross_revenue"),
+            DB::raw("SUM(CASE WHEN type = 'refund' THEN amount ELSE 0 END) as refunds"),
+            DB::raw("SUM(CASE WHEN type IN ('sale', 'payment_in') THEN amount ELSE -amount END) as revenue"),
             DB::raw('COUNT(*) as count')
         )
             ->groupBy('date')
@@ -129,6 +135,16 @@ class FinanceService
             ->get()
             ->keyBy('month');
 
+        $refunds = (clone $query)->where('type', 'refund')
+            ->select(
+                DB::raw('EXTRACT(MONTH FROM transaction_date) as month'),
+                DB::raw('SUM(amount) as total')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->keyBy('month');
+
         $expenses = (clone $query)->whereIn('type', ['purchase', 'expense', 'payment_out'])
             ->select(
                 DB::raw('EXTRACT(MONTH FROM transaction_date) as month'),
@@ -142,11 +158,15 @@ class FinanceService
         $monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         $summary = [];
         for ($m = 1; $m <= 12; $m++) {
-            $rev = (float) ($revenue->get($m)->total ?? 0);
+            $gross = (float) ($revenue->get($m)->total ?? 0);
+            $ref = (float) ($refunds->get($m)->total ?? 0);
+            $rev = $gross - $ref;
             $exp = (float) ($expenses->get($m)->total ?? 0);
             $net = $rev - $exp;
             $summary[] = [
                 'month' => $monthNames[$m],
+                'gross_revenue' => $gross,
+                'refunds' => $ref,
                 'revenue' => $rev,
                 'expenses' => $exp,
                 'net_profit' => $net,
@@ -164,11 +184,15 @@ class FinanceService
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $totalRevenue = $records->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $grossRevenue = $records->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $totalRefunds = $records->where('type', 'refund')->sum('amount');
+        $totalRevenue = $grossRevenue - $totalRefunds;
         $totalExpenses = $records->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
 
         return [
             'branch_id' => $branchId,
+            'gross_revenue' => $grossRevenue,
+            'total_refunds' => $totalRefunds,
             'total_revenue' => $totalRevenue,
             'total_expenses' => $totalExpenses,
             'net_balance' => $totalRevenue - $totalExpenses,
@@ -183,20 +207,30 @@ class FinanceService
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $revenue = $records->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $grossRevenue = $records->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+        $totalRefunds = $records->where('type', 'refund')->sum('amount');
+        $revenue = $grossRevenue - $totalRefunds;
         $expenses = $records->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
 
         $byBranch = $records->groupBy('business_branch_id')->map(function ($items, $branchId) {
+            $gross = $items->whereIn('type', ['sale', 'payment_in'])->sum('amount');
+            $ref = $items->where('type', 'refund')->sum('amount');
+            $rev = $gross - $ref;
+            $exp = $items->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
             return [
                 'business_branch_id' => $branchId,
-                'total_revenue' => $items->whereIn('type', ['sale', 'payment_in'])->sum('amount'),
-                'total_expenses' => $items->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount'),
-                'net' => $items->whereIn('type', ['sale', 'payment_in'])->sum('amount') - $items->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount'),
+                'gross_revenue' => $gross,
+                'total_refunds' => $ref,
+                'total_revenue' => $rev,
+                'total_expenses' => $exp,
+                'net' => $rev - $exp,
                 'transaction_count' => $items->count(),
             ];
         })->values();
 
         return [
+            'gross_revenue' => $grossRevenue,
+            'total_refunds' => $totalRefunds,
             'total_revenue' => $revenue,
             'total_expenses' => $expenses,
             'net_balance' => $revenue - $expenses,
