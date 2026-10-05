@@ -343,6 +343,47 @@ class FinanceCashBalanceTest extends TestCase
     }
 
     /**
+     * The ledger reads chronologically, so a row carries the balance as of its own date.
+     *
+     * This is what a backdated adjustment exposed: ordered by when it was typed, it sat
+     * away from the date it carries and its balance disagreed with the day beside it.
+     */
+    public function test_a_backdated_entry_lands_in_its_own_date_position(): void
+    {
+        // An adjustment typed today, but dated last month. direction is required, and the
+        // row is created through the endpoint so the schema rule is satisfied.
+        $this->actAsFinanceRole();
+        $this->postJson('/api/finances/adjustments', $this->adjustmentPayload([
+            'direction' => 'credit',
+            'amount' => 40000,
+            'transaction_date' => now()->subMonth()->toDateString(),
+        ]))->assertOk();
+
+        $this->inflow('sale', 100000, code: 'CF-TODAY-1');
+
+        $dashboard = $this->dashboard();
+        $rows = collect($dashboard['recent_transactions']);
+
+        $this->assertSame(
+            'CF-TODAY-1',
+            $rows->first()->transaction_code,
+            'The newer transaction_date belongs first, whatever order it was typed in.'
+        );
+        $this->assertTrue(
+            str_starts_with($rows->last()->transaction_code, 'CF-ADJ-'),
+            'The backdated adjustment belongs last, beside its own date.'
+        );
+
+        // Walking back: the backdated adjustment's balance predates today's sale.
+        $balances = $rows->mapWithKeys(fn ($row) => [$row->transaction_code => (float) $row->running_balance]);
+        $adjustmentCode = $balances->keys()->first(fn ($code) => str_starts_with($code, 'CF-ADJ-'));
+
+        $this->assertEquals(40000.0, $balances[$adjustmentCode]);
+        $this->assertEquals(140000.0, $balances['CF-TODAY-1']);
+        $this->assertEquals(140000.0, $dashboard['cash_balance'], 'The total is order-independent either way.');
+    }
+
+    /**
      * The transaction table renders a per-row balance, so the rows it lists have to
      * carry a balance consistent with the headline figure rather than sitting null.
      */

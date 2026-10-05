@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -60,6 +61,21 @@ return new class extends Migration
             $table->index(['type', 'status']);
             $table->index(['customer_id', 'supplier_id']);
         });
+
+        // An adjustment has to say which way the money moved.
+        //
+        // direction stays nullable for everything else, because a sale or a refund
+        // derives its direction from its type. An adjustment has no such type to infer
+        // it from, and a row without one is silently excluded from the cash balance by
+        // CashFlow::cashEffect(), which is a quiet way for a reported figure to be wrong.
+        // The endpoint requires a direction too, but that only covers the application
+        // layer; this keeps the rule true for seeders, imports and scripts as well.
+        //
+        // Added as a statement because the schema builder has no check() helper.
+        DB::statement(
+            "ALTER TABLE cash_flows ADD CONSTRAINT cash_flows_adjustment_requires_direction
+             CHECK (type <> 'adjustment' OR direction IS NOT NULL)"
+        );
     }
 
     /**

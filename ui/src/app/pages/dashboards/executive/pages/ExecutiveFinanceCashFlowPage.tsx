@@ -29,6 +29,7 @@ export const ExecutiveFinanceCashFlowPage = () => {
         total_expenses={Number(dashboard?.total_expenses ?? 0)}
         net_profit={Number(dashboard?.net_profit ?? 0)}
         cash_balance={Number(dashboard?.cash_balance ?? 0)}
+        unsigned_adjustments={Number(dashboard?.unsigned_adjustments ?? 0)}
       />
       <CashFlowAnalytics />
       <CashFlowTable
