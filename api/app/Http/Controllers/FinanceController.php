@@ -47,8 +47,16 @@ class FinanceController extends Controller
 
     private function authorizeSensitiveFinance(): void
     {
-        $role = strtolower((string) Auth::user()?->role?->name);
-        abort_unless(in_array($role, ['executive', 'branch_manager', 'operations', 'coresupport', 'siteadmin'], true), 403, 'This financial action requires an authorized role.');
+        // Compared through RolePermissions rather than against a raw lowercased name.
+        // The old comparison needed the role stored as exactly 'branch_manager', so a
+        // role stored as 'BranchManager' was refused access to every finance report and
+        // statement. It also let Operations through, which canManageSensitiveFinance()
+        // does not: Operations runs the floor and may not rewrite the books.
+        abort_unless(
+            RolePermissions::canManageSensitiveFinance(Auth::user()),
+            403,
+            'This financial action requires an authorized role.'
+        );
     }
 
     public function dashboard()

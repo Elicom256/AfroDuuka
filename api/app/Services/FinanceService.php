@@ -44,6 +44,14 @@ class FinanceService
 
         $this->attachRunningBalances($recentTransactions, $query);
 
+        // Adjustments written before a direction became required are excluded from the
+        // balance above, because nothing says which way they moved. Reporting the count
+        // keeps that gap visible instead of letting the figure look complete.
+        $unsignedAdjustments = (clone $query)
+            ->where('type', 'adjustment')
+            ->whereNull('direction')
+            ->count();
+
         return [
             'gross_revenue' => $grossRevenue,
             'total_refunds' => $totalRefunds,
@@ -51,6 +59,7 @@ class FinanceService
             'total_expenses' => $totalExpenses,
             'net_profit' => $netProfit,
             'cash_balance' => $cashBalance,
+            'unsigned_adjustments' => $unsignedAdjustments,
             'recent_transactions' => $recentTransactions,
         ];
     }

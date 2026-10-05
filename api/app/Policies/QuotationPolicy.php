@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Quotation;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
 
 class QuotationPolicy
@@ -30,9 +31,7 @@ class QuotationPolicy
 
     public function delete(User $user, Quotation $quotation): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 
     private function isWithinBranchSet(User $user, Quotation $quotation): bool

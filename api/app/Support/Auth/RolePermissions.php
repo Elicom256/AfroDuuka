@@ -45,6 +45,16 @@ class RolePermissions
     public const BRANCH_MANAGER_ROLES = ['branchmanager'];
 
     /**
+     * Roles trusted with the finance area.
+     *
+     * Spelled the way callers write it; hasAnyRole() normalises both sides before
+     * comparing, so the underscore here matches a role stored as 'BranchManager'.
+     * Membership alone is not enough — see canManageSensitiveFinance(), which also
+     * requires canManageBranch() and so keeps Operations out.
+     */
+    public const SENSITIVE_FINANCE_ROLES = ['executive', 'branch_manager', 'operations', 'coresupport', 'siteadmin'];
+
+    /**
      * Platform operators: the staff who own the product itself.
      *
      * A narrower set than ELEVATED_ROLES. Everything else in this class is a
@@ -108,6 +118,52 @@ class RolePermissions
     public static function canManageBranch(?User $user): bool
     {
         return static::isElevated($user) || static::isBranchManager($user);
+    }
+
+    /**
+     * May the user move money in the finance area?
+     *
+     * Both conditions have to hold, which is why this is not just a role list:
+     * canManageBranch() keeps Operations out, while SENSITIVE_FINANCE_ROLES is the set
+     * of roles finance considers trustworthy at all.
+     */
+    public static function canManageSensitiveFinance(?User $user): bool
+    {
+        return static::canManageBranch($user)
+            && static::hasAnyRole($user, static::SENSITIVE_FINANCE_ROLES);
+    }
+
+    /**
+     * Does the user hold any of the named roles?
+     *
+     * Both sides are compared through the same normalisation, so a caller can write
+     * 'branch_manager', 'BranchManager' or 'Branch Manager' and get the same answer.
+     * Comparing a raw lowercased role name against a list is what made branch managers
+     * invisible to the finance gate: the role is stored as 'BranchManager', and
+     * strtolower() leaves it 'branchmanager', which never equals 'branch_manager'.
+     *
+     * @param  array<int, string>  $roles
+     */
+    public static function hasAnyRole(?User $user, array $roles): bool
+    {
+        $name = static::roleName($user);
+
+        foreach ($roles as $role) {
+            if ($name === static::normalise($role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Reduce a role name to the same shape roleName() produces, so the constants in
+     * this class and the literals callers pass can be spelled either way.
+     */
+    public static function normalise(string $role): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', strtolower($role));
     }
 
     /**

@@ -143,6 +143,6 @@ class ActivityLogController extends Controller
 
     private function isSupervisory(User $user): bool
     {
-        return in_array(strtolower((string) $user->role?->name), self::SUPERVISORY_ROLES, true);
+        return RolePermissions::hasAnyRole($user, self::SUPERVISORY_ROLES);
     }
 }

@@ -20,15 +20,7 @@ class StoreCashFlowAdjustmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (! RolePermissions::canManageBranch($this->user())) {
-            return false;
-        }
-
-        return in_array(
-            strtolower((string) $this->user()?->role?->name),
-            ['executive', 'branch_manager', 'operations', 'coresupport', 'siteadmin'],
-            true
-        );
+        return RolePermissions::canManageSensitiveFinance($this->user());
     }
 
     public function rules(): array
