@@ -27,6 +27,7 @@ import {
   useDeleteHeldSaleMutation,
 } from '@/app/store/features/branch/pos/posQuery';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import { PosReceiptModal } from './PosReceiptModal';
 
 interface CartItem {
   product_id: number;
@@ -68,6 +69,7 @@ export const PosPage = () => {
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchProductsQuery();
   const [triggerBarcodeLookup] = useLazySearchProductByBarcodeQuery();
   const [triggerCustomerSearch] = useLazySearchCustomersQuery();
+
   const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation();
   const [holdSale] = useHoldSaleMutation();
   const { data: heldSalesData, refetch: refetchHeld } = useGetHeldSalesQuery();
@@ -787,71 +789,8 @@ export const PosPage = () => {
         </div>
       )}
 
-      {/* Receipt modal */}
       {showReceiptModal && completedSale && (
-        <div
-          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
-          onClick={() => setShowReceiptModal(false)}
-        >
-          <div
-            className='bg-card rounded-3xl border border-border p-6 w-105 max-h-[90vh] overflow-y-auto'
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className='text-center mb-6'>
-              <h2 className='text-xl font-bold'>{business?.name || 'Store'}</h2>
-              <p className='text-sm text-muted-foreground'>Receipt</p>
-            </div>
-
-            <div className='text-sm space-y-1 mb-4'>
-              <p>
-                <span className='text-muted-foreground'>Invoice:</span> {completedSale.id}
-              </p>
-              <p>
-                <span className='text-muted-foreground'>Date:</span> {new Date().toLocaleString()}
-              </p>
-              <p>
-                <span className='text-muted-foreground'>Customer:</span> {selectedCustomer?.name || 'Walk-in'}
-              </p>
-            </div>
-
-            <div className='border-t border-border pt-3 mb-4'>
-              {completedSale.sale_items?.map((item: any) => (
-                <div key={item.id} className='flex justify-between text-sm py-1'>
-                  <span>
-                    {item.product?.name || `Product #${item.product_id}`} x{item.quantity}
-                  </span>
-                  <span>{item.subtotal.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className='border-t border-border pt-3 mb-6 space-y-1'>
-              <div className='flex justify-between text-sm'>
-                <span>Subtotal</span>
-                <span>{(completedSale.subtotal || 0).toLocaleString()}</span>
-              </div>
-              {Number(completedSale.tax_amount || 0) > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Tax</span>
-                  <span>{(completedSale.tax_amount || 0).toLocaleString()}</span>
-                </div>
-              )}
-              <div className='flex justify-between text-sm'>
-                <span>Total</span>
-                <span className='font-bold'>{(completedSale.total_amount || 0).toLocaleString()}</span>
-              </div>
-            </div>
-
-            <div className='flex gap-2'>
-              <Button variant='default' className='flex-1' onClick={() => window.print()}>
-                <Printer className='h-4 w-4 mr-2' /> Print
-              </Button>
-              <Button variant='outline' className='flex-1' onClick={() => setShowReceiptModal(false)}>
-                <Download className='h-4 w-4 mr-2' /> New Sale
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PosReceiptModal receiptId={completedSale.receipt?.id} onClose={() => setShowReceiptModal(false)} />
       )}
     </div>
   );
