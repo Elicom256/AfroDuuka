@@ -20,6 +20,7 @@ import {
   ShoppingCart,
   Package2,
   Wallet,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -64,6 +65,10 @@ const navSections: Array<{
       { label: 'Analytics', to: '/analytics', icon: BarChart3 },
       { label: 'Reports', to: '/reports', icon: TrendingUp, settingKey: 'reports' },
     ],
+  },
+  {
+    title: 'Tasks',
+    items: [{ label: 'Todos', to: '/todos', icon: CheckSquare }],
   },
   {
     title: 'System',

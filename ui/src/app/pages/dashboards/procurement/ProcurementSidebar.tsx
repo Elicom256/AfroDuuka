@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Truck,
   History,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -15,6 +16,7 @@ const navItems = [
   { label: 'Purchase Orders', to: '/purchase-orders', icon: ClipboardList },
   { label: 'Suppliers', to: '/suppliers', icon: Truck },
   { label: 'History', to: '/history', icon: History },
+  { label: 'Todos', to: '/todos', icon: CheckSquare },
 ];
 
 type ProcurementSidebarProps = {

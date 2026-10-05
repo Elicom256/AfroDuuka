@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Crown, CreditCard, Wallet, Settings, Building2 } from 'lucide-react';
+import { LayoutDashboard, Crown, CreditCard, Wallet, Settings, Building2,
+  CheckSquare,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserProfile } from '../auth/UserProfile';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
@@ -12,6 +14,7 @@ const navItems = [
   { label: 'Subscription Payments', to: '/dashboard/subscription-payments', icon: Wallet },
   { label: 'Payment Gateways', to: '/dashboard/payment-gateways', icon: Wallet },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings },
+  { label: 'Todos', to: '/dashboard/todos', icon: CheckSquare },
 ];
 
 type SuperadminSidebarProps = {
