@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
+use App\Models\SaleReturn;
+use App\Models\SaleReturnItem;
 use App\Models\StockMovement;
 use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
@@ -243,6 +245,54 @@ class SaleItemService
                 'items_sold' => $previousItemsSold,
             ],
             'lable' => 'sales',
+        ];
+    }
+
+    public function returnAnalytics(string $period = 'last_7_days')
+    {
+        $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
+        $currentStart = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1);
+
+        $sales = Sale::where('status', 'completed')
+            ->where('created_at', '>=', $currentStart)
+            ->with('saleItems')
+            ->get();
+
+        $grossSales = $sales->sum('total_amount');
+        $totalSoldQuantity = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
+
+        $saleReturnItems = SaleReturnItem::whereHas('saleReturn', function ($query) use ($currentStart) {
+            $query->where('created_at', '>=', $currentStart);
+        })->with('saleItem')->get();
+
+        $returnedRevenue = $saleReturnItems->sum('subtotal');
+        $returnedQuantity = $saleReturnItems->sum('quantity');
+
+        $netSales = $grossSales - $returnedRevenue;
+        $returnRate = $grossSales > 0 ? round(($returnedRevenue / $grossSales) * 100, 2) : 0;
+
+        $returnsTrend = $saleReturnItems->groupBy(function ($item) {
+            return Carbon::parse($item->saleReturn->created_at)->format('M d');
+        })->map(function ($group) {
+            return [
+                'date' => $group->first()->saleReturn->created_at->format('M d'),
+                'amount' => $group->sum('subtotal'),
+                'quantity' => $group->sum('quantity'),
+            ];
+        })->values();
+
+        $returnsTrend = $this->analyticsTrendHelper->fillMissingDates($returnsTrend, $days);
+
+        return [
+            'gross_sales' => round($grossSales, 2),
+            'sales_returns' => round($returnedRevenue, 2),
+            'net_sales' => round($netSales, 2),
+            'returned_quantity' => $returnedQuantity,
+            'returned_revenue' => round($returnedRevenue, 2),
+            'return_rate' => $returnRate,
+            'total_sold_quantity' => $totalSoldQuantity,
+            'returns_trend' => $returnsTrend,
+            'period' => $period,
         ];
     }
 }
