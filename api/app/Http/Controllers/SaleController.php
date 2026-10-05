@@ -77,6 +77,32 @@ class SaleController extends Controller
     }
 
     /**
+     * Get Return Analytics
+     */
+    public function returnAnalytics()
+    {
+        try {
+            $period = request()->query('period', 'last_7_days');
+            $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
+            if (! in_array($period, $allowedPeriods)) {
+                $period = 'last_7_days';
+            }
+            $analytics = $this->saleItemService->returnAnalytics($period);
+
+            return response()->json([
+                'message' => 'Return analytics fetched successfully',
+                'data' => $analytics,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch return analytics',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateSaleRequest $request, Sale $sale)
