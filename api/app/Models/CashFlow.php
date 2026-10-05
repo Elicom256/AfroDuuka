@@ -36,7 +36,6 @@ class CashFlow extends BaseModel
         'description',
         'notes',
         'direction',
-        'running_balance',
         'category',
         'payment_method',
         'payment_method_id',
@@ -152,16 +151,43 @@ class CashFlow extends BaseModel
     }
 
     /**
+     * Signed effect of this row on the cash balance.
+     *
+     * `direction` is authoritative when present, because a manual adjustment has no
+     * type that implies a sign. Types that do imply one are the fallback.
+     *
+     * A row that resolves to neither contributes nothing rather than being guessed at.
+     * The adjustment endpoint requires a direction, so that only applies to rows
+     * written before the requirement existed.
+     */
+    public function cashEffect(): float
+    {
+        if ($this->direction === 'credit') {
+            return (float) $this->amount;
+        }
+
+        if ($this->direction === 'debit') {
+            return -1 * (float) $this->amount;
+        }
+
+        return match ($this->type) {
+            'sale', 'payment_in' => (float) $this->amount,
+            'purchase', 'expense', 'payment_out', 'refund' => -1 * (float) $this->amount,
+            default => 0.0,
+        };
+    }
+
+    /**
      * Accessors (Optional but useful)
      */
     public function getIsInflowAttribute(): bool
     {
-        return in_array($this->type, ['sale', 'payment_in']);
+        return $this->cashEffect() > 0;
     }
 
     public function getIsOutflowAttribute(): bool
     {
-        return in_array($this->type, ['purchase', 'expense', 'payment_out', 'refund']);
+        return $this->cashEffect() < 0;
     }
 
     public function getCategoryLabelAttribute(): string
