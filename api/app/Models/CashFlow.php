@@ -156,12 +156,12 @@ class CashFlow extends BaseModel
      */
     public function getIsInflowAttribute(): bool
     {
-        return in_array($this->type, ['sale', 'payment_in', 'refund']);
+        return in_array($this->type, ['sale', 'payment_in']);
     }
 
     public function getIsOutflowAttribute(): bool
     {
-        return in_array($this->type, ['purchase', 'expense', 'payment_out']);
+        return in_array($this->type, ['purchase', 'expense', 'payment_out', 'refund']);
     }
 
     public function getCategoryLabelAttribute(): string
