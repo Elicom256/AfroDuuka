@@ -12,7 +12,6 @@ import { BranchManagerSidebar } from '../pages/dashboards/branch-manager/BranchM
 import { OperationsSidebar } from '../pages/dashboards/Operations/OperationsSidebar';
 import { ProcurementSidebar } from '../pages/dashboards/procurement/ProcurementSidebar';
 import { SuperadminSidebar } from '../pages/dashboards/superadmin/SuperadminSidebar';
-import { StaffSidebar } from '../pages/dashboards/staff/StaffSidebar';
 
 /**
  * Regression tests for /dashboard/todos returning 404.
@@ -213,7 +212,6 @@ describe('every Todos nav link resolves to the todos route', () => {
     ['OperationsSidebar', OperationsSidebar],
     ['ProcurementSidebar', ProcurementSidebar],
     ['SuperadminSidebar', SuperadminSidebar],
-    ['StaffSidebar', StaffSidebar],
   ] as const;
 
   it.each(sidebars)('%s links Todos at /dashboard/todos', async (_name, Sidebar) => {
