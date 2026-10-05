@@ -109,8 +109,11 @@ class FinanceService
      * balance of everything ordered before the oldest of them, in the same
      * transaction_date order the caller listed them in.
      *
-     * The value is attached to the model for rendering and then marked clean, so it
-     * reads as a derived figure and cannot be written back as if it were stored state.
+     * There is no running_balance column to write to, and that is the point: this is an
+     * in-memory attribute on a model that is about to be serialised. syncOriginal() keeps
+     * it out of the dirty set, so an incidental save elsewhere cannot turn a derived
+     * figure back into stored state — which is what used to leave every row null and the
+     * reported balance at zero.
      */
     private function attachRunningBalances($transactions, $baseQuery): void
     {

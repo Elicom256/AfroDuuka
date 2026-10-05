@@ -52,7 +52,6 @@ class CashFlow extends BaseModel
      */
     protected $casts = [
         'amount' => 'decimal:2',
-        'running_balance' => 'decimal:2',
         'transaction_date' => 'date',
         'status' => 'string',
     ];
