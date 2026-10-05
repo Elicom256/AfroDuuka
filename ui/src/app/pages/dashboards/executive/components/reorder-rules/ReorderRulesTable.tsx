@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const ReorderRulesTable = ({ rules, onDelete, onEdit }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,9 +57,16 @@ export const ReorderRulesTable = ({ rules, onDelete, onEdit }: any) => {
                   <Button variant='ghost' size='icon' onClick={() => onEdit(r)}>
                     <Pencil className='h-4 w-4' />
                   </Button>
-                  <Button variant='ghost' size='icon' onClick={() => handleDelete(r.id)}>
-                    <Trash2 className='h-4 w-4 text-destructive' />
-                  </Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() => handleDelete(r.id)}
+                    title='Delete this reorder rule?'
+                    description='The product will stop being flagged for reorder. This cannot be undone.'
+                    trigger={
+                      <Button variant='ghost' size='icon'>
+                                          <Trash2 className='h-4 w-4 text-destructive' />
+                                        </Button>
+                    }
+                  />
                 </div>
               </TableCell>
             </TableRow>

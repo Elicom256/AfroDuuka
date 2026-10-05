@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const TodoList = () => {
   const { data: todosData, isLoading } = useGetTodosQuery();
@@ -110,14 +111,19 @@ export const TodoList = () => {
                     )}
                   </div>
 
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    className='opacity-0 transition-opacity duration-200 group-hover:opacity-100'
-                    onClick={() => handleDelete(todo.id)}
-                  >
-                    <Trash2 className='h-4 w-4 text-destructive' />
-                  </Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() => handleDelete(todo.id)}
+                    title='Delete this task?'
+                    description='This cannot be undone.'
+                    trigger={
+                      <Button
+                                          variant='ghost'
+                                          size='icon'
+                                          className='opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                                          <Trash2 className='h-4 w-4 text-destructive' />
+                                        </Button>
+                    }
+                  />
                 </div>
               ))
             )}

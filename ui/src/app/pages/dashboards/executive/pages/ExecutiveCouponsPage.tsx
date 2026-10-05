@@ -10,6 +10,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCouponsQuery, useCreateCouponMutation, useDeleteCouponMutation } from '@/app/store/features/coupons/couponsQuery';
 import { Tag, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const ExecutiveCouponsPage = () => {
   const { data, isLoading } = useCouponsQuery();
@@ -95,9 +96,20 @@ export const ExecutiveCouponsPage = () => {
                 </div>
                 <div className='flex items-center gap-2'>
                   <Badge variant={coupon.status === 'active' ? 'default' : 'secondary'}>{coupon.status}</Badge>
-                  <Button variant='ghost' size='icon' onClick={() => deleteCoupon(coupon.id).unwrap().then(() => toast.success('Coupon deleted')).catch(() => toast.error('Failed to delete'))}>
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
+                  <ConfirmDeleteButton
+                    onConfirm={() =>
+                      deleteCoupon(coupon.id)
+                        .unwrap()
+                        .then(() => toast.success('Coupon deleted'))
+                    }
+                    title={`Delete ${coupon.code || 'this coupon'}?`}
+                    description='Customers holding it will stop being able to redeem it.'
+                    trigger={
+                      <Button variant='ghost' size='icon' aria-label='Delete coupon'>
+                        <Trash2 className='h-4 w-4' />
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             ))}

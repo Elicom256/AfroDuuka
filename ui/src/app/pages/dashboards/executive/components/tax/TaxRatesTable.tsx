@@ -15,6 +15,7 @@ import {
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddTaxRate } from './AddTaxRate';
 import { EditTaxRate } from './EditTaxRate';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const TaxRatesTable = () => {
   const { data, isLoading } = useTaxRatesQuery();
@@ -26,7 +27,6 @@ export const TaxRatesTable = () => {
   const categories = categoriesData?.categories ?? [];
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this tax rate?')) return;
     try {
       const res = await deleteRate(id).unwrap();
       toast.success(res?.message || 'Tax rate deleted');
@@ -105,9 +105,16 @@ export const TaxRatesTable = () => {
                           {rate.is_active ? 'Deactivate' : 'Activate'}
                         </Button>
                         <EditTaxRate rate={rate} />
-                        <Button variant='ghost' size='icon' onClick={() => handleDelete(rate.id)}>
-                          <Trash2 className='h-4 w-4' />
-                        </Button>
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(rate.id)}
+                          title='Delete this tax rate?'
+                          description='Prices using this rate will no longer be taxed correctly. This cannot be undone.'
+                          trigger={
+                            <Button variant='ghost' size='icon'>
+                                                      <Trash2 className='h-4 w-4' />
+                                                    </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
