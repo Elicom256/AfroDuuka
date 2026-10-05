@@ -156,7 +156,11 @@ export const ReturnAnalytics = () => {
               Return Rate
             </div>
             <p className='mt-2 text-2xl font-semibold'>
-              {analytics.return_rate}%
+              {/* Rate is undefined when the period has no sales to divide by, so it
+                  comes back null rather than a misleading 0%. */}
+              {analytics.return_rate === null || analytics.return_rate === undefined
+                ? '—'
+                : `${analytics.return_rate}%`}
             </p>
           </div>
         </div>
