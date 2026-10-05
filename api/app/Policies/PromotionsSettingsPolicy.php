@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\PromotionsSettings;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 
 class PromotionsSettingsPolicy
 {
@@ -44,9 +45,7 @@ class PromotionsSettingsPolicy
      */
     public function delete(User $user, PromotionsSettings $promotionsSettings): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 
     /**
@@ -62,8 +61,6 @@ class PromotionsSettingsPolicy
      */
     public function forceDelete(User $user, PromotionsSettings $promotionsSettings): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 }

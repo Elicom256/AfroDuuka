@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\CreditSetting;
 use App\Models\User;
+use App\Support\Auth\RolePermissions;
 
 class CreditSettingPolicy
 {
@@ -44,9 +45,7 @@ class CreditSettingPolicy
      */
     public function delete(User $user, CreditSetting $creditSetting): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 
     /**
@@ -62,8 +61,6 @@ class CreditSettingPolicy
      */
     public function forceDelete(User $user, CreditSetting $creditSetting): bool
     {
-        $role = strtolower((string) $user->role?->name);
-
-        return in_array($role, ['executive', 'branch_manager', 'coresupport', 'siteadmin'], true);
+        return RolePermissions::hasAnyRole($user, ['executive', 'branch_manager', 'coresupport', 'siteadmin']);
     }
 }
