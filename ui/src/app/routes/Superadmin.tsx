@@ -10,6 +10,8 @@ import { SuperadminSubscriptionPaymentsPage } from '../pages/dashboards/superadm
 import { SuperadminSubscriptionPaymentShow } from '../pages/dashboards/superadmin/pages/SuperadminSubscriptionPaymentShow';
 import { SuperadminSettingsPage } from '../pages/dashboards/superadmin/pages/SuperadminSettingsPage';
 import { ExecutivePaymentGatewaysPage } from '../pages/dashboards/executive/pages/ExecutivePaymentGatewaysPage';
+import { TodoList } from '../pages/dashboards/executive/components/todos/TodoList';
+import { TodoForm } from '../pages/dashboards/executive/components/todos/TodoForm';
 
 export const SuperadminRoutes = () => (
   <Routes>
@@ -23,6 +25,14 @@ export const SuperadminRoutes = () => (
       <Route path='subscription-payments/:id' element={<SuperadminSubscriptionPaymentShow />} />
       <Route path='payment-gateways' element={<ExecutivePaymentGatewaysPage />} />
       <Route path='settings' element={<SuperadminSettingsPage />} />
+      {/*
+        Todos are per-user and the api authorises them for any signed-in user
+        (api/routes/users.php, auth:sanctum with no role middleware). Declared in
+        every dashboard tree so the page is reachable whatever role is signed in,
+        instead of matching the tree's own catch-all and rendering NotFound.
+      */}
+      <Route path='todos' element={<TodoList />} />
+      <Route path='create-todo' element={<TodoForm />} />
       <Route path='*' element={<NotFound />} />
     </Route>
   </Routes>

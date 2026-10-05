@@ -8,6 +8,8 @@ import { ProcurementSuppliersPage } from '../pages/dashboards/procurement/pages/
 import { ProcurementHistoryPage } from '../pages/dashboards/procurement/pages/ProcurementHistoryPage';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { TodoList } from '../pages/dashboards/executive/components/todos/TodoList';
+import { TodoForm } from '../pages/dashboards/executive/components/todos/TodoForm';
 
 export const ProcurementRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -22,6 +24,14 @@ export const ProcurementRoutes = () => {
         <Route path='purchase-orders' element={<PurchaseOrdersPage />} />
         <Route path='suppliers' element={<ProcurementSuppliersPage />} />
         <Route path='history' element={<ProcurementHistoryPage />} />
+        {/*
+          Todos are per-user and the api authorises them for any signed-in user
+          (api/routes/users.php, auth:sanctum with no role middleware). Declared in
+          every dashboard tree so the page is reachable whatever role is signed in,
+          instead of matching the tree's own catch-all and rendering NotFound.
+        */}
+        <Route path='todos' element={<TodoList />} />
+        <Route path='create-todo' element={<TodoForm />} />
         <Route path='*' element={<NotFound />} />
       </Route>
     </Routes>

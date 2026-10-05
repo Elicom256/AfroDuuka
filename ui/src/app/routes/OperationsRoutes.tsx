@@ -34,6 +34,8 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
 import { ActivityLogPage } from '../pages/dashboards/shared/activity-log/ActivityLogPage';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { TodoList } from '../pages/dashboards/executive/components/todos/TodoList';
+import { TodoForm } from '../pages/dashboards/executive/components/todos/TodoForm';
 
 export const OperationsRoutes = () => {
   const { isLoading } = useLoggedinUserQuery();
@@ -75,6 +77,14 @@ export const OperationsRoutes = () => {
           <Route path='promotions' element={<OperationsPromotionsPage />} />
           <Route path='attendance' element={<OperationsAttendancePage />} />
           <Route path='activity-log' element={<ActivityLogPage />} />
+          {/*
+            Todos are per-user and the api authorises them for any signed-in user
+            (api/routes/users.php, auth:sanctum with no role middleware). Declared
+            in every dashboard tree so the page is reachable whatever role is signed
+            in, instead of matching the tree's own catch-all and rendering NotFound.
+          */}
+          <Route path='todos' element={<TodoList />} />
+          <Route path='create-todo' element={<TodoForm />} />
         </Route>
         <Route path='*' element={<NotFound />} />
       </Route>
