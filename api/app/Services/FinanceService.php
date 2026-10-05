@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CashFlow;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class FinanceService
@@ -27,14 +28,21 @@ class FinanceService
         $totalExpenses = (clone $query)->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
         $netProfit = $totalRevenue - $totalExpenses;
 
-        $latest = (clone $query)->whereNotNull('running_balance')->orderBy('created_at', 'desc')->first();
-        $cashBalance = $latest ? $latest->running_balance : 0;
+        // The ledger is the only source of truth for cash. Balance used to be read from
+        // a stored running_balance column, written by runningBalance(), which nothing
+        // called, so every row stayed null and this reported 0 for every business.
+        // Summing the rows cannot go stale: inserting, editing or deleting a refund is
+        // reflected immediately, with no recalculation step there to forget.
+        $cashBalance = $this->netCashMovement(clone $query);
 
         $recentTransactions = (clone $query)
             ->with(['branch', 'createdBy'])
             ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->limit(10)
             ->get();
+
+        $this->attachRunningBalances($recentTransactions, $query);
 
         return [
             'gross_revenue' => $grossRevenue,
@@ -47,24 +55,63 @@ class FinanceService
         ];
     }
 
-    public function runningBalance(?string $branchId = null): void
+    /**
+     * Net cash movement of the ledger, optionally counting only the rows ordered before
+     * a given position.
+     *
+     * The CASE mirrors CashFlow::cashEffect(). The two are kept honest by
+     * FinanceCashBalanceTest, which asserts the headline balance equals the running
+     * balance of the newest row.
+     */
+    private function netCashMovement($query, ?Carbon $position = null, ?int $beforeId = null): float
     {
-        $query = CashFlow::query();
-        if ($branchId) {
-            $query->where('business_branch_id', $branchId);
+        $net = (clone $query)
+            ->when($position !== null, function ($q) use ($position, $beforeId) {
+                $q->where(function ($q) use ($position, $beforeId) {
+                    $q->where('created_at', '<', $position)
+                        ->orWhere(function ($tie) use ($position, $beforeId) {
+                            $tie->where('created_at', $position)
+                                ->when($beforeId !== null, fn ($t) => $t->where('id', '<', $beforeId));
+                        });
+                });
+            })
+            ->selectRaw(
+                "COALESCE(SUM(CASE
+                    WHEN direction = 'credit' THEN amount
+                    WHEN direction = 'debit' THEN -amount
+                    WHEN type IN ('sale', 'payment_in') THEN amount
+                    WHEN type IN ('purchase', 'expense', 'payment_out', 'refund') THEN -amount
+                    ELSE 0
+                END), 0) as net"
+            )
+            ->value('net');
+
+        return (float) $net;
+    }
+
+    /**
+     * Give each listed row the cash balance that follows it, oldest first.
+     *
+     * The listed rows are only the tail of the ledger, so the walk starts from the
+     * balance of everything ordered before the oldest of them. The value is attached to
+     * the model for rendering and then marked clean, so it reads as a derived figure
+     * and cannot be written back as if it were stored state.
+     */
+    private function attachRunningBalances($transactions, $baseQuery): void
+    {
+        if ($transactions->isEmpty()) {
+            return;
         }
 
-        $records = $query->orderBy('created_at', 'asc')->get();
-        $balance = 0;
+        $oldest = $transactions->last();
+        $balance = $this->netCashMovement(clone $baseQuery, $oldest->created_at, $oldest->id);
 
-        foreach ($records as $record) {
-            if ($record->is_inflow) {
-                $balance += $record->amount;
-            } else {
-                $balance -= $record->amount;
-            }
-            $record->update(['running_balance' => $balance]);
+        foreach ($transactions->reverse() as $transaction) {
+            $balance += $transaction->cashEffect();
+            $transaction->running_balance = round($balance, 2);
         }
+
+        $transactions->each->syncOriginal();
     }
 
     public function revenueReport(?string $branchId, string $startDate, string $endDate, string $groupBy = 'day'): array
@@ -217,6 +264,7 @@ class FinanceService
             $ref = $items->where('type', 'refund')->sum('amount');
             $rev = $gross - $ref;
             $exp = $items->whereIn('type', ['purchase', 'expense', 'payment_out'])->sum('amount');
+
             return [
                 'business_branch_id' => $branchId,
                 'gross_revenue' => $gross,

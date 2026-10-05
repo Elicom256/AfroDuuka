@@ -1169,12 +1169,38 @@ class MutatingEndpointAuthorizationTest extends TestCase
             'type' => 'adjustment',
             'amount' => 1000,
             'currency' => 'UGX',
+            // Required: an adjustment carries no type that implies which way the money
+            // moved, so the sign has to be stated.
+            'direction' => 'credit',
             'business_branch_id' => $this->branch->id,
             'status' => 'completed',
             'transaction_date' => now()->toDateString(),
             'created_by' => $this->currentUser->id,
             // adjustment() returns the created flow without an explicit 201.
         ])->assertOk();
+    }
+
+    /**
+     * A refused role must be answered 403 even when the payload is also invalid.
+     *
+     * When the role gates lived in the controller and validation ran first, an
+     * Operations user posting an adjustment without a direction was told 422
+     * "validation failed" instead of 403, hiding the refusal behind a payload problem.
+     */
+    public function test_a_refused_role_is_forbidden_even_with_an_invalid_payload(): void
+    {
+        $this->actingAsRole('Operations');
+
+        $this->postJson('/api/finances/adjustments', [
+            'amount' => 1000,
+            'currency' => 'UGX',
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'transaction_date' => now()->toDateString(),
+            'created_by' => $this->currentUser->id,
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('cash_flows', 0);
     }
 
     public function test_operations_cannot_open_a_cash_drawer(): void

@@ -14,6 +14,7 @@ use App\Models\StockMovement;
 use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -185,9 +186,10 @@ class SaleItemService
 
     public function analytics(string $period = 'last_7_days')
     {
-        $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
-        $currentStart = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1)->startOfDay();
-        $currentEnd = Carbon::now()->endOfDay();
+        $window = $this->analyticsTrendHelper->resolvePeriodWindow($period);
+        $currentStart = $window['start'];
+        $currentEnd = $window['end'];
+        $days = $window['days'];
 
         $sales = Sale::where('status', 'completed')
             ->where('created_at', '>=', $currentStart)
@@ -246,8 +248,10 @@ class SaleItemService
             ];
         })->values();
 
-        $salesTrend = $this->deductReturnsFromTrend($salesTrend, $currentStart, $days);
-        $salesTrend = $this->analyticsTrendHelper->fillMissingDates($salesTrend, $days);
+        $salesTrend = $this->deductReturnsFromTrend($salesTrend, $currentStart, $currentEnd);
+        $salesTrend = $window['calendar']
+            ? $this->analyticsTrendHelper->fillMissingCalendarDates($salesTrend, $currentStart, $currentEnd)
+            : $this->analyticsTrendHelper->fillMissingDates($salesTrend, $days);
 
         return [
             'gross_sales' => round($grossSales, 2),
@@ -269,7 +273,7 @@ class SaleItemService
         ];
     }
 
-/**
+    /**
      * Nets returns processed on each day off that day's gross trend point.
      *
      * The trend is what the chart draws, so it has to reconcile with the totals
@@ -279,9 +283,9 @@ class SaleItemService
      * Units use the same-period restriction as the items_sold total, so a late
      * return cannot remove units from a day that never sold them.
      */
-    protected function deductReturnsFromTrend($trend, $windowStart, int $days)
+    protected function deductReturnsFromTrend($trend, $windowStart, $windowEnd)
     {
-        $end = $windowStart->copy()->addDays($days - 1)->endOfDay();
+        $end = Carbon::parse($windowEnd)->endOfDay();
 
         $revenueLabels = $this->completedReturnLinesQuery()
             ->where('sale_returns.created_at', '>=', $windowStart)
@@ -318,21 +322,21 @@ class SaleItemService
 
     /**
      * Returned revenue and quantity per sale, keyed by sale id.
- *
- * This is an integrity view, not a reporting one. It answers "how much of this
- * sale has come back", which is what over-return checks need, and it deliberately
- * ignores dates so it spans the sale's whole life.
- *
- * Do not use it to build a period figure. Revenue is dated by when the return was
- * processed, not by the sale it came from, so a closed period must never move
- * because of a later return. See returnsProcessedBetween() for reporting.
- *
- * Only completed returns count. draft and cancelled rows still exist in
- * sale_return_items, so filtering here is what keeps an unapproved return from
- * reading as a real one.
- *
- * @return \Illuminate\Support\Collection<int, array{revenue: float, quantity: int}>
- */
+     *
+     * This is an integrity view, not a reporting one. It answers "how much of this
+     * sale has come back", which is what over-return checks need, and it deliberately
+     * ignores dates so it spans the sale's whole life.
+     *
+     * Do not use it to build a period figure. Revenue is dated by when the return was
+     * processed, not by the sale it came from, so a closed period must never move
+     * because of a later return. See returnsProcessedBetween() for reporting.
+     *
+     * Only completed returns count. draft and cancelled rows still exist in
+     * sale_return_items, so filtering here is what keeps an unapproved return from
+     * reading as a real one.
+     *
+     * @return Collection<int, array{revenue: float, quantity: int}>
+     */
     protected function returnsBySale($saleIds)
     {
         $saleIds = $saleIds->filter()->unique()->values();
@@ -448,9 +452,9 @@ class SaleItemService
 
     public function returnAnalytics(string $period = 'last_7_days')
     {
-        $days = $this->analyticsTrendHelper->getDaysFromPeriod($period);
-        $currentStart = $period === 'today' ? Carbon::today() : Carbon::now()->subDays($days - 1)->startOfDay();
-        $currentEnd = Carbon::now()->endOfDay();
+        $window = $this->analyticsTrendHelper->resolvePeriodWindow($period);
+        $currentStart = $window['start'];
+        $currentEnd = $window['end'];
 
         $sales = Sale::where('status', 'completed')
             ->where('created_at', '>=', $currentStart)
@@ -495,7 +499,9 @@ class SaleItemService
                 ];
             })->values();
 
-        $returnsTrend = $this->analyticsTrendHelper->fillMissingDates($returnsTrend, $days);
+        $returnsTrend = $window['calendar']
+            ? $this->analyticsTrendHelper->fillMissingCalendarDates($returnsTrend, $currentStart, $currentEnd)
+            : $this->analyticsTrendHelper->fillMissingDates($returnsTrend, $window['days']);
 
         return [
             'gross_sales' => round($grossSales, 2),

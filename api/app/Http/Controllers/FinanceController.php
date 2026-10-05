@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCashFlowRequest;
+use App\Http\Requests\StoreCashFlowAdjustmentRequest;
 use App\Models\CashFlow;
 use App\Models\User;
 use App\Services\FinanceService;
-use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class FinanceController extends Controller
 {
@@ -134,24 +134,23 @@ class FinanceController extends Controller
         }
     }
 
-    public function adjustment(StoreCashFlowRequest $request)
+    public function adjustment(StoreCashFlowAdjustmentRequest $request)
     {
-        // Outside the try on purpose.
-        //
-        // This gate used to sit inside the try block, where abort()'s HttpException —
-        // a \RuntimeException, and therefore an \Exception — was swallowed by
-        // `catch (\Exception)` and answered as 422 "Failed to create adjustment". The
-        // write was blocked, but a caller could not tell a refused role from a bad
-        // payload, and a test asserting the refusal had to assert the wrong code.
-        abort_unless(RolePermissions::canManageBranch($request->user()), 403, 'You cannot create cash-flow adjustments.');
-
-        // The write below stays with authorizeSensitiveFinance() as a second line of
-        // defence for the role list it carries, which is broader than canManageBranch()
-        // because it also admits Operations.
+        // Both role gates now live in the request's authorize(), so they are settled
+        // before validation and can no longer be swallowed by the catch below.
         try {
-            $this->authorizeSensitiveFinance();
             $validated = $request->validated();
+
+            // Classified as an adjustment so it moves cash without being counted as
+            // revenue or an expense by the type-based reports. The cash sign comes from
+            // the required `direction`, which the request now enforces.
             $validated['type'] = 'adjustment';
+
+            // Generated here rather than accepted from the client, matching the
+            // 'CF-<KIND>-<id>' style used for every other cash-flow writer. A ULID is
+            // used instead of a padded id because an adjustment has no parent row to
+            // take an id from, and it keeps the code sortable by creation time.
+            $validated['transaction_code'] = 'CF-ADJ-'.Str::ulid();
 
             $cashFlow = CashFlow::create($validated);
 

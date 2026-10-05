@@ -55,7 +55,7 @@ class SaleReturnRevenueReconciliationTest extends TestCase
      * Builds a completed sale of $quantity phones at PHONE_PRICE and returns the
      * created sale items keyed by product name so a return can target one.
      *
-     * @return array<string, \App\Models\SaleItem>
+     * @return array<string, SaleItem>
      */
     private function completedSaleOfPhones(array $quantitiesByProduct = ['phone-a' => 1, 'phone-b' => 1]): array
     {
@@ -191,6 +191,124 @@ class SaleReturnRevenueReconciliationTest extends TestCase
             ->update(['transaction_date' => $at->toDateString()]);
 
         return [$name => $saleItem];
+    }
+
+    protected int $datedSaleCount = 0;
+
+    /**
+     * Builds a completed sale pinned to an exact timestamp, so month boundaries can be
+     * tested without depending on which day of the month the suite happens to run.
+     */
+    private function saleDatedAt(Carbon $at, int $quantity = 1): SaleItem
+    {
+        $name = 'dated-phone-'.(++$this->datedSaleCount);
+        $items = $this->completedSaleOfPhones([$name => $quantity]);
+        $saleItem = array_values($items)[0];
+
+        $saleItem->sale->forceFill(['created_at' => $at])->save();
+        CashFlow::where('sale_id', $saleItem->sale_id)
+            ->update(['transaction_date' => $at->toDateString()]);
+
+        return $saleItem;
+    }
+
+    /**
+     * The month filters used to be derived from a day count anchored on today, which
+     * made "last month" a rolling window rather than a calendar month: partway through
+     * a month it reached back too far and reached forward into the current one. These
+     * pin the calendar edges so the closed-period rule below is actually testable.
+     */
+    public function test_last_month_covers_the_whole_calendar_month_and_nothing_after(): void
+    {
+        // Two last-month sales, one near each edge of the month, plus two today.
+        // A sliding window would drop the early one and admit both of today's, which
+        // happens to be the same count of two, so the counts alone are not enough to
+        // catch the bug; the money and the transaction count together are.
+        $this->saleDatedAt(Carbon::now()->subMonth()->startOfMonth()->addHours(10));
+        $this->saleDatedAt(Carbon::now()->subMonth()->endOfMonth()->subHours(10));
+        $this->saleDatedAt(Carbon::now());
+        $this->saleDatedAt(Carbon::now());
+
+        $analytics = app(SaleItemService::class)->analytics('last_month');
+
+        $this->assertEquals(400000.0, $analytics['gross_sales'], 'Only the two last-month sales belong here.');
+        $this->assertEquals(2, $analytics['total_transactions']);
+        $this->assertEquals(2, $analytics['items_sold']);
+        $this->assertEquals(400000.0, $analytics['total_sales'], 'No returns were recorded, so net is gross.');
+    }
+
+    public function test_this_month_starts_on_the_first_of_the_month(): void
+    {
+        $this->saleDatedAt(Carbon::now()->subMonth()->startOfMonth()->addHours(10));
+        $this->saleDatedAt(Carbon::now()->subMonth()->endOfMonth()->subHours(10));
+        $this->saleDatedAt(Carbon::now());
+
+        $analytics = app(SaleItemService::class)->analytics('this_month');
+
+        $this->assertEquals(200000.0, $analytics['gross_sales'], 'Last months sales must not appear in this month.');
+        $this->assertEquals(1, $analytics['total_transactions']);
+    }
+
+    /**
+     * The requirement in the user's own words: last month's sales must not change
+     * because something was returned today. Both sides of the window matter here,
+     * because the refund is processed inside this month and the sale sits in last
+     * month, so a sliding "last month" window would put them in the same report.
+     */
+    public function test_a_return_processed_this_month_does_not_reduce_last_month(): void
+    {
+        $saleItem = $this->saleDatedAt(Carbon::now()->subMonth()->startOfMonth()->addHours(10));
+
+        $before = app(SaleItemService::class)->analytics('last_month');
+        $this->assertEquals(200000.0, $before['gross_sales']);
+        $this->assertEquals(200000.0, $before['total_sales']);
+
+        $this->recordReturn([$saleItem]);
+
+        $after = app(SaleItemService::class)->analytics('last_month');
+
+        $this->assertEquals(200000.0, $after['gross_sales']);
+        $this->assertEquals(0.0, $after['sales_returns'], 'The refund is this months contra-revenue, not last months.');
+        $this->assertEquals(200000.0, $after['total_sales'], 'Last month is unchanged.');
+        $this->assertEquals(1, $after['items_sold'], 'Units are unaffected by a return from another period.');
+
+        // ...and the refund is reported where it actually happened.
+        $thisMonth = app(SaleItemService::class)->analytics('this_month');
+        $this->assertEquals(0.0, $thisMonth['gross_sales']);
+        $this->assertEquals(200000.0, $thisMonth['sales_returns']);
+        $this->assertEquals(-200000.0, $thisMonth['total_sales']);
+
+        $returnsThisMonth = app(SaleItemService::class)->returnAnalytics('this_month');
+        $this->assertEquals(200000.0, $returnsThisMonth['sales_returns']);
+        $this->assertEquals(200000.0, $returnsThisMonth['returned_revenue']);
+        $this->assertEquals(-200000.0, $returnsThisMonth['net_sales']);
+    }
+
+    public function test_monthly_trends_cover_every_day_of_the_month(): void
+    {
+        $this->saleDatedAt(Carbon::now()->subMonth()->startOfMonth()->addHours(10));
+        $this->recordReturn([$this->saleDatedAt(Carbon::now()->subMonth()->startOfMonth()->addHours(12))]);
+
+        $analytics = app(SaleItemService::class)->analytics('last_month');
+        $expectedDays = Carbon::now()->subMonth()->daysInMonth;
+
+        $this->assertCount(
+            $expectedDays,
+            $analytics['sales_trend'],
+            'A monthly trend needs one point per day of that month.'
+        );
+
+        $labels = array_column($analytics['sales_trend'], 'date');
+        $this->assertEquals('Sep 01', $labels[0], 'The trend must open on the first of the month.');
+        $this->assertEquals(Carbon::now()->subMonth()->endOfMonth()->format('M d'), end($labels));
+
+        // The trend is what the chart draws, so it still has to reconcile with the
+        // totals printed beside it.
+        $this->assertEqualsWithDelta(
+            $analytics['total_sales'],
+            array_sum(array_column($analytics['sales_trend'], 'amount')),
+            0.001
+        );
     }
 
     private function analytics(): array

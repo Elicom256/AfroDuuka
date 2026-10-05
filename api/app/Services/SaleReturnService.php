@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CashFlow;
 use App\Models\Receipt;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -235,7 +236,7 @@ class SaleReturnService
     {
         $saleReturn->load(['saleReturnItems.saleItem.product']);
 
-        $cashFlow = \App\Models\CashFlow::where('sale_return_id', $saleReturn->id)->first();
+        $cashFlow = CashFlow::where('sale_return_id', $saleReturn->id)->first();
         if ($cashFlow) {
             // Force delete, not soft delete. transaction_code is derived from the
             // sale_return id and is unique, so the soft-deleted row would still
