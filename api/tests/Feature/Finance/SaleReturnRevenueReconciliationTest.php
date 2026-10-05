@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\SaleItemService;
 use App\Services\SaleReturnService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
@@ -115,8 +116,12 @@ class SaleReturnRevenueReconciliationTest extends TestCase
      * a sale_returns header, sale_return_items lines, and the 'refund' cash_flows
      * row that CashFlowService::createCashFlowForSaleReturn() emits.
      */
-    private function recordReturn(array $saleItems, int $quantityEach = 1, string $status = 'completed'): SaleReturn
-    {
+    private function recordReturn(
+        array $saleItems,
+        int $quantityEach = 1,
+        string $status = 'completed',
+        ?Carbon $processedAt = null
+    ): SaleReturn {
         $refund = 0;
 
         $saleReturn = SaleReturn::create([
@@ -143,6 +148,10 @@ class SaleReturnRevenueReconciliationTest extends TestCase
 
         $saleReturn->update(['refund_amount' => $refund]);
 
+        if ($processedAt) {
+            $saleReturn->forceFill(['created_at' => $processedAt])->save();
+        }
+
         CashFlow::create([
             'transaction_code' => 'CF-SR-'.str_pad($saleReturn->id, 6, '0', STR_PAD_LEFT),
             'type' => 'refund',
@@ -154,16 +163,139 @@ class SaleReturnRevenueReconciliationTest extends TestCase
             'category' => 'product_sales',
             'payment_method' => 'cash',
             'status' => 'completed',
-            'transaction_date' => now()->toDateString(),
+            'transaction_date' => ($processedAt ?? now())->toDateString(),
             'created_by' => $this->user->id,
         ]);
 
         return $saleReturn->refresh();
     }
 
+    protected int $historicSaleCount = 0;
+
+    /**
+     * Builds a sale dated outside a last_30_days window, to exercise returns that
+     * land in one period against a sale from an earlier one.
+     */
+    private function saleDatedDaysAgo(int $days): array
+    {
+        $name = 'historic-phone-'.(++$this->historicSaleCount);
+        $items = $this->completedSaleOfPhones([$name => 1]);
+        $saleItem = array_values($items)[0];
+        $at = Carbon::now()->subDays($days);
+
+        $saleItem->sale->forceFill(['created_at' => $at])->save();
+
+        // The sale's inflow has to move with it, otherwise the cashflow side of the
+        // reconciliation sits in the window while the sale it came from does not.
+        CashFlow::where('sale_id', $saleItem->sale_id)
+            ->update(['transaction_date' => $at->toDateString()]);
+
+        return [$name => $saleItem];
+    }
+
     private function analytics(): array
     {
         return app(SaleItemService::class)->analytics('last_30_days');
+    }
+
+    private function returnAnalytics(): array
+    {
+        return app(SaleItemService::class)->returnAnalytics('last_30_days');
+    }
+
+    /**
+     * Net money over the same last_30_days window the sales analytics use, so the
+     * two sides are compared on the same period.
+     */
+    private function cashflowNetInWindow(): float
+    {
+        $start = Carbon::now()->subDays(29)->startOfDay();
+
+        $in = (float) CashFlow::whereIn('type', ['sale', 'payment_in'])
+            ->where('transaction_date', '>=', $start->toDateString())
+            ->sum('amount');
+
+        $out = (float) CashFlow::where('type', 'refund')
+            ->where('transaction_date', '>=', $start->toDateString())
+            ->sum('amount');
+
+        return $in - $out;
+    }
+
+    /**
+     * The accounting rule this whole file ultimately rests on: a period that has
+     * already been reported must stay exactly as it was reported. A return
+     * processed today against a sale from before the window is a contra-revenue
+     * of today, and must not rewrite the earlier period's figures.
+     */
+    public function test_a_return_today_does_not_rewrite_the_earlier_period(): void
+    {
+        $items = $this->saleDatedDaysAgo(40);
+
+        $before = $this->analytics();
+        $this->assertEquals(0.0, $before['gross_sales'], 'Historic sale should be outside the window.');
+
+        // Return the 40-day-old sale today.
+        $this->recordReturn([array_values($items)[0]]);
+
+        $after = $this->analytics();
+
+        $this->assertEquals(0.0, $after['gross_sales']);
+        $this->assertEquals(200000.0, $after['sales_returns'], 'The refund belongs to the period it was processed in.');
+        $this->assertEquals(-200000.0, $after['total_sales'], 'Net may go negative; it is not clamped.');
+    }
+
+    public function test_units_are_not_reduced_by_returns_of_sales_from_another_period(): void
+    {
+        $items = $this->saleDatedDaysAgo(40);
+
+        $this->assertEquals(0, $this->analytics()['items_sold']);
+
+        $this->recordReturn([array_values($items)[0]]);
+
+        $analytics = $this->analytics();
+
+        // This period sold nothing, so it cannot have had units returned from it.
+        $this->assertEquals(0, $analytics['items_sold']);
+        $this->assertEquals(1, $analytics['returned_quantity'], 'The returned unit is still reported, just not netted off.');
+    }
+
+    public function test_cashflow_and_sales_analytics_still_agree_across_periods(): void
+    {
+        $items = $this->saleDatedDaysAgo(40);
+        $this->recordReturn([array_values($items)[0]]);
+
+        $this->assertEquals(
+            (float) $this->analytics()['total_sales'],
+            $this->cashflowNetInWindow()
+        );
+    }
+
+    public function test_return_rate_is_null_when_the_period_has_no_sales(): void
+    {
+        $items = $this->saleDatedDaysAgo(40);
+        $this->recordReturn([array_values($items)[0]]);
+
+        $returns = $this->returnAnalytics();
+
+        $this->assertEquals(0.0, $returns['gross_sales']);
+        $this->assertEquals(200000.0, $returns['sales_returns'], 'The return is still visible in the returns report.');
+        $this->assertNull(
+            $returns['return_rate'],
+            'Dividing by zero sales must report undefined, not 0%.'
+        );
+    }
+
+    public function test_same_period_return_is_still_deducted_in_that_period(): void
+    {
+        $items = $this->completedSaleOfPhones();
+        $this->recordReturn([$items['phone-a']]);
+
+        $analytics = $this->analytics();
+
+        $this->assertEquals(200000.0, $analytics['sales_returns']);
+        $this->assertEquals(200000.0, $analytics['total_sales']);
+        $this->assertEquals(1, $analytics['items_sold']);
     }
 
     public function test_gross_revenue_is_untouched_by_returns(): void
@@ -300,16 +432,11 @@ class SaleReturnRevenueReconciliationTest extends TestCase
         $items = $this->completedSaleOfPhones();
         $this->recordReturn([$items['phone-a']]);
 
-        $salesAnalytics = $this->analytics();
-
         // The finance surfaces read cash_flows directly, the sales surfaces read
         // sales + sale_return_items. They must not disagree.
-        $cashFlowNet = CashFlow::whereIn('type', ['sale', 'payment_in'])->sum('amount')
-            - CashFlow::where('type', 'refund')->sum('amount');
-
         $this->assertEquals(
-            (float) $salesAnalytics['total_sales'],
-            (float) $cashFlowNet,
+            (float) $this->analytics()['total_sales'],
+            $this->cashflowNetInWindow(),
             'Sales analytics and cashflow net revenue diverged after a return.'
         );
     }
