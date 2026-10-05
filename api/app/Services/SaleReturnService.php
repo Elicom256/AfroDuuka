@@ -125,6 +125,12 @@ class SaleReturnService
         return DB::transaction(function () use ($saleReturn, $validated) {
             $this->reverseSaleReturn($saleReturn);
 
+            // reverseSaleReturn only undoes the side effects (stock, cash flow,
+            // customer credit); the lines themselves are replaced by whatever this
+            // edit says the return now covers. Leaving them behind would double
+            // count the original return alongside its replacement.
+            $saleReturn->saleReturnItems()->delete();
+
             $totalRefund = 0;
             $returnItems = [];
 
@@ -231,7 +237,11 @@ class SaleReturnService
 
         $cashFlow = \App\Models\CashFlow::where('sale_return_id', $saleReturn->id)->first();
         if ($cashFlow) {
-            $cashFlow->delete();
+            // Force delete, not soft delete. transaction_code is derived from the
+            // sale_return id and is unique, so the soft-deleted row would still
+            // hold the code and re-creating the refund after an edit would fail
+            // on a unique violation.
+            $cashFlow->forceDelete();
         }
 
         foreach ($saleReturn->saleReturnItems as $item) {

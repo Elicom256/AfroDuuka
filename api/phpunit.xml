@@ -33,6 +33,15 @@
         DB_HOST is `pgsql` rather than `localhost` because the suite is run with
         `docker compose exec backend php artisan test`, where the database is a
         compose service on the internal network. This matches .env.testing.
+
+        DB_URL is forced empty, and that is load-bearing. config/database.php maps
+        the pgsql connection to 'url' => env('DB_URL'), and Laravel's parser returns
+        the rest of the config untouched only when that url is falsy. A DB_URL in
+        the container environment therefore overrides DB_HOST/DB_DATABASE/DB_* below
+        wholesale, so force="true" on those lines would look correct while
+        RefreshDatabase ran migrate:fresh against whatever host the URL named. That
+        is the same failure the DB_* force notes above describe, one variable over,
+        and it is silent.
     -->
     <php>
         <!--
@@ -48,6 +57,7 @@
         <env name="BROADCAST_CONNECTION" value="null" force="true"/>
         <env name="CACHE_STORE" value="array" force="true"/>
         <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_URL" value="" force="true"/>
         <env name="DB_HOST" value="pgsql" force="true"/>
         <env name="DB_PORT" value="5432" force="true"/>
         <env name="DB_DATABASE" value="inventory_test" force="true"/>
@@ -65,6 +75,7 @@
         <server name="BROADCAST_CONNECTION" value="null" force="true"/>
         <server name="CACHE_STORE" value="array" force="true"/>
         <server name="DB_CONNECTION" value="pgsql" force="true"/>
+        <server name="DB_URL" value="" force="true"/>
         <server name="DB_HOST" value="pgsql" force="true"/>
         <server name="DB_PORT" value="5432" force="true"/>
         <server name="DB_DATABASE" value="inventory_test" force="true"/>
