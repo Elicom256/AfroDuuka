@@ -29,7 +29,7 @@ type FinanceAdjustmentDialogProps = {
 };
 
 const initialForm = {
-  type: 'adjustment',
+  direction: 'credit',
   amount: '',
   description: '',
   notes: '',
@@ -84,18 +84,17 @@ export const FinanceAdjustmentDialog = ({ onSuccess }: FinanceAdjustmentDialogPr
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Type</Label>
+              <Label className='text-right'>Direction</Label>
               <Select
-                value={formData.type}
-                onValueChange={(v) => setFormData((p) => ({ ...p, type: v }))}
+                value={formData.direction}
+                onValueChange={(v) => setFormData((p) => ({ ...p, direction: v }))}
               >
                 <SelectTrigger className='col-span-3'>
-                  <SelectValue placeholder='Select type' />
+                  <SelectValue placeholder='Select direction' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='payment_in'>Payment In</SelectItem>
-                  <SelectItem value='payment_out'>Payment Out</SelectItem>
-                  <SelectItem value='adjustment'>Adjustment</SelectItem>
+                  <SelectItem value='credit'>Money In (credit)</SelectItem>
+                  <SelectItem value='debit'>Money Out (debit)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
