@@ -21,8 +21,13 @@ class CashFlowController extends Controller
      */
     public function index()
     {
+        // Chronological, not insertion order: the date shown on each row is
+        // transaction_date, and a backdated entry belongs beside the other rows from
+        // that day rather than wherever it happened to be typed. id breaks ties so the
+        // order, and therefore each running balance, is stable within a day.
         $cashFlow = CashFlow::with(['branch', 'createdBy'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(15);
 
         return response()->json([
