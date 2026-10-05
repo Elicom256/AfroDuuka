@@ -3,6 +3,7 @@ import { PurchasesAnalytics } from '../components/analytics/PurchasesAnalytics';
 import { InventoryAnalytics } from '../components/analytics/InventoryAnalytics';
 import { CashFlowAnalytics } from '../components/analytics/CashFlowAnalytics';
 import { PerformanceMetrics } from '../components/analytics/PerformanceMetrics';
+import { ReturnAnalytics } from '../components/analytics/ReturnAnalytics';
 
 export const ExecutiveAnalyticsPage = () => {
   return (
@@ -14,6 +15,7 @@ export const ExecutiveAnalyticsPage = () => {
 
       <div className='grid gap-6 lg:grid-cols-2'>
         <SalesAnalytics />
+        <ReturnAnalytics />
         <PurchasesAnalytics />
 
         {/* <CustomersAnalytics /> */}
