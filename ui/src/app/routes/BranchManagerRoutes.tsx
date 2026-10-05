@@ -50,6 +50,8 @@ import { ExecutiveFinancialAuditPage } from '../pages/dashboards/executive/pages
 import { ExecutiveFinancialAuditReportPage } from '../pages/dashboards/executive/pages/ExecutiveFinancialAuditReportPage';
 import { ExecutiveTaxPage } from '../pages/dashboards/executive/pages/ExecutiveTaxPage';
 import { ProcurementRoutes } from './ProcurementRoutes';
+import { TodoList } from '../pages/dashboards/executive/components/todos/TodoList';
+import { TodoForm } from '../pages/dashboards/executive/components/todos/TodoForm';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PosPage } from '../pages/dashboards/shared/pos/PosPage';
@@ -116,6 +118,15 @@ export const BranchManagerRoutes = () => {
           <Route path='financial-audits/:id' element={<ExecutiveFinancialAuditPage />} />
           <Route path='financial-audits/:id/report' element={<ExecutiveFinancialAuditReportPage />} />
           <Route path='tax' element={<ExecutiveTaxPage />} />
+          {/*
+            Todos are per-user and the api authorises them for any signed-in user
+            (api/routes/users.php, auth:sanctum with no role middleware), and
+            AuthorizationPolicyCoverageTest asserts a BranchManager may use one. The
+            sidebar has advertised this page since it was added, so without the route
+            here a BranchManager who clicked "Tasks -> Todos" landed on NotFound.
+          */}
+          <Route path='todos' element={<TodoList />} />
+          <Route path='create-todo' element={<TodoForm />} />
           <Route path='procurement/*' element={<ProcurementRoutes />} />
         </Route>
         <Route path='*' element={<NotFound />} />
