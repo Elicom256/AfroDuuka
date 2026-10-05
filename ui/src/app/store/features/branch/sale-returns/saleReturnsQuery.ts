@@ -26,7 +26,21 @@ export const saleReturnsQuery = createApi({
       query: (body) => ({ url: '/', method: 'POST', body }),
       invalidatesTags: ['SaleReturnsAPI'],
     }),
+    updateSaleReturn: builder.mutation<any, { id: string | number; body: any }>({
+      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['SaleReturnsAPI'],
+    }),
+    deleteSaleReturn: builder.mutation<any, string | number>({
+      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['SaleReturnsAPI'],
+    }),
   }),
 });
 
-export const { useSaleReturnsQuery, useSaleReturnQuery, useAddSaleReturnMutation } = saleReturnsQuery;
+export const {
+  useSaleReturnsQuery,
+  useSaleReturnQuery,
+  useAddSaleReturnMutation,
+  useUpdateSaleReturnMutation,
+  useDeleteSaleReturnMutation,
+} = saleReturnsQuery;
