@@ -207,19 +207,26 @@ class CashFlowService
     {
         $dates = $this->analyticsTrendHelper->getPeriodDates($period);
         $date_range = [$dates['start'], $dates['end']];
-        // ✅ Total Revenue (inflows: sale + payment_in + refund)
-        $totalRevenue = CashFlow::whereIn('type', ['sale', 'payment_in', 'refund'])
+
+        $grossRevenue = CashFlow::whereIn('type', ['sale', 'payment_in'])
             ->whereBetween('created_at', $date_range)
             ->sum('amount');
 
-        // ✅ Total Expenses (outflows: purchase + expense + payment_out)
+        $totalRefunds = CashFlow::where('type', 'refund')
+            ->whereBetween('created_at', $date_range)
+            ->sum('amount');
+
+        $totalRevenue = $grossRevenue - $totalRefunds;
+
         $totalExpenses = CashFlow::whereIn('type', ['purchase', 'expense', 'payment_out'])
             ->whereBetween('created_at', $date_range)
             ->sum('amount');
-        //  ✅ Net Cash Flow
+
         $netCashFlow = $totalRevenue - $totalExpenses;
 
         return [
+            'gross_revenue' => $grossRevenue,
+            'total_refunds' => $totalRefunds,
             'total_revenue' => $totalRevenue,
             'total_expenses' => $totalExpenses,
             'net_cash_flow' => $netCashFlow,

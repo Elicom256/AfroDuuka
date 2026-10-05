@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SaleReturnItem extends Model
+class SaleReturnItem extends BaseModel
 {
     protected $fillable = [
         'sale_return_id',
