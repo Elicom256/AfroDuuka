@@ -28,6 +28,7 @@ import {
 } from '@/app/store/features/branch/pos/posQuery';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { PosReceiptModal } from './PosReceiptModal';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 interface CartItem {
   product_id: number;
@@ -605,14 +606,19 @@ export const PosPage = () => {
                       <Button size='sm' variant='outline' className='text-xs h-7' onClick={() => resumeHeldSale(hs)}>
                         Resume
                       </Button>
-                      <Button
-                        size='sm'
-                        variant='outline'
-                        className='text-xs h-7 text-red-500'
-                        onClick={() => handleDeleteHeldSale(hs.id)}
-                      >
-                        Delete
-                      </Button>
+                      <ConfirmDeleteButton
+                        onConfirm={() => handleDeleteHeldSale(hs.id)}
+                        title='Discard this held sale?'
+                        description='The items go back to stock and the held sale is removed. This cannot be undone.'
+                        trigger={
+                          <Button
+                                                  size='sm'
+                                                  variant='outline'
+                                                  className='text-xs h-7 text-red-500'>
+                                                  Delete
+                                                </Button>
+                        }
+                      />
                     </div>
                   </div>
                 ))}

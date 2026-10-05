@@ -12,6 +12,7 @@ import { EditProduct } from './EditProduct';
 import { useNavigate } from 'react-router-dom';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 interface Product {
   id: string;
@@ -177,15 +178,21 @@ export const ProductTable = () => {
                             <PencilLine className='h-4 w-4' />
                           </Button>
                           {canDelete && (
-                            <Button
-                              variant='outline'
-                              size='icon'
-                              className='text-destructive hover:text-destructive'
-                              onClick={() => handleDelete(product.id)}
-                              disabled={isDeleting}
-                            >
-                              <Trash2 className='h-4 w-4' />
-                            </Button>
+                            <ConfirmDeleteButton
+                              onConfirm={() => handleDelete(product.id)}
+                              title='Delete this product?'
+                              description='It is removed from the catalogue. Sales that included it are not deleted.'
+                              trigger={
+                                <Button
+                                                              variant='outline'
+                                                              size='icon'
+                                                              className='text-destructive hover:text-destructive'
+                             
+                                                              disabled={isDeleting}>
+                                                              <Trash2 className='h-4 w-4' />
+                                                            </Button>
+                              }
+                            />
                           )}
                         </div>
                       </TableCell>

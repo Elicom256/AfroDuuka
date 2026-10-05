@@ -8,6 +8,8 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { toast } from 'sonner';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
+import { Button } from '@/components/ui/button';
 
 export const Supplier = () => {
   const navigate = useNavigate();
@@ -62,7 +64,19 @@ export const Supplier = () => {
         </div>
 
         <div className=''>
-          {canManageSuppliers && <Trash2 onClick={handleDelete} className='text-red-300 cursor-pointer' />}
+          {canManageSuppliers && (
+            <ConfirmDeleteButton
+              isDeleting={deleting}
+              onConfirm={handleDelete}
+              title={`Delete ${supplier?.company_name || 'this supplier'}?`}
+              description='Purchase history for them is not deleted.'
+              trigger={
+                <Button variant='ghost' size='icon' aria-label='Delete supplier'>
+                  <Trash2 className='text-red-300' />
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 
