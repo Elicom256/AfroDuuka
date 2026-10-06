@@ -1,19 +1,14 @@
 # ---------------------------------------------------------------------------
-#  Production stack (compose, for a single host)
+#  Production stack (compose, single host)
 # ---------------------------------------------------------------------------
-#  Bring the whole thing up with:
+#  Env is handled simply, the same way docker-compose.dev.yml does it: values
+#  come from ./api/.env and the DB_* interpolation falls back to the dev
+#  defaults, so `docker compose up` / `down` work without exporting anything.
 #
 #      docker compose up -d --build
 #
-#  This file is self-contained. It is NOT how Render runs the app: Render
-#  deploys one Dockerfile per service (or a render.yaml), never a compose file,
-#  so treat this as local/reference. Environment values are expected to come
-#  from the platform (Render dashboard, a secret store, `--env-file`, or the
-#  shell), so ./api/.env is read only when it exists.
-#
-#  Supply at least APP_KEY, APP_ENV=production, the database settings (the
-#  discrete DB_* vars or a DB_URL) and any Spaces credentials through the
-#  environment. APP_KEY and DB_PASSWORD must not be the development ones.
+#  Render does not run this file — it deploys the Dockerfiles (or a
+#  render.yaml) — so keep real production secrets there, not in the repo.
 # ---------------------------------------------------------------------------
 
 services:
@@ -46,11 +41,8 @@ services:
       dockerfile: Dockerfile
     expose:
       - '8000'
-    # Optional: a local ./api/.env is used if present, but the platform's
-    # environment (e.g. the Render dashboard) is the intended source of truth.
     env_file:
-      - path: ./api/.env
-        required: false
+      - ./api/.env
     environment:
       APP_ENV: production
       APP_DEBUG: 'false'
@@ -77,11 +69,8 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    # Optional: a local ./api/.env is used if present, but the platform's
-    # environment (e.g. the Render dashboard) is the intended source of truth.
     env_file:
-      - path: ./api/.env
-        required: false
+      - ./api/.env
     environment:
       APP_ENV: production
       APP_DEBUG: 'false'
@@ -114,11 +103,8 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    # Optional: a local ./api/.env is used if present, but the platform's
-    # environment (e.g. the Render dashboard) is the intended source of truth.
     env_file:
-      - path: ./api/.env
-        required: false
+      - ./api/.env
     environment:
       APP_ENV: production
       APP_DEBUG: 'false'
@@ -142,8 +128,10 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: ${DB_DATABASE:-inventory}
-      POSTGRES_USER: ${DB_USERNAME:-app}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in ./api/.env}
+      POSTGRES_USER: ${DB_USERNAME:-elicom}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-elicom256}
+    env_file:
+      - ./api/.env
     volumes:
       - pgsql-data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -151,7 +139,7 @@ services:
       - app
 
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-elicom} -d ${DB_DATABASE:-inventory}']
       interval: 10s
       timeout: 5s
       retries: 5
