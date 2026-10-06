@@ -78,8 +78,22 @@ COPY --link --from=vendor /app/vendor ./vendor
 COPY --link . .
 
 # Create and set permissions for Laravel writable directories using explicit IDs
-RUN mkdir -p storage bootstrap/cache && \
-    chown -R ${USER_ID}:${GROUP_ID} storage bootstrap/cache /app
+# storage/framework/{views,cache,sessions} and storage/logs are excluded by
+# .dockerignore, and Laravel's default view config resolves view.compiled with
+# realpath(storage_path('framework/views')). If that directory is absent the
+# realpath() returns false, so `php artisan view:cache` throws "View path not
+# found" and the entrypoint (set -e) crash-loops the container. Create them.
+# Only the writable paths are chowned. This used to be `chown -R ... /app`,
+# which walked the whole image (vendor included) on every cache miss and made a
+# one-line change rebuild for minutes. public/ is included because the entrypoint
+# runs `storage:link`, which writes the symlink there.
+RUN mkdir -p \
+        storage/framework/views \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/logs \
+        bootstrap/cache && \
+    chown -R ${USER_ID}:${GROUP_ID} storage bootstrap/cache public
 
 
 # ------------------------------------------------------------------------------
@@ -114,4 +128,5 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 # Runtime command (Octane + FrankenPHP)
 # ------------------------------------------------------------------------------
 
-CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--watch" ]
+# CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--watch" ]
+CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000" ]

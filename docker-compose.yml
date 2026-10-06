@@ -1,75 +1,156 @@
+# ---------------------------------------------------------------------------
+#  Production stack (compose, single host)
+# ---------------------------------------------------------------------------
+#  Env is handled simply, the same way docker-compose.dev.yml does it: values
+#  come from ./api/.env and the DB_* interpolation falls back to the dev
+#  defaults, so `docker compose up` / `down` work without exporting anything.
+#
+#      docker compose up -d --build
+#
+#  Render does not run this file — it deploys the Dockerfiles (or a
+#  render.yaml) — so keep real production secrets there, not in the repo.
+# ---------------------------------------------------------------------------
+
 services:
+  # ==================== Web (SPA + API reverse proxy) =================
+  # The single nginx edge: serves the built SPA and proxies /api and /storage
+  # to the backend. It replaced a second nginx whose only job was routing
+  # between this one and Laravel.
   frontend:
     build:
       context: ./ui
       dockerfile: Dockerfile
     ports:
-      # ui/nginx.conf listens on 8080. Mapping 80:80 published a port nothing was
-      # listening on, so this stack served no frontend either.
-      - '8080:8080'
-    env_file:
-      - ./ui/.env
-
+      - '80:80'
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
-
     networks:
       - app
 
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ============================ Backend ===============================
   backend:
     build:
       context: ./api
       dockerfile: Dockerfile
-
+    expose:
+      - '8000'
     env_file:
       - ./api/.env
-
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BACKUP_DISK: spaces
     depends_on:
       pgsql:
         condition: service_healthy
       redis:
         condition: service_healthy
-
     restart: unless-stopped
-
     networks:
       - app
 
+  # ========================== Queue worker ============================
+  # The dev stack has this and the production stack did not. Without it every
+  # queued job is silently dropped, which means no WhatsApp notifications, no
+  # subscription lifecycle processing and no session/SES suppression handling
+  # in production.
+  queue-worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # The backend service owns migrations; running them here too would race.
+      SKIP_MIGRATIONS: 'true'
+    command: php artisan queue:work --tries=3 --sleep=3 --max-time=3600
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
+    # The image bakes in a HEALTHCHECK that probes 127.0.0.1:8000/up, but
+    # queue:work never binds :8000. Disable it so the container is not
+    # permanently marked unhealthy.
+    healthcheck:
+      disable: true
+
+  # ============================ Scheduler ============================
+  # Keep the Laravel scheduler in its own container so the jobs declared in
+  # `routes/console.php` actually run on a heartbeat rather than sleeping forever.
+  scheduler:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SKIP_MIGRATIONS: 'true'
+    command: php artisan schedule:work --no-ansi --verbose
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
+  # ============================ Postgres ==============================
   pgsql:
     image: postgres:17-alpine
-
     environment:
       POSTGRES_DB: ${DB_DATABASE:-inventory}
       POSTGRES_USER: ${DB_USERNAME:-elicom}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-elicom256}
-
     env_file:
       - ./api/.env
-
     volumes:
       - pgsql-data:/var/lib/postgresql/data
-
     restart: unless-stopped
-
     networks:
       - app
 
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-inventory}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-elicom} -d ${DB_DATABASE:-inventory}']
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # ============================== Redis ===============================
   redis:
     image: redis:7-alpine
-
     volumes:
       - redis-data:/data
-
     restart: unless-stopped
-
     networks:
       - app
 

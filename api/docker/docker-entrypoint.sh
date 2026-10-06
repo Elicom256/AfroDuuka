@@ -3,8 +3,10 @@ set -e
 
 echo "Starting Laravel container..."
 
-# Ensure directories exist (safe on every deploy)
-mkdir -p storage/logs bootstrap/cache
+# Ensure directories exist (safe on every deploy). storage/framework/views must
+# exist before view:cache/config:cache: view.compiled is realpath()'d and a
+# missing directory makes it false, which aborts this script under set -e.
+mkdir -p storage/logs storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache
 
 # Install Composer packages only when they are missing.
 if [ ! -f "vendor/autoload.php" ]; then
