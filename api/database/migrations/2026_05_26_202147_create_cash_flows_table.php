@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\CashFlowDirection;
+use App\Enums\CashFlowType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +17,13 @@ return new class extends Migration
         Schema::create('cash_flows', function (Blueprint $table) {
             $table->id();
 
-            // Core transaction info
+            // Core transaction info. `type` is left as a plain string rather than an enum
+            // column: the reports aggregate on it in raw SQL and it is readable as a
+            // literal there, and the legal values are owned by CashFlowType, which the
+            // requests validate against.
             $table->string('transaction_code')->unique();   // e.g. CF-00001, INV-00045, PO-00321
-            $table->string('type');                         // 'sale', 'purchase', 'expense', 'payment_in', 'payment_out', 'refund', 'adjustment'
-            $table->enum('direction', ['credit', 'debit'])->nullable();
+            $table->string('type');
+            $table->enum('direction', CashFlowDirection::values())->nullable();
             $table->decimal('amount', 15, 2);               // Positive for inflows, Negative for outflows (or use separate sign logic)
             // No running_balance column. It was a stored copy of a value that is a
             // function of every row before it, so it could not be kept correct: the
@@ -77,10 +82,11 @@ return new class extends Migration
         // layer; this keeps the rule true for seeders, imports and scripts as well.
         //
         // Added as a statement because the schema builder has no check() helper.
-        DB::statement(
-            "ALTER TABLE cash_flows ADD CONSTRAINT cash_flows_adjustment_requires_direction
-             CHECK (type <> 'adjustment' OR direction IS NOT NULL)"
-        );
+        DB::statement(sprintf(
+            'ALTER TABLE cash_flows ADD CONSTRAINT cash_flows_adjustment_requires_direction
+             CHECK (type <> %s OR direction IS NOT NULL)',
+            "'".CashFlowType::Adjustment->value."'"
+        ));
     }
 
     /**

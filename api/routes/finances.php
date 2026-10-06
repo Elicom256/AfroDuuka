@@ -32,6 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Manual Adjustments (admin only)
     Route::post('adjustments', [FinanceController::class, 'adjustment']);
 
+    // Repair an adjustment written before a direction became required. Same role gate as
+    // creating one: it writes the same column. Declared before the '/{cashFlow}' route
+    // below so 'adjustments' is never read as a cashFlow id.
+    Route::patch('adjustments/{cashFlow}/direction', [CashFlowController::class, 'setDirection']);
+
     // Financial Reports
     Route::prefix('reports')->group(function () {
         Route::get('revenue', [FinanceController::class, 'revenueReport']);
@@ -41,7 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('business-statement', [FinanceController::class, 'businessStatement']);
     });
 
-    // Keep existing cash flow routes
+    // Cash flow ledger. Writes are restricted to manual adjustments by the requests
+    // themselves; destroy is deliberately not routed, because deleting a ledger row can
+    // strand the sale or purchase it documents and the CHECK constraint has no answer to
+    // that. Reversing stock on deletion is an open schema decision, not a route.
     Route::get('/', [CashFlowController::class, 'index']);
+    Route::post('/', [CashFlowController::class, 'store']);
     Route::get('/{cashFlow}', [CashFlowController::class, 'show']);
+    Route::patch('/{cashFlow}', [CashFlowController::class, 'update']);
 });

@@ -27,7 +27,7 @@ export const FinanceSummaryCards = ({
   total_expenses,
   net_profit,
   cash_balance,
-  unsigned_adjustments = 0,
+  unsigned_adjustments: unsignedAdjustments = 0,
 }: FinanceSummaryCardsProps) => {
   const { currency } = useCurrency();
   const isProfitPositive = net_profit >= 0;

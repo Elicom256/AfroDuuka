@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\CashFlowDirection;
+use App\Enums\CashFlowType;
 use App\Models\CashFlow;
+use App\Services\UnsignedAdjustmentResolver;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -30,6 +33,11 @@ class FixUnsignedAdjustments extends Command
 
     protected $description = 'List manual adjustments that have no direction, or set one';
 
+    public function __construct(private UnsignedAdjustmentResolver $resolver)
+    {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
         if ($code = $this->option('code')) {
@@ -39,19 +47,22 @@ class FixUnsignedAdjustments extends Command
         return $this->listRows();
     }
 
+    /**
+     * Which answers come from UnsignedAdjustmentResolver rather than from here, so that
+     * `php artisan` and PATCH /finances/adjustments/{id}/direction cannot disagree about
+     * which rows are repairable. This remains the only writer that runs without the tenant
+     * scope, which is how one operator clears a backlog across the whole install.
+     */
     private function setDirection(string $code): int
     {
-        $direction = strtolower((string) $this->option('direction'));
+        $direction = CashFlowDirection::tryFrom(strtolower((string) $this->option('direction')));
 
-        if (! in_array($direction, ['credit', 'debit'], true)) {
+        if (! $direction) {
             $this->error('Pass --direction=credit or --direction=debit.');
 
             return self::FAILURE;
         }
 
-        // withoutGlobalScopes() so one operator can clear the backlog for the whole
-        // install; the ledger spans businesses and a per-tenant scope would hide rows
-        // belonging to anyone else.
         $cashFlow = CashFlow::withoutGlobalScopes()
             ->where('transaction_code', $code)
             ->first();
@@ -62,21 +73,21 @@ class FixUnsignedAdjustments extends Command
             return self::FAILURE;
         }
 
-        if ($cashFlow->type !== 'adjustment') {
-            $this->error("[{$code}] is a {$cashFlow->type}, not an adjustment; its direction comes from its type.");
+        $refusal = $this->resolver->refusalFor($cashFlow);
 
-            return self::FAILURE;
+        if ($refusal !== null) {
+            // An already-signed row is not a failure: the requested end state already
+            // holds, and re-running a repair script should say so rather than exit non-zero.
+            $cashFlow->direction !== null
+                ? $this->warn($refusal)
+                : $this->error($refusal);
+
+            return $cashFlow->direction !== null ? self::SUCCESS : self::FAILURE;
         }
 
-        if ($cashFlow->direction !== null) {
-            $this->warn("[{$code}] already has direction [{$cashFlow->direction}]. Nothing changed.");
+        $this->resolver->apply($cashFlow, $direction);
 
-            return self::SUCCESS;
-        }
-
-        $cashFlow->forceFill(['direction' => $direction])->save();
-
-        $this->info("[{$code}] set to {$direction}. It now moves the cash balance.");
+        $this->info("[{$code}] set to {$direction->value}. It now moves the cash balance.");
 
         return self::SUCCESS;
     }
@@ -84,7 +95,7 @@ class FixUnsignedAdjustments extends Command
     private function listRows(): int
     {
         $query = CashFlow::withoutGlobalScopes()
-            ->where('type', 'adjustment')
+            ->where('type', CashFlowType::Adjustment->value)
             ->whereNull('direction');
 
         if ($businessId = $this->option('business')) {

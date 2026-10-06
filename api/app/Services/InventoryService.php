@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CashFlowType;
 use App\Models\CashFlow;
 use App\Models\Product;
 use App\Models\ProductLoss;
@@ -167,7 +168,7 @@ class InventoryService
 
             CashFlow::create([
                 'transaction_code' => 'CF-LOSS-'.str_pad((string) $loss->id, 6, '0', STR_PAD_LEFT),
-                'type' => 'expense',
+                'type' => CashFlowType::Expense->value,
                 'amount' => Money::fromCents($totalLossCents),
                 'currency' => 'UGX',
                 'business_branch_id' => $lockedProduct->business_branch_id,

@@ -74,7 +74,7 @@ describe('apiErrorMiddleware', () => {
 
     for (const [status, expected] of cases) {
       const error = vi.spyOn(toast, 'error').mockImplementation(() => '');
-      store().dispatch(rejected(status, '/api/probe') as never);
+      store().dispatch(rejected(status) as never);
       expect(error.mock.calls[0][0], `status ${status}`).toContain(expected);
       error.mockRestore();
     }

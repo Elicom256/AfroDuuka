@@ -28,25 +28,37 @@ export const saleReturnsQuery = createApi({
     addSaleReturn: builder.mutation<any, any>({
       query: (body) => ({ url: '/', method: 'POST', body }),
       invalidatesTags: ['SaleReturnsAPI'],
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
-        dispatch(invalidateRevenueSlices(dispatch));
+      onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        // Not async: RTK Query types onQueryStarted as returning void, and returning the
+        // promise here is what broke `tsc -b`. The dispatch is the side effect that
+        // matters; nothing awaits the result.
+        void queryFulfilled.then(() => {
+          invalidateRevenueSlices(dispatch);
+        });
       },
     }),
     updateSaleReturn: builder.mutation<any, { id: string | number; body: any }>({
       query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
       invalidatesTags: ['SaleReturnsAPI'],
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
-        dispatch(invalidateRevenueSlices(dispatch));
+      onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        // Not async: RTK Query types onQueryStarted as returning void, and returning the
+        // promise here is what broke `tsc -b`. The dispatch is the side effect that
+        // matters; nothing awaits the result.
+        void queryFulfilled.then(() => {
+          invalidateRevenueSlices(dispatch);
+        });
       },
     }),
     deleteSaleReturn: builder.mutation<any, string | number>({
       query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
       invalidatesTags: ['SaleReturnsAPI'],
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
-        dispatch(invalidateRevenueSlices(dispatch));
+      onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        // Not async: RTK Query types onQueryStarted as returning void, and returning the
+        // promise here is what broke `tsc -b`. The dispatch is the side effect that
+        // matters; nothing awaits the result.
+        void queryFulfilled.then(() => {
+          invalidateRevenueSlices(dispatch);
+        });
       },
     }),
   }),

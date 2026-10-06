@@ -1,212 +1,311 @@
-# Item 5 — Authorization and Policy Coverage: Reality Check and Plan
+# Plan — cash flow direction invariant (checked.md §2, points 1 and 2)
 
-**Date:** 2026-10-04
-**Verdict:** item 5 is **partially done and marked complete in error**. The work it
-describes was real and is genuinely in the tree. The audit that concluded it was finished
-was wrong about the size of the remaining hole, so the item is not closed.
+Scope is the two findings in §2 that share one root cause. §2 points 3 (hardcoded fixture
+date in `BranchPerformanceReportsTest`) and 4 (intermittent
+`test_shrinking_a_return_gives_the_revenue_back`) are test-determinism problems with a
+different cause and are **not** in this plan.
 
----
+## The problem, stated as one thing
 
-## 1. What the review claims
+> `cash_flows` rows of `type = 'adjustment'` must have a non-null `direction`.
 
-`review.md` item 5 ends with:
+Today that rule is enforced in exactly two places, and everything else agrees with it only
+by circumstance:
 
-> With both fixed, **19 mutating endpoints remain without a role or policy gate**, and
-> each was reviewed and confirmed intentional: `login`/`signup` are public by design,
-> `logout` only revokes the caller's own tokens, the four notification endpoints are
-> scoped to `user_id = Auth::id()`, `POS` cart/held-sale routes are the seller's own floor
-> actions, and `BusinessDebitController::pay` records money already committed. Every
-> `DELETE` is covered centrally.
+| Where | What it does |
+|---|---|
+| `StoreCashFlowAdjustmentRequest.php:48` | requires `direction` for the one adjustment endpoint |
+| `create_cash_flows_table.php:80-83` | DB CHECK `cash_flows_adjustment_requires_direction` |
 
-The claim is not that zero work remains. It is that the remainder was enumerated, and
-that every item in it was looked at and accepted. That second half does not hold.
+The remaining six copies of the allowed values are literals with no shared definition:
+`StoreCashFlowRequest.php:59-62`, `UpdateCashFlowRequest.php:55-58`, the create migration
+line 21, `FixUnsignedAdjustments.php:46`, and the type→sign mapping duplicated between
+`CashFlow.php:172-176` and `FinanceService.php:92-98`.
 
----
+From that one weakness both findings fall out:
 
-## 2. Verified as genuinely done
+- **§2.1** — `StoreCashFlowRequest` and `UpdateCashFlowRequest` both accept
+  `type: 'adjustment'` while carrying no `direction` rule. That is precisely the payload
+  the CHECK rejects, so the DB throws and the caller gets a 500 rather than a 422. Latent
+  only because `CashFlowController::store`/`update` are unrouted.
+- **§2.2** — a violation can only be repaired by someone with a shell. The dashboard
+  warning at `FinanceSummaryCards.tsx:44-59` tells ordinary users "an administrator needs
+  to mark each one", and the only mechanism is
+  `duukaflow:finance:unsigned-adjustments`. Meanwhile `CashFlow::cashEffect()` returns
+  `0.0` for a directionless adjustment, so the row is silently inert and `cash_balance`
+  under-reports.
 
-Checked in the tree, not taken on trust:
+Note the failure is quiet by design (`ELSE 0` in the CASE at `FinanceService.php:97`, and
+`default => 0.0` in `cashEffect()`), which is why a hole here produces a wrong number
+rather than a visible error.
 
-| Claim | Reality |
-| --- | --- |
-| Role management requires an elevated role | True. `StoreRoleRequest`/`UpdateRoleRequest` authorize on `RolePermissions::isElevated()`. |
-| Catalogue writes require catalogue permission | True. `StoreProductRequest`, `StoreProductCategoryRequest`, `ProductPolicy@update`. |
-| `BlockRestrictedRoleActions` uses the `canDelete()` allowlist | True, `app/Http/Middleware/BlockRestrictedRoleActions.php:56`. |
-| Central DELETE coverage is real | True. Appended to the whole `api` group, `bootstrap/app.php:70`, so it is not per-route and cannot be forgotten by a controller. |
-| Missing user passes through for a 401, not a 403 | True, `BlockRestrictedRoleActions.php:52`. The SPA's `authListener` depends on this. |
-| `StockTransferController::update` exists and is draft-only | True, with regression tests. |
-| `PurchaseController::update`/`destroy` refuse explicitly | True, `PurchaseController.php:135`. |
-| `AiController::chat` held to elevated roles | True, with a test. |
-| Regression tests exist and pass | True — `MutatingEndpointAuthorizationTest` (770 lines), `AuthorizationPolicyCoverageTest`, `BlockRestrictedRoleActionsTest`, `RouteModelBindingTest`, `RequireRoleMiddlewareTest`. |
+## Decisions taken
 
-The suite is green: **602 passed, 1802 assertions**, run inside the backend container
-against the bind-mounted source. The review's `593 / 1764` is stale, not wrong — later
-commits added tests.
+1. **Route `store` and `update` properly** — role-gated, with full direction validation.
+2. **Add a role-gated repair endpoint** for a legacy unsigned adjustment, so the existing
+   dashboard warning becomes actionable. The artisan command stays for cross-tenant bulk
+   repair, sharing one validation path with the endpoint so the two cannot drift.
+3. **Include the frontend action button** so the warning can actually be cleared from the
+   dashboard.
+4. **Add `CashFlowType` + `CashFlowDirection` enums** in `app/Enums` and replace all six
+   literal copies.
 
-So the item is not a fabrication. The central delete allowlist is a genuinely good fix,
-and the 401-not-403 reasoning is correct. The problem is narrower and more specific than
-"the work was not done": **the audit that certified the remainder as reviewed did not see
-most of the remainder.**
+## Step 1 — `CashFlowType` and `CashFlowDirection` enums
 
----
+New directory `api/app/Enums` (the repo has none today; nothing to conform to beyond
+PSR-12 and the existing docblock style).
 
-## 3. The actual gap
+`CashFlowType: string` — `Sale`, `Purchase`, `Expense`, `PaymentIn`, `PaymentOut`,
+`Refund`, `Adjustment`.
 
-I re-ran the audit the way the review says it was run, but resolving gates properly: route
-middleware, in-controller `abort_unless` / policy calls, *helper methods* those controllers
-delegate to (`ensureSiteAdmin()`), and each injected `FormRequest::authorize()` body. The
-first pass of my own audit was also wrong in the same direction the review describes —
-counting `auth:sanctum` as a gate — so the numbers below are from the corrected version.
+`CashFlowDirection: string` — `Credit`, `Debit`.
+
+Carry the two behaviours that are currently open-coded, so they stop being copy-paste:
+
+- `CashFlowType::sign()` / a `typeSign()` helper for the type→sign mapping, used by
+  `CashFlow::cashEffect()`. `Adjustment` has no implied sign, which is the entire reason
+  the invariant exists.
+- `CashFlowType::values()` and `CashFlowDirection::values()` so the request rules and the
+  artisan command read `Rule::enum(CashFlowType::class)` rather than restating a list.
+
+`FinanceService::netCashMovement()` keeps its SQL CASE — it cannot call PHP — but the CASE
+branches are built from the enum values rather than typed as literals, so adding a type
+forces a look at both sign paths.
+
+## Step 2 — one shared validation rule for the invariant
+
+The invariant is currently stated in the request and again in the DB, with nothing in
+between. Add a small rule object both cash-flow write requests use, so "an adjustment
+needs a direction" is written once at the application layer.
+
+- New `api/app/Rules/RequiresDirectionForAdjustments.php` (or an equivalent method on the
+  enum, if that reads cleaner): when `type` is `Adjustment`, `direction` must be present
+  and be a valid `CashFlowDirection`; when `type` is anything else, `direction` must be
+  absent. Mirrors `StoreCashFlowAdjustmentRequest.php:47-48` wording and the CHECK's
+  intent.
+- `StoreCashFlowRequest`: add the rule plus a `'direction'` key of
+  `['nullable', Rule::enum(CashFlowDirection::class)]`, so the failure is a clean 422 with
+  the field named. Replace the `Rule::in([...])` type list with `Rule::enum(CashFlowType::class)`.
+- `UpdateCashFlowRequest`: same rule, using `sometimes` semantics — an update that flips
+  `type` to `adjustment` without supplying `direction` must 422.
+- `StoreCashFlowAdjustmentRequest`: swap `Rule::in(['credit','debit'])` for
+  `Rule::enum(CashFlowDirection::class)`. Behaviour unchanged.
+- `CashFlow` model: cast `type` and `direction` to the enums. Add the enum to `$casts`
+  alongside the existing `decimal:2` and `date` casts. Keep `cashEffect()` working with
+  `match ($this->type)` — matched against enum cases now.
+
+Two latent hazards in `UpdateCashFlowRequest` get fixed in the same edit, because they are
+one line away from the code being touched:
+
+- `Rule::unique('cash_flows')->ignore($cashFlowId)` at line 48 passes a route model key.
+  It must resolve to the id, and it is unscoped by tenant — a uniqueness check that leaks
+  another tenant's code into a 422 message. Scope it by `business_id`.
+- `CashFlow::create()` is passed `$validated` directly, and `StoreCashFlowRequest` accepts
+  `sale_id`/`purchase_id`/`customer_id`/`supplier_id` from the client. Combined with step 3
+  below this is the forgery vector; see there.
+
+## Step 3 — route `store` and `update`, gated
+
+`api/routes/finances.php`, inside the existing `auth:sanctum` group:
 
 ```
-174 mutating routes: 126 gated, 48 ungated
+Route::post('/', [CashFlowController::class, 'store']);
+Route::patch('/{cashFlow}', [CashFlowController::class, 'update']);
 ```
 
-The review accounts for 19. **29 were never looked at.**
+`destroy` stays unrouted. Deleting a cash-flow row directly can strand the parent sale,
+purchase or return it documents, and the CHECK constraint has no answer to that. Reversing
+stock on deletion is `checked.md` §3's open schema decision, not something to smuggle in
+here.
 
-The reason is a specific, repeatable mistake, and it is the same class of error the review
-caught itself making once. A `FormRequest::authorize()` that reads:
+Authorization, in the requests' `authorize()` so a refusal is a 403 before validation runs —
+the pattern `StoreCashFlowAdjustmentRequest.php:21-24` already established:
 
-```php
-return Auth::check();
+- `StoreCashFlowRequest::authorize()` is currently `Auth::check()`. That is too weak for a
+  routed money write: any authenticated user, including Operations, could add rows to the
+  ledger. Change to `RolePermissions::canManageSensitiveFinance($this->user())`, the same
+  gate that guards `POST /finances/adjustments`.
+- `UpdateCashFlowRequest::authorize()` gets the same gate.
+
+**The forgery problem this creates, and the answer.** `store` takes `type` from the
+payload, so a gated-but-generic writer can write `type: 'sale'` with an arbitrary amount,
+inflating `total_revenue` and `gross_revenue` on the dashboard — figures computed by
+`FinanceService::dashboard()` straight off `type`. A role gate alone does not fix that; it
+only limits who can do it.
+
+So the request constrains which types may be written directly:
+
+- Allow only `Adjustment` (and, for `update`, an existing adjustment's fields). The other
+  six types are all produced by domain events through `CashFlowService`
+  (`createCashFlowForSale` :30, `createCashFlowForPurchase` :54,
+  `createCashFlowForExpense` :188, and the transfer/return helpers). They are *derived*
+  data — the ledger is a consequence of a sale, not an input to it. Letting a client author
+  one creates a second source of revenue truth, which `rules.md` forbids outright
+  ("Avoid duplicate revenue calculations from multiple sources").
+- `sale_id`, `purchase_id`, `customer_id`, `supplier_id` come off the request's validated
+  output for this reason. They exist to link a row to the event that caused it, and a
+  hand-written row has no such event.
+- `transaction_code` is generated server-side, matching the `'CF-ADJ-'.Str::ulid()` pattern
+  at `FinanceController.php:164`. `StoreCashFlowRequest::prepareForValidation()` currently
+  generates one only when the client omits it, and uses `rand()`; a client can therefore
+  collide or squat a code. Always generate.
+- `created_by` is already overwritten with `Auth::id()` at
+  `StoreCashFlowRequest.php:31`, so no spoofing there. Keep it, and drop it from `rules()`.
+
+With those, `POST /api/finances` is a typed manual-adjustment writer and the routed surface
+matches what the UI actually offers. If a real need for a generic ledger write appears, it
+should arrive as its own endpoint with its own decision about `type` — not as a widening
+of this one.
+
+Wrap `store`/`update` bodies without the broad `catch (\Exception $e)` pattern used in
+`FinanceController`. That pattern is what turned a role refusal into a 422 with a
+"Failed to create adjustment" message; `FinanceController::adjustment()` kept a catch for
+legacy reasons and should not be copied. Let the framework render validation failures.
+
+## Step 4 — endpoint for §2.2, so the warning is actionable
+
+`api/routes/finances.php`, next to the existing adjustments route:
+
+```
+Route::patch('adjustments/{cashFlow}/direction', [CashFlowController::class, 'setDirection']);
 ```
 
-was treated as a gate. It is not. It is authentication. Across this codebase there are 96
-such `authorize()` bodies. For most modules a route-level `role` group covers them. For the
-modules below, nothing covers them.
+New `UpdateCashFlowDirectionRequest`:
 
-I confirmed the top three by running them, as an **Operations** user — the till role that
-item 5 deliberately fences out of catalogue authoring and out of every delete:
+- `authorize()` → `RolePermissions::canManageSensitiveFinance($this->user())`.
+- `direction` → `['required', Rule::enum(CashFlowDirection::class)]`.
+- Branch containment closure, copied from `StoreCashFlowAdjustmentRequest.php:28-38`, so a
+  BranchManager cannot repair a row outside their scope.
 
-| Endpoint | Result |
-| --- | --- |
-| `POST /api/payment-gateways` | `201 Created` — wrote `provider: mtn_momo`, `api_key`, `api_secret`, `webhook_secret` |
-| `POST /api/currency-rates` | `201 Created` — wrote `UGX→USD rate 9999`, `source: attacker` |
-| `POST /api/finances/business-debits` | `201 Created` — wrote a 500,000 debit against a supplier |
+`CashFlowController::setDirection()`:
 
-All three persisted. The first one is the serious one: that is the record of where live
-mobile-money payments are routed and how inbound webhooks are authenticated. An Operations
-account — the role this review defines as "runs the day-to-day floor, does not author the
-catalogue, does not remove records" — can rewrite it.
+- Route-model-bind the cash flow, so the tenant scope on `BaseModel` (`business` and
+  `branch` global scopes, `BaseModel.php:26-58`) makes another tenant's row a 404 before
+  the method runs. The endpoint deliberately does **not** use `withoutGlobalScopes()`, the
+  way `FixUnsignedAdjustments.php:71` does — cross-tenant repair stays a CLI-only power.
+- Refuse with 422 when `type !== 'adjustment'`: a sale takes its direction from its type,
+  so this is the same refusal the command makes at `FixUnsignedAdjustments.php:65-70` and
+  the test that pins it at `UnsignedAdjustmentRecoveryTest.php:151-171`.
+- Refuse with 422 when `direction` is already set, matching the command's "Nothing changed"
+  path at line 72-75.
+- Set the direction and return the row.
 
-### The 29, grouped by what they can reach
+Put the shared refusals in one place both this and the command call, so the endpoint and
+`php artisan` cannot answer the same question differently. A small
+`App\Services\UnsignedAdjustmentResolver` (or a method on `CashFlowService`, which
+`CashFlowController` already injects) holding "is this an unsigned adjustment?" and "apply
+this direction", with the command and the controller as thin callers.
 
-**Payment and provider credentials — highest severity**
+Keep the command's cross-tenant listing untouched. It is the only way to clear a backlog
+across businesses, which is what an install-wide operator needs.
 
-| Route | Why it matters |
-| --- | --- |
-| `POST/PUT /api/payment-gateways` | MTN MoMo / Airtel / Flutterwave / Pesapal keys and webhook secret. Money routing. |
-| `POST/PUT /api/whatsapp` | Provider token and business phone number. |
-| `POST /api/whatsapp/test-message` | Sends a real outbound message. Metered. |
+## Step 5 — frontend
 
-**Money**
+New mutation in `cashFlowQuery.ts` (the cash-flow slice, since it targets `/finances`):
 
-| Route | Why it matters |
-| --- | --- |
-| `POST/PUT /api/currency-rates` | Every multi-currency total and report derives from this. |
-| `POST/PUT /api/finances/business-debits` | Tenant-wide finance ledger. |
-| `POST/PUT /api/finances/business-credits` | Tenant-wide finance ledger. |
-| `POST /api/finances/adjustments` | Cash-flow writes. |
-| `POST /api/finances/customers/{customer}/credit-payments` | Records customer money received. |
-| `POST /api/finances/cash-drawers/open`, `POST .../close` | Cash sessions and variance. |
+```ts
+setCashFlowDirection: builder.mutation<any, { id: number; direction: string }>({
+  query: ({ id, direction }) => ({ url: `/adjustments/${id}/direction`, method: 'PATCH', body: { direction } }),
+  invalidatesTags: ['CashFlowAPI'],
+}),
+```
 
-**Stock destruction**
+`invalidatesTags: ['CashFlowAPI']` so the ledger refetches. The `unsigned_adjustments`
+count comes from `getFinanceDashboard` in `financeQuery.ts:16`, tagged `'FinanceAPI'` — so
+invalidate that slice too, or the warning stays on screen after a successful repair.
 
-| Route | Why it matters |
-| --- | --- |
-| `POST /api/product-losses` | `InventoryService::writeOff()` decrements quantity. The service validates the *reason* and the *quantity*, never the *role*. |
-| `POST /api/returns/sale-returns` | Stock back in, refund out. |
-| `POST /api/returns/purchase-returns` | Stock back out to a supplier. |
+In `FinanceTransactionTable.tsx`, add a per-row control on rows where
+`type === 'adjustment' && !direction`:
 
-**Trade documents and purchasing**
+- A ShadCN `AlertDialog` or `DropdownMenu` with the two `CashFlowDirection` values, using
+  the existing `FinanceAdjustmentDialog` control vocabulary — "Money In (credit)" /
+  "Money Out (debit)" — so the repair reads the same way as the create.
+- Lucide icons per `rules.md`: `ArrowDownLeft` for credit, `ArrowUpRight` for debit.
+- `toast` on success, matching `FinanceAdjustmentDialog.tsx:54`.
+- The record type at `FinanceTransactionTable.tsx:11-24` has no `direction` field. Add it.
+- Rows without a direction should also stop being coloured as an inflow. `isOutflow()` at
+  line 53 keys off `type` alone, so an adjustment renders with a green `+` regardless of
+  which way the money actually moved — a display bug that sits directly on top of this
+  invariant. Use `record.direction` when present, falling back to the current `type`
+  behaviour for the six derived types.
+- The row has an `Eye` action link at line 131-137 and a 10-column header. Adding a control
+  means widening `colSpan` on the empty state and the header count together.
 
-| Route | Why it matters |
-| --- | --- |
-| `POST/PUT /api/purchases/branch-purchases` | A purchase commitment to a supplier. Note `PurchaseOrderController` *is* gated inline; this one is not. |
-| `POST/PUT /api/sale-orders` | Quoted trade documents. |
+Update `FinanceSummaryCards.tsx:51-56`. The copy currently says an administrator must act,
+which after this change is true from the dashboard — but it should say the action is
+available here rather than implying an off-screen manual step.
 
-**Configuration**
+Also add `overflow-x-auto` on this table's wrapper. `checked.md` §5 records 57 of 61 tables
+without it; this one gains a column in this change, so fix it here rather than widening a
+later a11y sweep. Do not touch the other 56 in this task.
 
-`POST/PUT /api/printers`, `POST/PUT /api/reorder-rules`, `POST/PUT /api/report-exports`.
+## Step 6 — tests
 
-### Deliberately open — confirmed correct, leave alone
+Backend, `api/tests/Feature/Finance/`:
 
-`login`, `signup`, `updateProfile`, the four notification endpoints (all self-scoped on
-`user_id`), `todos` store, `POST /api/sales/branch-sales` and its `PUT` (the till has to be
-able to ring up a sale; completed-sale immutability from item 3 already guards the `PUT`),
-and the POS floor routes. `BusinessDebitController@pay` stays open for the reason the review
-gives, which is sound.
+Extend `AdjustmentDirectionConstraintTest.php` (already pins the schema-level rule) or add
+`CashFlowDirectionValidationTest.php` for the request layer:
 
-### Not a live hole, but worth closing
+- `POST /api/finances` with `type: 'adjustment'` and no `direction` → **422**,
+  `assertJsonValidationErrors('direction')`, and `assertDatabaseCount('cash_flows', 0)`.
+  This is the §2.1 regression test: today it would be a 500.
+- Same with `direction: 'sideways'` → 422 on `direction`.
+- `PATCH /api/finances/{id}` flipping a sale to `type: 'adjustment'` with no direction → 422.
+- `POST /api/finances` with `type: 'sale'` → 422. The forgery guard from step 3.
+- `POST /api/finances` as an Operations user → 403, `assertDatabaseCount('cash_flows', 0)`.
+  Follow `MutatingEndpointAuthorizationTest.php:1145-1203`, which already covers this shape
+  for `POST /finances/adjustments`, including the assertion that a refused role leaves the
+  table empty even with an invalid payload.
+- The happy path: a gated `POST /api/finances` with `type: 'adjustment'` +
+  `direction: 'credit'` → 201/200, row carries the direction, `cash_balance` moves.
+- `PATCH /api/finances/adjustments/{id}/direction` → sets it, `cash_balance` follows,
+  `unsigned_adjustments` drops to 0. The existing
+  `UnsignedAdjustmentRecoveryTest.php:125-137` asserts exactly this through the command;
+  the endpoint version is the same assertions over HTTP.
+- The endpoint refuses a non-adjustment (422) and an already-signed row (422).
+- Cross-tenant: second business, second user, `PATCH .../direction` on the first
+  business's row → 404, direction still null. No adversarial walkthrough — just the
+  binding.
 
-`UpdateExpenseRequest::authorize()` returns bare `true`. Expenses are currently covered by
-the `role` group at `routes/api.php:94`, so nothing is exposed today — but the request would
-authorize anything if that group were ever dropped. Change it to the same capability check
-its sibling requests use.
+Use the `withoutDirectionConstraint()` helper already in
+`UnsignedAdjustmentRecoveryTest.php:53-58` to create legacy rows for the repair tests.
+Dropping the CHECK inside a test is the established way to reproduce the rows this feature
+exists to fix.
 
-### The DELETEs need nothing
+Frontend, new `FinanceTransactionTable.test.tsx` under
+`ui/src/app/pages/dashboards/executive/components/finance/`:
 
-All eight ungated `DELETE` routes in the table above are already covered centrally by
-`BlockRestrictedRoleActions`. That part of item 5 is done properly.
+- An unsigned adjustment row offers the credit/debit control; clicking one fires the
+  mutation and invalidates both slices.
+- A signed adjustment row does not.
+- An adjustment with no direction is not rendered as a green inflow.
 
----
+Follow `UserProfile.test.tsx`: `render` wrapped in `Provider` + `MemoryRouter`, `vi.mock`
+for the RTK Query hooks, `userEvent` for clicks.
 
-## 4. Plan
+## Step 7 — verify
 
-Ordered so that each step is verifiable on its own and the money paths close first.
+```bash
+docker compose exec -T backend php artisan test
+docker compose exec -T backend ./vendor/bin/pint --test
+docker compose exec -T frontend npm run test
+docker compose exec -T frontend npm run lint
+```
 
-**Step 1 — add the missing capabilities to `RolePermissions`.**
-Nothing new is needed conceptually; the map already has the right shape. Add the two that
-have no honest home yet: `canManagePaymentConfig()` for gateways, currency rates and
-WhatsApp credentials, and `canManageCashDrawer()` for open/close. Both should resolve to
-`canManageBranch()` — branch managers run their own branch's till, and the branch scope
-already confines them. Keep the docblocks explaining *why*, since the existing ones are
-what made this file trustworthy.
+Baseline to hold: **737 backend / 747 frontend**, per `checked.md:7`. Note that
+`BranchPerformanceReportsTest` has four time-dependent failures independent of this work
+(`checked.md:43-45`) — if they appear, they are not caused by these changes.
 
-**Step 2 — close the payment and credential paths.** Payment gateways, currency rates,
-WhatsApp config and test-message. Route-level `role` where the group already exists, inline
-`abort_unless` where it does not — matching what `PurchaseOrderController` already does.
+## Not in this plan
 
-**Step 3 — close the money paths.** Business debits, business credits, adjustments,
-customer credit payments, cash drawers. Note the asymmetry the review already reasoned
-about: `pay` stays open, `store` and `update` do not.
-
-**Step 4 — close the stock-destruction paths.** Product losses, sale returns, purchase
-returns. The gate belongs at the controller, not in `InventoryService::writeOff()`, because
-that service is also reached from legitimate stock-count paths that Operations must keep.
-`canModifyStock()` is the existing expression of this.
-
-**Step 5 — close trade documents and config.** Purchases, sale orders, printers, reorder
-rules, report exports. Reorder rules and report exports are purchasing/report automation
-and belong beside `canCreatePurchaseOrder` and `canManageReports`.
-
-**Step 6 — harden `UpdateExpenseRequest`.** Replace `return true` with the capability check
-its siblings use. Defensive, not urgent.
-
-**Step 7 — pin it all with tests.** Extend `MutatingEndpointAuthorizationTest`, which is
-already the right home: one Operations-cannot test and one permitted-role-can test per
-group, asserting the row did not change on the refusal. Add a regression that an Operations
-user cannot write a payment gateway — that is the one worth naming in the suite forever.
-
-**Step 8 — make the audit mechanical and keep it.** The reason this item drifted is that
-the audit was a reading exercise. Fold the resolver from this review into a test that walks
-the real route table, resolves route middleware, helper-method gates and
-`FormRequest::authorize()` bodies, and fails when a mutating route appears with none. It
-needs an explicit allowlist of the intentional exceptions above — an unaudited new endpoint
-should break CI rather than wait for the next person to notice.
-
-**Step 9 — re-run the full suite** and update `review.md` item 5 with the corrected count
-and the evidence. Only then is the item closed.
-
----
-
-## 5. Notes for whoever picks this up
-
-- Run tests with `docker exec afroduuka-backend-1 php artisan test`. `php artisan test`
-  on the host cannot resolve `pgsql` and fails 552 of 602 — that is an environment
-  problem, not a code problem.
-- `--parallel` does not work; ParaTest is not installed.
-- When auditing by hand, the two traps that produced the wrong answer both times:
-  `Auth::check()` is not a gate, and a controller that delegates to a private
-  `ensure*()` helper *is* gated even though the helper is not in the method body.
-  `SuperAdminBusinessController` is the example of the second.
+- `checked.md` §2 points 3 and 4 (test determinism).
+- `cash_flows.running_balance` in `afroduuka_inventory.dump`. The dump predates both the
+  column removal and the CHECK, so restoring it yields a schema that fails
+  `FinanceCashBalanceTest.php:332-337` and carries no invariant. It predates the invariant
+  and is stale regardless; flag it, do not fix it here.
+- `CashFlowFactory::definition()` is empty and three report tests hand-roll every column
+  to compensate. Filling it in would let those tests shorten, but it touches three files
+  outside this fix.
+- `payment_status_id` is passed by `CashFlowService.php:42` and `:65` but is absent from
+  `CashFlow::$fillable`, so it is silently dropped on those two writes. Unrelated to
+  direction; worth a separate look.

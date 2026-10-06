@@ -22,6 +22,7 @@ import { useProductQuery, useDeleteProductMutation } from '@/app/store/features/
 import { toast } from 'sonner';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const Product = () => {
   const { currency } = useCurrency();

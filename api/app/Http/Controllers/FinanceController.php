@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CashFlowType;
 use App\Http\Requests\StoreCashFlowAdjustmentRequest;
 use App\Models\CashFlow;
 use App\Models\User;
@@ -157,7 +158,7 @@ class FinanceController extends Controller
             // Classified as an adjustment so it moves cash without being counted as
             // revenue or an expense by the type-based reports. The cash sign comes from
             // the required `direction`, which the request now enforces.
-            $validated['type'] = 'adjustment';
+            $validated['type'] = CashFlowType::Adjustment->value;
 
             // Generated here rather than accepted from the client, matching the
             // 'CF-<KIND>-<id>' style used for every other cash-flow writer. A ULID is
