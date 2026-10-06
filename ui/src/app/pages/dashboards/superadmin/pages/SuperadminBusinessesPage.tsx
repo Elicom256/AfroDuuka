@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-600 border-green-500/20',
   deactivated: 'bg-red-500/10 text-red-600 border-red-500/20',
-  banned: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  banned: 'bg-gray-500/10 text-muted-foreground border-gray-500/20',
 };
 
 export const SuperadminBusinessesPage = () => {

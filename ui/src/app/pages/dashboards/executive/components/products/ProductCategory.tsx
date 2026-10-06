@@ -49,7 +49,7 @@ export const ProductCategory = () => {
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex items-center gap-2'>
-            <label className='text-sm font-medium text-gray-500'>Description</label>
+            <label className='text-sm font-medium text-muted-foreground'>Description</label>
             <p>{category.description || 'No description'}</p>
           </div>
         </CardContent>

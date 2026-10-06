@@ -273,7 +273,14 @@ export const PosPage = () => {
       quantity: i.quantity,
       unit_price: i.unit_price,
       discount: i.discount || 0,
-      stock: 9999,
+      // The product relation comes back with the held sale, so the live quantity is
+      // already here. This used to be a hardcoded 9999, which told the cashier the
+      // shelf was effectively empty: the cart rendered "in stock", and the real check
+      // only happened at checkout. A held sale resumed after the shelf emptied looked
+      // sellable right up to the point it failed. Falls back to 0 rather than a
+      // flattering number, so a missing relation reads as unknown and blocks instead of
+      // inventing availability.
+      stock: Number(i.product?.quantity ?? 0),
       tax_rate: Number(i.tax_rate) || 0,
       is_tax_inclusive: !!i.is_tax_inclusive,
     }));

@@ -395,7 +395,7 @@ export const SuperadminPlansPage = () => {
                       <Badge
                         variant='outline'
                         className={
-                          plan.status === 'active' ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-gray-600'
+                          plan.status === 'active' ? 'bg-green-500/10 text-green-600' : 'bg-gray-500/10 text-muted-foreground'
                         }
                       >
                         {plan.status === 'active' ? (

@@ -21,7 +21,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 const statusStyles: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-800',
+  draft: 'bg-gray-100 text-muted-foreground',
   sent: 'bg-blue-100 text-blue-800',
   accepted: 'bg-green-100 text-green-800',
   expired: 'bg-orange-100 text-orange-800',

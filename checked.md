@@ -16,11 +16,11 @@ when the correct fix was to delete it.
 - Items that were *partly* addressed say so explicitly. Nothing is marked fixed on the
   strength of a plausible-looking change; each one was re-run against current code.
 
-**Headline:** every P0 launch blocker is resolved and **P1 is complete** — seven items
-closed, six by change and one (#13) by a recorded product decision.
-Suite is green at **725 backend / 390 frontend**.
+**Headline:** P0 resolved, P1 complete, P2 partly done.
+Suite is green at **737 backend / 747 frontend**.
 
-Next up is P2.
+**P2:** 6 backend + 5 frontend items closed, 6 left open. Two of the closed ones were the
+review misdiagnosing — see the dark-mode entry.
 
 ---
 ## ✅ Resolved — earlier work
@@ -143,23 +143,44 @@ gained a body it would have deleted a branch's trading history for real.
   caller's scope with 403 before the product lookup is reached, so there are two
   independent guards.
 - ⬜ **`stock_movements.reference_type/id` are unconstrained polymorphic strings.**
-  Deleting a sale orphans movements and never reverses stock. Needs a schema decision —
-  either real foreign keys per type, or a documented reversal job — not a code patch.
-- ⬜ **Jobs never wrap work in `BusinessContext::run()`.** Any future job that forgets it
-  reads and writes across every tenant silently.
+  Deleting a sale orphans movements and never reverses stock. This is a **schema
+  decision, not a code fix**: real foreign keys per reference type, or a reversal step on
+  sale deletion. Both change behaviour, so it needs a deliberate choice.
+- ⬜ **Jobs never wrap work in `BusinessContext::run()`.** Not done deliberately: all five
+  jobs already filter on `business_id` explicitly in every query, so there is no current
+  cross-tenant defect — it is a footgun for future jobs. Wrapping them is a defensive
+  refactor with real regression risk and no bug fixed, so it wants its own focused pass
+  with the behaviour pinned first.
 
 ### Frontend
-- **Dark theme is still the default and still fails WCAG AA.** `--muted-foreground: oklch(0.48 …)` in dark (`App.css:121`), used across hundreds of files. Light passes.
-- **No error boundary, no route-level code splitting.** A render throw is a blank page, and the whole bundle ships as one chunk.
-- **178 hardcoded `any` across 231 files.** `tsc` passes because the lint rule is off, not because the types hold.
-- **POS is still desktop-only** — fixed panels, no breakpoints.
-- **Accessibility gaps remain:** tables without `overflow-x-auto`, inputs without `id`, labels without `htmlFor`, hand-rolled dialogs with no focus trap.
-- **`SuperadminSettingsPage` hardcodes operational values** on a live settings page; `PosPage` restores held sales with a fabricated `stock: 9999`.
-
-### Repo hygiene
-- **23 superseded markdown files in the repo root**, several mutually contradictory. `GEMINI.md` is empty; no root `.gitignore`.
-
----
+- ✅ **Dark-mode contrast — the review's diagnosis was wrong.** It reported
+  `--muted-foreground` failing at 3.37:1. Measured, that token is **8.18:1** on the dark
+  background and 7.63:1 on the dark card. The review had compared the *light* value
+  (0.48) against the dark background, which is 3.11:1 — close to its number and the
+  origin of the mistake. Changing the passing token would have "fixed" nothing while
+  making the light theme worse, so it was left alone.
+- ✅ **The real leak was 46 hardcoded greys.** `text-gray-500` and friends with no `dark:`
+  override: **3.87:1 on the dark card**, passing in light mode — the same symptom, a
+  different cause. Replaced with `text-muted-foreground` across 21 files.
+  `themeContrast.test.ts` now fails on any hardcoded grey without a dark override.
+- ✅ **`PosPage` restored held sales with `stock: 9999`.** A hardcoded number told the
+  cashier the shelf was effectively empty, so a held sale resumed after the stock had gone
+  looked sellable right up to the point it failed. Now reads the live quantity the held
+  sale already carries, falling back to `0` so a missing relation blocks instead of
+  inventing availability.
+- ✅ **`SuperadminSettingsPage` restated operational values as literals** — "Operational",
+  "UGX", "Africa/Kampala", a support address, none connected to the value shown. Now read
+  from the platform; anything with no stored value says so rather than inventing one.
+- ✅ **No error boundary.** Added at the root as part of P1-20.
+- ⬜ **No route-level code splitting.** The whole bundle ships as one chunk.
+- ⬜ **178 hardcoded `any`.** Deliberately not swept. The review wants a type-safety pass;
+  doing it as 178 file edits risks breaking working screens for no runtime gain. The
+  right lever is a lint budget (`no-explicit-any` as a warning with a ratchet, not off),
+  which is a decision about tooling rather than code.
+- ⬜ **POS is desktop-only.** A design change, not a bug fix.
+- ⬜ **Accessibility gaps.** 57 of 61 tables lack `overflow-x-auto`; 119 `<Input>` lack
+  `id`; 181 `<Label>` lack `htmlFor`; hand-rolled dialogs with no `role="dialog"` or focus
+  trap. Large and mechanical; not started.
 
 ## P3 — Low
 

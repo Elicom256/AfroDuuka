@@ -140,47 +140,47 @@ export const Product = () => {
                     <CardContent className='space-y-4'>
                       <div className='grid grid-cols-2 gap-4'>
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>SKU</label>
+                          <label className='text-sm font-medium text-muted-foreground'>SKU</label>
                           <p className=''>{product.sku}</p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Barcode</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Barcode</label>
                           <p className=''>{product.barcode || 'N/A'}</p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Selling Price</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Selling Price</label>
                           <p className=''>
                             {currency} {product.selling_price}
                           </p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Cost Price</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Cost Price</label>
                           <p className=''>
                             {currency} {product.cost_price}
                           </p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Quantity</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Quantity</label>
                           <p className=''>{product.quantity}</p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Re-order Level</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Re-order Level</label>
                           <p className=''>{product.reorder_level ?? '-'}</p>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                          <label className='text-sm font-medium text-gray-500'>Category</label>
+                          <label className='text-sm font-medium text-muted-foreground'>Category</label>
                           <p className=''>{product.product_category_id ?? '-'}</p>
                         </div>
                       </div>
                       <Separator />
                       <div className='flex items-center gap-2'>
-                        <label className='text-sm font-medium text-gray-500'>Description</label>
+                        <label className='text-sm font-medium text-muted-foreground'>Description</label>
                         <p className=''>{product.description || 'No description'}</p>
                       </div>
                     </CardContent>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-gray-500/10 text-gray-500',
+  draft: 'bg-gray-500/10 text-muted-foreground',
   pending: 'bg-yellow-500/10 text-yellow-500',
   approved: 'bg-blue-500/10 text-blue-500',
   ordered: 'bg-purple-500/10 text-purple-500',
@@ -59,7 +59,7 @@ export const PurchaseOrdersPage = () => {
                   <div className='flex-1'>
                     <div className='flex items-center gap-2'>
                       <p className='font-medium'>{order.order_number}</p>
-                      <Badge className={statusColors[order.status] || 'bg-gray-500/10 text-gray-500'}>
+                      <Badge className={statusColors[order.status] || 'bg-gray-500/10 text-muted-foreground'}>
                         {order.status.replace(/_/g, ' ')}
                       </Badge>
                     </div>
