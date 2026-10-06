@@ -51,14 +51,14 @@ export const AddBusinessForm: React.FC = () => {
       <Card className='w-full max-w-md bg-gray-900 border-gray-800 text-white shadow-xl'>
         <CardHeader>
           <CardTitle>Create a New Business</CardTitle>
-          <CardDescription className='text-gray-400'>Fill in the details to register your business</CardDescription>
+          <CardDescription className='text-muted-foreground'>Fill in the details to register your business</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent className='space-y-4'>
             {/* Business Name */}
             <div className='space-y-2'>
-              <Label htmlFor='name' className='text-gray-300'>
+              <Label htmlFor='name' className='text-muted-foreground'>
                 Business Name
               </Label>
               <Input
@@ -75,7 +75,7 @@ export const AddBusinessForm: React.FC = () => {
 
             {/* Business Category Select */}
             <div className='space-y-2'>
-              <Label className='text-gray-300'>Business Category</Label>
+              <Label className='text-muted-foreground'>Business Category</Label>
 
               <Select
                 value={businessData.business_category_id}
@@ -92,7 +92,7 @@ export const AddBusinessForm: React.FC = () => {
 
                 <SelectContent className='bg-gray-900 border-gray-800 text-white '>
                   {isCategoriesLoading ? (
-                    <div className='p-2 text-sm text-gray-400'>Loading categories...</div>
+                    <div className='p-2 text-sm text-muted-foreground'>Loading categories...</div>
                   ) : categories?.length ? (
                     categories.map((cat: any) => (
                       <SelectItem key={cat.id} value={String(cat.id)} className='focus:bg-gray-800'>
@@ -100,7 +100,7 @@ export const AddBusinessForm: React.FC = () => {
                       </SelectItem>
                     ))
                   ) : (
-                    <div className='p-2 text-sm text-gray-400'>No categories found</div>
+                    <div className='p-2 text-sm text-muted-foreground'>No categories found</div>
                   )}
                 </SelectContent>
               </Select>
