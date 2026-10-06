@@ -18,7 +18,10 @@ use Illuminate\Support\Facades\Auth;
  *
  * A job wraps its work in run():
  *
- *     BusinessContext::run($businessId, fn () => ...);
+ *     app(BusinessContext::class)->run($businessId, fn () => ...);
+ *
+ * Note the container form. run() is an instance method with no __callStatic, so the
+ * static spelling that used to appear in this docblock would have thrown.
  *
  * Every query inside then scopes itself, and nested jobs inherit the context. Context
  * is also cleared on queue job boundaries so a worker process cannot leak one tenant's

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Contracts\Notifications\ChannelResult;
 use App\Models\NotificationDelivery;
 use App\Services\Notifications\ChannelRegistry;
+use App\Support\Tenant\BusinessContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -33,12 +34,31 @@ class SendNotificationJob implements ShouldQueue
 
     public function handle(ChannelRegistry $channels): void
     {
+        // Read unscoped and before any context exists: the row itself is what names the
+        // tenant, so scoping the lookup by a context would be circular. This is also why a
+        // missing or wrong context cannot by itself make this job read another business's
+        // row — the id comes off the queue, not off a session.
         $delivery = NotificationDelivery::withoutGlobalScopes()->find($this->deliveryId);
 
         if ($delivery === null) {
             return;
         }
 
+        // Everything from here runs as the delivery's own business. The channel below
+        // resolves WhatsAppConfig by $delivery->business_id explicitly, so this is not
+        // what makes it correct today; it is what keeps the attachment builders and any
+        // query added later inside the delivery's tenant rather than the install's.
+        app(BusinessContext::class)->run(
+            (int) $delivery->business_id,
+            fn () => $this->deliver($delivery, $channels)
+        );
+    }
+
+    /**
+     * The send itself, inside the delivery's own tenant.
+     */
+    private function deliver(NotificationDelivery $delivery, ChannelRegistry $channels): void
+    {
         // A retry after a definitive failure is allowed. A retry after an ambiguous one
         // is not: the message may already be with the customer, and the status webhook
         // is the only thing that can tell us which.
