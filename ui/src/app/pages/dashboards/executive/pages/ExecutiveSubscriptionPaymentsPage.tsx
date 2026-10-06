@@ -20,7 +20,7 @@ const paymentStatusColors: Record<string, string> = {
   pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   completed: 'bg-green-500/10 text-green-600 border-green-500/20',
   failed: 'bg-red-500/10 text-red-600 border-red-500/20',
-  rejected: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  rejected: 'bg-gray-500/10 text-muted-foreground border-gray-500/20',
 };
 
 const DayCountdown = ({ endsAt }: { endsAt: string | null }) => {

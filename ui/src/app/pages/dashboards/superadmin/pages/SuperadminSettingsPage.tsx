@@ -1,43 +1,66 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Shield, Bell, Globe } from 'lucide-react';
+import { useGetBusinessQuery } from '@/app/store/features/business/setup/businessQuery';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
-const settingsSections = [
-  {
-    title: 'General',
-    description: 'System-wide settings and preferences',
-    icon: Settings,
-    items: [
-      { label: 'System Name', value: 'DuukaFlow' },
-      { label: 'Platform Status', value: 'Operational' },
-    ],
-  },
-  {
-    title: 'Security',
-    description: 'Security and access control',
-    icon: Shield,
-    items: [{ label: 'Core Support Email', value: 'coresupport@gmail.com' }],
-  },
-  {
-    title: 'Notifications',
-    description: 'Notification preferences',
-    icon: Bell,
-    items: [
-      { label: 'Payment Alerts', value: 'Enabled' },
-      { label: 'New Business Alerts', value: 'Enabled' },
-    ],
-  },
-  {
-    title: 'Regional',
-    description: 'Regional and localization settings',
-    icon: Globe,
-    items: [
-      { label: 'Default Currency', value: 'UGX' },
-      { label: 'Timezone', value: 'Africa/Kampala' },
-    ],
-  },
-];
+/**
+ * Platform settings, read from the platform rather than restated here.
+ *
+ * This page held a `settingsSections` array of literals — System Name 'DuukaFlow',
+ * Platform Status 'Operational', a support address, currency, timezone. Each was a claim
+ * about the running install, written once in a component, with no connection to the value
+ * it claimed to show (checked.md P2). If the platform were suspended, or its support
+ * address changed, or it served a business in another country, this page would still say
+ * "Operational" and "UGX". Anything with no stored value now says so instead.
+ */
+
 
 export const SuperadminSettingsPage = () => {
+  const { data, isLoading } = useGetBusinessQuery();
+  const { currency, countryName } = useCurrency();
+
+  const business = data?.data?.business ?? data?.business ?? data;
+  const loading = isLoading && !business;
+  const value = (present: unknown) =>
+    present ? String(present) : loading ? 'Loading…' : 'Not configured';
+
+  const settingsSections = [
+    {
+      title: 'General',
+      description: 'System-wide settings and preferences',
+      icon: Settings,
+      items: [
+        { label: 'System Name', value: value(business?.name) },
+        { label: 'Platform Status', value: value(business?.status) },
+      ],
+    },
+    {
+      title: 'Security',
+      description: 'Security and access control',
+      icon: Shield,
+      items: [{ label: 'Core Support Email', value: value(business?.email) }],
+    },
+    {
+      title: 'Notifications',
+      description: 'Notification preferences',
+      icon: Bell,
+      items: [
+        { label: 'Payment Alerts', value: 'Not configurable yet' },
+        { label: 'New Business Alerts', value: 'Not configurable yet' },
+      ],
+    },
+    {
+      title: 'Regional',
+      description: 'Regional and localization settings',
+      icon: Globe,
+      items: [
+        { label: 'Default Currency', value: value(currency) },
+        { label: 'Timezone', value: value(business?.timezone) },
+        { label: 'Country', value: value(countryName) },
+      ],
+    },
+  ];
+
   return (
     <div className='space-y-6'>
       <div>

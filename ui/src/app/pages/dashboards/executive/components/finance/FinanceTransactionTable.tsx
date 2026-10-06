@@ -97,7 +97,7 @@ export const FinanceTransactionTable = ({
                     <TableCell className='font-mono text-xs'>{record.transaction_code}</TableCell>
                     <TableCell>
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${typeColors[record.type] ?? 'bg-gray-100 text-gray-800'}`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${typeColors[record.type] ?? 'bg-gray-100 text-muted-foreground'}`}
                       >
                         {record.type.replace('_', ' ')}
                       </span>

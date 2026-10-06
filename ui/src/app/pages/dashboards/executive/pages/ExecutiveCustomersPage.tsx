@@ -76,8 +76,8 @@ export const ExecutiveCustomersPage = () => {
                     <p className='font-medium'>
                       {customer.user.firstname} {customer.user.lastname}
                     </p>
-                    <p className='text-sm text-gray-500'>{customer.user.email}</p>
-                    {customer.company_name && <p className='text-sm text-gray-600'>{customer.company_name}</p>}
+                    <p className='text-sm text-muted-foreground'>{customer.user.email}</p>
+                    {customer.company_name && <p className='text-sm text-muted-foreground'>{customer.company_name}</p>}
                   </div>
                   <Button variant='outline' size='sm' onClick={() => handleEdit(customer)}>
                     <Edit />

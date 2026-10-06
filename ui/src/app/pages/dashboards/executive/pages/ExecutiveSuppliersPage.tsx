@@ -83,9 +83,9 @@ export const ExecutiveSuppliersPage = () => {
                       {supplier.user.firstname} {supplier.user.lastname}
                     </p>
                     {supplier.company_name && (
-                      <p className='text-sm text-gray-500 font-medium'>{supplier.company_name}</p>
+                      <p className='text-sm text-muted-foreground font-medium'>{supplier.company_name}</p>
                     )}
-                    <p className='text-sm text-gray-400'>{supplier.user.email}</p>
+                    <p className='text-sm text-muted-foreground'>{supplier.user.email}</p>
                   </div>
                   {canManageSuppliers && (
                     <Button

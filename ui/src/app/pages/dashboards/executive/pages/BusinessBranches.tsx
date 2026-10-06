@@ -39,7 +39,7 @@ export const BusinessBranches = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className='w-full h-full flex items-center justify-center text-gray-400 gap-2'>
+              <CardFooter className='w-full h-full flex items-center justify-center text-muted-foreground gap-2'>
                 <span>Tel</span>
                 <span>{branch.phone}</span>
               </CardFooter>

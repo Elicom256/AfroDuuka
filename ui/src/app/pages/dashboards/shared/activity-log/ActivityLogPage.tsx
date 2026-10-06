@@ -24,7 +24,7 @@ const LOG_NAME_COLORS: Record<string, string> = {
   settings: 'bg-amber-500/10 text-amber-600',
   data_export: 'bg-green-500/10 text-green-600',
   customer: 'bg-cyan-500/10 text-cyan-600',
-  default: 'bg-gray-500/10 text-gray-600',
+  default: 'bg-gray-500/10 text-muted-foreground',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
