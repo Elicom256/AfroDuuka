@@ -106,5 +106,4 @@ class UpdateCashFlowRequest extends FormRequest
             'transaction_date' => ['sometimes', 'date'],
         ];
     }
-
-    }
+}

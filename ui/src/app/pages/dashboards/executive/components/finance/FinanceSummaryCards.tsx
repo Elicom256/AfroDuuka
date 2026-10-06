@@ -15,7 +15,8 @@ type FinanceSummaryCardsProps = {
   /**
    * Adjustments recorded before a direction became required. They are excluded from
    * cash_balance, because nothing says which way the money moved, so the figure is only
-   * as complete as this count allows.
+   * as complete as this count allows. Each one can be marked in the transactions table
+   * below, which is where this copy points.
    */
   unsigned_adjustments?: number;
 };

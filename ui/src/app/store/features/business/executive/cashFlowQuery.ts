@@ -6,6 +6,13 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
  */
 export type CashFlowDirection = 'credit' | 'debit';
 
+/** The repair endpoint's response body. */
+type CashFlowRecord = {
+  id: number;
+  transaction_code: string;
+  direction: CashFlowDirection | null;
+};
+
 export const cashFlowQuery = createApi({
   reducerPath: 'cashFlowPath',
   baseQuery: fetchBaseQuery({
@@ -18,7 +25,12 @@ export const cashFlowQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['CashFlowAPI'],
+  /**
+   * FinanceAPI is this slice's own name for the finance query tags. It is declared here so
+   * invalidating it from a cash-flow mutation typechecks; the tag is only ever *read* by
+   * financeQuery, so nothing in this slice serves it.
+   */
+  tagTypes: ['CashFlowAPI', 'FinanceAPI'],
   endpoints: (builder) => ({
     getCashFlows: builder.query<any, number | void>({
       query: (page = 1) => ({ url: `/?page=${page}`, method: 'GET' }),
@@ -36,7 +48,10 @@ export const cashFlowQuery = createApi({
      * Invalidating only the first would leave the warning on screen after a repair that
      * worked.
      */
-    setCashFlowDirection: builder.mutation<any, { id: number; direction: CashFlowDirection }>({
+    setCashFlowDirection: builder.mutation<
+      { message: string; data?: CashFlowRecord },
+      { id: number; direction: CashFlowDirection }
+    >({
       query: ({ id, direction }) => ({
         url: `/adjustments/${id}/direction`,
         method: 'PATCH',
