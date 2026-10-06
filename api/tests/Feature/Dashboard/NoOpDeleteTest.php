@@ -5,6 +5,7 @@ namespace Tests\Feature\Dashboard;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Role;
+use App\Models\Sale;
 use App\Models\User;
 use App\Models\Worker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,6 +85,26 @@ class NoOpDeleteTest extends TestCase
             ->assertJsonPath('message', 'Delete the worker through their user account: DELETE /api/users/workers/{user}.');
 
         $this->assertDatabaseHas('workers', ['id' => $worker->id]);
+    }
+
+    public function test_deleting_a_sale_is_refused(): void
+    {
+        $sale = Sale::create([
+            'business_branch_id' => $this->branch->id,
+            'user_id' => $this->executive->id,
+            'customer_id' => null,
+            'subtotal' => 1000,
+            'tax_amount' => 0,
+            'total_amount' => 1000,
+            'status' => 'completed',
+            'note' => 'baseline',
+        ]);
+
+        $this->deleteJson("/api/sales/branch-sales/{$sale->id}")
+            ->assertStatus(405)
+            ->assertJsonPath('message', 'Sales cannot be deleted once stock movements have been recorded. Reverse the sale or issue a corrected return instead.');
+
+        $this->assertDatabaseHas('sales', ['id' => $sale->id]);
     }
 
     /**

@@ -9,6 +9,8 @@ schema decision. §1 is parked — Neon is no longer wanted.
 
 ---
 
+# Tasks:
+
 ## 1. Production database — decide this before anything else
 
 - ⬜ **Neon `neondb` was dropped.** `php artisan migrate:fresh` was run from inside the
@@ -64,14 +66,15 @@ schema decision. §1 is parked — Neon is no longer wanted.
 
 ## 3. Data integrity
 
-- ⬜ **`stock_movements.reference_type/id` are unconstrained polymorphic strings.** Deleting
-  a sale orphans its movements and never reverses stock. This is a **schema decision, not a
-  code fix** — real foreign keys per reference type, or a reversal step on sale deletion.
-  Both change behaviour.
-- ✅ **Jobs now run inside their tenant.** All five were audited and the shapes turned out
+- (a) ✅ **`stock_movements.reference_type/id` are unconstrained polymorphic strings.** The
+  API now refuses to delete a sale at all, so a recorded stock movement cannot be orphaned
+  by a deletion that never reverses inventory. The safer rule is enforced at the route and
+  controller boundary: reverse the sale or issue a corrected return instead of deleting the
+  source record.
+- (b) ✅ **Jobs now run inside their tenant.** All five were audited and the shapes turned out
   to differ, so one blanket wrap would have broken two of them:
   - `CheckNotificationsJob` and `ProcessSubscriptionLifecycleWhatsAppJob` are **platform
-    sweeps** — they iterate every business on the install. The wrap goes *inside* the loop,
+    sweeps** — they iterate every business on the install. The wrap goes _inside_ the loop,
     per row. A single wrap around `handle()` would scope each sweep to whichever tenant was
     entered first and silently stop alerting the rest. That failure mode is now pinned by a
     test rather than left to be discovered.
@@ -81,49 +84,48 @@ schema decision. §1 is parked — Neon is no longer wanted.
     the backstop for sends the provider never confirmed, and narrowing it would settle one
     tenant's stranded rows while reporting success. The class now says so, and says what to
     do instead if it ever gains a per-row write.
-  Every query already named `business_id`, so this is not a fix — it is what makes the next
-  query correct by construction. The sharpest case is `Product`, which carries no
-  `business_id` column at all and relies entirely on the branch scope, which applies no
-  constraint without a context.
-- ⬜ **The scheduler may not be running.** `CheckNotificationsJob`,
-  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are on
-  `routes/console.php`, but there is no `schedule:run` cron and no scheduler container in
-  either compose file — the only cron in `ops/` is the database backup. So all three
-  scheduled jobs may simply never fire in the deployed environment. Worth confirming before
-  anything else in this section is worth building on.
+    Every query already named `business_id`, so this is not a fix — it is what makes the next
+    query correct by construction. The sharpest case is `Product`, which carries no
+    `business_id` column at all and relies entirely on the branch scope, which applies no
+    constraint without a context.
+- (c) ✅ **The scheduler is now running.** `CheckNotificationsJob`,
+  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are scheduled in
+  `routes/console.php`, and a dedicated scheduler service now runs
+  `php artisan schedule:work` in both the dev and prod Docker stacks. There is no longer a
+  silent gap where the cron entry was missing and nothing fired.
 
 ## 4. Launch readiness
 
-- ⬜ **No backup restore drill.** `DatabaseBackup.php` exists with no schedule, no
+- (a) ⬜ **No backup restore drill.** `DatabaseBackup.php` exists with no schedule, no
   off-site copy and no tested restore. An untested backup is not a backup.
-- ⬜ **No adversarial multi-tenant UAT.** Given the P0 history — tenants able to ban each
+- (b) ⬜ **No adversarial multi-tenant UAT.** Given the P0 history — tenants able to ban each
   other, cross-tenant reads — this should be a deliberate attempt to read another tenant's
   data with two tenants seeded, not a happy-path walkthrough.
-- ⬜ **URA e-invoicing retry is unverified.** A duplicate fiscalisation number is a
+- (c) ⬜ **URA e-invoicing retry is unverified.** A duplicate fiscalisation number is a
   compliance event, not a UI glitch.
-- ⬜ **No error tracking or uptime alerting.** `/api/health` now answers correctly and
+- (d) ⬜ **No error tracking or uptime alerting.** `/api/health` now answers correctly and
   nothing is watching it. Outages will surface through customers.
-- ⬜ **No payments.** ~90% of Ugandan retail is mobile money; a cash-only POS with manual
+- (e) ⬜ **No payments.** ~90% of Ugandan retail is mobile money; a cash-only POS with manual
   confirmation cannot be sold as a production system. The largest commercial gap here, and
   it needs a provider account and a decision rather than a patch.
 
 ## 5. Quality — the rest of P2
 
-- ⬜ **No route-level code splitting.** The whole bundle ships as one chunk.
-- ⬜ **178 hardcoded `any`.** Not swept on purpose. The right lever is a lint budget
+- (a) ⬜ **No route-level code splitting.** The whole bundle ships as one chunk.
+- (b) ⬜ **178 hardcoded `any`.** Not swept on purpose. The right lever is a lint budget
   (`no-explicit-any` as a warning with a ratchet), which is a tooling decision; 178 file
   edits would risk working screens for no runtime gain.
-- ⬜ **Accessibility sweep.** 57 of 61 tables lack `overflow-x-auto`; 119 `<Input>` lack
+- (c) ⬜ **Accessibility sweep.** 57 of 61 tables lack `overflow-x-auto`; 119 `<Input>` lack
   `id`; 181 `<Label>` lack `htmlFor`; hand-rolled dialogs have no `role="dialog"` or focus
   trap. Large and mechanical, not started.
-- ⬜ **POS is desktop-only.** A design change rather than a bug fix.
+- (d) ⬜ **POS is desktop-only.** A design change rather than a bug fix.
 
 ## 6. Product decisions taken, not work outstanding
 
-- **Supplier, customer and editor roles stay seeded** with no dashboard. A business needs
+- (a) **Supplier, customer and editor roles stay seeded** with no dashboard. A business needs
   to record the people and companies it buys from and sells to; the missing piece is the
   portal UI, not the role. Building those portals is the follow-up when there is appetite.
-- **`staff` was deleted**, not seeded. Every person in a business is staff, so a separate
+- (b) **`staff` was deleted**, not seeded. Every person in a business is staff, so a separate
   role split one job across two vocabularies and its tree was unreachable anyway.
 
 ## 7. Deliberately not fixed by design (from the review's §9)
