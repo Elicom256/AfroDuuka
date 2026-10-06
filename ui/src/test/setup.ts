@@ -1,4 +1,12 @@
 import { beforeEach } from 'vitest';
+import { configure } from '@testing-library/react';
+
+// Routes are code-split, so a page only appears after its dynamic import resolves.
+// The default 1s waitFor budget was occasionally shorter than the first transform of
+// a dashboard chunk under a cold test worker, which made route tests flaky rather
+// than wrong. Waiting longer does not slow the suite: an assertion that passes returns
+// as soon as it is true.
+configure({ asyncUtilTimeout: 15000 });
 
 /**
  * jsdom does not implement navigation, and two things under test navigate for real:

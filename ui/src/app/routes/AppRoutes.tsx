@@ -1,27 +1,38 @@
+import { lazy, Suspense, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { HomeLayout } from '../pages/public/HomeLayout';
-import { Home } from '../pages/public/Home';
-import { PricingPage } from '../pages/public/PricingPage';
-import { About } from '../pages/public/About';
-import { Documentation } from '../pages/public/Documentation';
-import { TermsOfService } from '../pages/public/TermsOfService';
-import { PrivacyPolicy } from '../pages/public/PrivacyPolicy';
-import { Login } from '../pages/public/Login';
-import { SignUp } from '../pages/public/SignUp';
-import { Onboarding } from '../pages/public/Onboarding';
-import { ExecutiveRoutes } from './ExecutiveRoutes';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
-import { OperationsRoutes } from './OperationsRoutes';
-import { NotFound } from './NotFound';
-import { NoDashboardAccess } from './NoDashboardAccess';
-import { SuperadminRoutes } from './Superadmin';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { BranchManagerRoutes } from './BranchManagerRoutes';
-import { ProcurementRoutes } from './ProcurementRoutes';
 import { getToken } from '@/lib/session';
 import { isDashboardPath } from '@/lib/routes';
 import { dashboardTreeForRole, normaliseRoleName } from '@/lib/roles';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+
+// Route-level code splitting. Every page and role tree is loaded on demand so a
+// visitor to the marketing site never downloads a dashboard, and one role never
+// downloads another's screens. Each module is a named export, so the dynamic
+// import is unwrapped into the shape React.lazy expects.
+const named = <T extends Record<string, unknown>, K extends keyof T>(
+  loader: () => Promise<T>,
+  key: K,
+) => lazy(() => loader().then((m) => ({ default: m[key] as ComponentType<Record<string, unknown>> })));
+
+const HomeLayout = named(() => import('../pages/public/HomeLayout'), 'HomeLayout');
+const Home = named(() => import('../pages/public/Home'), 'Home');
+const PricingPage = named(() => import('../pages/public/PricingPage'), 'PricingPage');
+const About = named(() => import('../pages/public/About'), 'About');
+const Documentation = named(() => import('../pages/public/Documentation'), 'Documentation');
+const TermsOfService = named(() => import('../pages/public/TermsOfService'), 'TermsOfService');
+const PrivacyPolicy = named(() => import('../pages/public/PrivacyPolicy'), 'PrivacyPolicy');
+const Login = named(() => import('../pages/public/Login'), 'Login');
+const SignUp = named(() => import('../pages/public/SignUp'), 'SignUp');
+const Onboarding = named(() => import('../pages/public/Onboarding'), 'Onboarding');
+const ExecutiveRoutes = named(() => import('./ExecutiveRoutes'), 'ExecutiveRoutes');
+const OperationsRoutes = named(() => import('./OperationsRoutes'), 'OperationsRoutes');
+const BranchManagerRoutes = named(() => import('./BranchManagerRoutes'), 'BranchManagerRoutes');
+const ProcurementRoutes = named(() => import('./ProcurementRoutes'), 'ProcurementRoutes');
+const SuperadminRoutes = named(() => import('./Superadmin'), 'SuperadminRoutes');
+const NotFound = named(() => import('./NotFound'), 'NotFound');
+const NoDashboardAccess = named(() => import('./NoDashboardAccess'), 'NoDashboardAccess');
 
 /**
  * Which tree a role gets, keyed by *normalised* role name.
@@ -142,39 +153,41 @@ export const AppRoutes = () => {
   }
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route element={<HomeLayout />}>
-        <Route index element={<Home />} />
-        <Route path='pricing' element={<PricingPage />} />
-      </Route>
-      <Route path='login' element={<Login />} />
-      <Route path='signup' element={<SignUp />} />
-      <Route path='onboarding' element={<Onboarding />} />
-      <Route path='about' element={<About />} />
-      <Route path='documentation' element={<Documentation />} />
-      <Route path='terms' element={<TermsOfService />} />
-      <Route path='privacy' element={<PrivacyPolicy />} />
+    <Suspense fallback={<PageLoadingState />}>
+      <Routes>
+        {/* Public routes */}
+        <Route element={<HomeLayout />}>
+          <Route index element={<Home />} />
+          <Route path='pricing' element={<PricingPage />} />
+        </Route>
+        <Route path='login' element={<Login />} />
+        <Route path='signup' element={<SignUp />} />
+        <Route path='onboarding' element={<Onboarding />} />
+        <Route path='about' element={<About />} />
+        <Route path='documentation' element={<Documentation />} />
+        <Route path='terms' element={<TermsOfService />} />
+        <Route path='privacy' element={<PrivacyPolicy />} />
 
-      {/* Role-based protected routes, all mounted at /dashboard/* so that the
-          hardcoded '/dashboard/...' links throughout the app resolve. The tree
-          is chosen from the role, so the URL does not need to repeat it. */}
-      {RoleTree && <Route path='dashboard/*' element={<RoleTree />} />}
+        {/* Role-based protected routes, all mounted at /dashboard/* so that the
+            hardcoded '/dashboard/...' links throughout the app resolve. The tree
+            is chosen from the role, so the URL does not need to repeat it. */}
+        {RoleTree && <Route path='dashboard/*' element={<RoleTree />} />}
 
-      {/* Signed in, but holding a role this build has no dashboard for — the seeded
-          `editor`, `supplier` and `customer` roles all land here. Without this they
-          fell through to the marketing 404 below, which is a dead end reached by a
-          perfectly legitimate login. Scoped to dashboard URLs, because an unknown
-          public URL is still a genuine 404. */}
-      {hasToken && !RoleTree && (
-        <Route
-          path='dashboard/*'
-          element={<NoDashboardAccess role={normaliseRoleName(role) || null} />}
-        />
-      )}
+        {/* Signed in, but holding a role this build has no dashboard for — the seeded
+            `editor`, `supplier` and `customer` roles all land here. Without this they
+            fell through to the marketing 404 below, which is a dead end reached by a
+            perfectly legitimate login. Scoped to dashboard URLs, because an unknown
+            public URL is still a genuine 404. */}
+        {hasToken && !RoleTree && (
+          <Route
+            path='dashboard/*'
+            element={<NoDashboardAccess role={normaliseRoleName(role) || null} />}
+          />
+        )}
 
-      {/* Fallback */}
-      <Route path='*' element={<NotFound />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path='*' element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
