@@ -128,7 +128,10 @@ schema decision. §1 is parked — Neon is no longer wanted.
   `SelectTrigger`, the pattern `AddSale` already used). The 8 hand-rolled overlays got
   `role="dialog"`, `aria-modal` and `aria-labelledby`, plus a new `useFocusTrap` hook that
   traps Tab, closes on Escape and restores focus to the trigger.
-- (d) ⬜ **POS is desktop-only.** A design change rather than a bug fix.
+- (d) ✅ **POS works on mobile.** The page no longer pins itself to `h-screen`. Below
+  `lg` the products/cart pane and the actions pane stack and the page scrolls, the cart
+  keeps a usable min-height, the keyboard-shortcut hint is hidden (touch has no F-keys)
+  and the customer/checkout modals size to the viewport instead of a fixed 400/500px.
 
 ## 6. Product decisions taken, not work outstanding
 
