@@ -32,13 +32,20 @@ Suite green at **737 backend / 747 frontend**, except the time-bomb below.
 
 ## 2. Latent traps in code that is unreachable today
 
-- ⬜ **`StoreCashFlowRequest` allows `type: 'adjustment'` with no `direction` rule.** The
-  database now rejects a directionless adjustment, so the day anyone routes a POST to
-  `CashFlowController::store` it returns **500** instead of a clean 422. `store` and
-  `update` are unrouted today, which is the only reason this is harmless.
-- ⬜ **No endpoint can set a direction** on a legacy unsigned adjustment. The dashboard
-  warning tells the user an administrator must act, and today that means the
-  `duukaflow:finance:unsigned-adjustments` command.
+- ✅ **The direction invariant now has one owner.** `CashFlowType` and `CashFlowDirection`
+  enums replace the six literal copies of the allowed values, and
+  `RequiresDirectionForAdjustments` states the rule once for both write requests. The 500
+  is gone: `POST /api/finances` with `type: 'adjustment'` and no `direction` is a 422
+  naming the field. `store` and `update` are now routed behind
+  `canManageSensitiveFinance`, with `type` restricted to `adjustment` — the other six types
+  stay owned by `CashFlowService`, since taking `type` from a client would have been a
+  revenue forgery endpoint. `type` is immutable on update.
+- ✅ **A legacy unsigned adjustment can be repaired from the dashboard.**
+  `PATCH /finances/adjustments/{id}/direction`, gated by the same role check that guards
+  creating one. Its refusals and the `duukaflow:finance:unsigned-adjustments` command's come
+  from one `UnsignedAdjustmentResolver`, so the endpoint and the shell cannot disagree; the
+  command keeps its cross-tenant reach. The transactions table offers the two directions on
+  each unsigned row, and the warning copy now points there.
 - ⬜ **One time-dependent test.** `BranchPerformanceReportsTest` hardcodes a fixture date
   of `2026-09-05` inside a `last_30_days` window. On 6 October the window opened on
   7 September, the fixture fell outside it, and four tests failed for reasons unrelated to
