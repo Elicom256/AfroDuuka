@@ -403,26 +403,28 @@ export const PosPage = () => {
   const changeDue = Math.max(0, totalPaid - total);
 
   return (
-    <div className='h-screen flex flex-col bg-background overflow-hidden'>
+    <div className='flex min-h-dvh flex-col bg-background lg:h-screen lg:overflow-hidden'>
       {/* Top bar */}
-      <header className='flex items-center justify-between border-b border-border px-6 py-3 bg-card shrink-0'>
-        <div className='flex items-center gap-4'>
+      <header className='flex items-center justify-between border-b border-border px-4 py-3 bg-card shrink-0 sm:px-6'>
+        <div className='flex min-w-0 items-center gap-3 sm:gap-4'>
           <Button variant='ghost' size='icon' onClick={() => navigate('/dashboard')} className='h-9 w-9 rounded-xl'>
             <ArrowLeft className='h-5 w-5' />
           </Button>
-          <div className='h-6 w-px bg-border' />
+          <div className='hidden h-6 w-px bg-border sm:block' />
           <h1 className='text-xl font-bold tracking-tight'>POS</h1>
-          <span className='text-xs text-muted-foreground'>{business?.name}</span>
+          <span className='truncate text-xs text-muted-foreground'>{business?.name}</span>
         </div>
         <div className='flex items-center gap-3'>
-          <span className='text-xs text-muted-foreground'>F2 Search | F4 Customer | F8 Hold | F9 Pay | Esc Close</span>
+          <span className='hidden text-xs text-muted-foreground lg:inline'>
+            F2 Search | F4 Customer | F8 Hold | F9 Pay | Esc Close
+          </span>
         </div>
       </header>
 
-      {/* Main area */}
-      <div className='flex flex-1 overflow-hidden'>
+      {/* Main area: two panes side by side on desktop, stacked and page-scrolled on mobile */}
+      <div className='flex flex-1 flex-col lg:flex-row lg:overflow-hidden'>
         {/* Left panel: search + products + cart */}
-        <div className='flex flex-col flex-1 border-r border-border'>
+        <div className='flex flex-1 flex-col lg:border-r lg:border-border'>
           {/* Search */}
           <div className='p-4 border-b border-border bg-muted/30'>
             <div className='relative'>
@@ -466,7 +468,7 @@ export const PosPage = () => {
           </div>
 
           {/* Cart items */}
-          <div className='flex-1 overflow-y-auto p-4'>
+          <div className='flex-1 overflow-y-auto p-4 min-h-[45vh] lg:min-h-0'>
             {cart.length === 0 ? (
               <div className='flex flex-col items-center justify-center h-full text-muted-foreground'>
                 <ShoppingCart className='h-16 w-16 mb-4 opacity-20' />
@@ -561,8 +563,8 @@ export const PosPage = () => {
           </div>
         </div>
 
-        {/* Right panel: actions */}
-        <div className='w-80 flex flex-col bg-card shrink-0'>
+        {/* Right panel: actions — a bottom bar on mobile, a fixed column on desktop */}
+        <div className='w-full flex flex-col bg-card shrink-0 border-t border-border lg:w-80 lg:border-t-0 lg:border-l'>
           <div className='p-4 border-b border-border space-y-3'>
             <Button
               variant='outline'
@@ -597,7 +599,7 @@ export const PosPage = () => {
           </div>
 
           {/* Held sales */}
-          <div className='flex-1 overflow-y-auto p-4'>
+          <div className='p-4 lg:flex-1 lg:overflow-y-auto'>
             <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3'>Held Sales</h3>
             {heldSales.length === 0 ? (
               <p className='text-xs text-muted-foreground'>No held sales</p>
@@ -648,11 +650,11 @@ export const PosPage = () => {
           role='dialog'
           aria-modal='true'
           aria-labelledby='select-customer-title'
-          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
           onClick={() => setShowCustomerModal(false)}
         >
           <div
-            className='bg-card rounded-3xl border border-border p-6 w-100 max-h-[80vh] overflow-y-auto'
+            className='bg-card rounded-3xl border border-border p-6 w-full max-w-md max-h-[80vh] overflow-y-auto'
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between mb-4'>
@@ -696,11 +698,11 @@ export const PosPage = () => {
           role='dialog'
           aria-modal='true'
           aria-labelledby='checkout-title'
-          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
           onClick={() => setShowCheckoutModal(false)}
         >
           <div
-            className='bg-card rounded-3xl border border-border p-6 w-125 max-h-[90vh] overflow-y-auto'
+            className='bg-card rounded-3xl border border-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto'
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between mb-4'>
