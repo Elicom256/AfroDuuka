@@ -4,8 +4,8 @@
 **Trimmed:** 2026-10-06 — completed items removed. What remains is what is actually undone.
 
 **State:** P0 resolved · P1 complete · P2 partly done. Dev runs against local Postgres.
-Suite green at **763 backend / 756 frontend**. §2 is closed: all four findings were
-fixture faults, now fixed. §1 is parked — Neon is no longer wanted.
+Suite green at **774 backend / 756 frontend**. §2 closed; §3 has one item left and it needs a
+schema decision. §1 is parked — Neon is no longer wanted.
 
 ---
 
@@ -68,9 +68,29 @@ fixture faults, now fixed. §1 is parked — Neon is no longer wanted.
   a sale orphans its movements and never reverses stock. This is a **schema decision, not a
   code fix** — real foreign keys per reference type, or a reversal step on sale deletion.
   Both change behaviour.
-- ⬜ **Jobs never wrap work in `BusinessContext::run()`.** Not a current defect: all five
-  jobs filter on `business_id` explicitly in every query. It is a footgun for future jobs,
-  and wrapping them is a defensive refactor that wants its own focused pass.
+- ✅ **Jobs now run inside their tenant.** All five were audited and the shapes turned out
+  to differ, so one blanket wrap would have broken two of them:
+  - `CheckNotificationsJob` and `ProcessSubscriptionLifecycleWhatsAppJob` are **platform
+    sweeps** — they iterate every business on the install. The wrap goes *inside* the loop,
+    per row. A single wrap around `handle()` would scope each sweep to whichever tenant was
+    entered first and silently stop alerting the rest. That failure mode is now pinned by a
+    test rather than left to be discovered.
+  - `ProcessWhatsAppNotificationJob` and `SendNotificationJob` target **one business** each,
+    taken from the payload and from the delivery row respectively. One wrap each.
+  - `ProcessSesSuppressionsJob` is **deliberately cross-tenant** and is left that way. It is
+    the backstop for sends the provider never confirmed, and narrowing it would settle one
+    tenant's stranded rows while reporting success. The class now says so, and says what to
+    do instead if it ever gains a per-row write.
+  Every query already named `business_id`, so this is not a fix — it is what makes the next
+  query correct by construction. The sharpest case is `Product`, which carries no
+  `business_id` column at all and relies entirely on the branch scope, which applies no
+  constraint without a context.
+- ⬜ **The scheduler may not be running.** `CheckNotificationsJob`,
+  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are on
+  `routes/console.php`, but there is no `schedule:run` cron and no scheduler container in
+  either compose file — the only cron in `ops/` is the database backup. So all three
+  scheduled jobs may simply never fire in the deployed environment. Worth confirming before
+  anything else in this section is worth building on.
 
 ## 4. Launch readiness
 

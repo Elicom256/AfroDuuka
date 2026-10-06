@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Support\Tenant\BusinessContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -43,13 +44,29 @@ class CheckNotificationsJob implements ShouldQueue
         $businesses = $this->businessesToCheck();
 
         foreach ($businesses as $business) {
-            $recipients = $this->recipientsFor($business);
-            if ($recipients->isEmpty()) {
-                continue;
-            }
+            // One business at a time, inside its own tenant.
+            //
+            // The wrap goes inside the loop, not around handle(): businessesToCheck()
+            // deliberately returns every business on the install, so a single wrap over
+            // the whole method would scope the scan to one tenant and silently stop
+            // alerting the rest.
+            //
+            // Every query below already filters on business_id or on branch ids taken from
+            // this business, so this is belt-and-braces rather than a fix. What it does
+            // buy is the branch scope: Product has no business_id column at all, so the
+            // tenant there rests entirely on EffectiveBranchScope, which applies no
+            // constraint whatsoever when there is neither an authenticated user nor a
+            // context. One new line added to checkLowStock() without that filter would
+            // read every tenant's products, and nothing here would complain.
+            app(BusinessContext::class)->run($business->id, function () use ($business, $notificationService): void {
+                $recipients = $this->recipientsFor($business);
+                if ($recipients->isEmpty()) {
+                    return;
+                }
 
-            $this->checkLowStock($notificationService, $business, $recipients);
-            $this->checkOverduePayments($notificationService, $business, $recipients);
+                $this->checkLowStock($notificationService, $business, $recipients);
+                $this->checkOverduePayments($notificationService, $business, $recipients);
+            });
         }
 
         Log::info('CheckNotificationsJob completed');
