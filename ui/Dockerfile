@@ -5,6 +5,9 @@ FROM node:22-alpine AS Frontend-builder
 
 WORKDIR /app
 
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=$VITE_BASE_URL
+
 COPY package*.json ./
 RUN npm install
 
