@@ -30,7 +30,7 @@ services:
       - app
 
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost/']
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1/']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -123,6 +123,12 @@ services:
     restart: unless-stopped
     networks:
       - app
+
+    # The image bakes in a HEALTHCHECK that probes 127.0.0.1:8000/up, but
+    # schedule:work never binds :8000. Disable it so the container is not
+    # permanently marked unhealthy.
+    healthcheck:
+      disable: true
 
   # ============================ Postgres ==============================
   pgsql:
