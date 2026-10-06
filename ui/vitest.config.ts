@@ -20,5 +20,9 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     restoreMocks: true,
+    // Routes are code-split, so the first test to mount a dashboard tree waits for
+    // Vite to transform that tree's on-demand chunks. That is a one-off cost in the
+    // test runner, not a slow render, and it can exceed the 5s default on a cold worker.
+    testTimeout: 20000,
   },
 });
