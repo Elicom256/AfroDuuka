@@ -84,7 +84,7 @@ class ActivityLogSeeder extends Seeder
                 'description' => 'Role assigned to :name',
                 'properties' => [
                     'attributes' => ['role' => 'editor'],
-                    'old' => ['role' => 'staff'],
+                    'old' => ['role' => 'customer'],
                 ],
             ],
             [

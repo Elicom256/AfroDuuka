@@ -217,7 +217,7 @@ export const Documentation: React.FC = () => {
                         },
                         {
                           title: 'Invite your team',
-                          desc: 'Add staff members and assign roles (Admin, Manager, Staff).',
+                          desc: 'Add team members and assign roles (Executive, Branch Manager, Operations, Procurement).',
                         },
                         {
                           title: 'Add products',
@@ -251,9 +251,10 @@ export const Documentation: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-2 text-sm text-muted-foreground'>
-                      <p><strong className='text-foreground'>Admin</strong> — Full access to all features and settings</p>
-                      <p><strong className='text-foreground'>Manager</strong> — Manage inventory, sales, and staff</p>
-                      <p><strong className='text-foreground'>Staff</strong> — Process sales and view assigned data</p>
+                      <p><strong className='text-foreground'>Executive</strong> — Full access to every branch and business setting</p>
+                      <p><strong className='text-foreground'>Branch Manager</strong> — Near-executive control, limited to their assigned branch</p>
+                      <p><strong className='text-foreground'>Operations</strong> — Day-to-day floor: selling, stock counts and adjustments</p>
+                      <p><strong className='text-foreground'>Procurement</strong> — Purchasing, suppliers and reorder suggestions</p>
                       <p><strong className='text-foreground'>Superadmin</strong> — Platform-level administration</p>
                     </CardContent>
                   </Card>
