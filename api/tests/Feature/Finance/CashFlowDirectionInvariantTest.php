@@ -130,7 +130,7 @@ class CashFlowDirectionInvariantTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors('direction');
 
-        $this->assertDatabaseCount('cash_flows', 0, 'A rejected adjustment must not reach the ledger.');
+        $this->assertDatabaseCount('cash_flows', 0);
     }
 
     public function test_an_adjustment_with_an_unknown_direction_is_rejected(): void
@@ -194,7 +194,7 @@ class CashFlowDirectionInvariantTest extends TestCase
             ]))->assertStatus(422)->assertJsonValidationErrors('type');
         }
 
-        $this->assertDatabaseCount('cash_flows', 0, 'No derived type may be authored by hand.');
+        $this->assertDatabaseCount('cash_flows', 0);
         $this->assertEquals(0.0, $this->dashboard()['total_revenue']);
     }
 
@@ -219,19 +219,52 @@ class CashFlowDirectionInvariantTest extends TestCase
         $this->assertSame(CashFlowType::Adjustment->value, $cashFlow->refresh()->type);
     }
 
-    public function test_an_update_to_an_adjustment_without_a_direction_is_rejected(): void
+    /**
+     * A signed row must stay signed.
+     *
+     * Sending an explicit null is the one payload that opens a hole on an existing row, and
+     * it must be refused with a named field rather than left to the database CHECK, which
+     * would answer with a 500.
+     */
+    public function test_an_update_cannot_clear_the_direction_of_a_signed_adjustment(): void
     {
         $cashFlow = $this->legacyAdjustment();
-
-        // `type` is prohibited on update, so the row's own type is what the invariant rule
-        // reads. Dropping the direction here is the same bad payload the store request now
-        // answers with a 422 for.
-        $this->patchJson("/api/finances/{$cashFlow->id}", ['amount' => 5000])
-            ->assertOk();
+        $cashFlow->forceFill(['direction' => CashFlowDirection::Credit->value])->save();
 
         $this->patchJson("/api/finances/{$cashFlow->id}", ['direction' => null])
             ->assertStatus(422)
             ->assertJsonValidationErrors('direction');
+
+        $this->assertSame(CashFlowDirection::Credit->value, $cashFlow->refresh()->direction);
+        $this->assertEquals(15000.0, $this->dashboard()['cash_balance']);
+    }
+
+    /**
+     * An edit that says nothing about direction leaves it alone, on a signed row and on an
+     * unsigned one.
+     *
+     * The unsigned row is the interesting case. Refusing every edit until the direction is
+     * repaired would freeze a row nobody can describe or correct, and the repair endpoint
+     * is where that is fixed — a hole with a stale label is more workable than a hole the
+     * API will not let you mention.
+     */
+    public function test_an_edit_that_omits_the_direction_leaves_it_untouched(): void
+    {
+        $signed = $this->legacyAdjustment('CF-ADJ-SIGNED');
+        $signed->forceFill(['direction' => CashFlowDirection::Debit->value])->save();
+
+        $this->patchJson("/api/finances/{$signed->id}", ['description' => 'Late note'])
+            ->assertOk();
+
+        $this->assertSame(CashFlowDirection::Debit->value, $signed->refresh()->direction);
+
+        $unsigned = $this->legacyAdjustment('CF-ADJ-UNSIGNED');
+
+        $this->patchJson("/api/finances/{$unsigned->id}", ['description' => 'Still being investigated'])
+            ->assertOk();
+
+        $this->assertNull($unsigned->refresh()->direction);
+        $this->assertSame('Still being investigated', $unsigned->refresh()->description);
     }
 
     public function test_an_update_cannot_set_a_direction_on_a_derived_type(): void

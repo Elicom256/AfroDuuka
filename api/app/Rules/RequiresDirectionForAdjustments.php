@@ -5,7 +5,7 @@ namespace App\Rules;
 use App\Enums\CashFlowDirection;
 use App\Enums\CashFlowType;
 use App\Models\CashFlow;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Validation\Validator;
 
 /**
@@ -29,32 +29,62 @@ use Illuminate\Validation\Validator;
  */
 class RequiresDirectionForAdjustments
 {
+    public const MESSAGE_MISSING = 'An adjustment must say whether the money came in or went out.';
+
+    public const MESSAGE_UNKNOWN = 'Direction must be either credit (money in) or debit (money out).';
+
+    public const MESSAGE_NOT_APPLICABLE = 'Only an adjustment records a direction; this type takes its sign from the type itself.';
+
+    public const MESSAGE_CLEARED = 'This adjustment already records a direction. To change which way it moved, repair it instead of clearing it.';
+
     /**
      * Run the check against a payload, reporting failures against `direction`.
+     *
+     * $cashFlow is the stored row, or null when this is a create. It is what separates
+     * the two situations that superficially look alike when `direction` is missing.
+     *
+     * On a create there is no stored row, so an adjustment with no direction is a row that
+     * would be born unsigned — that is refused.
+     *
+     * On an update, a missing direction means "leave it alone", which is never a new hole.
+     * Even on a row that is already unsigned: those rows predate the requirement and are
+     * signed through PATCH /finances/adjustments/{id}/direction, and refusing every other
+     * edit until they are repaired would freeze a row nobody can describe or correct. A
+     * hole with a stale label on it is more workable than a hole the API will not let you
+     * mention. The one payload that does open a hole is an explicit null on a row that is
+     * currently signed, and that is refused.
      */
-    public function validatePayload(string $type, mixed $direction, Validator $validator): void
+    public function validatePayload(string $type, mixed $direction, Validator $validator, ?CashFlow $cashFlow = null): void
     {
         $direction = is_string($direction) && trim($direction) !== '' ? trim($direction) : null;
 
-        if ($type === CashFlowType::Adjustment->value) {
-            if ($direction === null) {
-                $validator->errors()->add('direction', 'An adjustment must say whether the money came in or went out.');
-
-                return;
-            }
-
-            if (CashFlowDirection::tryFrom($direction) === null) {
-                $validator->errors()->add('direction', 'Direction must be either credit (money in) or debit (money out).');
+        if ($type !== CashFlowType::Adjustment->value) {
+            // A direction on any other type would be silently ignored by cashEffect(),
+            // which only reads it for an adjustment. Letting one through would store a
+            // value that looks authoritative and affects nothing.
+            if ($direction !== null) {
+                $validator->errors()->add('direction', self::MESSAGE_NOT_APPLICABLE);
             }
 
             return;
         }
 
-        // A direction on any other type would be silently ignored by cashEffect(), which
-        // only reads it for an adjustment. Letting one through would store a value that
-        // looks authoritative and affects nothing.
         if ($direction !== null) {
-            $validator->errors()->add('direction', 'Only an adjustment records a direction; this type takes its sign from the type itself.');
+            if (CashFlowDirection::tryFrom($direction) === null) {
+                $validator->errors()->add('direction', self::MESSAGE_UNKNOWN);
+            }
+
+            return;
+        }
+
+        if ($cashFlow === null) {
+            $validator->errors()->add('direction', self::MESSAGE_MISSING);
+
+            return;
+        }
+
+        if ($this->isClearingSignedRow() && $cashFlow->direction !== null) {
+            $validator->errors()->add('direction', self::MESSAGE_CLEARED);
         }
     }
 
@@ -65,21 +95,39 @@ class RequiresDirectionForAdjustments
     {
         $validator->after(function (Validator $validator): void {
             $data = $validator->getData();
+            $cashFlow = $this->storedCashFlow();
 
             // On update `type` is prohibited, so the stored row's own type is what decides.
-            $type = $data['type'] ?? $this->storedType();
+            $type = $data['type'] ?? $cashFlow?->type;
 
-            $this->validatePayload(is_string($type) ? $type : '', $data['direction'] ?? null, $validator);
+            $this->validatePayload(
+                is_string($type) ? $type : '',
+                $data['direction'] ?? null,
+                $validator,
+                $cashFlow,
+            );
         });
     }
 
     /**
-     * The bound row's type, when the request is an update.
+     * The bound row, when the request is an update.
      */
-    private function storedType(): ?string
+    private function storedCashFlow(): ?CashFlow
     {
-        $cashFlow = Route::current()?->parameter('cashFlow');
+        $cashFlow = RouteFacade::current()?->parameter('cashFlow');
 
-        return $cashFlow instanceof CashFlow ? $cashFlow->type : null;
+        return $cashFlow instanceof CashFlow ? $cashFlow : null;
+    }
+
+    /**
+     * Did this payload send `direction` as an explicit null, rather than omit it?
+     *
+     * The distinction decides whether a signed row is being cleared or merely left alone.
+     * Laravel has already coerced an absent field to null in getData(), so the request's
+     * raw input is the only place the difference survives.
+     */
+    private function isClearingSignedRow(): bool
+    {
+        return request()->has('direction') && request()->input('direction') === null;
     }
 }

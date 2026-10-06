@@ -9,6 +9,7 @@ use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * Edits a manual ledger row.
@@ -24,6 +25,17 @@ class UpdateCashFlowRequest extends FormRequest
     public function authorize(): bool
     {
         return RolePermissions::canManageSensitiveFinance($this->user());
+    }
+
+    /**
+     * Run the invariant once the shape of the payload is known.
+     *
+     * `type` is prohibited here, so the rule reads the bound row's stored type to decide
+     * whether a direction is required at all.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        app(RequiresDirectionForAdjustments::class)->apply($validator);
     }
 
     /**
@@ -55,7 +67,7 @@ class UpdateCashFlowRequest extends FormRequest
         return [
             'type' => ['prohibited'],
 
-            'direction' => ['nullable', Rule::enum(CashFlowDirection::class), new RequiresDirectionForAdjustments],
+            'direction' => ['nullable', Rule::enum(CashFlowDirection::class)],
 
             'amount' => ['sometimes', 'numeric', 'min:0'],
             'currency' => ['sometimes', 'string', 'size:3'],
