@@ -102,6 +102,33 @@ services:
     healthcheck:
       disable: true
 
+  # ============================ Scheduler ============================
+  # Keep the Laravel scheduler in its own container so the jobs declared in
+  # `routes/console.php` actually run on a heartbeat rather than sleeping forever.
+  scheduler:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SKIP_MIGRATIONS: 'true'
+    command: php artisan schedule:work --no-ansi --verbose
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
   # ============================ Postgres ==============================
   pgsql:
     image: postgres:17-alpine
