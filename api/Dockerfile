@@ -34,6 +34,13 @@ RUN install-php-extensions \
     bcmath \
     exif
 
+# The upstream image sets CAP_NET_BIND_SERVICE on the frankenphp binary so it can
+# bind :80/:443 as a non-root user. Platforms that run containers with
+# no-new-privileges (Render, OpenShift, restricted K8s) refuse to exec a binary
+# carrying file capabilities and fail with "sh: exec: ... frankenphp: Operation
+# not permitted". We serve on :8000, so the capability is unnecessary — strip it.
+RUN setcap -r /usr/local/bin/frankenphp
+
 
 # ------------------------------------------------------------------------------
 # Dependency layer (Composer)
