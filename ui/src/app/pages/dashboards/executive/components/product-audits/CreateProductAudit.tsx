@@ -88,9 +88,9 @@ export const CreateProductAudit = ({ branches }: Props) => {
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Branch</Label>
+              <Label htmlFor='branch' className='text-right'>Branch</Label>
               <Select value={formData.business_branch_id} onValueChange={(v) => handleChange('business_branch_id', v)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='branch' className='col-span-3'>
                   <SelectValue placeholder='Select branch' />
                 </SelectTrigger>
                 <SelectContent>
@@ -101,8 +101,8 @@ export const CreateProductAudit = ({ branches }: Props) => {
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Audit Date</Label>
-              <Input
+              <Label htmlFor='audit-date' className='text-right'>Audit Date</Label>
+              <Input id='audit-date'
                 type='date'
                 value={formData.audit_date}
                 onChange={(e) => handleChange('audit_date', e.target.value)}
@@ -111,9 +111,9 @@ export const CreateProductAudit = ({ branches }: Props) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Status</Label>
+              <Label htmlFor='status' className='text-right'>Status</Label>
               <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='status' className='col-span-3'>
                   <SelectValue placeholder='Select status' />
                 </SelectTrigger>
                 <SelectContent>
@@ -124,8 +124,8 @@ export const CreateProductAudit = ({ branches }: Props) => {
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Notes</Label>
-              <Textarea
+              <Label htmlFor='notes' className='text-right'>Notes</Label>
+              <Textarea id='notes'
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 className='col-span-3'
@@ -155,7 +155,7 @@ export const CreateProductAudit = ({ branches }: Props) => {
                     </Select>
                   </div>
                   <div className='col-span-3'>
-                    <Input
+                    <Input id='counted-qty'
                       type='number'
                       min='0'
                       placeholder='Counted qty'
@@ -164,7 +164,7 @@ export const CreateProductAudit = ({ branches }: Props) => {
                     />
                   </div>
                   <div className='col-span-3'>
-                    <Input
+                    <Input id='notes-2'
                       placeholder='Notes'
                       value={item.notes}
                       onChange={(e) => handleItemChange(index, 'notes', e.target.value)}

@@ -158,7 +158,7 @@ export const EmployeeSalaryForm = ({
                 onValueChange={(value) => updateForm('worker_id', value)}
                 disabled={isEdit}
               >
-                <SelectTrigger>
+                <SelectTrigger id='worker_id'>
                   <SelectValue placeholder='Select employee' />
                 </SelectTrigger>
                 <SelectContent>
@@ -187,9 +187,9 @@ export const EmployeeSalaryForm = ({
             </div>
 
             <div className='space-y-2'>
-              <Label>Currency</Label>
+              <Label htmlFor='currency'>Currency</Label>
               <Select value={formData.currency} onValueChange={(value) => updateForm('currency', value)}>
-                <SelectTrigger>
+                <SelectTrigger id='currency'>
                   <SelectValue placeholder='Select currency' />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,9 +206,9 @@ export const EmployeeSalaryForm = ({
             </div>
 
             <div className='space-y-2'>
-              <Label>Status</Label>
+              <Label htmlFor='status'>Status</Label>
               <Select value={formData.status} onValueChange={(value) => updateForm('status', value)}>
-                <SelectTrigger>
+                <SelectTrigger id='status'>
                   <SelectValue placeholder='Select status' />
                 </SelectTrigger>
                 <SelectContent>

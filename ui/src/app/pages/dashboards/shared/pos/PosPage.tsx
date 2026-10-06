@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -79,7 +80,12 @@ export const PosPage = () => {
   const searchRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<any>(null);
   const scanFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customerModalRef = useRef<HTMLDivElement>(null);
+  const checkoutModalRef = useRef<HTMLDivElement>(null);
   const [scanState, setScanState] = useState<'idle' | 'success' | 'error'>('idle');
+
+  useFocusTrap(customerModalRef, { active: showCustomerModal, onEscape: () => setShowCustomerModal(false) });
+  useFocusTrap(checkoutModalRef, { active: showCheckoutModal, onEscape: () => setShowCheckoutModal(false) });
 
   const heldSales = heldSalesData?.data || [];
 
@@ -421,7 +427,7 @@ export const PosPage = () => {
           <div className='p-4 border-b border-border bg-muted/30'>
             <div className='relative'>
               <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-              <Input
+              <Input id='scan-barcode-sku-or-product-name'
                 ref={searchRef}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -480,7 +486,7 @@ export const PosPage = () => {
                       <p className='text-xs text-muted-foreground'>@ {item.unit_price.toLocaleString()}</p>
                       <div className='flex items-center gap-2 mt-1.5'>
                         <span className='text-xs text-muted-foreground'>Disc</span>
-                        <Input
+                        <Input id='0'
                           type='number'
                           min='0'
                           className='h-7 w-24 text-xs'
@@ -638,6 +644,10 @@ export const PosPage = () => {
       {/* Customer modal */}
       {showCustomerModal && (
         <div
+          ref={customerModalRef}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='select-customer-title'
           className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
           onClick={() => setShowCustomerModal(false)}
         >
@@ -646,12 +656,12 @@ export const PosPage = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between mb-4'>
-              <h2 className='text-lg font-semibold'>Select Customer</h2>
+              <h2 id='select-customer-title' className='text-lg font-semibold'>Select Customer</h2>
               <Button variant='ghost' size='sm' onClick={() => setShowCustomerModal(false)}>
                 <X className='h-4 w-4' />
               </Button>
             </div>
-            <Input
+            <Input id='search-by-name-phone-or-code'
               value={customerSearch}
               onChange={(e) => handleCustomerSearch(e.target.value)}
               placeholder='Search by name, phone, or code...'
@@ -682,6 +692,10 @@ export const PosPage = () => {
       {/* Checkout modal */}
       {showCheckoutModal && (
         <div
+          ref={checkoutModalRef}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='checkout-title'
           className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
           onClick={() => setShowCheckoutModal(false)}
         >
@@ -690,7 +704,7 @@ export const PosPage = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between mb-4'>
-              <h2 className='text-lg font-semibold'>Checkout</h2>
+              <h2 id='checkout-title' className='text-lg font-semibold'>Checkout</h2>
               <Button variant='ghost' size='sm' onClick={() => setShowCheckoutModal(false)}>
                 <X className='h-4 w-4' />
               </Button>
@@ -758,7 +772,7 @@ export const PosPage = () => {
                       </option>
                     ))}
                   </select>
-                  <Input
+                  <Input id='amount'
                     type='number'
                     value={payment.amount || ''}
                     onChange={(e) => updatePayment(i, 'amount', parseFloat(e.target.value) || 0)}
@@ -784,7 +798,7 @@ export const PosPage = () => {
               </div>
             )}
 
-            <Input
+            <Input id='note-optional'
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder='Note (optional)'

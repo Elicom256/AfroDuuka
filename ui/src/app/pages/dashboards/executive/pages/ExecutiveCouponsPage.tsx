@@ -47,13 +47,13 @@ export const ExecutiveCouponsPage = () => {
             <DialogHeader><DialogTitle>Create Coupon</DialogTitle></DialogHeader>
             <div className='space-y-4'>
               <div>
-                <Label>Description</Label>
-                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Label htmlFor='description'>Description</Label>
+                <Input id='description' value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
               <div>
-                <Label>Discount Type</Label>
+                <Label htmlFor='discount-type'>Discount Type</Label>
                 <Select value={form.discount_type} onValueChange={(v) => setForm({ ...form, discount_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id='discount-type'><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value='percentage'>Percentage</SelectItem>
                     <SelectItem value='fixed'>Fixed</SelectItem>
@@ -61,17 +61,17 @@ export const ExecutiveCouponsPage = () => {
                 </Select>
               </div>
               <div>
-                <Label>Discount Value</Label>
-                <Input type='number' value={form.discount_value} onChange={(e) => setForm({ ...form, discount_value: e.target.value })} />
+                <Label htmlFor='discount-value'>Discount Value</Label>
+                <Input id='discount-value' type='number' value={form.discount_value} onChange={(e) => setForm({ ...form, discount_value: e.target.value })} />
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div>
-                  <Label>Valid From</Label>
-                  <Input type='date' value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
+                  <Label htmlFor='valid-from'>Valid From</Label>
+                  <Input id='valid-from' type='date' value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Valid Until</Label>
-                  <Input type='date' value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
+                  <Label htmlFor='valid-until'>Valid Until</Label>
+                  <Input id='valid-until' type='date' value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
                 </div>
               </div>
               <Button className='w-full' onClick={handleCreate}>Create Coupon</Button>

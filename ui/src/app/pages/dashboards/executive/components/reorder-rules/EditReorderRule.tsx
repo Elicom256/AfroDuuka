@@ -66,8 +66,8 @@ export const EditReorderRule = ({ open, onOpenChange, rule, suppliers, updateRul
             </div>
           </div>
           <div className='space-y-2'>
-            <Label>Reorder Quantity</Label>
-            <Input
+            <Label htmlFor='reorder-quantity'>Reorder Quantity</Label>
+            <Input id='reorder-quantity'
               type='number'
               value={form.reorder_quantity}
               onChange={(e) => setForm({ ...form, reorder_quantity: e.target.value })}
@@ -75,12 +75,12 @@ export const EditReorderRule = ({ open, onOpenChange, rule, suppliers, updateRul
             />
           </div>
           <div className='space-y-2'>
-            <Label>Preferred Supplier (optional)</Label>
+            <Label htmlFor='preferred-supplier-optional'>Preferred Supplier (optional)</Label>
             <Select
               value={form.preferred_supplier_id}
               onValueChange={(v) => setForm({ ...form, preferred_supplier_id: v })}
             >
-              <SelectTrigger>
+              <SelectTrigger id='preferred-supplier-optional'>
                 <SelectValue placeholder='Select supplier' />
               </SelectTrigger>
               <SelectContent>

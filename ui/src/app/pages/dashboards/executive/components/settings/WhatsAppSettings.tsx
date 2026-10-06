@@ -115,15 +115,15 @@ export const WhatsAppSettings = () => {
       <CardContent className='space-y-6'>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <div className='space-y-2'>
-            <Label>Provider</Label>
-            <Input value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} />
+            <Label htmlFor='provider'>Provider</Label>
+            <Input id='provider' value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} />
           </div>
 
           <div className='space-y-2'>
-            <Label>Business WhatsApp Number</Label>
+            <Label htmlFor='business-whatsapp-number'>Business WhatsApp Number</Label>
             <div className='flex items-center gap-2'>
               <Phone className='h-4 w-4 text-muted-foreground' />
-              <Input
+              <Input id='business-whatsapp-number'
                 value={form.business_phone}
                 placeholder='+256700000000'
                 onChange={(e) => setForm({ ...form, business_phone: e.target.value })}
@@ -132,23 +132,23 @@ export const WhatsAppSettings = () => {
           </div>
 
           <div className='space-y-2'>
-            <Label>Phone Number ID</Label>
-            <Input value={form.phone_number_id} onChange={(e) => setForm({ ...form, phone_number_id: e.target.value })} />
+            <Label htmlFor='phone-number-id'>Phone Number ID</Label>
+            <Input id='phone-number-id' value={form.phone_number_id} onChange={(e) => setForm({ ...form, phone_number_id: e.target.value })} />
           </div>
 
           <div className='space-y-2'>
-            <Label>Access Token</Label>
-            <Input value={form.access_token} onChange={(e) => setForm({ ...form, access_token: e.target.value })} />
+            <Label htmlFor='access-token'>Access Token</Label>
+            <Input id='access-token' value={form.access_token} onChange={(e) => setForm({ ...form, access_token: e.target.value })} />
           </div>
 
           <div className='space-y-2 md:col-span-2'>
-            <Label>Webhook Verify Token</Label>
-            <Input value={form.webhook_verify_token} onChange={(e) => setForm({ ...form, webhook_verify_token: e.target.value })} />
+            <Label htmlFor='webhook-verify-token'>Webhook Verify Token</Label>
+            <Input id='webhook-verify-token' value={form.webhook_verify_token} onChange={(e) => setForm({ ...form, webhook_verify_token: e.target.value })} />
           </div>
 
           <div className='space-y-2 md:col-span-2'>
-            <Label>Welcome Message</Label>
-            <Input value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} />
+            <Label htmlFor='welcome-message'>Welcome Message</Label>
+            <Input id='welcome-message' value={form.welcome_message} onChange={(e) => setForm({ ...form, welcome_message: e.target.value })} />
           </div>
         </div>
 

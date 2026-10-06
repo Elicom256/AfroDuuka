@@ -195,16 +195,16 @@ export const ActivityLogPage = ({
                 ))}
               </SelectContent>
             </Select>
-            <Input
+            <Input id='date'
               type='date'
               value={dateFrom}
               onChange={(e) => applyFilter(setDateFrom)(e.target.value)}
               className='w-40'
             />
-            <Input type='date' value={dateTo} onChange={(e) => applyFilter(setDateTo)(e.target.value)} className='w-40' />
+            <Input id='date-2' type='date' value={dateTo} onChange={(e) => applyFilter(setDateTo)(e.target.value)} className='w-40' />
             <div className='relative min-w-48 flex-1'>
               <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-              <Input
+              <Input id='search-description'
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className='pl-9'

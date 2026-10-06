@@ -68,25 +68,25 @@ export const BusinessInfoSettings = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className='space-y-4 max-w-lg'>
           <div className='space-y-2'>
-            <Label>Business Name</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder='Your business name' />
+            <Label htmlFor='business-name'>Business Name</Label>
+            <Input id='business-name' value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder='Your business name' />
           </div>
           <div className='space-y-2'>
-            <Label>Email</Label>
-            <Input type='email' value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder='business@example.com' />
+            <Label htmlFor='email'>Email</Label>
+            <Input id='email' type='email' value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder='business@example.com' />
           </div>
           <div className='space-y-2'>
-            <Label>Phone</Label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder='0772000000' />
+            <Label htmlFor='phone'>Phone</Label>
+            <Input id='phone' value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder='0772000000' />
           </div>
           <div className='space-y-2'>
-            <Label>Address</Label>
-            <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder='Kampala, Uganda' />
+            <Label htmlFor='address'>Address</Label>
+            <Input id='address' value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder='Kampala, Uganda' />
           </div>
           <div className='space-y-2'>
-            <Label>Category</Label>
+            <Label htmlFor='category'>Category</Label>
             <Select value={form.business_category_id} onValueChange={(v) => setForm({ ...form, business_category_id: v })}>
-              <SelectTrigger><SelectValue placeholder='Select category' /></SelectTrigger>
+              <SelectTrigger id='category'><SelectValue placeholder='Select category' /></SelectTrigger>
               <SelectContent>
                 {categories.map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
               </SelectContent>

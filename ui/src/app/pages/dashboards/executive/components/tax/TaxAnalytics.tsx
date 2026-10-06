@@ -61,9 +61,9 @@ export const TaxAnalytics = () => {
         </CardHeader>
         <CardContent className='flex flex-wrap items-end gap-4'>
           <div className='space-y-2'>
-            <Label>Period</Label>
+            <Label htmlFor='period'>Period</Label>
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className='w-48'>
+              <SelectTrigger id='period' className='w-48'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -77,12 +77,12 @@ export const TaxAnalytics = () => {
           {period === 'custom' && (
             <>
               <div className='space-y-2'>
-                <Label>From</Label>
-                <Input type='date' value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className='w-40' />
+                <Label htmlFor='from'>From</Label>
+                <Input id='from' type='date' value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className='w-40' />
               </div>
               <div className='space-y-2'>
-                <Label>To</Label>
-                <Input type='date' value={customTo} onChange={(e) => setCustomTo(e.target.value)} className='w-40' />
+                <Label htmlFor='to'>To</Label>
+                <Input id='to' type='date' value={customTo} onChange={(e) => setCustomTo(e.target.value)} className='w-40' />
               </div>
             </>
           )}

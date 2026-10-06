@@ -16,7 +16,7 @@ export const ProductAuditFilters = ({ branches, filters, search, onFilterChange,
   <div className='flex flex-wrap items-center gap-3'>
     <div className='relative flex-1 min-w-[200px] max-w-sm'>
       <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-      <Input
+      <Input id='search-audit-number'
         placeholder='Search audit number...'
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
@@ -47,14 +47,14 @@ export const ProductAuditFilters = ({ branches, filters, search, onFilterChange,
         <SelectItem value='cancelled'>Cancelled</SelectItem>
       </SelectContent>
     </Select>
-    <Input
+    <Input id='from'
       type='date'
       value={filters.date_from || ''}
       onChange={(e) => onFilterChange('date_from', e.target.value)}
       className='w-[160px] rounded-2xl'
       placeholder='From'
     />
-    <Input
+    <Input id='to'
       type='date'
       value={filters.date_to || ''}
       onChange={(e) => onFilterChange('date_to', e.target.value)}

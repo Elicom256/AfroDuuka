@@ -188,9 +188,9 @@ export const SuperadminSubscriptionsPage = () => {
             </DialogHeader>
             <form onSubmit={handleCreate} className='space-y-4'>
               <div className='space-y-2'>
-                <Label>Plan</Label>
+                <Label htmlFor='plan'>Plan</Label>
                 <Select value={form.plan_id} onValueChange={(v) => setForm({ ...form, plan_id: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id='plan'>
                     <SelectValue placeholder='Select plan' />
                   </SelectTrigger>
                   <SelectContent>
@@ -203,8 +203,8 @@ export const SuperadminSubscriptionsPage = () => {
                 </Select>
               </div>
               <div className='space-y-2'>
-                <Label>Business ID (optional for super admin)</Label>
-                <Input
+                <Label htmlFor='business-id-optional-for-super-admin'>Business ID (optional for super admin)</Label>
+                <Input id='business-id-optional-for-super-admin'
                   type='number'
                   value={form.business_id}
                   onChange={(e) => setForm({ ...form, business_id: e.target.value })}
@@ -358,9 +358,9 @@ export const SuperadminSubscriptionsPage = () => {
           </DialogHeader>
           <form onSubmit={handleUpdate} className='space-y-4'>
             <div className='space-y-2'>
-              <Label>Plan</Label>
+              <Label htmlFor='plan-2'>Plan</Label>
               <Select value={form.plan_id} onValueChange={(v) => setForm({ ...form, plan_id: v })}>
-                <SelectTrigger>
+                <SelectTrigger id='plan-2'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -373,9 +373,9 @@ export const SuperadminSubscriptionsPage = () => {
               </Select>
             </div>
             <div className='space-y-2'>
-              <Label>Status</Label>
+              <Label htmlFor='status'>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                <SelectTrigger>
+                <SelectTrigger id='status'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -389,16 +389,16 @@ export const SuperadminSubscriptionsPage = () => {
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Start Date</Label>
-                <Input
+                <Label htmlFor='start-date'>Start Date</Label>
+                <Input id='start-date'
                   type='datetime-local'
                   value={form.starts_at}
                   onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
                 />
               </div>
               <div className='space-y-2'>
-                <Label>End Date</Label>
-                <Input
+                <Label htmlFor='end-date'>End Date</Label>
+                <Input id='end-date'
                   type='datetime-local'
                   value={form.ends_at}
                   onChange={(e) => setForm({ ...form, ends_at: e.target.value })}

@@ -148,7 +148,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
               Customer <span className='text-red-500'>*</span>
             </Label>
             <Select value={formData.customer_id} onValueChange={(v) => handleChange('customer_id', v)}>
-              <SelectTrigger className='col-span-3'>
+              <SelectTrigger id='customer_id' className='col-span-3'>
                 <SelectValue placeholder='Select customer (optional - walk-in)' />
               </SelectTrigger>
               <SelectContent>
@@ -190,7 +190,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                 <div className='grid grid-cols-12 gap-4'>
                   {/* Product */}
                   <div className='col-span-5'>
-                    <Label>Product</Label>
+                    <Label htmlFor='product'>Product</Label>
                     <Select
                       value={item.product_id}
                       onValueChange={(value) => {
@@ -209,7 +209,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
                         }));
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id='product'>
                         <SelectValue placeholder='Select product' />
                       </SelectTrigger>
                       <SelectContent>
@@ -229,8 +229,8 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
 
                   {/* Quantity */}
                   <div className='col-span-3'>
-                    <Label>Quantity</Label>
-                    <Input
+                    <Label htmlFor='quantity'>Quantity</Label>
+                    <Input id='quantity'
                       type='number'
                       value={item.quantity}
                       onChange={(e) => updateItem(index, 'quantity', e.target.value)}
@@ -240,8 +240,8 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
 
                   {/* Unit Price */}
                   <div className='col-span-4'>
-                    <Label>Unit Price ({currency})</Label>
-                    <Input
+                    <Label htmlFor='unit-price'>Unit Price ({currency})</Label>
+                    <Input id='unit-price'
                       type='number'
                       value={item.unit_price}
                       onChange={(e) => updateItem(index, 'unit_price', e.target.value)}
@@ -256,9 +256,9 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           {/* Payment & Extra Info */}
           <div className='grid grid-cols-2 gap-6'>
             <div className='w-fulll'>
-              <Label>Payment Method</Label>
+              <Label htmlFor='payment-method'>Payment Method</Label>
               <Select value={formData.payment_status_id} onValueChange={(v) => handleChange('payment_status_id', v)}>
-                <SelectTrigger>
+                <SelectTrigger id='payment-method'>
                   <SelectValue placeholder='Select payment method' />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,8 +272,8 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
             </div>
 
             <div>
-              <Label>Reference / Receipt No.</Label>
-              <Input
+              <Label htmlFor='reference-receipt-no'>Reference / Receipt No.</Label>
+              <Input id='reference-receipt-no'
                 value={formData.reference}
                 onChange={(e) => handleChange('reference', e.target.value)}
                 placeholder='Optional receipt or transaction ID'
@@ -282,8 +282,8 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           </div>
 
           <div className='grid gap-1'>
-            <Label>Note</Label>
-            <Textarea
+            <Label htmlFor='note'>Note</Label>
+            <Textarea id='note'
               value={formData.note}
               onChange={(e) => handleChange('note', e.target.value)}
               placeholder='Any additional notes...'

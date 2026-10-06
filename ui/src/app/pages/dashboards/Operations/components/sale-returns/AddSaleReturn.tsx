@@ -194,7 +194,7 @@ export const AddSaleReturn = ({ addSaleReturn }: AddSaleReturnProps) => {
           <div className='grid gap-4 py-4'>
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <Input
+              <Input id='search-by-product-name-or-sale-id'
                 placeholder='Search by product name or sale ID...'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -263,7 +263,7 @@ export const AddSaleReturn = ({ addSaleReturn }: AddSaleReturnProps) => {
                         {item.product_name}
                         <span className='text-muted-foreground ml-2'>(max {maxQty})</span>
                       </span>
-                      <Input
+                      <Input id='number'
                         type='number'
                         min={0}
                         max={maxQty}

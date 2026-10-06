@@ -125,9 +125,9 @@ export const AdjustStock: React.FC<AdjustStockProps> = ({ open, onOpenChange, pr
               </p>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Reason</Label>
+              <Label htmlFor='reason' className='text-right'>Reason</Label>
               <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='reason' className='col-span-3'>
                   <SelectValue placeholder='Select a reason' />
                 </SelectTrigger>
                 <SelectContent>

@@ -208,16 +208,16 @@ export const SuperadminPlansPage = () => {
             <form onSubmit={handleCreate} className='space-y-4'>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Name *</Label>
-                  <Input
+                  <Label htmlFor='name'>Name *</Label>
+                  <Input id='name'
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder='Basic'
                   />
                 </div>
                 <div className='space-y-2'>
-                  <Label>Slug *</Label>
-                  <Input
+                  <Label htmlFor='slug'>Slug *</Label>
+                  <Input id='slug'
                     value={form.slug}
                     onChange={(e) => setForm({ ...form, slug: e.target.value })}
                     placeholder='basic'
@@ -226,16 +226,16 @@ export const SuperadminPlansPage = () => {
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Monthly Price *</Label>
-                  <Input
+                  <Label htmlFor='monthly-price'>Monthly Price *</Label>
+                  <Input id='monthly-price'
                     type='number'
                     value={form.monthly_price}
                     onChange={(e) => setForm({ ...form, monthly_price: e.target.value })}
                   />
                 </div>
                 <div className='space-y-2'>
-                  <Label>Yearly Price *</Label>
-                  <Input
+                  <Label htmlFor='yearly-price'>Yearly Price *</Label>
+                  <Input id='yearly-price'
                     type='number'
                     value={form.yearly_price}
                     onChange={(e) => setForm({ ...form, yearly_price: e.target.value })}
@@ -244,9 +244,9 @@ export const SuperadminPlansPage = () => {
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Billing Cycle</Label>
+                  <Label htmlFor='billing-cycle'>Billing Cycle</Label>
                   <Select value={form.billing_cycle} onValueChange={(v) => setForm({ ...form, billing_cycle: v })}>
-                    <SelectTrigger>
+                    <SelectTrigger id='billing-cycle'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -257,8 +257,8 @@ export const SuperadminPlansPage = () => {
                   </Select>
                 </div>
                 <div className='space-y-2'>
-                  <Label>Currency</Label>
-                  <Input
+                  <Label htmlFor='currency'>Currency</Label>
+                  <Input id='currency'
                     value={form.currency}
                     onChange={(e) => setForm({ ...form, currency: e.target.value })}
                     placeholder='UGX'
@@ -267,9 +267,9 @@ export const SuperadminPlansPage = () => {
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Mark</Label>
+                  <Label htmlFor='mark'>Mark</Label>
                   <Select value={form.mark} onValueChange={(v) => setForm({ ...form, mark: v })}>
-                    <SelectTrigger>
+                    <SelectTrigger id='mark'>
                       <SelectValue placeholder='None' />
                     </SelectTrigger>
                     <SelectContent>
@@ -281,9 +281,9 @@ export const SuperadminPlansPage = () => {
                   </Select>
                 </div>
                 <div className='space-y-2'>
-                  <Label>Status</Label>
+                  <Label htmlFor='status'>Status</Label>
                   <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                    <SelectTrigger>
+                    <SelectTrigger id='status'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -295,16 +295,16 @@ export const SuperadminPlansPage = () => {
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Discount %</Label>
-                  <Input
+                  <Label htmlFor='discount'>Discount %</Label>
+                  <Input id='discount'
                     type='number'
                     value={form.discount_percentage}
                     onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })}
                   />
                 </div>
                 <div className='space-y-2'>
-                  <Label>Sort Order</Label>
-                  <Input
+                  <Label htmlFor='sort-order'>Sort Order</Label>
+                  <Input id='sort-order'
                     type='number'
                     value={form.sort_order}
                     onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
@@ -312,16 +312,16 @@ export const SuperadminPlansPage = () => {
                 </div>
               </div>
               <div className='space-y-2'>
-                <Label>Description</Label>
-                <Textarea
+                <Label htmlFor='description'>Description</Label>
+                <Textarea id='description'
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={2}
                 />
               </div>
               <div className='space-y-2'>
-                <Label>Features (one per line)</Label>
-                <Textarea
+                <Label htmlFor='features-one-per-line'>Features (one per line)</Label>
+                <Textarea id='features-one-per-line'
                   value={form.features}
                   onChange={(e) => setForm({ ...form, features: e.target.value })}
                   rows={3}
@@ -329,8 +329,8 @@ export const SuperadminPlansPage = () => {
                 />
               </div>
               <div className='space-y-2'>
-                <Label>Limits (JSON)</Label>
-                <Textarea
+                <Label htmlFor='limits-json'>Limits (JSON)</Label>
+                <Textarea id='limits-json'
                   value={form.limits}
                   onChange={(e) => setForm({ ...form, limits: e.target.value })}
                   rows={2}
@@ -461,26 +461,26 @@ export const SuperadminPlansPage = () => {
           <form onSubmit={handleUpdate} className='space-y-4'>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Name</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Label htmlFor='name-2'>Name</Label>
+                <Input id='name-2' value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className='space-y-2'>
-                <Label>Slug</Label>
-                <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                <Label htmlFor='slug-2'>Slug</Label>
+                <Input id='slug-2' value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
               </div>
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Monthly Price</Label>
-                <Input
+                <Label htmlFor='monthly-price-2'>Monthly Price</Label>
+                <Input id='monthly-price-2'
                   type='number'
                   value={form.monthly_price}
                   onChange={(e) => setForm({ ...form, monthly_price: e.target.value })}
                 />
               </div>
               <div className='space-y-2'>
-                <Label>Yearly Price</Label>
-                <Input
+                <Label htmlFor='yearly-price-2'>Yearly Price</Label>
+                <Input id='yearly-price-2'
                   type='number'
                   value={form.yearly_price}
                   onChange={(e) => setForm({ ...form, yearly_price: e.target.value })}
@@ -489,9 +489,9 @@ export const SuperadminPlansPage = () => {
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Billing Cycle</Label>
+                <Label htmlFor='billing-cycle-2'>Billing Cycle</Label>
                 <Select value={form.billing_cycle} onValueChange={(v) => setForm({ ...form, billing_cycle: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id='billing-cycle-2'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -502,15 +502,15 @@ export const SuperadminPlansPage = () => {
                 </Select>
               </div>
               <div className='space-y-2'>
-                <Label>Currency</Label>
-                <Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} />
+                <Label htmlFor='currency-2'>Currency</Label>
+                <Input id='currency-2' value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} />
               </div>
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Mark</Label>
+                <Label htmlFor='mark-2'>Mark</Label>
                 <Select value={form.mark} onValueChange={(v) => setForm({ ...form, mark: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id='mark-2'>
                     <SelectValue placeholder='None' />
                   </SelectTrigger>
                   <SelectContent>
@@ -522,9 +522,9 @@ export const SuperadminPlansPage = () => {
                 </Select>
               </div>
               <div className='space-y-2'>
-                <Label>Status</Label>
+                <Label htmlFor='status-2'>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id='status-2'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -536,16 +536,16 @@ export const SuperadminPlansPage = () => {
             </div>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Discount %</Label>
-                <Input
+                <Label htmlFor='discount-2'>Discount %</Label>
+                <Input id='discount-2'
                   type='number'
                   value={form.discount_percentage}
                   onChange={(e) => setForm({ ...form, discount_percentage: e.target.value })}
                 />
               </div>
               <div className='space-y-2'>
-                <Label>Sort Order</Label>
-                <Input
+                <Label htmlFor='sort-order-2'>Sort Order</Label>
+                <Input id='sort-order-2'
                   type='number'
                   value={form.sort_order}
                   onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
@@ -553,24 +553,24 @@ export const SuperadminPlansPage = () => {
               </div>
             </div>
             <div className='space-y-2'>
-              <Label>Description</Label>
-              <Textarea
+              <Label htmlFor='description-2'>Description</Label>
+              <Textarea id='description-2'
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
               />
             </div>
             <div className='space-y-2'>
-              <Label>Features (one per line)</Label>
-              <Textarea
+              <Label htmlFor='features-one-per-line-2'>Features (one per line)</Label>
+              <Textarea id='features-one-per-line-2'
                 value={form.features}
                 onChange={(e) => setForm({ ...form, features: e.target.value })}
                 rows={3}
               />
             </div>
             <div className='space-y-2'>
-              <Label>Limits (JSON)</Label>
-              <Textarea value={form.limits} onChange={(e) => setForm({ ...form, limits: e.target.value })} rows={2} />
+              <Label htmlFor='limits-json-2'>Limits (JSON)</Label>
+              <Textarea id='limits-json-2' value={form.limits} onChange={(e) => setForm({ ...form, limits: e.target.value })} rows={2} />
             </div>
             <DialogFooter>
               <Button

@@ -60,9 +60,9 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label>Product</Label>
+            <Label htmlFor='product'>Product</Label>
             <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v })}>
-              <SelectTrigger>
+              <SelectTrigger id='product'>
                 <SelectValue placeholder='Select product' />
               </SelectTrigger>
               <SelectContent>
@@ -75,8 +75,8 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
             </Select>
           </div>
           <div className='space-y-2'>
-            <Label>Reorder Quantity</Label>
-            <Input
+            <Label htmlFor='reorder-quantity'>Reorder Quantity</Label>
+            <Input id='reorder-quantity'
               type='number'
               value={form.reorder_quantity}
               onChange={(e) => setForm({ ...form, reorder_quantity: e.target.value })}
@@ -84,12 +84,12 @@ export const AddReorderRule = ({ createRule, products, suppliers }: any) => {
             />
           </div>
           <div className='space-y-2'>
-            <Label>Preferred Supplier (optional)</Label>
+            <Label htmlFor='preferred-supplier-optional'>Preferred Supplier (optional)</Label>
             <Select
               value={form.preferred_supplier_id}
               onValueChange={(v) => setForm({ ...form, preferred_supplier_id: v })}
             >
-              <SelectTrigger>
+              <SelectTrigger id='preferred-supplier-optional'>
                 <SelectValue placeholder='Select supplier' />
               </SelectTrigger>
               <SelectContent>
