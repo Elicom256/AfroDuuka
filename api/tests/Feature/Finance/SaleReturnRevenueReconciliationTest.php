@@ -74,6 +74,16 @@ class SaleReturnRevenueReconciliationTest extends TestCase
             $product = Product::factory()->create([
                 'business_branch_id' => $this->branch->id,
                 'name' => $name,
+
+                // Stock is seeded, not left to the factory. ProductFactory draws
+                // quantity from numberBetween(0, 100), and a return that shrinks or is
+                // deleted takes the units back out through InventoryService::stockOut,
+                // which refuses to go below zero. A product that happened to draw 0 made
+                // every such test throw "Insufficient stock" — a failure that appeared
+                // once in a full run, passed on rerun, and looked like a flake in the
+                // revenue assertions rather than in the fixture. Seeded generously so the
+                // arithmetic under test is the only thing these tests depend on.
+                'quantity' => 1000,
             ]);
 
             $subtotal = self::PHONE_PRICE * $quantity;
@@ -665,6 +675,42 @@ class SaleReturnRevenueReconciliationTest extends TestCase
         $this->assertEquals(0, $analytics['items_sold']);
     }
 
+    /**
+     * Pins the fixture this file rests on.
+     *
+     * ProductFactory draws quantity from numberBetween(0, 100). Rewriting a return takes
+     * the units back out through InventoryService::stockOut, which refuses to take stock
+     * below zero — so any product drawn at 0 made handleUpdateSaleReturn and
+     * handleDeleteSaleReturn throw "Insufficient stock" instead of reaching the revenue
+     * assertions. That is roughly a 1-in-100 chance per product, which is what
+     * test_shrinking_a_return_gives_the_revenue_back looked like: it failed once in a full
+     * run, passed on rerun and on the next full run, and read as a flake in the return
+     * arithmetic rather than in the stock fixture underneath it.
+     *
+     * completedSaleOfPhones() now seeds quantity explicitly, so this asserts that rather
+     * than trusting the edit: if the seeding is ever dropped, this fails immediately and
+     * says why, instead of the suite turning intermittently red for an unrelated reason.
+     */
+    public function test_the_sale_fixture_seeds_enough_stock_to_take_a_return_back(): void
+    {
+        $items = $this->completedSaleOfPhones();
+
+        foreach ($items as $name => $item) {
+            $product = $item->product()->firstOrFail();
+
+            $this->assertGreaterThan(
+                0,
+                $product->quantity,
+                "Product [{$name}] was created with no stock, so taking this return back would "
+                .'throw instead of exercising the revenue path.'
+            );
+        }
+    }
+
+    /**
+     * The return arithmetic this file exists for, on a fixture that no longer depends on
+     * the factory's random stock level.
+     */
     public function test_shrinking_a_return_gives_the_revenue_back(): void
     {
         $items = $this->completedSaleOfPhones();
