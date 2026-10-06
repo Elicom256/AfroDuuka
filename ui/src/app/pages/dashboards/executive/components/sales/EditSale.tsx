@@ -82,7 +82,7 @@ export const EditSale = ({ open, onOpenChange, sale, products, updateSale }: Edi
                 Product
               </Label>
               <Select value={formData.product_id} onValueChange={(value) => handleChange('product_id', value)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='product_id' className='col-span-3'>
                   <SelectValue placeholder='Select product' />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,7 +125,7 @@ export const EditSale = ({ open, onOpenChange, sale, products, updateSale }: Edi
                 Status
               </Label>
               <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='status' className='col-span-3'>
                   <SelectValue placeholder='Sale status' />
                 </SelectTrigger>
                 <SelectContent>

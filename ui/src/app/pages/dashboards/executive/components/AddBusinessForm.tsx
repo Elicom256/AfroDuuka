@@ -75,7 +75,7 @@ export const AddBusinessForm: React.FC = () => {
 
             {/* Business Category Select */}
             <div className='space-y-2'>
-              <Label className='text-muted-foreground'>Business Category</Label>
+              <Label htmlFor='business-category' className='text-muted-foreground'>Business Category</Label>
 
               <Select
                 value={businessData.business_category_id}
@@ -86,7 +86,7 @@ export const AddBusinessForm: React.FC = () => {
                   }))
                 }
               >
-                <SelectTrigger className='bg-gray-800 border-gray-700 text-white'>
+                <SelectTrigger id='business-category' className='bg-gray-800 border-gray-700 text-white'>
                   <SelectValue placeholder='Select a category' />
                 </SelectTrigger>
 

@@ -35,23 +35,23 @@ export const AddPrinter = ({ createPrinter, branches }: any) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label>Name</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder='e.g. Front Desk Printer' />
+            <Label htmlFor='name'>Name</Label>
+            <Input id='name' value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder='e.g. Front Desk Printer' />
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
-              <Label>Type</Label>
+              <Label htmlFor='type'>Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                <SelectTrigger><SelectValue placeholder='Type' /></SelectTrigger>
+                <SelectTrigger id='type'><SelectValue placeholder='Type' /></SelectTrigger>
                 <SelectContent>
                   {types.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className='space-y-2'>
-              <Label>Branch</Label>
+              <Label htmlFor='branch'>Branch</Label>
               <Select value={form.business_branch_id} onValueChange={(v) => setForm({ ...form, business_branch_id: v })}>
-                <SelectTrigger><SelectValue placeholder='Branch' /></SelectTrigger>
+                <SelectTrigger id='branch'><SelectValue placeholder='Branch' /></SelectTrigger>
                 <SelectContent>
                   {branches?.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
                 </SelectContent>
@@ -61,12 +61,12 @@ export const AddPrinter = ({ createPrinter, branches }: any) => {
           {form.type === 'network' && (
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>IP Address</Label>
-                <Input value={form.ip_address} onChange={(e) => setForm({ ...form, ip_address: e.target.value })} placeholder='192.168.1.100' />
+                <Label htmlFor='ip-address'>IP Address</Label>
+                <Input id='ip-address' value={form.ip_address} onChange={(e) => setForm({ ...form, ip_address: e.target.value })} placeholder='192.168.1.100' />
               </div>
               <div className='space-y-2'>
-                <Label>Port</Label>
-                <Input type='number' value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} placeholder='9100' />
+                <Label htmlFor='port'>Port</Label>
+                <Input id='port' type='number' value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} placeholder='9100' />
               </div>
             </div>
           )}

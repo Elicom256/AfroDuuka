@@ -169,7 +169,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 value={formData.product_category_id}
                 onValueChange={(value) => handleChange('product_category_id', value)}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='product_category_id' className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>

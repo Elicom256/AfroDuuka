@@ -97,8 +97,8 @@ export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Audit Date</Label>
-              <Input
+              <Label htmlFor='audit-date' className='text-right'>Audit Date</Label>
+              <Input id='audit-date'
                 type='date'
                 value={formData.audit_date}
                 onChange={(e) => handleChange('audit_date', e.target.value)}
@@ -106,9 +106,9 @@ export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Status</Label>
+              <Label htmlFor='status' className='text-right'>Status</Label>
               <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='status' className='col-span-3'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -119,8 +119,8 @@ export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Notes</Label>
-              <Textarea value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} className='col-span-3' rows={2} />
+              <Label htmlFor='notes' className='text-right'>Notes</Label>
+              <Textarea id='notes' value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} className='col-span-3' rows={2} />
             </div>
 
             <div className='border-t pt-4 mt-2'>
@@ -145,14 +145,14 @@ export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
                     </Select>
                   </div>
                   <div className='col-span-3'>
-                    <Input
+                    <Input id='counted-qty'
                       type='number' min='0' placeholder='Counted qty'
                       value={item.counted_quantity}
                       onChange={(e) => handleItemChange(index, 'counted_quantity', e.target.value)}
                     />
                   </div>
                   <div className='col-span-3'>
-                    <Input placeholder='Notes' value={item.notes} onChange={(e) => handleItemChange(index, 'notes', e.target.value)} />
+                    <Input id='notes-2' placeholder='Notes' value={item.notes} onChange={(e) => handleItemChange(index, 'notes', e.target.value)} />
                   </div>
                   <div className='col-span-1'>
                     {items.length > 1 && (

@@ -202,9 +202,9 @@ export const AddPurchaseReturn = ({ addPurchaseReturn }: AddPurchaseReturnProps)
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Supplier</Label>
+              <Label htmlFor='supplier' className='text-right'>Supplier</Label>
               <Select value={supplierId} onValueChange={setSupplierId}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='supplier' className='col-span-3'>
                   <SelectValue placeholder='Select supplier (optional)' />
                 </SelectTrigger>
                 <SelectContent>
@@ -217,7 +217,7 @@ export const AddPurchaseReturn = ({ addPurchaseReturn }: AddPurchaseReturnProps)
 
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <Input
+              <Input id='search-by-product-name-or-purchase-id'
                 placeholder='Search by product name or purchase ID...'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -286,7 +286,7 @@ export const AddPurchaseReturn = ({ addPurchaseReturn }: AddPurchaseReturnProps)
                         {item.product_name}
                         <span className='text-muted-foreground ml-2'>(max {maxQty})</span>
                       </span>
-                      <Input
+                      <Input id='number'
                         type='number'
                         min={0}
                         max={maxQty}

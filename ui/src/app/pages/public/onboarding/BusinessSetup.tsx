@@ -108,7 +108,7 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
             <Globe className='h-4 w-4 text-muted-foreground' aria-hidden />
             Country
           </FieldLabel>
-          <Input
+          <Input id='type-to-filter-countries'
             type='text'
             value={countryQuery}
             onChange={(e) => setCountryQuery(e.target.value)}

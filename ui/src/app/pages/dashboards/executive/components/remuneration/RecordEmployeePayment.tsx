@@ -141,7 +141,7 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
                 Employee <span className='text-red-500'>*</span>
               </Label>
               <Select value={formData.worker_id} onValueChange={(value) => updateForm('worker_id', value)}>
-                <SelectTrigger>
+                <SelectTrigger id='worker_id'>
                   <SelectValue placeholder='Select employee' />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,11 +172,11 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
 
             {/* Payment Type */}
             <div className='space-y-2'>
-              <Label>
+              <Label htmlFor='payment-type'>
                 Payment Type <span className='text-red-500'>*</span>
               </Label>
               <Select value={formData.type} onValueChange={(value) => updateForm('type', value)}>
-                <SelectTrigger>
+                <SelectTrigger id='payment-type'>
                   <SelectValue placeholder='Select type' />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,9 +191,9 @@ export const RecordEmployeePayment = ({ employees, trigger }: RecordEmployeePaym
 
             {/* Status */}
             <div className='space-y-2'>
-              <Label>Status</Label>
+              <Label htmlFor='status'>Status</Label>
               <Select value={formData.status} onValueChange={(value) => updateForm('status', value)}>
-                <SelectTrigger>
+                <SelectTrigger id='status'>
                   <SelectValue placeholder='Select status' />
                 </SelectTrigger>
                 <SelectContent>
