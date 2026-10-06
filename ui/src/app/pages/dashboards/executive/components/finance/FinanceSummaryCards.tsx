@@ -51,9 +51,9 @@ export const FinanceSummaryCards = ({
             {unsignedAdjustments === 1
               ? '1 manual adjustment has no recorded direction'
               : `${unsignedAdjustments} manual adjustments have no recorded direction`}
-            , so {unsignedAdjustments === 1 ? 'it is' : 'they are'} excluded from the cash balance below. An
-            administrator needs to mark {unsignedAdjustments === 1 ? 'it' : 'each one'} as money in or money out
-            before {unsignedAdjustments === 1 ? 'it' : 'they'} count.
+            , so {unsignedAdjustments === 1 ? 'it is' : 'they are'} excluded from the cash balance below. Mark{' '}
+            {unsignedAdjustments === 1 ? 'it' : 'each one'} as money in or money out from the transactions table
+            below to include {unsignedAdjustments === 1 ? 'it' : 'them'} in the figure.
           </AlertDescription>
         </Alert>
       )}
