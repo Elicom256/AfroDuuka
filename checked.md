@@ -4,7 +4,8 @@
 **Trimmed:** 2026-10-06 — completed items removed. What remains is what is actually undone.
 
 **State:** P0 resolved · P1 complete · P2 partly done. Dev runs against local Postgres.
-Suite green at **737 backend / 747 frontend**, except the time-bomb below.
+Suite green at **757 backend / 756 frontend**, except the time-bomb below, which now fails
+4 tests on a fixture date one day outside the window.
 
 ---
 
@@ -46,10 +47,11 @@ Suite green at **737 backend / 747 frontend**, except the time-bomb below.
   from one `UnsignedAdjustmentResolver`, so the endpoint and the shell cannot disagree; the
   command keeps its cross-tenant reach. The transactions table offers the two directions on
   each unsigned row, and the warning copy now points there.
-- ⬜ **One time-dependent test.** `BranchPerformanceReportsTest` hardcodes a fixture date
-  of `2026-09-05` inside a `last_30_days` window. On 6 October the window opened on
-  7 September, the fixture fell outside it, and four tests failed for reasons unrelated to
-  the code. Worth a sweep for other hardcoded dates.
+- ⬜ **One time-dependent test, now failing.** `BranchPerformanceReportsTest` hardcodes a
+  fixture date of `2026-09-05` inside a `last_30_days` window, which is
+  `now()->subDays(30)`. On 6 October that window opened on 2026-09-06, the fixture fell one
+  day outside it, and **4 tests fail** for reasons unrelated to the code. The fixture should
+  be relative to now rather than absolute. Worth a sweep for other hardcoded dates.
 - ⬜ **One intermittent test.** `test_shrinking_a_return_gives_the_revenue_back` failed
   once in a full run and passed on rerun and on the next full run. Not chased.
 
