@@ -19,7 +19,8 @@ export const SuperadminSettingsPage = () => {
   const { data, isLoading } = useGetBusinessQuery();
   const { currency, countryName } = useCurrency();
 
-  const business = data?.data?.business ?? data?.business ?? data;
+  // BusinessResponse is { data: Business }; there is no nested `business` key.
+  const business = data?.data;
   const loading = isLoading && !business;
   const value = (present: unknown) =>
     present ? String(present) : loading ? 'Loading…' : 'Not configured';

@@ -42,7 +42,10 @@ export const salesQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['SalesAPI', 'SaleReturnsAPI'],
+      // 'SaleReturnsAPI' was listed here but is not one of this slice's tagTypes, so
+      // it could never be provided or invalidated by this api. The sale-returns slice
+      // invalidates SalesAPI directly instead.
+      providesTags: ['SalesAPI'],
     }),
     addSale: builder.mutation<any, any>({
       query: (body) => ({

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CashFlowDirection;
+use App\Enums\CashFlowType;
 use App\Traits\LogsActivity;
 use Database\Factories\CashFlowFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -54,6 +56,10 @@ class CashFlow extends BaseModel
         'amount' => 'decimal:2',
         'transaction_date' => 'date',
         'status' => 'string',
+        // type and direction are deliberately NOT enum-cast. `type` is a plain string
+        // column, the reports aggregate on it in raw SQL, and casting would change what
+        // every API response and assertSame() in the suite reads. The enums own the list
+        // of legal values and the sign mapping; they are resolved here on demand instead.
     ];
 
     /**
@@ -161,19 +167,18 @@ class CashFlow extends BaseModel
      */
     public function cashEffect(): float
     {
-        if ($this->direction === 'credit') {
-            return (float) $this->amount;
+        if ($this->direction !== null) {
+            $sign = CashFlowDirection::tryFrom($this->direction)?->sign() ?? 0;
+
+            return $sign * (float) $this->amount;
         }
 
-        if ($this->direction === 'debit') {
-            return -1 * (float) $this->amount;
-        }
+        // No direction on the row, so the type decides. Adjustment resolves to null here
+        // rather than being guessed at, which is what keeps a signless adjustment inert
+        // instead of silently moving the balance in some arbitrary direction.
+        $sign = CashFlowType::tryFrom($this->type)?->sign() ?? 0;
 
-        return match ($this->type) {
-            'sale', 'payment_in' => (float) $this->amount,
-            'purchase', 'expense', 'payment_out', 'refund' => -1 * (float) $this->amount,
-            default => 0.0,
-        };
+        return $sign * (float) $this->amount;
     }
 
     /**
