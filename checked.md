@@ -4,8 +4,8 @@
 **Trimmed:** 2026-10-06 — completed items removed. What remains is what is actually undone.
 
 **State:** P0 resolved · P1 complete · P2 partly done. Dev runs against local Postgres.
-Suite green at **757 backend / 756 frontend**, except the time-bomb below, which now fails
-4 tests on a fixture date one day outside the window.
+Suite green at **774 backend / 756 frontend**. §2 closed; §3 has one item left and it needs a
+schema decision. §1 is parked — Neon is no longer wanted.
 
 ---
 
@@ -47,13 +47,20 @@ Suite green at **757 backend / 756 frontend**, except the time-bomb below, which
   from one `UnsignedAdjustmentResolver`, so the endpoint and the shell cannot disagree; the
   command keeps its cross-tenant reach. The transactions table offers the two directions on
   each unsigned row, and the warning copy now points there.
-- ⬜ **One time-dependent test, now failing.** `BranchPerformanceReportsTest` hardcodes a
-  fixture date of `2026-09-05` inside a `last_30_days` window, which is
-  `now()->subDays(30)`. On 6 October that window opened on 2026-09-06, the fixture fell one
-  day outside it, and **4 tests fail** for reasons unrelated to the code. The fixture should
-  be relative to now rather than absolute. Worth a sweep for other hardcoded dates.
-- ⬜ **One intermittent test.** `test_shrinking_a_return_gives_the_revenue_back` failed
-  once in a full run and passed on rerun and on the next full run. Not chased.
+- ✅ **The time-dependent test.** `BranchPerformanceReportsTest` asked for
+  `period=last_30_days` while dating its fixture with a literal, so the two drifted apart:
+  the window is `now()->subDays(30)` and moved past the fixed `2026-09-05`, and 4 tests
+  began failing with no code change. The clock is now frozen in `setUp` and cleared in
+  `tearDown`, with a test asserting the fixture is inside the window the file's own clock
+  produces — the fixture is an absolute date again, and the window is the pinned thing.
+- ✅ **The intermittent test.** `test_shrinking_a_return_gives_the_revenue_back` failed once
+  in a full run and passed on every rerun. It was `ProductFactory`, which draws
+  `quantity` from `numberBetween(0, 100)`: rewriting a return takes the units back out
+  through `InventoryService::stockOut`, which refuses to go below zero, so a product drawn at
+  0 threw `Insufficient stock` about 1 run in 100 before reaching the revenue assertions.
+  `completedSaleOfPhones()` seeds stock explicitly, and a test now asserts it, so the
+  fixture cannot silently regress to the random draw. Confirmed by seeding stock at 0
+  explicitly and reproducing the throw, then at 1/2/50/100 and seeing it pass.
 
 ## 3. Data integrity
 
@@ -61,9 +68,29 @@ Suite green at **757 backend / 756 frontend**, except the time-bomb below, which
   a sale orphans its movements and never reverses stock. This is a **schema decision, not a
   code fix** — real foreign keys per reference type, or a reversal step on sale deletion.
   Both change behaviour.
-- ⬜ **Jobs never wrap work in `BusinessContext::run()`.** Not a current defect: all five
-  jobs filter on `business_id` explicitly in every query. It is a footgun for future jobs,
-  and wrapping them is a defensive refactor that wants its own focused pass.
+- ✅ **Jobs now run inside their tenant.** All five were audited and the shapes turned out
+  to differ, so one blanket wrap would have broken two of them:
+  - `CheckNotificationsJob` and `ProcessSubscriptionLifecycleWhatsAppJob` are **platform
+    sweeps** — they iterate every business on the install. The wrap goes *inside* the loop,
+    per row. A single wrap around `handle()` would scope each sweep to whichever tenant was
+    entered first and silently stop alerting the rest. That failure mode is now pinned by a
+    test rather than left to be discovered.
+  - `ProcessWhatsAppNotificationJob` and `SendNotificationJob` target **one business** each,
+    taken from the payload and from the delivery row respectively. One wrap each.
+  - `ProcessSesSuppressionsJob` is **deliberately cross-tenant** and is left that way. It is
+    the backstop for sends the provider never confirmed, and narrowing it would settle one
+    tenant's stranded rows while reporting success. The class now says so, and says what to
+    do instead if it ever gains a per-row write.
+  Every query already named `business_id`, so this is not a fix — it is what makes the next
+  query correct by construction. The sharpest case is `Product`, which carries no
+  `business_id` column at all and relies entirely on the branch scope, which applies no
+  constraint without a context.
+- ⬜ **The scheduler may not be running.** `CheckNotificationsJob`,
+  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are on
+  `routes/console.php`, but there is no `schedule:run` cron and no scheduler container in
+  either compose file — the only cron in `ops/` is the database backup. So all three
+  scheduled jobs may simply never fire in the deployed environment. Worth confirming before
+  anything else in this section is worth building on.
 
 ## 4. Launch readiness
 

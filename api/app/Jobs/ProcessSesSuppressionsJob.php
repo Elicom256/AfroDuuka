@@ -26,6 +26,22 @@ use Throwable;
  * rows `unconfirmed` once the grace period passes. It does not retry them — that risk
  * is the whole reason they were parked.
  */
+/**
+ * Settles SES sends the provider never confirmed, and reports bounces.
+ *
+ * The one job here that is deliberately cross-tenant, and it must stay that way. A send
+ * can be left in `sending` because the provider never acknowledged it, and the sweep is
+ * the backstop that eventually gives up on it — for every business at once, which is the
+ * whole point of a backstop. Wrapping handle() in BusinessContext::run() would AND a
+ * business_id onto the query below and settle exactly one tenant's stranded rows while
+ * reporting success, which is worse than not running at all.
+ *
+ * So the context is deliberately absent here, and the per-row writes below need none:
+ * markFailed() forceFills and saves an already-loaded model, which re-queries nothing, so
+ * no scope is ever applied. If a future change makes this sweep query or write anything
+ * per-delivery, it must wrap that part in run($delivery->business_id, ...) rather than
+ * narrowing the sweep.
+ */
 class ProcessSesSuppressionsJob implements ShouldQueue
 {
     use Dispatchable;

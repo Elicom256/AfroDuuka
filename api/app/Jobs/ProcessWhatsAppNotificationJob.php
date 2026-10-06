@@ -9,6 +9,7 @@ use App\Services\WhatsApp\ProviderResponse;
 use App\Services\WhatsApp\WhatsAppNotificationService;
 use App\Services\WhatsApp\WhatsAppProviderFactory;
 use App\Services\WhatsApp\WhatsAppTemplateService;
+use App\Support\Tenant\BusinessContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -33,11 +34,41 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
 
     public function handle(): void
     {
+        // Normalised outside the context, because the tenant is read out of the payload
+        // and cannot be known before there is one to run in.
+        $normalized = (new WhatsAppNotificationService)->buildPayload($this->payload);
+        $businessId = (int) ($normalized['business_id'] ?? 0);
+
+        if ($businessId <= 0) {
+            // Refused before any row is read or written. Falling through with 0 would put
+            // the whole send inside a context nobody belongs to, and the config lookup
+            // below would go looking for a business that does not exist.
+            Log::warning('WhatsApp notification skipped: payload named no business', [
+                'template_key' => $normalized['template_key'] ?? null,
+            ]);
+
+            return;
+        }
+
+        app(BusinessContext::class)->run(
+            $businessId,
+            fn () => $this->send($normalized, $businessId)
+        );
+    }
+
+    /**
+     * The send itself, inside the payload's own tenant.
+     *
+     * Every query here already names business_id explicitly, so the context is not what
+     * makes them correct today. It is what makes them correct by construction: WhatsAppConfig,
+     * WhatsAppTemplate and WhatsAppMessageLog are all tenant tables, and a query added later
+     * without that column would be scoped by this rather than quietly reading the install.
+     */
+    private function send(array $normalized, int $businessId): void
+    {
         $notificationService = new WhatsAppNotificationService;
         $templateService = new WhatsAppTemplateService;
 
-        $normalized = $notificationService->buildPayload($this->payload);
-        $businessId = (int) ($normalized['business_id'] ?? 0);
         $dedupeKey = $normalized['dedupe_key'] ?? null;
         $templateKey = $normalized['template_key'] ?? 'general';
 
@@ -96,25 +127,6 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
                 'message_template' => config('services.whatsapp.default_template', 'demo_business_alert'),
                 'welcome_message' => 'Welcome to DuukaFlow WhatsApp demo mode.',
             ]);
-        }
-
-        // Resolved once, and refused if absent. Both callers dispatch an explicit
-        // recipient, and the service refuses to dispatch without one, so reaching this
-        // with nothing means something upstream changed shape.
-        //
-        // It used to fall back to `$config->business_phone` here, which quietly made the
-        // sending identity double as the destination: a send with no recipient became a
-        // message to the business's own number, recorded against a recipient nobody
-        // chose. A missing recipient is missing, not an instruction to self-address.
-        $recipient = trim((string) ($normalized['recipient_phone'] ?? ''));
-
-        if ($recipient === '') {
-            Log::warning('WhatsApp notification skipped: payload carried no recipient', [
-                'business_id' => $businessId,
-                'template_key' => $templateKey,
-            ]);
-
-            return;
         }
 
         $provider = WhatsAppProviderFactory::create([

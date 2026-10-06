@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Subscription;
 use App\Models\WhatsAppMessageLog;
 use App\Services\WhatsApp\WhatsAppNotificationService;
+use App\Support\Tenant\BusinessContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,7 +29,11 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
     {
         $service = new WhatsAppNotificationService;
 
-        $subscriptions = Subscription::with(['business', 'plan'])
+        // Deliberately read before any context is set. Every row on the install is the
+        // subject of this sweep — it is looking for any business whose subscription has
+        // lapsed — so this query must not itself be scoped to one tenant.
+        $subscriptions = Subscription::withoutGlobalScopes()
+            ->with(['business', 'plan'])
             ->where(function ($query) {
                 $query->where('status', '!=', 'active')
                     ->orWhereNull('status');
@@ -42,9 +47,15 @@ class ProcessSubscriptionLifecycleWhatsAppJob implements ShouldQueue
                 continue;
             }
 
-            $this->handleExpiryAlert($subscription, $business, $service);
-            $this->handleExpiryReminder($subscription, $business, $service);
-            $this->handleFreeTrialExpiryAlert($subscription, $business, $service);
+            // Inside the owning business, one subscription at a time. The query above has
+            // no business_id predicate, so without this the three handlers below would run
+            // with nothing to scope by — and each of them reads WhatsAppMessageLog and
+            // Subscription, both tenant tables whose dedupe keys are per business.
+            app(BusinessContext::class)->run($business->id, function () use ($subscription, $business, $service): void {
+                $this->handleExpiryAlert($subscription, $business, $service);
+                $this->handleExpiryReminder($subscription, $business, $service);
+                $this->handleFreeTrialExpiryAlert($subscription, $business, $service);
+            });
         }
 
         Log::info('Subscription lifecycle WhatsApp job completed');
