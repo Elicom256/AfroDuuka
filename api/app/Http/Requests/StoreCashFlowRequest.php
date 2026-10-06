@@ -91,10 +91,18 @@ class StoreCashFlowRequest extends FormRequest
 
             'business_branch_id' => ['nullable', 'integer', 'exists:business_branches,id', $branchWithinSet],
 
-            // Deliberately no customer_id, supplier_id, sale_id or purchase_id. Those
-            // columns exist to tie a row to the event that caused it, and a hand-written
-            // adjustment has no such event; the refund path is what links a return to the
-            // sale it reverses.
+            // These tie a row to the event that caused it, and a hand-written adjustment has
+            // no such event — the refund path is what links a return to the sale it
+            // reverses. Prohibited rather than absent, so a client sending one is told so
+            // instead of having it silently dropped and believing the row is linked.
+            'customer_id' => ['prohibited'],
+            'supplier_id' => ['prohibited'],
+            'sale_id' => ['prohibited'],
+            'purchase_id' => ['prohibited'],
+            'expense_id' => ['prohibited'],
+            'stock_transfer_id' => ['prohibited'],
+            'sale_return_id' => ['prohibited'],
+            'purchase_return_id' => ['prohibited'],
 
             'description' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
