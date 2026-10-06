@@ -111,6 +111,11 @@ services:
     networks:
       - app
 
+    # Same as the queue worker: the dev image bakes in a HEALTHCHECK that
+    # probes 127.0.0.1:8000/up, but schedule:work never binds :8000.
+    healthcheck:
+      disable: true
+
   #  ---------------------------------------------------------------
   #  Postgres service
   #  ---------------------------------------------------------------
