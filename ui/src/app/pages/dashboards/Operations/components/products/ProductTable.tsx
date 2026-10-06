@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { Button } from '@/components/ui/button';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 
 interface Product {

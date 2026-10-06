@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\CashFlowDirection;
+use App\Enums\CashFlowType;
 use App\Models\CashFlow;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +50,7 @@ class FinanceService
         // balance above, because nothing says which way they moved. Reporting the count
         // keeps that gap visible instead of letting the figure look complete.
         $unsignedAdjustments = (clone $query)
-            ->where('type', 'adjustment')
+            ->where('type', CashFlowType::Adjustment->value)
             ->whereNull('direction')
             ->count();
 
@@ -88,18 +90,45 @@ class FinanceService
                         });
                 });
             })
-            ->selectRaw(
-                "COALESCE(SUM(CASE
-                    WHEN direction = 'credit' THEN amount
-                    WHEN direction = 'debit' THEN -amount
-                    WHEN type IN ('sale', 'payment_in') THEN amount
-                    WHEN type IN ('purchase', 'expense', 'payment_out', 'refund') THEN -amount
-                    ELSE 0
-                END), 0) as net"
-            )
+            ->selectRaw($this->netCashMovementSql())
             ->value('net');
 
         return (float) $net;
+    }
+
+    /**
+     * The cash sign, as SQL.
+     *
+     * This cannot call CashFlow::cashEffect() because it has to run inside the aggregate,
+     * so the mapping is stated a second time here. The values are interpolated from the
+     * enums rather than typed out so that adding a type or a direction changes both
+     * readings of the same rule instead of leaving this one behind; a type with no sign
+     * still falls into ELSE 0, which is what keeps a signless adjustment out of the
+     * figure rather than guessing at it.
+     *
+     * Kept honest against the PHP side by FinanceCashBalanceTest, which asserts the
+     * headline balance equals the running balance of the newest row.
+     */
+    private function netCashMovementSql(): string
+    {
+        $inflowing = $this->typeList([CashFlowType::Sale, CashFlowType::PaymentIn]);
+        $outflowing = $this->typeList([CashFlowType::Purchase, CashFlowType::Expense, CashFlowType::PaymentOut, CashFlowType::Refund]);
+
+        return "COALESCE(SUM(CASE
+            WHEN direction = '".CashFlowDirection::Credit->value."' THEN amount
+            WHEN direction = '".CashFlowDirection::Debit->value."' THEN -amount
+            WHEN type IN ({$inflowing}) THEN amount
+            WHEN type IN ({$outflowing}) THEN -amount
+            ELSE 0
+        END), 0) as net";
+    }
+
+    /**
+     * @param  array<int, CashFlowType>  $types
+     */
+    private function typeList(array $types): string
+    {
+        return implode(',', array_map(fn (CashFlowType $type) => "'".$type->value."'", $types));
     }
 
     /**

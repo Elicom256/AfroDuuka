@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CashFlowDirection;
 use App\Http\Requests\StoreCashFlowRequest;
+use App\Http\Requests\UpdateCashFlowDirectionRequest;
 use App\Http\Requests\UpdateCashFlowRequest;
 use App\Models\CashFlow;
 use App\Services\CashFlowService;
+use App\Services\UnsignedAdjustmentResolver;
 
 class CashFlowController extends Controller
 {
     protected CashFlowService $cashFlowService;
 
-    public function __construct(CashFlowService $cashFlowService)
+    protected UnsignedAdjustmentResolver $unsignedAdjustments;
+
+    public function __construct(CashFlowService $cashFlowService, UnsignedAdjustmentResolver $unsignedAdjustments)
     {
         $this->cashFlowService = $cashFlowService;
+        $this->unsignedAdjustments = $unsignedAdjustments;
     }
 
     /**
@@ -38,11 +44,22 @@ class CashFlowController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Only manual adjustments reach here — the request confines `type` to that one value,
+     * because every other type is written by CashFlowService as a consequence of the sale,
+     * purchase or return that caused it, and a client supplying one would be inventing
+     * revenue the reports then total.
+     *
+     * No try/catch, deliberately. The pattern used elsewhere in FinanceController turned a
+     * role refusal into a 422 "Failed to create adjustment" that a caller could not tell
+     * from a bad payload, and swallowed the real message. Authorization is settled by the
+     * request's authorize() and validation failures are rendered by the framework, so
+     * there is nothing here worth catching: an unexpected exception should stay a 500 and
+     * stay visible.
      */
     public function store(StoreCashFlowRequest $request)
     {
-        $validated = $request->validated();
-        $cashFlow = CashFlow::create($validated);
+        $cashFlow = CashFlow::create($request->validated());
 
         return response()->json([
             'message' => 'Cash flow created successfully',
@@ -92,6 +109,36 @@ class CashFlowController extends Controller
 
         return response()->json([
             'message' => 'Cash flow updated successfully!',
+            'data' => $cashFlow,
+        ]);
+    }
+
+    /**
+     * Record which way the money moved on an adjustment that never said.
+     *
+     * Adjustments written before a direction became required are excluded from the cash
+     * balance, because CashFlow::cashEffect() returns 0 for one and the reported figure is
+     * quietly short. FinanceService::dashboard() counts them so the gap is visible; this is
+     * where the count gets closed.
+     *
+     * Route model binding resolves through the tenant scope on BaseModel, so a cash flow
+     * belonging to another business is a 404 before this runs. Deliberately not
+     * withoutGlobalScopes(), which is how the artisan command reaches across businesses.
+     */
+    public function setDirection(UpdateCashFlowDirectionRequest $request, CashFlow $cashFlow)
+    {
+        $refusal = $this->unsignedAdjustments->refusalFor($cashFlow);
+
+        if ($refusal !== null) {
+            return response()->json([
+                'message' => $refusal,
+            ], 422);
+        }
+
+        $this->unsignedAdjustments->apply($cashFlow, CashFlowDirection::from($request->validated('direction')));
+
+        return response()->json([
+            'message' => "Direction recorded as {$cashFlow->direction}. This adjustment now moves the cash balance.",
             'data' => $cashFlow,
         ]);
     }

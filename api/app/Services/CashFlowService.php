@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CashFlowType;
 use App\Models\CashFlow;
 use App\Models\EmployeeRemuneration;
 use App\Models\Expense;
@@ -29,7 +30,7 @@ class CashFlowService
         $user = Auth::user();
         CashFlow::create([
             'transaction_code' => $validated['transaction_code'] ?? 'CF-SALE-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'sale',
+            'type' => CashFlowType::Sale->value,
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
             'business_id' => $user->business_id,
@@ -53,7 +54,7 @@ class CashFlowService
         $user = Auth::user();
         CashFlow::create([
             'transaction_code' => $validated['transaction_code'] ?? 'CF-PURCH-'.str_pad($purchase->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'purchase',
+            'type' => CashFlowType::Purchase->value,
             'amount' => $amount,
             'currency' => $validated['currency'] ?? 'UGX',
             'business_id' => $user->business_id,
@@ -78,7 +79,7 @@ class CashFlowService
         $currency = $business?->country?->currency_code ?? 'UGX';
         CashFlow::create([
             'transaction_code' => 'CF-WORKER-'.str_pad($remuneration->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'expense',
+            'type' => CashFlowType::Expense->value,
             'amount' => $amount,
             'currency' => $currency,
             'business_id' => $user->business_id,
@@ -100,7 +101,7 @@ class CashFlowService
         $currency = $business?->country?->currency_code ?? 'UGX';
         CashFlow::create([
             'transaction_code' => 'CF-STOCK-OUT-'.str_pad($transfer->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'expense',
+            'type' => CashFlowType::Expense->value,
             'amount' => $totalCost,
             'currency' => $currency,
             'business_id' => $transfer->business_id,
@@ -122,7 +123,7 @@ class CashFlowService
         $currency = $business?->country?->currency_code ?? 'UGX';
         CashFlow::create([
             'transaction_code' => 'CF-STOCK-IN-'.str_pad($transfer->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'payment_in',
+            'type' => CashFlowType::PaymentIn->value,
             'amount' => $totalCost,
             'currency' => $currency,
             'business_id' => $transfer->business_id,
@@ -142,7 +143,7 @@ class CashFlowService
         $user = Auth::user();
         CashFlow::create([
             'transaction_code' => 'CF-SR-'.str_pad($saleReturn->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'refund',
+            'type' => CashFlowType::Refund->value,
             'amount' => $amount,
             'currency' => 'UGX',
             'business_id' => $user->business_id,
@@ -163,7 +164,7 @@ class CashFlowService
         $user = Auth::user();
         CashFlow::create([
             'transaction_code' => 'CF-PR-'.str_pad($purchaseReturn->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'payment_in',
+            'type' => CashFlowType::PaymentIn->value,
             'amount' => $amount,
             'currency' => 'UGX',
             'business_id' => $user->business_id,
@@ -187,7 +188,7 @@ class CashFlowService
         $currency = $business?->country?->currency_code ?? 'UGX';
         CashFlow::create([
             'transaction_code' => 'CF-EXP-'.str_pad($expense->id, 6, '0', STR_PAD_LEFT),
-            'type' => 'expense',
+            'type' => CashFlowType::Expense->value,
             'amount' => $amount,
             'currency' => $currency,
             'business_id' => $user->business_id,

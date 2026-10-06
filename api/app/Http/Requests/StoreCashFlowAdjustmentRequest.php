@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CashFlowDirection;
 use App\Support\Auth\RolePermissions;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,7 +46,7 @@ class StoreCashFlowAdjustmentRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0'],
 
             // 'credit' is money into the business, 'debit' money out of it.
-            'direction' => ['required', Rule::in(['credit', 'debit'])],
+            'direction' => ['required', Rule::enum(CashFlowDirection::class)],
 
             'currency' => ['required', 'string', 'size:3'],
             'business_branch_id' => ['nullable', 'integer', 'exists:business_branches,id', $branchWithinSet],
