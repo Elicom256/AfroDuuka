@@ -85,6 +85,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Neon's pooled endpoint (PgBouncer transaction mode) breaks DDL
+            // run inside migrations' transactions when real prepared
+            // statements are used; emulating prepares avoids it.
+            'options' => env('DB_EMULATE_PREPARES', false)
+                ? [\PDO::ATTR_EMULATE_PREPARES => true]
+                : [],
         ],
 
         'sqlsrv' => [
