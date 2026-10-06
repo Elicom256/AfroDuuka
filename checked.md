@@ -88,12 +88,11 @@ schema decision. §1 is parked — Neon is no longer wanted.
     query correct by construction. The sharpest case is `Product`, which carries no
     `business_id` column at all and relies entirely on the branch scope, which applies no
     constraint without a context.
-- (c) ⬜ **The scheduler may not be running.** `CheckNotificationsJob`,
-  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are on
-  `routes/console.php`, but there is no `schedule:run` cron and no scheduler container in
-  either compose file — the only cron in `ops/` is the database backup. So all three
-  scheduled jobs may simply never fire in the deployed environment. Worth confirming before
-  anything else in this section is worth building on.
+- (c) ✅ **The scheduler is now running.** `CheckNotificationsJob`,
+  `ProcessSubscriptionLifecycleWhatsAppJob` and `ProcessSesSuppressionsJob` are scheduled in
+  `routes/console.php`, and a dedicated scheduler service now runs
+  `php artisan schedule:work` in both the dev and prod Docker stacks. There is no longer a
+  silent gap where the cron entry was missing and nothing fired.
 
 ## 4. Launch readiness
 

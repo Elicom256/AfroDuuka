@@ -87,6 +87,30 @@ services:
     healthcheck:
       disable: true
 
+  # ========================= Scheduler ============================
+  # `routes/console.php` defines scheduled jobs; without a scheduler process
+  # they never fire. Keep this as a dedicated container rather than trying to
+  # wedge `schedule:run` into the web container.
+  scheduler:
+    image: inventory-backend-dev
+    working_dir: /app
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/app
+      - ./api/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    command: php artisan schedule:work --no-ansi --verbose
+    environment:
+      SKIP_MIGRATIONS: 'true'
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app
+
   #  ---------------------------------------------------------------
   #  Postgres service
   #  ---------------------------------------------------------------
