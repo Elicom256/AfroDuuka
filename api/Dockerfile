@@ -128,4 +128,5 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 # Runtime command (Octane + FrankenPHP)
 # ------------------------------------------------------------------------------
 
-CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--watch" ]
+# CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--watch" ]
+CMD [ "php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000" ]
