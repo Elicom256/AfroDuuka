@@ -84,9 +84,9 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
-              <Label>From Branch</Label>
+              <Label htmlFor='from-branch'>From Branch</Label>
               <Select value={form.from_branch_id} onValueChange={(v) => setForm((p) => ({ ...p, from_branch_id: v }))}>
-                <SelectTrigger>
+                <SelectTrigger id='from-branch'>
                   <SelectValue placeholder='Source branch' />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,9 +99,9 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
               </Select>
             </div>
             <div className='space-y-2'>
-              <Label>To Branch</Label>
+              <Label htmlFor='to-branch'>To Branch</Label>
               <Select value={form.to_branch_id} onValueChange={(v) => setForm((p) => ({ ...p, to_branch_id: v }))}>
-                <SelectTrigger>
+                <SelectTrigger id='to-branch'>
                   <SelectValue placeholder='Destination branch' />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,12 +125,12 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
             {form.items.map((item, idx) => (
               <div key={idx} className='flex gap-3 items-end p-3 bg-muted/50 rounded-lg'>
                 <div className='flex-1 space-y-1'>
-                  <Label className='text-xs'>Product</Label>
+                  <Label htmlFor='product' className='text-xs'>Product</Label>
                   <Select
                     value={item.product_id}
                     onValueChange={(v) => updateItem(idx, 'product_id', v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id='product'>
                       <SelectValue placeholder='Product' />
                     </SelectTrigger>
                     <SelectContent>
@@ -143,8 +143,8 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
                   </Select>
                 </div>
                 <div className='w-24 space-y-1'>
-                  <Label className='text-xs'>Qty</Label>
-                  <Input
+                  <Label htmlFor='qty' className='text-xs'>Qty</Label>
+                  <Input id='qty'
                     type='number'
                     value={item.quantity_expected}
                     onChange={(e) => updateItem(idx, 'quantity_expected', e.target.value)}
@@ -158,8 +158,8 @@ export const AddStockTransfer = ({ createTransfer, branches, products }: any) =>
           </div>
 
           <div className='space-y-2'>
-            <Label>Notes</Label>
-            <Textarea
+            <Label htmlFor='notes'>Notes</Label>
+            <Textarea id='notes'
               value={form.notes}
               onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
               placeholder='Optional notes'

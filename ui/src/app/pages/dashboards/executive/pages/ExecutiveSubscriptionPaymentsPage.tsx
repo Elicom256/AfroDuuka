@@ -143,13 +143,13 @@ export const ExecutiveSubscriptionPaymentsPage = () => {
               </DialogHeader>
               <form onSubmit={handlePay} className='space-y-4'>
                 <div className='space-y-2'>
-                  <Label>Amount ({currency})</Label>
-                  <Input type='number' value={payForm.amount_paid} onChange={(e) => setPayForm({ ...payForm, amount_paid: e.target.value })} />
+                  <Label htmlFor='amount'>Amount ({currency})</Label>
+                  <Input id='amount' type='number' value={payForm.amount_paid} onChange={(e) => setPayForm({ ...payForm, amount_paid: e.target.value })} />
                 </div>
                 <div className='space-y-2'>
-                  <Label>Payment Method</Label>
+                  <Label htmlFor='payment-method'>Payment Method</Label>
                   <Select value={payForm.payment_method_id} onValueChange={(v) => setPayForm({ ...payForm, payment_method_id: v })}>
-                    <SelectTrigger><SelectValue placeholder='Select method' /></SelectTrigger>
+                    <SelectTrigger id='payment-method'><SelectValue placeholder='Select method' /></SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((pm: any) => (
                         <SelectItem key={pm.id} value={String(pm.id)}>
@@ -166,12 +166,12 @@ export const ExecutiveSubscriptionPaymentsPage = () => {
                   )}
                 </div>
                 <div className='space-y-2'>
-                  <Label>Phone Number</Label>
-                  <Input value={payForm.number_paid} onChange={(e) => setPayForm({ ...payForm, number_paid: e.target.value })} placeholder='+256 XXX XXX XXX' />
+                  <Label htmlFor='phone-number'>Phone Number</Label>
+                  <Input id='phone-number' value={payForm.number_paid} onChange={(e) => setPayForm({ ...payForm, number_paid: e.target.value })} placeholder='+256 XXX XXX XXX' />
                 </div>
                 <div className='space-y-2'>
-                  <Label>Transaction ID (optional)</Label>
-                  <Input value={payForm.transaction_id} onChange={(e) => setPayForm({ ...payForm, transaction_id: e.target.value })} placeholder='Transaction reference' />
+                  <Label htmlFor='transaction-id-optional'>Transaction ID (optional)</Label>
+                  <Input id='transaction-id-optional' value={payForm.transaction_id} onChange={(e) => setPayForm({ ...payForm, transaction_id: e.target.value })} placeholder='Transaction reference' />
                 </div>
                 <DialogFooter>
                   <Button type='button' variant='outline' onClick={() => setPayOpen(false)}>Cancel</Button>

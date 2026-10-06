@@ -71,9 +71,9 @@ export const CreateFinancialAudit = ({ branches }: Props) => {
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Branch</Label>
+              <Label htmlFor='branch' className='text-right'>Branch</Label>
               <Select value={formData.business_branch_id} onValueChange={(v) => handleChange('business_branch_id', v)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='branch' className='col-span-3'>
                   <SelectValue placeholder='Select branch' />
                 </SelectTrigger>
                 <SelectContent>
@@ -84,25 +84,25 @@ export const CreateFinancialAudit = ({ branches }: Props) => {
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Date</Label>
-              <Input type='date' value={formData.audit_date} onChange={(e) => handleChange('audit_date', e.target.value)} className='col-span-3' required />
+              <Label htmlFor='date' className='text-right'>Date</Label>
+              <Input id='date' type='date' value={formData.audit_date} onChange={(e) => handleChange('audit_date', e.target.value)} className='col-span-3' required />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Expected Balance</Label>
-              <Input type='number' min='0' step='0.01' value={formData.expected_balance} onChange={(e) => handleChange('expected_balance', e.target.value)} className='col-span-3' required />
+              <Label htmlFor='expected-balance' className='text-right'>Expected Balance</Label>
+              <Input id='expected-balance' type='number' min='0' step='0.01' value={formData.expected_balance} onChange={(e) => handleChange('expected_balance', e.target.value)} className='col-span-3' required />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Actual Balance</Label>
-              <Input type='number' min='0' step='0.01' value={formData.actual_balance} onChange={(e) => handleChange('actual_balance', e.target.value)} className='col-span-3' required />
+              <Label htmlFor='actual-balance' className='text-right'>Actual Balance</Label>
+              <Input id='actual-balance' type='number' min='0' step='0.01' value={formData.actual_balance} onChange={(e) => handleChange('actual_balance', e.target.value)} className='col-span-3' required />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Difference</Label>
-              <Input value={`${diff >= 0 ? '+' : ''}${diff}`} className='col-span-3' readOnly />
+              <Label htmlFor='difference' className='text-right'>Difference</Label>
+              <Input id='difference' value={`${diff >= 0 ? '+' : ''}${diff}`} className='col-span-3' readOnly />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Status</Label>
+              <Label htmlFor='status' className='text-right'>Status</Label>
               <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='status' className='col-span-3'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -113,8 +113,8 @@ export const CreateFinancialAudit = ({ branches }: Props) => {
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Notes</Label>
-              <Textarea value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} className='col-span-3' rows={2} />
+              <Label htmlFor='notes' className='text-right'>Notes</Label>
+              <Textarea id='notes' value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} className='col-span-3' rows={2} />
             </div>
           </div>
           <DialogFooter>

@@ -62,9 +62,9 @@ export const AddAttendanceForm: React.FC<Props> = ({ onSuccess }) => {
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <div className='space-y-2'>
-              <Label>Session</Label>
+              <Label htmlFor='session'>Session</Label>
               <Select value={formData.session} onValueChange={(v: any) => setFormData({ ...formData, session: v })}>
-                <SelectTrigger>
+                <SelectTrigger id='session'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -77,9 +77,9 @@ export const AddAttendanceForm: React.FC<Props> = ({ onSuccess }) => {
             </div>
 
             <div className='space-y-2'>
-              <Label>Status</Label>
+              <Label htmlFor='status'>Status</Label>
               <Select value={formData.status} onValueChange={(v: any) => setFormData({ ...formData, status: v })}>
-                <SelectTrigger>
+                <SelectTrigger id='status'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

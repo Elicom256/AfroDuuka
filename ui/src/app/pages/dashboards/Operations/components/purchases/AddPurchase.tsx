@@ -135,7 +135,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                 Supplier <span className='text-muted-foreground'>(optional)</span>
               </Label>
               <Select value={formData.supplier_id} onValueChange={(value) => handleChange('supplier_id', value)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='supplier_id' className='col-span-3'>
                   <SelectValue placeholder='Select supplier' />
                 </SelectTrigger>
                 <SelectContent>

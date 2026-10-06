@@ -112,12 +112,17 @@ schema decision. §1 is parked — Neon is no longer wanted.
 ## 5. Quality — the rest of P2
 
 - (a) ⬜ **No route-level code splitting.** The whole bundle ships as one chunk.
-- (b) ⬜ **178 hardcoded `any`.** Not swept on purpose. The right lever is a lint budget
-  (`no-explicit-any` as a warning with a ratchet), which is a tooling decision; 178 file
-  edits would risk working screens for no runtime gain.
-- (c) ⬜ **Accessibility sweep.** 57 of 61 tables lack `overflow-x-auto`; 119 `<Input>` lack
-  `id`; 181 `<Label>` lack `htmlFor`; hand-rolled dialogs have no `role="dialog"` or focus
-  trap. Large and mechanical, not started.
+- (b) ✅ **931 hardcoded `any` now have a lint budget.** `no-explicit-any` is a warning
+  (was an error), and `npm run lint` enforces `--max-warnings=931` — any new `any` fails
+  the build. The ratchet only goes down.
+- (c) ✅ **Accessibility sweep.** The table count was a false alarm: `Table` already wraps
+  its `<table>` in `relative w-full overflow-x-auto`, so no callers needed a wrapper. All
+  234 `<Input>` now carry an `id`, and 160 unpaired `<Label>`s gained `htmlFor`; every
+  `htmlFor` in the repo resolves to an element with a matching `id` (18 pre-existing
+  dangling ones — labels pointing at Radix `Select`s — were fixed by moving the id onto
+  `SelectTrigger`, the pattern `AddSale` already used). The 8 hand-rolled overlays got
+  `role="dialog"`, `aria-modal` and `aria-labelledby`, plus a new `useFocusTrap` hook that
+  traps Tab, closes on Escape and restores focus to the trigger.
 - (d) ⬜ **POS is desktop-only.** A design change rather than a bug fix.
 
 ## 6. Product decisions taken, not work outstanding

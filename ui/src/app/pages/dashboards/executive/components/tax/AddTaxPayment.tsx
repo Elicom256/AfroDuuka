@@ -85,9 +85,9 @@ export const AddTaxPayment = () => {
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Tax Category</Label>
+              <Label htmlFor='tax-category' className='text-right'>Tax Category</Label>
               <Select value={formData.tax_category_id} onValueChange={(v) => setFormData((p) => ({ ...p, tax_category_id: v }))}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='tax-category' className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>

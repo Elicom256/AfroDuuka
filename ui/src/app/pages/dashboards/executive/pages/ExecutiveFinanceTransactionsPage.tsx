@@ -82,9 +82,9 @@ export const ExecutiveFinanceTransactionsPage = () => {
         <CardContent className='border-t border-border/60 pt-4'>
           <div className='flex flex-wrap gap-4 items-end'>
             <div className='space-y-1'>
-              <Label className='text-xs'>Type</Label>
+              <Label htmlFor='type' className='text-xs'>Type</Label>
               <Select value={type} onValueChange={handleFilterChange(setType)}>
-                <SelectTrigger className='w-36'>
+                <SelectTrigger id='type' className='w-36'>
                   <SelectValue placeholder='All' />
                 </SelectTrigger>
                 <SelectContent>
@@ -97,8 +97,8 @@ export const ExecutiveFinanceTransactionsPage = () => {
               </Select>
             </div>
             <div className='space-y-1'>
-              <Label className='text-xs'>Category</Label>
-              <Input
+              <Label htmlFor='category' className='text-xs'>Category</Label>
+              <Input id='category'
                 value={category}
                 onChange={(e) => handleFilterChange(setCategory)(e.target.value)}
                 placeholder='Filter category'
@@ -106,8 +106,8 @@ export const ExecutiveFinanceTransactionsPage = () => {
               />
             </div>
             <div className='space-y-1'>
-              <Label className='text-xs'>From</Label>
-              <Input
+              <Label htmlFor='from' className='text-xs'>From</Label>
+              <Input id='from'
                 type='date'
                 value={dateFrom}
                 onChange={(e) => handleFilterChange(setDateFrom)(e.target.value)}
@@ -115,8 +115,8 @@ export const ExecutiveFinanceTransactionsPage = () => {
               />
             </div>
             <div className='space-y-1'>
-              <Label className='text-xs'>To</Label>
-              <Input
+              <Label htmlFor='to' className='text-xs'>To</Label>
+              <Input id='to'
                 type='date'
                 value={dateTo}
                 onChange={(e) => handleFilterChange(setDateTo)(e.target.value)}
@@ -124,9 +124,9 @@ export const ExecutiveFinanceTransactionsPage = () => {
               />
             </div>
             <div className='space-y-1'>
-              <Label className='text-xs'>Branch</Label>
+              <Label htmlFor='branch' className='text-xs'>Branch</Label>
               <Select value={branchId} onValueChange={handleFilterChange(setBranchId)}>
-                <SelectTrigger className='w-40'>
+                <SelectTrigger id='branch' className='w-40'>
                   <SelectValue placeholder='All branches' />
                 </SelectTrigger>
                 <SelectContent>
@@ -139,10 +139,10 @@ export const ExecutiveFinanceTransactionsPage = () => {
               </Select>
             </div>
             <div className='space-y-1'>
-              <Label className='text-xs'>Search</Label>
+              <Label htmlFor='search' className='text-xs'>Search</Label>
               <div className='relative'>
                 <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
-                <Input
+                <Input id='search'
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);

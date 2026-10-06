@@ -23,9 +23,9 @@ export const ExpenseFilters = ({ categories, filters, search, onFilterChange, on
       <CardContent>
         <div className='flex flex-wrap gap-4 items-end'>
           <div className='space-y-1'>
-            <Label className='text-xs'>Category</Label>
+            <Label htmlFor='category' className='text-xs'>Category</Label>
             <Select value={filters.expense_category_id ?? ''} onValueChange={(v) => onFilterChange('expense_category_id', v)}>
-              <SelectTrigger className='w-40'>
+              <SelectTrigger id='category' className='w-40'>
                 <SelectValue placeholder='All categories' />
               </SelectTrigger>
               <SelectContent>
@@ -36,9 +36,9 @@ export const ExpenseFilters = ({ categories, filters, search, onFilterChange, on
             </Select>
           </div>
           <div className='space-y-1'>
-            <Label className='text-xs'>Status</Label>
+            <Label htmlFor='status' className='text-xs'>Status</Label>
             <Select value={filters.status ?? ''} onValueChange={(v) => onFilterChange('status', v)}>
-              <SelectTrigger className='w-32'>
+              <SelectTrigger id='status' className='w-32'>
                 <SelectValue placeholder='All statuses' />
               </SelectTrigger>
               <SelectContent>
@@ -49,18 +49,18 @@ export const ExpenseFilters = ({ categories, filters, search, onFilterChange, on
             </Select>
           </div>
           <div className='space-y-1'>
-            <Label className='text-xs'>From</Label>
-            <Input type='date' value={filters.date_from ?? ''} onChange={(e) => onFilterChange('date_from', e.target.value)} className='w-40' />
+            <Label htmlFor='from' className='text-xs'>From</Label>
+            <Input id='from' type='date' value={filters.date_from ?? ''} onChange={(e) => onFilterChange('date_from', e.target.value)} className='w-40' />
           </div>
           <div className='space-y-1'>
-            <Label className='text-xs'>To</Label>
-            <Input type='date' value={filters.date_to ?? ''} onChange={(e) => onFilterChange('date_to', e.target.value)} className='w-40' />
+            <Label htmlFor='to' className='text-xs'>To</Label>
+            <Input id='to' type='date' value={filters.date_to ?? ''} onChange={(e) => onFilterChange('date_to', e.target.value)} className='w-40' />
           </div>
           <div className='space-y-1'>
-            <Label className='text-xs'>Search</Label>
+            <Label htmlFor='search' className='text-xs'>Search</Label>
             <div className='relative'>
               <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
-              <Input value={search} onChange={(e) => onSearchChange(e.target.value)} placeholder='Search...' className='w-48 pl-8' />
+              <Input id='search' value={search} onChange={(e) => onSearchChange(e.target.value)} placeholder='Search...' className='w-48 pl-8' />
             </div>
           </div>
           <Button variant='outline' size='sm' onClick={onClear}>Clear</Button>

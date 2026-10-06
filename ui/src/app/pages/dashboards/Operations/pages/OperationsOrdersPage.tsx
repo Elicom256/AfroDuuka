@@ -14,8 +14,9 @@ import { useOrdersQuery, useCreateOrderMutation } from '@/app/store/features/ord
 import { usePurchaseOrdersQuery, useCreatePurchaseOrderMutation } from '@/app/store/features/orders/purchaseOrdersQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useBranchSuppliersQuery } from '@/app/store/features/branch/suppliers/branchSuppliersQuery';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -39,6 +40,8 @@ const SalesOrdersTab = () => {
   const [orderItems, setOrderItems] = useState<OrderItemInput[]>([]);
   const [notes, setNotes] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(overlayRef, { active: !!selectedOrder, onEscape: () => setSelectedOrder(null) });
 
   const orders = data?.data ?? [];
   const products = productsData?.products ?? [];
@@ -107,8 +110,8 @@ const SalesOrdersTab = () => {
             <DialogHeader><DialogTitle>Create Sales Order</DialogTitle></DialogHeader>
             <div className='space-y-4'>
               <div>
-                <Label>Search Products</Label>
-                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
+                <Label htmlFor='search-products'>Search Products</Label>
+                <Input id='search-products' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
               </div>
               {searchQuery && filteredProducts.length > 0 && (
                 <div className='border border-border rounded-xl max-h-40 overflow-y-auto'>
@@ -153,8 +156,8 @@ const SalesOrdersTab = () => {
                 </div>
               )}
               <div>
-                <Label>Notes</Label>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <Label htmlFor='notes'>Notes</Label>
+                <Textarea id='notes' value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
               <Button className='w-full' onClick={handleCreateOrder} disabled={orderItems.length === 0}>
                 Create Sales Order - {totalAmount.toLocaleString()}
@@ -210,10 +213,17 @@ const SalesOrdersTab = () => {
       </CardContent>
 
       {selectedOrder && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={() => setSelectedOrder(null)}>
+        <div
+          ref={overlayRef}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='sales-order-title'
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          onClick={() => setSelectedOrder(null)}
+        >
           <div className='bg-card rounded-3xl border p-6 w-125 max-h-screen overflow-y-auto' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between mb-4'>
-              <h2 className='text-lg font-semibold'>Order {selectedOrder.order_number}</h2>
+              <h2 id='sales-order-title' className='text-lg font-semibold'>Order {selectedOrder.order_number}</h2>
               <Button variant='ghost' onClick={() => setSelectedOrder(null)}>Close</Button>
             </div>
             <div className='space-y-1 mb-4'>
@@ -252,6 +262,8 @@ const PurchaseOrdersTab = () => {
   const [supplierId, setSupplierId] = useState('');
   const [notes, setNotes] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(overlayRef, { active: !!selectedOrder, onEscape: () => setSelectedOrder(null) });
 
   const orders = data?.data ?? [];
   const products = productsData?.products ?? [];
@@ -327,9 +339,9 @@ const PurchaseOrdersTab = () => {
             <DialogHeader><DialogTitle>Create Purchase Order</DialogTitle></DialogHeader>
             <div className='space-y-4'>
               <div>
-                <Label>Supplier</Label>
+                <Label htmlFor='supplier'>Supplier</Label>
                 <Select value={supplierId} onValueChange={setSupplierId}>
-                  <SelectTrigger>
+                  <SelectTrigger id='supplier'>
                     <SelectValue placeholder='Select a supplier' />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,8 +352,8 @@ const PurchaseOrdersTab = () => {
                 </Select>
               </div>
               <div>
-                <Label>Search Products</Label>
-                <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
+                <Label htmlFor='search-products-2'>Search Products</Label>
+                <Input id='search-products-2' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder='Search by name or SKU...' />
               </div>
               {searchQuery && filteredProducts.length > 0 && (
                 <div className='border border-border rounded-xl max-h-40 overflow-y-auto'>
@@ -386,8 +398,8 @@ const PurchaseOrdersTab = () => {
                 </div>
               )}
               <div>
-                <Label>Notes</Label>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <Label htmlFor='notes-2'>Notes</Label>
+                <Textarea id='notes-2' value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
               <Button className='w-full' onClick={handleCreateOrder} disabled={orderItems.length === 0 || !supplierId}>
                 Create Purchase Order - {totalAmount.toLocaleString()}
@@ -443,10 +455,17 @@ const PurchaseOrdersTab = () => {
       </CardContent>
 
       {selectedOrder && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={() => setSelectedOrder(null)}>
+        <div
+          ref={overlayRef}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='purchase-order-title'
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+          onClick={() => setSelectedOrder(null)}
+        >
           <div className='bg-card rounded-3xl border p-6 w-125 max-h-screen overflow-y-auto' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between mb-4'>
-              <h2 className='text-lg font-semibold'>PO {selectedOrder.order_number}</h2>
+              <h2 id='purchase-order-title' className='text-lg font-semibold'>PO {selectedOrder.order_number}</h2>
               <Button variant='ghost' onClick={() => setSelectedOrder(null)}>Close</Button>
             </div>
             <div className='space-y-1 mb-4'>

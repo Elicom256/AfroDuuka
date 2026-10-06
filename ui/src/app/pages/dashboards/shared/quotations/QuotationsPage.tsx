@@ -17,8 +17,9 @@ import {
   useQuotationPdfQuery,
 } from '@/app/store/features/orders/quotationsQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 const statusStyles: Record<string, string> = {
   draft: 'bg-gray-100 text-muted-foreground',
@@ -37,6 +38,8 @@ interface QuoteItemInput {
 
 const QuoteDetailModal = ({ quotation, onClose }: { quotation: any; onClose: () => void }) => {
   const { data: pdfData } = useQuotationPdfQuery(String(quotation.id));
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(overlayRef, { onEscape: onClose });
 
   const downloadPdf = () => {
     if (!pdfData?.pdf) {
@@ -50,13 +53,20 @@ const QuoteDetailModal = ({ quotation, onClose }: { quotation: any; onClose: () 
   };
 
   return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50' onClick={onClose}>
+    <div
+      ref={overlayRef}
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='quotation-title'
+      className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+      onClick={onClose}
+    >
       <div
         className='bg-card rounded-3xl border border-border p-6 w-125 max-h-[80vh] overflow-y-auto'
         onClick={(e) => e.stopPropagation()}
       >
         <div className='flex items-center justify-between mb-4'>
-          <h2 className='text-lg font-semibold'>Quote {quotation.quotation_number}</h2>
+          <h2 id='quotation-title' className='text-lg font-semibold'>Quote {quotation.quotation_number}</h2>
           <Button variant='ghost' size='sm' onClick={onClose}>
             Close
           </Button>
@@ -310,8 +320,8 @@ const CreateQuotationDialog = ({ open, onOpenChange }: { open: boolean; onOpenCh
         </DialogHeader>
         <div className='space-y-4'>
           <div>
-            <Label>Search Products</Label>
-            <Input
+            <Label htmlFor='search-products'>Search Products</Label>
+            <Input id='search-products'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder='Search by name or SKU...'
@@ -382,16 +392,16 @@ const CreateQuotationDialog = ({ open, onOpenChange }: { open: boolean; onOpenCh
             </div>
           )}
           <div>
-            <Label>Valid Until</Label>
-            <Input type='date' value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
+            <Label htmlFor='valid-until'>Valid Until</Label>
+            <Input id='valid-until' type='date' value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
           </div>
           <div>
-            <Label>Notes</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Label htmlFor='notes'>Notes</Label>
+            <Textarea id='notes' value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div>
-            <Label>Terms</Label>
-            <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} />
+            <Label htmlFor='terms'>Terms</Label>
+            <Textarea id='terms' value={terms} onChange={(e) => setTerms(e.target.value)} />
           </div>
           <Button className='w-full' onClick={handleCreate} disabled={quoteItems.length === 0}>
             Create Quotation

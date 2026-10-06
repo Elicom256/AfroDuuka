@@ -147,7 +147,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
               Supplier <span className='text-muted-foreground'>(optional)</span>
             </Label>
             <Select value={formData.supplier_id} onValueChange={(v) => handleChange('supplier_id', v)}>
-              <SelectTrigger className='col-span-3'>
+              <SelectTrigger id='supplier_id' className='col-span-3'>
                 <SelectValue placeholder='Select supplier' />
               </SelectTrigger>
               <SelectContent>
@@ -187,12 +187,12 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
 
                 <div className='grid grid-cols-12 gap-4'>
                   <div className='col-span-5'>
-                    <Label>Product</Label>
+                    <Label htmlFor='product'>Product</Label>
                     <Select
                       value={item.product_id}
                       onValueChange={(value) => updateItem(index, 'product_id', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id='product'>
                         <SelectValue placeholder='Select product' />
                       </SelectTrigger>
                       <SelectContent>
@@ -211,8 +211,8 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                   </div>
 
                   <div className='col-span-3'>
-                    <Label>Quantity</Label>
-                    <Input
+                    <Label htmlFor='quantity'>Quantity</Label>
+                    <Input id='quantity'
                       type='number'
                       value={item.quantity}
                       onChange={(e) => updateItem(index, 'quantity', e.target.value)}
@@ -221,8 +221,8 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                   </div>
 
                   <div className='col-span-4'>
-                    <Label>Cost Price ({currency})</Label>
-                    <Input
+                    <Label htmlFor='cost-price'>Cost Price ({currency})</Label>
+                    <Input id='cost-price'
                       type='number'
                       value={item.cost_price}
                       onChange={(e) => updateItem(index, 'cost_price', e.target.value)}
@@ -243,9 +243,9 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           {/* Payment & Extra Info */}
           <div className='grid grid-cols-2 gap-6'>
             <div>
-              <Label>Payment Method</Label>
+              <Label htmlFor='payment-method'>Payment Method</Label>
               <Select value={formData.payment_status_id} onValueChange={(v) => handleChange('payment_status_id', v)}>
-                <SelectTrigger>
+                <SelectTrigger id='payment-method'>
                   <SelectValue placeholder='Select payment method' />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,8 +259,8 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
             </div>
 
             <div>
-              <Label>Reference / Invoice No.</Label>
-              <Input
+              <Label htmlFor='reference-invoice-no'>Reference / Invoice No.</Label>
+              <Input id='reference-invoice-no'
                 value={formData.reference}
                 onChange={(e) => handleChange('reference', e.target.value)}
                 placeholder='Supplier invoice number'
@@ -269,8 +269,8 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           </div>
 
           <div>
-            <Label>Note</Label>
-            <Textarea
+            <Label htmlFor='note'>Note</Label>
+            <Textarea id='note'
               value={formData.note}
               onChange={(e) => handleChange('note', e.target.value)}
               placeholder='Additional notes about this purchase...'

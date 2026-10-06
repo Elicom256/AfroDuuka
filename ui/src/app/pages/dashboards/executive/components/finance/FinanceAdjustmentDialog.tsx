@@ -84,12 +84,12 @@ export const FinanceAdjustmentDialog = ({ onSuccess }: FinanceAdjustmentDialogPr
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Direction</Label>
+              <Label htmlFor='direction' className='text-right'>Direction</Label>
               <Select
                 value={formData.direction}
                 onValueChange={(v) => setFormData((p) => ({ ...p, direction: v }))}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='direction' className='col-span-3'>
                   <SelectValue placeholder='Select direction' />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,8 +99,8 @@ export const FinanceAdjustmentDialog = ({ onSuccess }: FinanceAdjustmentDialogPr
               </Select>
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Amount</Label>
-              <Input
+              <Label htmlFor='amount' className='text-right'>Amount</Label>
+              <Input id='amount'
                 type='number'
                 step='0.01'
                 min='0'
@@ -111,8 +111,8 @@ export const FinanceAdjustmentDialog = ({ onSuccess }: FinanceAdjustmentDialogPr
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Description</Label>
-              <Input
+              <Label htmlFor='description' className='text-right'>Description</Label>
+              <Input id='description'
                 value={formData.description}
                 onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
                 className='col-span-3'
@@ -120,16 +120,16 @@ export const FinanceAdjustmentDialog = ({ onSuccess }: FinanceAdjustmentDialogPr
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Notes</Label>
-              <Textarea
+              <Label htmlFor='notes' className='text-right'>Notes</Label>
+              <Textarea id='notes'
                 value={formData.notes}
                 onChange={(e) => setFormData((p) => ({ ...p, notes: e.target.value }))}
                 className='col-span-3'
               />
             </div>
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label className='text-right'>Transaction Date</Label>
-              <Input
+              <Label htmlFor='transaction-date' className='text-right'>Transaction Date</Label>
+              <Input id='transaction-date'
                 type='date'
                 value={formData.transaction_date}
                 onChange={(e) => setFormData((p) => ({ ...p, transaction_date: e.target.value }))}

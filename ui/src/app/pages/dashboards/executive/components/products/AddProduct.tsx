@@ -194,7 +194,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 value={formData.product_category_id}
                 onValueChange={(value) => handleChange('product_category_id', value)}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='product_category_id' className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,7 +214,7 @@ export const AddProduct: React.FC<AddProductProps> = ({ addProduct }) => {
                 value={formData.tax_category_id}
                 onValueChange={(value) => handleChange('tax_category_id', value)}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='tax_category_id' className='col-span-3'>
                   <SelectValue placeholder='No tax (optional)' />
                 </SelectTrigger>
                 <SelectContent>

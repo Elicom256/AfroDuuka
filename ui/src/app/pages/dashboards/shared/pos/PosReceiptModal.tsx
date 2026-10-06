@@ -1,7 +1,9 @@
+import { useRef } from 'react';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useReceiptQuery } from '@/app/store/features/branch/receipts/receiptsQuery';
 import { ReceiptView } from '@/app/pages/dashboards/executive/components/receipts/ReceiptView';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 /**
  * The receipt shown after a till sale.
@@ -29,9 +31,18 @@ export const PosReceiptModal = ({
 }) => {
   const { data, isFetching } = useReceiptQuery(receiptId ? String(receiptId) : '', { skip: !receiptId });
   const receipt = data?.receipt || data;
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(overlayRef, { onEscape: onClose });
 
   return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' onClick={onClose}>
+    <div
+      ref={overlayRef}
+      role='dialog'
+      aria-modal='true'
+      aria-label='Receipt'
+      className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
+      onClick={onClose}
+    >
       <div className='w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4' onClick={(e) => e.stopPropagation()}>
         {receipt?.id ? (
           <ReceiptView receipt={receipt} />

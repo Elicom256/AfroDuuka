@@ -32,8 +32,8 @@ export const AddPaymentGateway = ({ createGateway }: any) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label>Provider</Label>
-            <Input
+            <Label htmlFor='provider'>Provider</Label>
+            <Input id='provider'
               value={form.provider}
               onChange={(e) => setForm({ ...form, provider: e.target.value })}
               placeholder='e.g. mtn_momo, airtel_money, flutterwave'

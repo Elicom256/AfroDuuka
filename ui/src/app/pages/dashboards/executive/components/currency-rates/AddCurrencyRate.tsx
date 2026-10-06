@@ -33,12 +33,12 @@ export const AddCurrencyRate = ({ createRate }: any) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label>Target Currency</Label>
-            <Input value={form.target_currency} onChange={(e) => setForm({ ...form, target_currency: e.target.value })} placeholder='e.g. USD' maxLength={3} className='uppercase' />
+            <Label htmlFor='target-currency'>Target Currency</Label>
+            <Input id='target-currency' value={form.target_currency} onChange={(e) => setForm({ ...form, target_currency: e.target.value })} placeholder='e.g. USD' maxLength={3} className='uppercase' />
           </div>
           <div className='space-y-2'>
-            <Label>Rate (1 {form.target_currency.toUpperCase() || 'CURRENCY'} = ? {currency})</Label>
-            <Input type='number' step='0.000001' value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} placeholder='e.g. 3700' />
+            <Label htmlFor='rate-1'>Rate (1 {form.target_currency.toUpperCase() || 'CURRENCY'} = ? {currency})</Label>
+            <Input id='rate-1' type='number' step='0.000001' value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} placeholder='e.g. 3700' />
           </div>
           <DialogFooter>
             <Button type='button' variant='outline' onClick={() => setOpen(false)}>Cancel</Button>

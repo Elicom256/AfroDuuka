@@ -62,8 +62,8 @@ export const TaxPaymentsTable = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Input type='date' value={from} onChange={(e) => setFrom(e.target.value)} className='w-40' aria-label='From date' />
-            <Input type='date' value={to} onChange={(e) => setTo(e.target.value)} className='w-40' aria-label='To date' />
+            <Input id='date' type='date' value={from} onChange={(e) => setFrom(e.target.value)} className='w-40' aria-label='From date' />
+            <Input id='date-2' type='date' value={to} onChange={(e) => setTo(e.target.value)} className='w-40' aria-label='To date' />
             <AddTaxPayment />
           </div>
         </div>

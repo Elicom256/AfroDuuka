@@ -70,14 +70,14 @@ export const CurrencySettings = () => {
 
           {showForm && (
             <div className='flex gap-3 mb-4 p-4 bg-muted rounded-lg'>
-              <Input
+              <Input id='usd'
                 placeholder='USD'
                 value={form.target_currency}
                 onChange={(e) => setForm({ ...form, target_currency: e.target.value })}
                 className='w-24 uppercase'
                 maxLength={3}
               />
-              <Input
+              <Input id='rate'
                 placeholder='Rate'
                 type='number'
                 step='0.000001'

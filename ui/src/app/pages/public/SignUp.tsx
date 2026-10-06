@@ -269,7 +269,7 @@ export const SignUp: React.FC = () => {
             value={formState.country_id}
             onValueChange={(value) => setFormState((prev: any) => ({ ...prev, country_id: value }))}
           >
-            <SelectTrigger className='w-full'>
+            <SelectTrigger id='country' className='w-full'>
               <SelectValue placeholder='Select your country' />
             </SelectTrigger>
             <SelectContent>

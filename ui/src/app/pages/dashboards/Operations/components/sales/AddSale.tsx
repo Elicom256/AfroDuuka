@@ -208,7 +208,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
               </Label>
 
               <Select value={formData.method} onValueChange={(value) => handleChange('method', value)}>
-                <SelectTrigger className='w-full max-w-48 col-span-3'>
+                <SelectTrigger id='method' className='w-full max-w-48 col-span-3'>
                   <SelectValue placeholder='Select payment status' />
                 </SelectTrigger>
 

@@ -173,7 +173,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 Status
               </Label>
               <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='status' className='col-span-3'>
                   <SelectValue placeholder='Select status' />
                 </SelectTrigger>
                 <SelectContent>
@@ -190,7 +190,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 value={formData.product_category_id}
                 onValueChange={(value) => handleChange('product_category_id', value)}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='product_category_id' className='col-span-3'>
                   <SelectValue placeholder='Select category' />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,7 +210,7 @@ export const EditProduct: React.FC<EditProductProps> = ({ open, onOpenChange, pr
                 value={formData.tax_category_id}
                 onValueChange={(value) => handleChange('tax_category_id', value)}
               >
-                <SelectTrigger className='col-span-3'>
+                <SelectTrigger id='tax_category_id' className='col-span-3'>
                   <SelectValue placeholder='No tax (optional)' />
                 </SelectTrigger>
                 <SelectContent>

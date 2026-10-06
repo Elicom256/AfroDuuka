@@ -111,7 +111,7 @@ export const ExecutiveReceiptsPage = () => {
             <div className='flex flex-wrap items-center gap-3'>
               <div className='relative flex-1 min-w-50'>
                 <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-                <Input
+                <Input id='search-receipt-number'
                   placeholder='Search receipt number...'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -154,14 +154,14 @@ export const ExecutiveReceiptsPage = () => {
                   <SelectItem value='voided'>Voided</SelectItem>
                 </SelectContent>
               </Select>
-              <Input
+              <Input id='from'
                 type='date'
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
                 className='w-35'
                 placeholder='From'
               />
-              <Input
+              <Input id='to'
                 type='date'
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}

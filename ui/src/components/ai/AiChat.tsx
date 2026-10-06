@@ -131,7 +131,7 @@ export const AiChat = () => {
           }}
           className='flex w-full gap-2'
         >
-          <Input
+          <Input id='ask-about-inventory-sales-stock'
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
