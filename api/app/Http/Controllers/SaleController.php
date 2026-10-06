@@ -124,6 +124,6 @@ class SaleController extends Controller
      */
     public function destroy(Sale $sale)
     {
-        //
+        abort(405, 'Sales cannot be deleted once stock movements have been recorded. Reverse the sale or issue a corrected return instead.');
     }
 }
