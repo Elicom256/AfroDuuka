@@ -50,7 +50,7 @@ Evidence the poison arrives from **outside** the request:
 - [x] **Chunk 5** — First-failure observability: structured `Log::warning/error` from the
       recovery middleware (path, SQL, `transactionLevel`, connection host, attempt count)
       so the next incident names the poison source instead of only its victim.
-- [ ] **Chunk 6** — Replace hard-coded `'payment_status_id' => 1` in
+- [x] **Chunk 6** — Replace hard-coded `'payment_status_id' => 1` in
       `PosService::checkout` with a lookup of the sale's actual payment method on the
       business's `payment_methods` (fallback `cash`, then `null` — column is nullable).
 - [ ] **Chunk 7** — Verify: `php -l` on touched files, run the test suite / lint as
