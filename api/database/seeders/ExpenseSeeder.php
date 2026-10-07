@@ -71,16 +71,19 @@ class ExpenseSeeder extends Seeder
         ];
 
         foreach ($expenses as $exp) {
-            Expense::create([
-                'expense_category_id' => $exp['expense_category_id'],
-                'amount' => $exp['amount'],
-                'business_id' => $business->id,
-                'business_branch_id' => $exp['business_branch_id'],
-                'vendor' => $exp['vendor'],
-                'description' => $exp['description'],
-                'payment_date' => $exp['payment_date'],
-                'status' => $exp['status'],
-            ]);
+            Expense::firstOrCreate(
+                ['business_id' => $business->id, 'vendor' => $exp['vendor'], 'description' => $exp['description']],
+                [
+                    'expense_category_id' => $exp['expense_category_id'],
+                    'amount' => $exp['amount'],
+                    'business_id' => $business->id,
+                    'business_branch_id' => $exp['business_branch_id'],
+                    'vendor' => $exp['vendor'],
+                    'description' => $exp['description'],
+                    'payment_date' => $exp['payment_date'],
+                    'status' => $exp['status'],
+                ]
+            );
         }
 
         $this->command->info('✅ Seeded '.count($expenses).' expenses');
