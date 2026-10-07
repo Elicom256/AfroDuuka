@@ -30,6 +30,17 @@ class AttendanceSeeder extends Seeder
 
         foreach ($workers as $worker) {
 
+            // Skip if this worker already has a morning attendance record;
+            // late check-ins are randomized, so keying on check_in would
+            // not prevent duplicates on re-seed.
+            $alreadySeeded = Attendance::where('worker_id', $worker->id)
+                ->where('session', 'morning')
+                ->exists();
+
+            if ($alreadySeeded) {
+                continue;
+            }
+
             // random status per worker
             $status = $statuses[array_rand($statuses)];
 

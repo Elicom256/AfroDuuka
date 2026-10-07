@@ -9,6 +9,10 @@ class TodoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Todo::exists()) {
+            return;
+        }
+
         Todo::factory()->count(10)->create();
     }
 }
