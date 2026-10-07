@@ -70,6 +70,19 @@ Evidence the poison arrives from **outside** the request:
     a naive stream regex, so it occasionally misses rendered figures. Failed once,
     passed 8 consecutive re-runs including full-class runs. Pre-existing harness
     fragility unrelated to these changes; left as is.
+- [x] **Chunk 8** — Heal the pool on every recovery path (found while diagnosing the
+      post-deploy production toast): PHP's transaction counter cannot see an
+      *inherited* abort — it stays at 0 — so the Chunk 1/4 `while (level > 0) rollBack()`
+      loops skipped it, `disconnect()` alone could return a still-aborted connection to
+      PgBouncer, and the retry then drew another poisoned connection and failed again.
+      Both the recovery middleware and the Octane listener now send a raw `ROLLBACK` on
+      an existing PDO before disconnecting (verified: clears an aborted transaction;
+      outside a transaction PostgreSQL answers with a warning, never an error), the
+      middleware heals *before* rethrowing on give-up so even a failed request returns
+      a clean connection, and the retry budget goes from 1 to 3 attempts so a pool
+      poisoned by an old deployment drains within a few requests instead of all at
+      once. Retry safety is unchanged: every attempt died on 25P02, so nothing it
+      wrote can have committed. Pinned by `tests/Feature/RecoverFromAbortedTransactionTest`.
 
 ## Retry-safety argument (Chunk 4)
 
