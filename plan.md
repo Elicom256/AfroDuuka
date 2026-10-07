@@ -53,8 +53,23 @@ Evidence the poison arrives from **outside** the request:
 - [x] **Chunk 6** — Replace hard-coded `'payment_status_id' => 1` in
       `PosService::checkout` with a lookup of the sale's actual payment method on the
       business's `payment_methods` (fallback `cash`, then `null` — column is nullable).
-- [ ] **Chunk 7** — Verify: `php -l` on touched files, run the test suite / lint as
+- [x] **Chunk 7** — Verify: `php -l` on touched files, run the test suite / lint as
       available, final push.
+  - `php -l` clean on every touched file; `sh -n` clean on `docker-entrypoint.sh`.
+  - Full suite in the dev container (must mount `./ui` at `/frontend` or
+    `FrontendApiPathsTest` fails on a missing directory — container-setup artifact,
+    passes with the mount): **775 passed, 0 failed, 2271 assertions**.
+    One pre-existing failure was fixed along the way:
+    `MutatingRouteAuthorizationAuditTest` wanted an `INTENTIONAL` entry for
+    `DELETE api/sales/branch-sales/{sale}` (POST/PATCH of the same resource were
+    documented; DELETE was forgotten when the route was added in `5ebf9c4`).
+    Reproduced identically on the pre-change base commit `958bfe7`, so it predates
+    this work; fixed with one entry matching the existing "central delete gate"
+    pattern (test-only change, audit now green).
+  - `MonthlyPerformanceReportTest` is intermittently flaky: it extracts PDF text with
+    a naive stream regex, so it occasionally misses rendered figures. Failed once,
+    passed 8 consecutive re-runs including full-class runs. Pre-existing harness
+    fragility unrelated to these changes; left as is.
 
 ## Retry-safety argument (Chunk 4)
 

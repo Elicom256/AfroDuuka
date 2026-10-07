@@ -73,6 +73,7 @@ class MutatingRouteAuthorizationAuditTest extends TestCase
 
         'POST api/sales/branch-sales' => 'Selling at the till is the Operations role\'s actual job; role middleware would lock the counter.',
         'PATCH|PUT api/sales/branch-sales/{sale}' => 'Same floor argument. Sales are additionally blocked from being voided, not from being recorded.',
+        'DELETE api/sales/branch-sales/{sale}' => 'Central delete gate. Voiding the sale is exactly what BlockRestrictedRoleActions refuses, same as every other DELETE exception here.',
 
         'POST api/finances/business-debits/{businessDebit}/pay' => 'Records a payment that has already left the till. Opening a debt is gated; settling one is not.',
 
