@@ -11,23 +11,34 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * One-shot recovery from an inherited aborted transaction (SQLSTATE 25P02).
+ * Recovery from an inherited aborted transaction (SQLSTATE 25P02).
  *
- * A 25P02 that reaches this middleware can only mean the connection opened the
- * request already carrying an aborted transaction: a genuine failure inside the
- * request's own DB::transaction surfaces the original error, and nothing in the
- * checkout path swallows a failure and continues. The first statement of an
- * aborted transaction fails before anything this request wrote can commit, so
- * rolling back, dropping the connection and replaying the request once is safe
- * even for the non-idempotent POS checkout.
+ * A 25P02 that reaches this middleware means the connection is carrying an
+ * aborted transaction: either it opened the request that way (a pooled
+ * connection poisoned by another client), or this request's own work was
+ * doomed by an earlier failure. In both cases nothing this request wrote can
+ * commit — every statement of an aborted transaction fails — so rolling back,
+ * dropping the connection and replaying the request is safe even for the
+ * non-idempotent POS checkout. That argument holds for every replay, so the
+ * middleware retries up to three times: each poisoned pooled connection it
+ * meets is healed on the way out, which drains a pool poisoned by an old
+ * deployment within a few requests instead of leaving the next request to
+ * draw the same bad connection.
  */
 class RecoverFromAbortedTransaction
 {
     /**
-     * Marks the request as already replayed so a second 25P02 rethrows
-     * instead of looping.
+     * Marks how many times the request has already been replayed so a
+     * further 25P02 retries (up to MAX_ATTEMPTS) instead of looping forever.
      */
     protected const RETRIED_ATTRIBUTE = 'recovered_from_aborted_transaction';
+
+    /**
+     * The retry-safety argument in the class docblock applies to each
+     * attempt, so the only bound needed is one that prevents a pathological
+     * loop: three poisoned connections in a row is enough to report failure.
+     */
+    protected const MAX_ATTEMPTS = 3;
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -38,23 +49,26 @@ class RecoverFromAbortedTransaction
                 throw $e;
             }
 
-            $attempt = $request->attributes->has(self::RETRIED_ATTRIBUTE) ? 2 : 1;
+            $attempt = ((int) $request->attributes->get(self::RETRIED_ATTRIBUTE, 0)) + 1;
 
             // Context must be captured before rollbackAndDisconnect() zeroes
             // the transaction levels and drops the connections.
             $context = $this->logContext($request, $e, $attempt);
 
-            if ($attempt === 2) {
+            // Heal on every path, including the give-up path: clearing the
+            // aborted transaction here is what returns a clean connection to
+            // the pool instead of re-poisoning the next request.
+            $this->rollbackAndDisconnect();
+
+            if ($attempt >= self::MAX_ATTEMPTS) {
                 Log::error('Aborted transaction (25P02) persisted after recovery; giving up on request.', $context);
 
                 throw $e;
             }
 
-            $this->rollbackAndDisconnect();
+            Log::warning('Inherited aborted transaction (25P02); rolled back, reconnected, retrying request.', $context);
 
-            Log::warning('Inherited aborted transaction (25P02); rolled back, reconnected, retrying request once.', $context);
-
-            $request->attributes->set(self::RETRIED_ATTRIBUTE, true);
+            $request->attributes->set(self::RETRIED_ATTRIBUTE, $attempt);
 
             return $next($request);
         }
@@ -113,6 +127,22 @@ class RecoverFromAbortedTransaction
             } catch (Throwable) {
                 // The connection may already be gone; disconnecting below
                 // discards it regardless.
+            }
+
+            // The PHP transaction counter cannot see an inherited abort —
+            // another client poisoned the pooled connection — so the loop
+            // above skips it and disconnect() alone would hand the pool back
+            // a connection that is still aborted server-side. A raw ROLLBACK
+            // clears it; outside a transaction PostgreSQL answers with a
+            // warning, never an error, so this is safe in every state.
+            try {
+                $pdo = $connection->getRawPdo();
+
+                if ($pdo instanceof \PDO) {
+                    $pdo->exec('ROLLBACK');
+                }
+            } catch (Throwable) {
+                // A dead PDO cannot be healed; disconnecting drops it.
             }
 
             $connection->disconnect();
