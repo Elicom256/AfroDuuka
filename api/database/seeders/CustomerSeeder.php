@@ -78,36 +78,30 @@ class CustomerSeeder extends Seeder
             $nameParts = preg_split('/\s+/', trim($customerData['name']), 2);
 
             // 1. Create User
-            $user = User::updateOrCreate(
-                [
-                    'email' => $customerData['email'],
-                ],
-                [
-                    'firstname' => $nameParts[0],
-                    'lastname' => $nameParts[1] ?? '',
-                    'email' => $customerData['email'],
-                    'phone' => $customerData['phone'],
-                    'address' => $customerData['address'],
-                    'business_id' => $businessId,
-                    'business_branch_id' => $businessBranch,
-                    'role_id' => $role,
-                    'username' => strtoupper(explode('@', $customerData['email'])[0]),
-                    'password' => Hash::make('password'),
-                    'status' => 'active',
-                    'nin' => $nin,
-                ]
-            );
+            $user = User::firstOrNew(['email' => $customerData['email']]);
+            $user->firstname = $nameParts[0];
+            $user->lastname = $nameParts[1] ?? '';
+            $user->email = $customerData['email'];
+            $user->phone = $customerData['phone'];
+            $user->address = $customerData['address'];
+            $user->business_id = $businessId;
+            $user->business_branch_id = $businessBranch;
+            $user->role_id = $role;
+            $user->username = strtoupper(explode('@', $customerData['email'])[0]);
+            $user->status = 'active';
+            if (! $user->exists) {
+                $user->password = Hash::make('password');
+                $user->nin = $nin;
+            }
+            $user->save();
 
             // 2. Create Customer profile
-            Customer::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                ],
-                [
-                    'customer_code' => $customerCode,
-                    'status' => 'active',
-                ]
-            );
+            $customer = Customer::firstOrNew(['user_id' => $user->id]);
+            $customer->status = 'active';
+            if (! $customer->exists) {
+                $customer->customer_code = $customerCode;
+            }
+            $customer->save();
         }
 
         $this->command->info('✅ Seeded '.count($customers).' Customers Successfully!');
