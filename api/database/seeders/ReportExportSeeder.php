@@ -40,7 +40,9 @@ class ReportExportSeeder extends Seeder
         ];
 
         foreach ($exports as $export) {
-            ReportExport::create(array_merge([
+            ReportExport::firstOrCreate(
+            ['business_id' => $business->id, 'user_id' => $user->id, 'report_type' => $export['report_type'], 'format' => $export['format']],
+            array_merge([
                 'business_id' => $business->id,
                 'user_id' => $user->id,
             ], $export));

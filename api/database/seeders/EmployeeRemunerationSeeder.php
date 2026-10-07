@@ -36,17 +36,18 @@ class EmployeeRemunerationSeeder extends Seeder
 
         foreach ($workers as $index => $worker) {
             foreach ($remunerations as $rem) {
-                EmployeeRemuneration::create([
-                    'worker_id' => $worker->id,
-                    'business_id' => $businessId,
-                    'business_branch_id' => $branchId,
-                    'type' => $rem['type'],
-                    'amount' => $rem['amount'] + ($rem['type'] === 'salary' ? $index * 250000 : 0),
-                    'payment_date' => $rem['payment_date'],
-                    'reference' => $rem['reference'].'-'.$worker->id,
-                    'status' => $rem['status'],
-                    'description' => $rem['description'],
-                ]);
+                EmployeeRemuneration::firstOrCreate(
+                    ['worker_id' => $worker->id, 'reference' => $rem['reference'].'-'.$worker->id],
+                    [
+                        'business_id' => $businessId,
+                        'business_branch_id' => $branchId,
+                        'type' => $rem['type'],
+                        'amount' => $rem['amount'] + ($rem['type'] === 'salary' ? $index * 250000 : 0),
+                        'payment_date' => $rem['payment_date'],
+                        'status' => $rem['status'],
+                        'description' => $rem['description'],
+                    ]
+                );
             }
         }
     }

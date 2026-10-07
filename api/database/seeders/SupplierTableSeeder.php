@@ -60,37 +60,31 @@ class SupplierTableSeeder extends Seeder
             $supplierCode = 'SUP-'.str_pad($supplierCount + 1, 5, '0', STR_PAD_LEFT);
             $nin = strtoupper('CM'.rand(10, 99).rand(10000000, 99999999).chr(rand(65, 90)).chr(rand(65, 90)));
             // 1. Create User first
-            $user = User::updateOrCreate(
-                [
-                    'email' => $supplierData['email'],
-                ],
-                [
-                    'firstname' => explode(' ', $supplierData['name'])[0],
-                    'lastname' => explode(' ', $supplierData['name'], 2)[1] ?? '',
-                    'email' => $supplierData['email'],
-                    'phone' => $supplierData['phone'],
-                    'address' => $supplierData['address'],
-                    'business_id' => $businessId,
-                    'business_branch_id' => $businessBranch,
-                    'role_id' => $role, // optionally set supplier role
-                    'username' => strtoupper(explode('@', $supplierData['email'])[0]),
-                    'password' => Hash::make('password'),
-                    'status' => 'active',
-                    'nin' => $nin,
-                ]
-            );
+            $user = User::firstOrNew(['email' => $supplierData['email']]);
+            $user->firstname = explode(' ', $supplierData['name'])[0];
+            $user->lastname = explode(' ', $supplierData['name'], 2)[1] ?? '';
+            $user->email = $supplierData['email'];
+            $user->phone = $supplierData['phone'];
+            $user->address = $supplierData['address'];
+            $user->business_id = $businessId;
+            $user->business_branch_id = $businessBranch;
+            $user->role_id = $role;
+            $user->username = strtoupper(explode('@', $supplierData['email'])[0]);
+            $user->status = 'active';
+            if (! $user->exists) {
+                $user->password = Hash::make('password');
+                $user->nin = $nin;
+            }
+            $user->save();
 
             // 2. Create Supplier profile
-            Supplier::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                ],
-                [
-                    'company_name' => $supplierData['name'],
-                    'supplier_code' => $supplierCode,
-                    'status' => 'active',
-                ]
-            );
+            $supplier = Supplier::firstOrNew(['user_id' => $user->id]);
+            $supplier->company_name = $supplierData['name'];
+            $supplier->status = 'active';
+            if (! $supplier->exists) {
+                $supplier->supplier_code = $supplierCode;
+            }
+            $supplier->save();
         }
 
         $this->command->info('✅ Seeded '.count($suppliers).' Suppliers Successfully!');
