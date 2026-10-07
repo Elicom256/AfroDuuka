@@ -35,10 +35,12 @@ Evidence the poison arrives from **outside** the request:
       `.env`, `.env.example` (+ `config/cache.php` default). Removes the per-request
       rate-limiter `BEGIN` against the pool. **Manual step: update/remove `CACHE_STORE`
       in the Render dashboard env vars too.**
-- [ ] **Chunk 3** — Make boot resilient: rewrite `0001_01_01_000001_create_cache_table.php`
+- [x] **Chunk 3** — Make boot resilient: rewrite `0001_01_01_000001_create_cache_table.php`
       to be idempotent (guard `hasTable`, add missing PK with dedupe, same for
       `cache_locks`) and add a 3-attempt retry around `php artisan migrate --force` in
-      `docker-entrypoint.sh` so one transient 25P02 cannot crash the deploy.
+      `docker-entrypoint.sh` so one transient 25P02 cannot crash the deploy. Verified
+      locally against a scratch Postgres: fresh-create, repair, and no-op paths pass;
+      retry loop behaviour checked under `set -e`.
 - [ ] **Chunk 4** — One-shot request recovery: new
       `App\Http\Middleware\RecoverFromAbortedTransaction`, **prepended** to the `api`
       group. On `QueryException` with SQLSTATE `25P02` (an inherited abort — proven
