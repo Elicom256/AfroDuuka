@@ -25,7 +25,7 @@ trait SeedsFixtureBusiness
             ->value('id')
             ?? BusinessCategory::updateOrCreate(
                 ['name' => 'electronics'],
-                ['description' => 'businesses selling electronics and gadgets', 'status' => 1]
+                ['description' => 'businesses selling electronics and gadgets', 'status' => true]
             )->id;
 
         $countryId = Country::where('iso_alpha2', 'UG')
