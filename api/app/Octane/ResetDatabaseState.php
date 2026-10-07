@@ -31,15 +31,16 @@ class ResetDatabaseState
         }
 
         foreach ($event->sandbox->make('db')->getConnections() as $connection) {
-            if ($connection->transactionLevel() > 0) {
-                try {
-                    // Also clears the DatabaseTransactionsManager's pending
-                    // after-commit callbacks for the rolled-back level.
+            try {
+                // rollBack() decrements one level per call; loop until no
+                // transaction remains. It also clears the
+                // DatabaseTransactionsManager's pending after-commit callbacks.
+                while ($connection->transactionLevel() > 0) {
                     $connection->rollBack();
-                } catch (Throwable) {
-                    // The transaction may already be aborted server-side; the
-                    // disconnect below discards the backend regardless.
                 }
+            } catch (Throwable) {
+                // The transaction may already be aborted server-side; the
+                // disconnect below discards the backend regardless.
             }
 
             $connection->disconnect();
