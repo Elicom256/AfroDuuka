@@ -100,7 +100,9 @@ RUN mkdir -p \
         storage/framework/sessions \
         storage/logs \
         bootstrap/cache && \
-    chown -R ${USER_ID}:${GROUP_ID} storage bootstrap/cache public
+    chown -R ${USER_ID}:${GROUP_ID} storage bootstrap/cache public && \
+    mkdir -p /data/caddy /config/caddy && \
+    chown -R ${USER_ID}:${GROUP_ID} /data /config
 
 
 # ------------------------------------------------------------------------------
