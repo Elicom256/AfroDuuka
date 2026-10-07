@@ -26,8 +26,8 @@ Evidence the poison arrives from **outside** the request:
 
 ## Chunks (push after each, mark `- [x]` when done)
 
-- [ ] **Chunk 0** — This plan (`plan.md`), pushed.
-- [ ] **Chunk 1** — Wire Octane DB reset between requests: new `api/config/octane.php`
+- [x] **Chunk 0** — This plan (`plan.md`), pushed.
+- [x] **Chunk 1** — Wire Octane DB reset between requests: new `api/config/octane.php`
       enabling a new `App\Octane\ResetDatabaseState` listener on `OperationTerminated`
       (rolls back any leaked open transaction, then disconnects every PDO). Kills the
       "poisoned transaction carried into the next request" vector.
