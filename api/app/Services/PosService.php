@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Resources\PosCustomerResource;
 use App\Http\Resources\PosProductResource;
+use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Receipt;
@@ -322,10 +323,18 @@ class PosService
                 : null;
             $customerName = $customer ? trim($customer->firstname.' '.$customer->lastname) : 'Walk-in Customer';
 
+            // Resolve the FK from this business's own payment_methods row for
+            // the sale's first payment method. The old hard-coded id 1 pointed
+            // at whichever business happened to own the first seeded row.
+            $firstPayment = reset($validated['payments']);
+            $firstMethod = is_array($firstPayment) ? ($firstPayment['method'] ?? 'cash') : 'cash';
+            $paymentStatusId = PaymentMethod::where('method', $firstMethod)->value('id')
+                ?: PaymentMethod::where('method', 'cash')->value('id');
+
             $this->cashFlowService->createCashFlowForSale($sale, $netTotal, [
                 'transaction_code' => 'CF-POS-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
                 'currency' => $validated['currency'] ?? 'UGX',
-                'payment_status_id' => 1,
+                'payment_status_id' => $paymentStatusId,
                 'reference' => null,
             ]);
 
