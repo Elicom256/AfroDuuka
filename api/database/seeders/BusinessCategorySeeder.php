@@ -47,7 +47,7 @@ class BusinessCategorySeeder extends Seeder
                 ],
                 [
                     'description' => strtolower($category['description']),
-                    'status' => 1,
+                    'status' => true,
                 ]
             );
             $this->command->info('✅ Seeded '.$category['name'].' Successfully!');
