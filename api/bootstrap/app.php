@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\BlockRestrictedRoleActions;
+use App\Http\Middleware\RecoverFromAbortedTransaction;
 use App\Http\Middleware\RequireBusiness;
 use App\Http\Middleware\RequireRole;
 use Illuminate\Auth\AuthenticationException;
@@ -47,6 +48,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // false, which breaks signed links, URA fiscalisation callbacks and any
         // absolute URL in an API response.
         $middleware->trustProxies(at: '*');
+
+        // First in the api group so it wraps every later middleware and the
+        // controller: an inherited aborted transaction (SQLSTATE 25P02) rolls
+        // back, reconnects and replays the request exactly once.
+        $middleware->api(prepend: [
+            RecoverFromAbortedTransaction::class,
+        ]);
 
         // Never redirect an unauthenticated caller to a login page.
         //
