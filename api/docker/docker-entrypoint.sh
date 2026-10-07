@@ -28,7 +28,19 @@ echo "Running database migrations..."
 # Sidecar containers (e.g. the queue worker) set SKIP_MIGRATIONS=true so that
 # migrations are not run twice concurrently against the same database.
 if [ "${SKIP_MIGRATIONS:-false}" != "true" ]; then
-    php artisan migrate --force
+    # Retry a few times: each attempt is a fresh process with a fresh pool
+    # connection, so a migration that picks up an aborted transaction from
+    # PgBouncer (SQLSTATE 25P02) succeeds on a later try.
+    attempt=1
+    until php artisan migrate --force; do
+        attempt=$((attempt + 1))
+        if [ "$attempt" -gt 3 ]; then
+            echo "Migrations failed after 3 attempts" >&2
+            exit 1
+        fi
+        echo "Migration attempt $((attempt - 1)) failed; retrying ($attempt/3) in 5s..."
+        sleep 5
+    done
 fi
 
 # Local development does not need cache rebuilds on every restart.
