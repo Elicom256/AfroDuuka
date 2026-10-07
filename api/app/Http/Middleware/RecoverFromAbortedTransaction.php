@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -33,11 +34,25 @@ class RecoverFromAbortedTransaction
         try {
             return $next($request);
         } catch (QueryException $e) {
-            if ($request->attributes->has(self::RETRIED_ATTRIBUTE) || ! $this->isAbortedTransaction($e)) {
+            if (! $this->isAbortedTransaction($e)) {
+                throw $e;
+            }
+
+            $attempt = $request->attributes->has(self::RETRIED_ATTRIBUTE) ? 2 : 1;
+
+            // Context must be captured before rollbackAndDisconnect() zeroes
+            // the transaction levels and drops the connections.
+            $context = $this->logContext($request, $e, $attempt);
+
+            if ($attempt === 2) {
+                Log::error('Aborted transaction (25P02) persisted after recovery; giving up on request.', $context);
+
                 throw $e;
             }
 
             $this->rollbackAndDisconnect();
+
+            Log::warning('Inherited aborted transaction (25P02); rolled back, reconnected, retrying request once.', $context);
 
             $request->attributes->set(self::RETRIED_ATTRIBUTE, true);
 
@@ -52,6 +67,36 @@ class RecoverFromAbortedTransaction
         }
 
         return is_array($e->errorInfo ?? null) && ($e->errorInfo[0] ?? null) === '25P02';
+    }
+
+    /**
+     * Structured context for the recovery log lines: enough to name the poison
+     * source (host, open transaction levels, failing SQL) without recording
+     * bound parameter values.
+     *
+     * @return array<string, mixed>
+     */
+    protected function logContext(Request $request, QueryException $e, int $attempt): array
+    {
+        $connections = [];
+
+        foreach (DB::getConnections() as $connection) {
+            $connections[$connection->getName()] = [
+                'host' => $connection->getConfig('host'),
+                'database' => $connection->getConfig('database'),
+                'transaction_level' => $connection->transactionLevel(),
+            ];
+        }
+
+        return [
+            'attempt' => $attempt,
+            'method' => $request->getMethod(),
+            'path' => $request->getPathInfo(),
+            'connection' => $e->connectionName,
+            'sqlstate' => (string) $e->getCode(),
+            'sql' => $e->getSql(),
+            'connections' => $connections,
+        ];
     }
 
     protected function rollbackAndDisconnect(): void

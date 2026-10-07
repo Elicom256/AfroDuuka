@@ -47,7 +47,7 @@ Evidence the poison arrives from **outside** the request:
       safe to retry because nothing this request wrote can have committed): roll back,
       disconnect, retry the request exactly once; rethrow if it fails again.
       Also hardened `ResetDatabaseState` to drain nested transaction levels.
-- [ ] **Chunk 5** — First-failure observability: structured `Log::warning/error` from the
+- [x] **Chunk 5** — First-failure observability: structured `Log::warning/error` from the
       recovery middleware (path, SQL, `transactionLevel`, connection host, attempt count)
       so the next incident names the poison source instead of only its victim.
 - [ ] **Chunk 6** — Replace hard-coded `'payment_status_id' => 1` in
