@@ -31,7 +31,7 @@ Evidence the poison arrives from **outside** the request:
       enabling a new `App\Octane\ResetDatabaseState` listener on `OperationTerminated`
       (rolls back any leaked open transaction, then disconnects every PDO). Kills the
       "poisoned transaction carried into the next request" vector.
-- [ ] **Chunk 2** — Move cache off the database: `CACHE_STORE=file` in `.env.render`,
+- [x] **Chunk 2** — Move cache off the database: `CACHE_STORE=file` in `.env.render`,
       `.env`, `.env.example` (+ `config/cache.php` default). Removes the per-request
       rate-limiter `BEGIN` against the pool. **Manual step: update/remove `CACHE_STORE`
       in the Render dashboard env vars too.**
