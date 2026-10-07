@@ -14,8 +14,11 @@ use Throwable;
  * statement with SQLSTATE 25P02.
  *
  * Rolling back makes the close clean when the counter still knows about the
- * transaction; disconnecting guarantees a fresh server connection either way,
- * because closing the socket makes PostgreSQL discard the backend's state.
+ * transaction. When the abort was inherited, the counter is zero and knows
+ * nothing, so a raw ROLLBACK is sent as well: through a pooler the backend
+ * does not die with our socket, and only ROLLBACK returns it to the pool in
+ * a usable state. Disconnecting then guarantees a fresh server connection
+ * for the next operation either way.
  */
 class ResetDatabaseState
 {
@@ -40,7 +43,19 @@ class ResetDatabaseState
                 }
             } catch (Throwable) {
                 // The transaction may already be aborted server-side; the
-                // disconnect below discards the backend regardless.
+                // raw ROLLBACK and disconnect below take over.
+            }
+
+            // Clears an inherited abort the PHP counter cannot see. Outside a
+            // transaction PostgreSQL replies with a warning, never an error.
+            try {
+                $pdo = $connection->getRawPdo();
+
+                if ($pdo instanceof \PDO) {
+                    $pdo->exec('ROLLBACK');
+                }
+            } catch (Throwable) {
+                // A dead PDO cannot be healed; disconnecting drops it.
             }
 
             $connection->disconnect();
