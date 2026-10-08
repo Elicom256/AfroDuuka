@@ -5,14 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { Package2, PencilLine, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features/branch/products/branchProductsQuery';
+import { Package2, PencilLine } from 'lucide-react';
+import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { EditProduct } from './EditProduct';
 import { useNavigate } from 'react-router-dom';
-import { useRolePermissions } from '@/lib/useRolePermissions';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
-import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 interface Product {
   id: string;
@@ -36,13 +33,11 @@ interface Product {
 
 export const ProductTable = () => {
   const { data: branchProducts, isLoading: loadBranchProducts, isFetching, error, refetch } = useProductsQuery();
-  const [remove, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const itemsPerPage = 8;
   const navigate = useNavigate();
-  const { canDelete } = useRolePermissions();
 
   const products = useMemo(() => branchProducts?.products ?? [], [branchProducts]);
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
@@ -57,18 +52,6 @@ export const ProductTable = () => {
     () => products.slice(startIndex, startIndex + itemsPerPage),
     [products, startIndex],
   );
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this product?')) return;
-
-    try {
-      const res = await remove(id).unwrap();
-      toast.success(res?.message || 'Product deleted successfully');
-    } catch (error) {
-      console.error('Delete error:', error);
-      toast.error('Failed to delete product');
-    }
-  };
 
   const openEditDialog = (product: Product) => {
     setSelectedProduct(product);
@@ -177,23 +160,6 @@ export const ProductTable = () => {
                           <Button variant='outline' size='icon' onClick={() => openEditDialog(product)}>
                             <PencilLine className='h-4 w-4' />
                           </Button>
-                          {canDelete && (
-                            <ConfirmDeleteButton
-                              onConfirm={() => handleDelete(product.id)}
-                              title='Delete this product?'
-                              description='It is removed from the catalogue. Sales that included it are not deleted.'
-                              trigger={
-                                <Button
-                                                              variant='outline'
-                                                              size='icon'
-                                                              className='text-destructive hover:text-destructive'
-                             
-                                                              disabled={isDeleting}>
-                                                              <Trash2 className='h-4 w-4' />
-                                                            </Button>
-                              }
-                            />
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>

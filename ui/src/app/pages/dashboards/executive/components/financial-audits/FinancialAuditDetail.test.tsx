@@ -34,7 +34,15 @@ const renderDetail = (record: Record<string, unknown>) =>
   render(
     <Provider store={store}>
       <MemoryRouter>
-        <FinancialAuditDetail audit={record as any} />
+        <FinancialAuditDetail
+          audit={
+            record as unknown as {
+              performed_by?: { firstname?: string | null; lastname?: string | null } | null;
+              approved_by?: { firstname?: string | null; lastname?: string | null } | null;
+              [key: string]: unknown;
+            }
+          }
+        />
       </MemoryRouter>
     </Provider>
   );

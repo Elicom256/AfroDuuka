@@ -223,5 +223,13 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__.'/tax-payments.php';
     });
 
-    Route::get('exports/{type}', [ExportController::class, 'export'])->middleware('role');
+    // auth:sanctum is not optional here. Without it Sanctum's guard falls back to the
+    // configured sanctum.guard (default 'web'), so Auth::user() is null,
+    // EffectiveBranchScope::branchesFor(null) returns null, the branch filter is silently
+    // skipped, and ExportService then calls Auth::user()->business_id on null. That is a
+    // 500 for customers and suppliers, and a cross-tenant data leak for products, sales and
+    // purchases. The 'role' middleware resolves the sanctum guard itself, which is why the
+    // route looked authorised while the scoping was bypassed.
+    Route::get('exports/{type}', [ExportController::class, 'export'])
+        ->middleware(['auth:sanctum', 'role']);
 });

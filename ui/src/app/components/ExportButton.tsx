@@ -33,7 +33,10 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
         if (dateTo) params.set('date_to', dateTo);
       }
       const qs = params.toString();
-      const url = `${import.meta.env.VITE_BASE_URL}/api/exports/${type}${qs ? `?${qs}` : ''}`;
+      // VITE_BASE_URL already ends in /api, so adding another one here sent every export
+      // to /api/api/exports/{type}, which matches no route and answered 404. Every other
+      // slice in the app builds its URL as `${VITE_BASE_URL}/<resource>`.
+      const url = `${import.meta.env.VITE_BASE_URL}/exports/${type}${qs ? `?${qs}` : ''}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
