@@ -15,8 +15,8 @@ cheap-and-isolated.
 | 2 | Reports fail to load | Same missing import, same file | LOW | **done** |
 | 3 | Product Audit: no products selectable | Dialogs read `products.data`; `ProductController::index()` returns a plain array | LOW | **done** |
 | 4 | Approve expense writes but toast fails | `ActivityLog::log()` does not exist; throws after the un-transacted write | LOW-MED | **done** |
-| 5 | Financial audit "performed by" empty | Eager-loaded relation serialises as `performed_by` holding the user, UI reads it as an id | LOW | |
-| 6 | Analytics: 6th card fails | `withSum` subquery references `selling_price`/`cost_price` on `sale_items`, which has neither | LOW-MED | |
+| 5 | Financial audit "performed by" empty | Eager-loaded relation serialises as `performed_by` holding the user, UI reads it as an id | LOW | **done** |
+| 6 | Analytics: 6th card fails | `withSum` subquery references `selling_price`/`cost_price` on `sale_items`, which has neither | LOW-MED | **done** |
 | 7 | Products table: delete button in wrong place | Cosmetic column in the executive products table | LOW | |
 | 8 | Export failure (all exports 404) | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second. Route also lacks `auth:sanctum` | LOW for the 404, MED for xlsx | |
 | 9 | Activity logs: noise + employee scoping | Dashboard widget passes no `log_name`; no importance rule | LOW-MED | |
@@ -148,49 +148,126 @@ were never affected.
   rather than fixed.
 - `eslint` clean on every file this chunk touched.
 
-## Chunk 3 plan: item 5 — financial audit "performed by"
+## Chunk 3: items 5 and 6 — done
 
-Small and the same shape as the fault found in chunk 1. Worth pairing with
-item 6, the analytics sixth card, which is also a single broken query.
+### Item 5: the audit pages could not name a person
 
-### Item 5
+Eager loading `performedBy()` serialises into `performed_by`, which is also the
+foreign-key column, so the loaded user replaces the raw id. A User has no `name` column —
+a name is `firstname` and `lastname` — so `audit.performed_by?.name` was always undefined
+and the page rendered a dash for whoever actually did the audit. Same for `approved_by`.
 
-`FinancialAudit::performedBy()` eager-loads into the `performed_by` key, which is also
-the foreign-key column, so the loaded user replaces the raw id. The UI reads
-`audit.performed_by?.name`, `?.name` on a User that has no `name` column, and renders
-`-`. Chunk 1 already proved this shape for `createdBy`.
+Fixed on the financial audit detail page, the product audit detail page and the product
+audit table, all of which read the same keys the same wrong way.
 
-The same defect is on product audits:
-`ProductAuditDetail.tsx:38,42` and `ProductAuditTable.tsx:75` read `performed_by` /
-`approved_by` the same way.
+`personName()` now lives in `ui/src/app/utils/userName.ts` rather than being duplicated per
+component. The finance transaction module already had a copy; it now imports the shared one
+instead, because two spellings of "what is this person called" is how the second one drifts.
 
-Second half of the bug: there is no way to record an approved-by. `approved_by` exists
-and is nullable, and `FinancialAuditService::approveAudit()` sets it — but that path
-was one of the eleven broken calls in chunk 2, so it never ran. With chunk 2 landed,
-approval now records it, so the remaining work is that the page reads it back.
+The dash fallback stays. An audit that has not been approved has no approver, and that is a
+fact about the record rather than a missing name.
 
-### Item 6
+### Item 6: the analytics sixth card
 
-`ProductService::analytics()` builds `total_profit` with
+`ProductService::analytics()` built a `topProducts` list ranking products by realised profit
+with `SUM(quantity * (selling_price - cost_price))` evaluated over `sale_items`. That table
+has neither column — they live on `products` — so Postgres raised 42703,
+`inventoryAnalytics()` caught it and answered 500, and the card showed its error state. The
+same query backed the Operations analytics page.
+
+**Removed rather than repaired**, for two reasons:
+
+- No consumer read it. The two components that call this endpoint read `statusBreakdown`,
+  `lowStock`, `outOfStock` and the totals. Every top-products component in the app reads a
+  `top_products` key from a *different* endpoint.
+- It cannot be repaired as written. `sale_items` stores no cost, so a per-sale profit can
+  only be derived from the product's *current* `cost_price`, which is not the cost the sale
+  was made at. A correct answer needs a cost-at-sale column — a schema decision, not a bug
+  fix, and rules.md says not to invent business rules.
+
+Removing it exposed a **second, independent fault** in the same method, which had been
+masked behind the first 500:
 
 ```php
-->withSum(['saleItems as total_profit' => fn ($q) => $q->select(DB::raw('SUM(quantity * (selling_price - cost_price))'))], DB::raw('quantity'))
+->addSelect(DB::raw('((selling_price - cost_price) / cost_price) * 100 as markup_percentage'))
+->having('markup_percentage', '<=', 20)
+->orderBy('markup_percentage')
 ```
 
-`sale_items` has neither `selling_price` nor `cost_price`; those live on `products`. The
-closure's `select()` replaces the columns Laravel added and the framework's trimming
-guard does not fire, so Postgres raises `42703 column "selling_price" does not exist`,
-`ProductController::inventoryAnalytics()` catches it and answers 500, and
-`InventoryAnalytics` shows its error state. It is the sixth card on
-`ExecutiveAnalyticsPage` and the same query backs the Operations analytics page.
+PostgreSQL accepts a select-list alias in `ORDER BY` but not in `HAVING` — `HAVING` is
+evaluated before the list is projected — so this was a 42703. Rewriting it as `HAVING`
+without `GROUP BY` then became a 42803 grouping error. It is a row filter, so it belongs in
+`WHERE`, with the expression repeated rather than aliased.
 
-Worth noting when fixing: `$topProducts` is not read by the card at all, so the cheapest
-correct fix may be to drop it rather than make it work. That is a judgement call to make
-against who consumes `ProductService::analytics()`.
+### Files
+
+- `api/app/Services/ProductService.php`
+- `api/tests/Feature/InventoryAnalyticsTest.php` (4 tests, all fail on the old code)
+- `ui/src/app/utils/userName.ts`
+- `ui/src/app/pages/dashboards/executive/components/finance/financeTransaction.ts`
+- `ui/src/app/pages/dashboards/executive/components/financial-audits/FinancialAuditDetail.tsx`
+- `ui/src/app/pages/dashboards/executive/components/financial-audits/FinancialAuditDetail.test.tsx` (4 tests, 3 fail on the old code)
+- `ui/src/app/pages/dashboards/executive/components/product-audits/ProductAuditDetail.tsx`
+- `ui/src/app/pages/dashboards/executive/components/product-audits/ProductAuditTable.tsx`
+
+### Verification
+
+- Backend **805 passed** (2375 assertions), full suite.
+- Frontend **780 passed, 0 failed**, full suite, `npm run build` clean.
+- `eslint` clean on every file this chunk touched; the two remaining errors in those
+  directories are pre-existing `setState in effect` warnings in the two edit dialogs.
+
+### Noted, not fixed
+
+`ExecutiveAnalyticsPage` and `OperationsAnalyticsPage` read `analytics.data.total_products`,
+which this endpoint never returned — it returns `lowStock`, `outOfStock` and the totals.
+Those pages are therefore showing zeros for a figure they were handed no key for. It is not
+in bugs.md and it is not clear whether they are meant to read this endpoint or another, so it
+is left for a decision rather than a guess.
+
+## Chunk 4 plan: items 7 and 8
+
+Both LOW and both one-line-ish, in unrelated places.
+
+### Item 7: the products table has a delete button it should not
+
+bugs.md: the delete button should not appear in the Actions column of the products table on
+the executive dashboard; it belongs on the single product's page. Purely a column removal in
+`ProductTable.tsx`.
+
+Worth checking while there: `ProductController::destroy()` is gated on
+`canDelete()` / `canEditCatalog()`, so removing the button does not remove the ability — it
+removes the invitation. Confirm the single-product page has its own delete control before
+taking the one away.
+
+### Item 8: every export 404s
+
+`ui/src/app/components/ExportButton.tsx:36` builds
+`` `${import.meta.env.VITE_BASE_URL}/api/exports/${type}` ``, and `VITE_BASE_URL` already ends
+in `/api`. The request goes to `/api/api/exports/products`, matches no route, and
+`!response.ok` throws "Export failed". Every other RTK slice in the app uses
+`${VITE_BASE_URL}/<resource>`.
+
+Two more things sit behind that 404 and will surface the moment it is fixed:
+
+- `api/routes/api.php:226` declares the export route inline with `middleware('role')` and no
+  `auth:sanctum`. Sanctum's guard falls back to the configured `sanctum.guard` (default
+  `web`), so `Auth::user()` is null, `EffectiveBranchScope::branchesFor(null)` returns null,
+  the branch filter is silently skipped, and `ExportService` then calls
+  `Auth::user()->business_id` on null — a 500 for customers and suppliers, and a cross-tenant
+  data leak for products, sales and purchases. The route needs `auth:sanctum`.
+- `ExportButton.tsx:48` hardcodes `a.download = \`${type}-...csv\`` while bugs.md asks for
+  xlsx.
+
+The xlsx half is **not** in this chunk. There is no `maatwebsite/excel` anywhere — no
+composer entry, no vendor dir, no `phpoffice/phpspreadsheet` — and the implementation is a
+hand-rolled CSV stream. Switching means a new dependency, `zip` and `xml` PHP extensions in
+both Dockerfiles, and a rewrite of `ExportService`. That is a dependency decision, so it
+gets its own chunk and its own sign-off.
 
 ### Out of scope
 
-- `ProductAuditDetail` / `ProductAuditTable` will be swept in the same pass as the
-  financial audit page, since they read the same keys the same wrong way.
+- The xlsx conversion, per above.
+- The `total_products` / `top_products` key mismatches noted at the end of chunk 3.
 - The `log_name` taxonomy, which is item 9.
 

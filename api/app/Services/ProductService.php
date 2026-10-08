@@ -16,6 +16,26 @@ class ProductService
         $this->analyticsTrendHelper = $analyticsTrendHelper;
     }
 
+    /**
+     * Inventory figures for the analytics cards.
+     *
+     * This used to also return a `topProducts` list ranking products by realised profit.
+     * The query behind it was `SUM(quantity * (selling_price - cost_price))` evaluated
+     * over sale_items, and sale_items has neither column -- they live on products -- so
+     * Postgres raised 42703, inventoryAnalytics() caught it and answered 500, and the
+     * sixth card on the executive analytics page showed its error state. The same query
+     * backed the Operations analytics page.
+     *
+     * It is removed rather than repaired because no consumer read it: the two components
+     * that call this endpoint read statusBreakdown, lowStock, outOfStock and the totals,
+     * and the top-products components in the app all read a `top_products` key from
+     * different endpoints.
+     *
+     * Repairing it was not an option either. sale_items stores no cost, so a profit
+     * figure per sale can only be derived from the product's *current* cost_price, which
+     * is not the cost the sale was made at. A correct answer needs a cost-at-sale column,
+     * which is a schema decision rather than a bug fix.
+     */
     public function analytics()
     {
         $products = Product::query();
@@ -71,29 +91,18 @@ class ProductService
             ->orderByDesc('last_sold_at')
             ->get();
 
-        $topProducts = Product::query()
-            ->whereHas('saleItems')
-            ->withSum('saleItems as total_revenue', 'subtotal')
-            ->withSum('saleItems as total_quantity_sold', 'quantity')
-            ->withSum([
-                'saleItems as total_profit' => function ($q) {
-                    $q->select(DB::raw(
-                        'SUM(quantity * (selling_price - cost_price))'
-                    ));
-                },
-            ], DB::raw('quantity'))
-            ->orderByDesc('total_profit')
-            ->take(10)
-            ->get();
-
+        // The expression has to be repeated in the WHERE and ORDER BY rather than
+        // referenced by its alias. PostgreSQL accepts a select-list alias in ORDER BY but
+        // not in HAVING -- HAVING is evaluated before the list is projected, and with no
+        // GROUP BY it is a grouping error outright. This is a row filter, so it belongs in
+        // WHERE. It is also the statement that takes the longest to run in the whole set.
         $poorMarginProducts = (clone $products)
             ->where('quantity', '>', 0)
             ->where('cost_price', '>', 0)
             ->where('selling_price', '>', 0)
+            ->whereRaw('((selling_price - cost_price) / cost_price) * 100 <= 20')
             ->select('products.*')
-            ->addSelect(DB::raw('((selling_price - cost_price) / cost_price) * 100 as markup_percentage'))
-            ->having('markup_percentage', '<=', 20)
-            ->orderBy('markup_percentage')
+            ->orderByRaw('((selling_price - cost_price) / cost_price) * 100')
             ->take(10)
             ->get();
 
@@ -107,7 +116,6 @@ class ProductService
             'slowMoving' => $slowMoving,
             'deadStock' => $deadStock,
             'fastMoving' => $fastMoving,
-            'topProducts' => $topProducts,
             'poorMarginProducts' => $poorMarginProducts,
         ];
     }

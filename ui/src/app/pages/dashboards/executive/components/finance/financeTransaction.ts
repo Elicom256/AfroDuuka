@@ -1,9 +1,8 @@
 import type { CashFlowDirection } from '@/app/store/features/business/executive/cashFlowQuery';
+import { personName, type NamedUser } from '@/app/utils/userName';
 
-export type FinancePerson = {
+export type FinancePerson = NamedUser & {
   id?: number;
-  firstname?: string | null;
-  lastname?: string | null;
 };
 
 /** A customer or supplier, which may be a company or a person. */
@@ -94,8 +93,7 @@ export const amountTone = (outflow: boolean | null) =>
 export const amountSign = (outflow: boolean | null) =>
   outflow === null ? '' : outflow ? '-' : '+';
 
-export const personName = (person?: FinancePerson | null) =>
-  [person?.firstname, person?.lastname].filter(Boolean).join(' ');
+export { personName };
 
 /** A counterparty is named by its company if it has one, otherwise by the person behind it. */
 export const counterpartyName = (counterparty?: FinanceCounterparty | null) =>
