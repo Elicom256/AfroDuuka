@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEmployeeRemunerationRequest;
 use App\Http\Requests\UpdateEmployeeRemunerationRequest;
-use App\Models\ActivityLog;
 use App\Models\EmployeeRemuneration;
 use App\Models\Worker;
 use App\Services\ActivityLogService;
@@ -91,12 +90,11 @@ class EmployeeRemunerationController extends Controller
 
         $employeeRemuneration->update($validated);
 
-        ActivityLog::log(
-            $user,
+        $this->activity_log->activity(
             'updated_employee_remuneration',
-            $employeeRemuneration,
             sprintf('Updated remuneration record ID %s.', $employeeRemuneration->id),
-            ['changes' => $validated]
+            ['changes' => $validated],
+            $employeeRemuneration,
         );
 
         return response()->json([
@@ -107,12 +105,10 @@ class EmployeeRemunerationController extends Controller
 
     public function destroy(EmployeeRemuneration $employeeRemuneration): JsonResponse
     {
-        $request = request();
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'deleted_employee_remuneration',
-            $employeeRemuneration,
-            sprintf('Deleted remuneration record ID %s.', $employeeRemuneration->id)
+            sprintf('Deleted remuneration record ID %s.', $employeeRemuneration->id),
+            subject: $employeeRemuneration,
         );
 
         $employeeRemuneration->delete();

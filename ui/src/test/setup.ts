@@ -23,6 +23,23 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
 
+  // jsdom implements neither the Pointer Events capture API nor scrollIntoView, and
+  // Radix's Select calls all three the moment its trigger is clicked. Without these the
+  // dropdown throws `target.hasPointerCapture is not a function` before it renders, so
+  // no test can assert anything about what a Select offers.
+  if (!Element.prototype.hasPointerCapture) {
+    Element.prototype.hasPointerCapture = () => false;
+  }
+  if (!Element.prototype.setPointerCapture) {
+    Element.prototype.setPointerCapture = () => {};
+  }
+  if (!Element.prototype.releasePointerCapture) {
+    Element.prototype.releasePointerCapture = () => {};
+  }
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = () => {};
+  }
+
   Object.defineProperty(window, 'location', {
     configurable: true,
     writable: true,
