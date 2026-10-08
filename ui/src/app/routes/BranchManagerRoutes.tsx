@@ -31,6 +31,7 @@ const ExecutiveCustomersPage = lazy(() => import('../pages/dashboards/executive/
 const ExecutiveAnalyticsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveAnalyticsPage').then((m) => ({ default: m.ExecutiveAnalyticsPage })));
 const ExecutiveReportsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveReportsPage').then((m) => ({ default: m.ExecutiveReportsPage })));
 const ExecutiveFinanceTransactionsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceTransactionsPage').then((m) => ({ default: m.ExecutiveFinanceTransactionsPage })));
+const ExecutiveFinanceTransactionPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceTransactionPage').then((m) => ({ default: m.ExecutiveFinanceTransactionPage })));
 const ExecutiveFinanceReportsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceReportsPage').then((m) => ({ default: m.ExecutiveFinanceReportsPage })));
 const ExecutiveFinanceCashFlowPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceCashFlowPage').then((m) => ({ default: m.ExecutiveFinanceCashFlowPage })));
 const ExecutiveEmployeeRemunerationPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveEmployeeRemunerationPage').then((m) => ({ default: m.ExecutiveEmployeeRemunerationPage })));
@@ -93,6 +94,7 @@ export const BranchManagerRoutes = () => {
             <Route path='analytics' element={<ExecutiveAnalyticsPage />} />
             <Route path='reports' element={<ExecutiveReportsPage />} />
             <Route path='finance/transactions' element={<ExecutiveFinanceTransactionsPage />} />
+            <Route path='finance/transactions/:id' element={<ExecutiveFinanceTransactionPage />} />
             <Route path='finance/reports' element={<ExecutiveFinanceReportsPage />} />
             <Route path='finance/cashflow' element={<ExecutiveFinanceCashFlowPage />} />
             <Route path='cashflow' element={<ExecutiveFinanceCashFlowPage />} />
