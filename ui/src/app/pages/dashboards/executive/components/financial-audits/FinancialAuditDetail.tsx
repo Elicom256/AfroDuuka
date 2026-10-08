@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { personName } from '@/app/utils/userName';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -11,8 +12,20 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
+/**
+ * The performer and the approver are User rows, not ids.
+ *
+ * Eager loading performedBy() serialises into `performed_by`, which is also the
+ * foreign-key column, so the loaded user replaces the raw id. And a User has no `name`
+ * column -- a name is `firstname` and `lastname` -- so reading `.name` off it always
+ * gave undefined and the page rendered a dash for whoever actually did the audit.
+ */
 type Props = {
-  audit: any;
+  audit: {
+    performed_by?: { firstname?: string | null; lastname?: string | null } | null;
+    approved_by?: { firstname?: string | null; lastname?: string | null } | null;
+    [key: string]: any;
+  };
 };
 
 export const FinancialAuditDetail = ({ audit }: Props) => {
@@ -59,11 +72,11 @@ export const FinancialAuditDetail = ({ audit }: Props) => {
           <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t'>
             <div>
               <p className='text-sm text-muted-foreground'>Performed By</p>
-              <p className='font-medium'>{audit.performed_by?.name ?? '-'}</p>
+              <p className='font-medium'>{personName(audit.performed_by) || '-'}</p>
             </div>
             <div>
               <p className='text-sm text-muted-foreground'>Approved By</p>
-              <p className='font-medium'>{audit.approved_by?.name ?? '-'}</p>
+              <p className='font-medium'>{personName(audit.approved_by) || '-'}</p>
             </div>
             <div>
               <p className='text-sm text-muted-foreground'>Approved At</p>
