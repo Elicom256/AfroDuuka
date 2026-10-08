@@ -17,8 +17,8 @@ cheap-and-isolated.
 | 4 | Approve expense writes but toast fails | `ActivityLog::log()` does not exist; throws after the un-transacted write | LOW-MED | **done** |
 | 5 | Financial audit "performed by" empty | Eager-loaded relation serialises as `performed_by` holding the user, UI reads it as an id | LOW | **done** |
 | 6 | Analytics: 6th card fails | `withSum` subquery references `selling_price`/`cost_price` on `sale_items`, which has neither | LOW-MED | **done** |
-| 7 | Products table: delete button in wrong place | Cosmetic column in the executive products table | LOW | |
-| 8 | Export failure (all exports 404) | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second. Route also lacks `auth:sanctum` | LOW for the 404, MED for xlsx | |
+| 7 | Products table: delete button in wrong place | Cosmetic column in the executive products table | LOW | **done** |
+| 8 | Export failure (all exports 404) | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second. Route also lacks `auth:sanctum` | LOW for the 404, MED for xlsx | **done** (404 + auth; xlsx deferred) |
 | 9 | Activity logs: noise + employee scoping | Dashboard widget passes no `log_name`; no importance rule | LOW-MED | |
 | 10 | Stock transfer dispatch unique violation | `resolveDestinationProduct()` searches through the branch global scope, cannot see the destination row, blind-inserts | LOW-MED | |
 | 11 | Workers: duplicate employee_code | Code generated from a tenant-scoped `count()` against a global unique index; seeded rows have `business_id = NULL` so the count is permanently 0 | LOW-MED | |
@@ -225,49 +225,118 @@ Those pages are therefore showing zeros for a figure they were handed no key for
 in bugs.md and it is not clear whether they are meant to read this endpoint or another, so it
 is left for a decision rather than a guess.
 
-## Chunk 4 plan: items 7 and 8
+## Chunk 4: items 7 and 8 — done
 
-Both LOW and both one-line-ish, in unrelated places.
+### Item 7: the products table delete button
 
-### Item 7: the products table has a delete button it should not
+Removed from the Actions column. The delete now lives only on the single product's page,
+which already had its own control with the product's name in the confirmation.
 
-bugs.md: the delete button should not appear in the Actions column of the products table on
-the executive dashboard; it belongs on the single product's page. Purely a column removal in
-`ProductTable.tsx`.
+Removing the button took the whole supporting path with it: `useDeleteProductMutation`,
+`useRolePermissions`, `ConfirmDeleteButton`, the `Trash2` icon, the `toast` import and
+`handleDelete`. All of them existed only for that one button.
 
-Worth checking while there: `ProductController::destroy()` is gated on
-`canDelete()` / `canEditCatalog()`, so removing the button does not remove the ability — it
-removes the invitation. Confirm the single-product page has its own delete control before
-taking the one away.
+`ProductController::destroy()` is unchanged and still gated on `canDelete()`, so the
+ability is not removed — only the invitation from a dense, repeated row control.
 
-### Item 8: every export 404s
+The test had to be written carefully because two things make the button invisible to a
+naive assertion. It is gated on `canDelete`, which comes from the signed-in user's role, so
+a test that signs nobody in sees no button whether it was removed or merely hidden. And it
+is icon-only with no accessible name, so `getByRole('button', { name: /delete/i })` never
+matched it. The test mocks `useLoggedinUserQuery` with an elevated role and selects on the
+lucide icon class. It also asserts the edit control survived and that the row still
+navigates to the product, since "remove the button" done carelessly takes the actions
+column or the navigation with it.
 
-`ui/src/app/components/ExportButton.tsx:36` builds
-`` `${import.meta.env.VITE_BASE_URL}/api/exports/${type}` ``, and `VITE_BASE_URL` already ends
-in `/api`. The request goes to `/api/api/exports/products`, matches no route, and
-`!response.ok` throws "Export failed". Every other RTK slice in the app uses
-`${VITE_BASE_URL}/<resource>`.
+### Item 8: every export was 404ing
 
-Two more things sit behind that 404 and will surface the moment it is fixed:
+`ExportButton.tsx` built `` `${VITE_BASE_URL}/api/exports/${type}` `` while `VITE_BASE_URL`
+already ends in `/api`, so the request went to `/api/api/exports/{type}`, matched no route,
+and answered 404. Every other RTK slice in the app builds `${VITE_BASE_URL}/<resource>`.
 
-- `api/routes/api.php:226` declares the export route inline with `middleware('role')` and no
-  `auth:sanctum`. Sanctum's guard falls back to the configured `sanctum.guard` (default
-  `web`), so `Auth::user()` is null, `EffectiveBranchScope::branchesFor(null)` returns null,
-  the branch filter is silently skipped, and `ExportService` then calls
-  `Auth::user()->business_id` on null — a 500 for customers and suppliers, and a cross-tenant
-  data leak for products, sales and purchases. The route needs `auth:sanctum`.
-- `ExportButton.tsx:48` hardcodes `a.download = \`${type}-...csv\`` while bugs.md asks for
-  xlsx.
+The route also declared `middleware('role')` with no `auth:sanctum`. Sanctum's guard falls
+back to the configured `sanctum.guard` (default `web`), so `Auth::user()` was null,
+`EffectiveBranchScope::branchesFor(null)` returned null, the branch filter was silently
+skipped, and `ExportService` then called `Auth::user()->business_id` on null. That is a 500
+for customers and suppliers, and a cross-tenant data leak for products, sales and purchases.
 
-The xlsx half is **not** in this chunk. There is no `maatwebsite/excel` anywhere — no
-composer entry, no vendor dir, no `phpoffice/phpspreadsheet` — and the implementation is a
-hand-rolled CSV stream. Switching means a new dependency, `zip` and `xml` PHP extensions in
-both Dockerfiles, and a rewrite of `ExportService`. That is a dependency decision, so it
-gets its own chunk and its own sign-off.
+Fixing those two exposed a **third fault**: `ExportService` read `name`, `phone`, `email`
+and `location` off `Customer` and `Supplier`, and neither table has those columns — only
+`company_name` and a `user_id`. Reading `->name` off a loaded Eloquent model returns null
+rather than raising, so the export produced a file with blank columns and looked like it had
+worked. The sales and purchases exports had the same fault one level up. Fixed by exporting
+the columns that exist and eager-loading `user` for the contact details.
+
+A fourth, smaller one: an unknown export type threw a plain `InvalidArgumentException`,
+which surfaces as a 500. A bad path segment is a client error, so it is a 404 now.
+
+### Not backend-testable
+
+Fault 1 is in the frontend URL, so no backend test can see it. Fault 2 is invisible under
+`Sanctum::actingAs()`, which sets the user on the sanctum guard as well as the web one. The
+customers and suppliers tests are what catch it. This is written into the `ExportTest`
+class comment so the two products tests are not mistaken for coverage of it.
+
+### Files
+
+- `ui/src/app/components/ExportButton.tsx`
+- `ui/src/app/pages/dashboards/executive/components/products/ProductTable.tsx`
+- `ui/src/app/pages/dashboards/executive/components/products/ProductTable.test.tsx` (3 tests, 1 fails on the old code)
+- `api/routes/api.php`
+- `api/app/Services/ExportService.php`
+- `api/tests/Feature/ExportTest.php` (6 tests, 4 fail on the old code)
+
+### Verification
+
+- Backend **811 passed** (2393 assertions), full suite.
+- Frontend **785 passed, 0 failed**, full suite, `npm run build` clean.
+- `eslint` clean on every file this chunk touched. Warnings are back at 931, the
+  `--max-warnings` threshold: the chunk-3 test had pushed them to 932 with an `as any`,
+  which is fixed.
+
+## Chunk 5 plan: item 9 — activity logs
+
+The executive's dashboard and the activity-log page show every log, including noise. Item 9
+asks for two things: the executive should see only important logs unless he filters, and
+non-executive employees should see only their own.
+
+### What is already there
+
+The scoping half is largely implemented. `ActivityLogController::index()` restricts
+supervisory roles to the business, a branch manager to their branch, and everyone else to
+`causedByUser($user)`. `ActivityLogPage` is routed with `scope='business'` for the executive
+and `scope='personal'` for Operations and BranchManager. So "employees see only their own
+logs" mostly holds, with one deviation: a branch manager sees their whole branch rather
+than only their own actions.
+
+What is missing is the importance rule. The only filter is a single hardcoded string —
+`ActivityLogController` excludes exactly `'auth'`. There is no notion of importance, so
+Spatie's automatic `default` logs and one-off free-text categories are all treated as
+important, and `categories()` returns raw `DISTINCT log_name` values, which puts sentences
+like `'Created Financial Audit'` in the filter dropdown next to `'updated_expense'`.
+
+Also worth knowing before planning: the auth log path is effectively dead. Login is
+Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the
+`Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. And even if
+they did, `ActivityLog::booted()` stamps `business_id` from `Auth::user()`, which is not yet
+populated during the `Login` event — so the row would land with a NULL tenant and be
+invisible to `forBusiness()` anyway. The "x logged in" noise the report describes may
+already not be appearing, which would mean the real problem is the missing importance rule
+rather than the auth logs. That needs confirming before anything is built on it.
+
+### The `log_name` decision
+
+The two conventions already coexist: the working calls use English sentences
+(`Recorded Expense`), the converted ones in chunk 2 kept the snake_case each author wrote
+(`updated_expense`, `approved_expense`). Item 9 is where that gets settled.
+
+This is a product decision, not a mechanical one, so the chunk should confirm the intended
+taxonomy with you rather than pick one. Options: normalise everything to sentences,
+normalise everything to snake_case, or keep both and add an explicit `is_noise` / severity
+column that both map onto.
 
 ### Out of scope
 
-- The xlsx conversion, per above.
-- The `total_products` / `top_products` key mismatches noted at the end of chunk 3.
-- The `log_name` taxonomy, which is item 9.
+- The xlsx conversion, per the chunk 4 note.
+- The `total_products` / `top_products` key mismatches from chunk 3.
 

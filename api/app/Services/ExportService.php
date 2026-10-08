@@ -7,12 +7,27 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExportService
 {
+    /**
+     * A customer or supplier is named by its company when it has one, otherwise by the
+     * person behind it.
+     *
+     * Neither table has a `name` column -- only `company_name` and a `user_id` -- so reading
+     * `->name` off one returned null and the export carried a blank column rather than an
+     * error. That is worse than failing: the file looked like it had worked.
+     */
+    private function partyName(?string $companyName, ?User $user): string
+    {
+        return $companyName ?: trim(implode(' ', array_filter([$user?->firstname, $user?->lastname])));
+    }
+
     public function export(string $type, array $filters = [])
     {
         return match ($type) {
@@ -21,7 +36,10 @@ class ExportService
             'purchases' => $this->exportPurchases($filters),
             'customers' => $this->exportCustomers(),
             'suppliers' => $this->exportSuppliers(),
-            default => throw new \InvalidArgumentException("Unknown export type: {$type}"),
+            // A bad path segment is a client error, not a server one. Throwing a plain
+            // InvalidArgumentException here surfaced as a 500, which reads as "the export
+            // is broken" when the caller simply asked for a type that does not exist.
+            default => throw new NotFoundHttpException("Unknown export type: {$type}"),
         };
     }
 
@@ -50,7 +68,7 @@ class ExportService
         $resolved = EffectiveBranchScope::branchesFor(Auth::user());
         $branchIds = $resolved !== null ? $resolved[1] : null;
 
-        $query = Sale::with(['saleItems.product', 'customer']);
+        $query = Sale::with(['saleItems.product', 'customer.user']);
         if ($branchIds !== null) {
             $query->whereIn('business_branch_id', $branchIds);
         }
@@ -66,7 +84,7 @@ class ExportService
 
         $headers = ['Sale ID', 'Date', 'Customer', 'Items', 'Subtotal', 'Tax', 'Total', 'Status'];
         $rows = $sales->map(fn ($s) => [
-            $s->id, $s->created_at->format('Y-m-d'), $s->customer?->name ?? 'Walk-in',
+            $s->id, $s->created_at->format('Y-m-d'), $this->partyName($s->customer?->company_name, $s->customer?->user) ?: 'Walk-in',
             $s->saleItems->sum('quantity'), $s->subtotal, $s->tax_amount, $s->total_amount, $s->status,
         ]);
 
@@ -78,7 +96,7 @@ class ExportService
         $resolved = EffectiveBranchScope::branchesFor(Auth::user());
         $branchIds = $resolved !== null ? $resolved[1] : null;
 
-        $query = Purchase::with(['purchaseItems.product', 'supplier']);
+        $query = Purchase::with(['purchaseItems.product', 'supplier.user']);
         if ($branchIds !== null) {
             $query->whereIn('business_branch_id', $branchIds);
         }
@@ -94,7 +112,7 @@ class ExportService
 
         $headers = ['Purchase ID', 'Date', 'Supplier', 'Items', 'Total', 'Status'];
         $rows = $purchases->map(fn ($p) => [
-            $p->id, $p->created_at->format('Y-m-d'), $p->supplier?->name,
+            $p->id, $p->created_at->format('Y-m-d'), $this->partyName($p->supplier?->company_name, $p->supplier?->user),
             $p->purchaseItems->sum('quantity'), $p->total_amount, $p->status,
         ]);
 
@@ -103,11 +121,19 @@ class ExportService
 
     private function exportCustomers()
     {
-        $customers = Customer::where('business_id', Auth::user()->business_id)->get();
+        $customers = Customer::with('user')
+            ->where('business_id', Auth::user()->business_id)
+            ->get();
 
-        $headers = ['ID', 'Name', 'Phone', 'Email', 'Location', 'Created At'];
+        $headers = ['ID', 'Company', 'Contact Name', 'Phone', 'Email', 'Status', 'Created At'];
         $rows = $customers->map(fn ($c) => [
-            $c->id, $c->name, $c->phone, $c->email, $c->location, $c->created_at->format('Y-m-d'),
+            $c->id,
+            $c->company_name,
+            trim(implode(' ', array_filter([$c->user?->firstname, $c->user?->lastname]))),
+            $c->user?->phone,
+            $c->user?->email,
+            $c->status,
+            $c->created_at->format('Y-m-d'),
         ]);
 
         return $this->streamCsv('customers', $headers, $rows);
@@ -115,11 +141,19 @@ class ExportService
 
     private function exportSuppliers()
     {
-        $suppliers = Supplier::where('business_id', Auth::user()->business_id)->get();
+        $suppliers = Supplier::with('user')
+            ->where('business_id', Auth::user()->business_id)
+            ->get();
 
-        $headers = ['ID', 'Name', 'Phone', 'Email', 'Created At'];
+        $headers = ['ID', 'Company', 'Contact Name', 'Phone', 'Email', 'Status', 'Created At'];
         $rows = $suppliers->map(fn ($s) => [
-            $s->id, $s->name, $s->phone, $s->email, $s->created_at->format('Y-m-d'),
+            $s->id,
+            $s->company_name,
+            trim(implode(' ', array_filter([$s->user?->firstname, $s->user?->lastname]))),
+            $s->user?->phone,
+            $s->user?->email,
+            $s->status,
+            $s->created_at->format('Y-m-d'),
         ]);
 
         return $this->streamCsv('suppliers', $headers, $rows);
