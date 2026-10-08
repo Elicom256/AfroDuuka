@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\ActivityLog;
 use App\Models\FinancialAudit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class FinancialAuditService
 {
+    public function __construct(private ActivityLogService $activityLog) {}
+
     public function generateAuditNumber(int $businessBranchId): string
     {
         $count = FinancialAudit::where('business_branch_id', $businessBranchId)->count() + 1;
@@ -25,6 +26,12 @@ class FinancialAuditService
         });
     }
 
+    /**
+     * The audit trail is written inside the transaction on purpose: a log entry recording
+     * an approval that then failed to commit is worse than no entry at all. This call
+     * used to call a static ActivityLog::log() that does not exist, so it threw, and
+     * because it threw in here the whole approval rolled back.
+     */
     public function approveAudit(FinancialAudit $audit): FinancialAudit
     {
         return DB::transaction(function () use ($audit) {
@@ -34,11 +41,10 @@ class FinancialAuditService
                 'approved_at' => now(),
             ]);
 
-            ActivityLog::log(
-                Auth::user(),
+            $this->activityLog->activity(
                 'approved_financial_audit',
-                $audit,
-                "Approved financial audit #{$audit->audit_number}"
+                "Approved financial audit #{$audit->audit_number}",
+                subject: $audit,
             );
 
             return $audit->fresh(['branch', 'performedBy', 'approvedBy']);
@@ -49,11 +55,10 @@ class FinancialAuditService
     {
         $audit->update(['status' => 'cancelled']);
 
-        ActivityLog::log(
-            Auth::user(),
+        $this->activityLog->activity(
             'cancelled_financial_audit',
-            $audit,
-            "Cancelled financial audit #{$audit->audit_number}"
+            "Cancelled financial audit #{$audit->audit_number}",
+            subject: $audit,
         );
 
         return $audit->fresh(['branch', 'performedBy']);

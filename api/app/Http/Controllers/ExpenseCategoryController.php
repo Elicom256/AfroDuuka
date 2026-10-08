@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreExpenseCategoryRequest;
 use App\Http\Requests\UpdateExpenseCategoryRequest;
-use App\Models\ActivityLog;
 use App\Models\ExpenseCategory;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
@@ -61,12 +60,11 @@ class ExpenseCategoryController extends Controller
     {
         $expenseCategory->update($request->validated());
 
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'updated_expense_category',
-            $expenseCategory,
             "Updated expense category ID {$expenseCategory->id}",
-            ['changes' => $request->validated()]
+            ['changes' => $request->validated()],
+            $expenseCategory,
         );
 
         return response()->json([
@@ -79,11 +77,10 @@ class ExpenseCategoryController extends Controller
     {
         $expenseCategory->delete();
 
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'deleted_expense_category',
-            $expenseCategory,
-            "Deleted expense category ID {$expenseCategory->id}"
+            "Deleted expense category ID {$expenseCategory->id}",
+            subject: $expenseCategory,
         );
 
         return response()->json([

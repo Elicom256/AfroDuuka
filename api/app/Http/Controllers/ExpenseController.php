@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
-use App\Models\ActivityLog;
 use App\Models\Expense;
 use App\Services\ActivityLogService;
 use App\Services\CashFlowService;
@@ -99,12 +98,11 @@ class ExpenseController extends Controller
     {
         $expense->update($request->validated());
 
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'updated_expense',
-            $expense,
             "Updated expense ID {$expense->id}",
-            ['changes' => $request->validated()]
+            ['changes' => $request->validated()],
+            $expense,
         );
 
         return response()->json([
@@ -117,11 +115,10 @@ class ExpenseController extends Controller
     {
         $expense->delete();
 
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'deleted_expense',
-            $expense,
-            "Deleted expense ID {$expense->id}"
+            "Deleted expense ID {$expense->id}",
+            subject: $expense,
         );
 
         return response()->json([
@@ -133,11 +130,10 @@ class ExpenseController extends Controller
     {
         $expense->update(['status' => 'approved']);
 
-        ActivityLog::log(
-            $request->user(),
+        $this->activity_log->activity(
             'approved_expense',
-            $expense,
-            "Approved expense ID {$expense->id}"
+            "Approved expense ID {$expense->id}",
+            subject: $expense,
         );
 
         return response()->json([

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\ProductAudit;
 use App\Models\ProductAuditItem;
@@ -14,9 +13,12 @@ class ProductAuditService
 {
     protected InventoryService $inventoryService;
 
-    public function __construct(InventoryService $inventoryService)
+    protected ActivityLogService $activityLog;
+
+    public function __construct(InventoryService $inventoryService, ActivityLogService $activityLog)
     {
         $this->inventoryService = $inventoryService;
+        $this->activityLog = $activityLog;
     }
 
     public function generateAuditNumber(int $businessBranchId): string
@@ -52,6 +54,13 @@ class ProductAuditService
         });
     }
 
+    /**
+     * The audit trail is written inside the transaction on purpose: a log entry recording
+     * an approval that then failed to commit is worse than no entry at all. This call
+     * used to call a static ActivityLog::log() that does not exist, so it threw, and
+     * because it threw in here every stock adjustment below it rolled back with it --
+     * approving a product audit silently did nothing.
+     */
     public function approveAudit(ProductAudit $audit): ProductAudit
     {
         return DB::transaction(function () use ($audit) {
@@ -87,11 +96,10 @@ class ProductAuditService
                 }
             }
 
-            ActivityLog::log(
-                Auth::user(),
+            $this->activityLog->activity(
                 'approved_product_audit',
-                $audit,
-                "Approved product audit #{$audit->audit_number}"
+                "Approved product audit #{$audit->audit_number}",
+                subject: $audit,
             );
 
             return $audit->fresh(['items.product', 'branch', 'performedBy', 'approvedBy']);
@@ -102,11 +110,10 @@ class ProductAuditService
     {
         $audit->update(['status' => 'cancelled']);
 
-        ActivityLog::log(
-            Auth::user(),
+        $this->activityLog->activity(
             'cancelled_product_audit',
-            $audit,
-            "Cancelled product audit #{$audit->audit_number}"
+            "Cancelled product audit #{$audit->audit_number}",
+            subject: $audit,
         );
 
         return $audit->fresh(['items.product', 'branch', 'performedBy']);

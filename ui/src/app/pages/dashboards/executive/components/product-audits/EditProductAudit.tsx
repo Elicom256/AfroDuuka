@@ -19,7 +19,10 @@ type Props = {
 export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
   const [updateAudit, { isLoading }] = useUpdateProductAuditMutation();
   const { data: productsData } = useProductsQuery();
-  const products = productsData?.products?.data ?? [];
+  // GET /api/products answers { message, products } where products is a plain
+  // collection, not a paginator. Reading one level deeper made this undefined, so the
+  // select rendered no options at all and the audit could not be filled in.
+  const products = productsData?.products ?? [];
 
   const [formData, setFormData] = useState({
     audit_date: '',
