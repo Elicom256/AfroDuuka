@@ -31,7 +31,7 @@ class ActivityLogController extends Controller
         // The UI sends "business" as a sentinel for "all categories except auth".
         $logName = $request->validated('log_name');
         if ($logName === 'business') {
-            $query->where('log_name', '!=', 'auth');
+            $query->whereNotIn('log_name', ['auth']);
         } else {
             $query->inLogNames($logName);
         }
@@ -69,6 +69,7 @@ class ActivityLogController extends Controller
 
         $categories = $query
             ->whereNotNull('log_name')
+            ->whereNotIn('log_name', ['auth'])
             ->distinct()
             ->orderBy('log_name')
             ->pluck('log_name');
