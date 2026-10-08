@@ -6,6 +6,7 @@ import { Eye, FileText, ThumbsUp, XCircle, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { format } from 'date-fns';
+import { personName } from '@/app/utils/userName';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 
 const statusColors: Record<string, string> = {
@@ -72,7 +73,7 @@ export const ProductAuditTable = ({
                     {audit.status?.replace('_', ' ')}
                   </Badge>
                 </TableCell>
-                <TableCell>{audit.performed_by?.name ?? '-'}</TableCell>
+                <TableCell>{personName(audit.performed_by) || '-'}</TableCell>
                 <TableCell>
                   <div className='flex justify-end gap-1'>
                     <Button variant='ghost' size='icon' asChild>

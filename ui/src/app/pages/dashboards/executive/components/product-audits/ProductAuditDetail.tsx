@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { FileText } from 'lucide-react';
+import { personName } from '@/app/utils/userName';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -12,8 +13,18 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
+/**
+ * The performer and the approver are User rows, not ids. Eager loading performedBy()
+ * serialises into `performed_by`, which is also the foreign-key column, so the loaded
+ * user replaces the raw id -- and a User has no `name` column, so reading `.name` off it
+ * rendered a dash for whoever actually counted the stock.
+ */
 type Props = {
-  audit: any;
+  audit: {
+    performed_by?: { firstname?: string | null; lastname?: string | null } | null;
+    approved_by?: { firstname?: string | null; lastname?: string | null } | null;
+    [key: string]: any;
+  };
 };
 
 export const ProductAuditDetail = ({ audit }: Props) => (
@@ -35,11 +46,11 @@ export const ProductAuditDetail = ({ audit }: Props) => (
       <CardContent className='grid grid-cols-2 md:grid-cols-4 gap-4'>
         <div>
           <p className='text-sm text-muted-foreground'>Performed By</p>
-          <p className='font-medium'>{audit.performed_by?.name ?? '-'}</p>
+          <p className='font-medium'>{personName(audit.performed_by) || '-'}</p>
         </div>
         <div>
           <p className='text-sm text-muted-foreground'>Approved By</p>
-          <p className='font-medium'>{audit.approved_by?.name ?? '-'}</p>
+          <p className='font-medium'>{personName(audit.approved_by) || '-'}</p>
         </div>
         <div>
           <p className='text-sm text-muted-foreground'>Approved At</p>
