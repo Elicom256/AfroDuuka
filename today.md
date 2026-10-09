@@ -6,15 +6,15 @@ Ties broken by blast radius: cheap-and-unblocks-others ranks above cheap-and-iso
 
 | # | Bug | Root cause | Complexity |
 |---|---|---|---|
-| 1 | **Transactions page not accessible** | `RolePermissions` missing import in `FinanceController` -> HTTP 500. Also `finance/transactions/:id` route genuinely absent | LOW |
-| 2 | **Reports fail to load** | Same missing import, same file | LOW |
-| 3 | **Product Audit: no products selectable** | Dialogs read `products.data`; `ProductController::index()` returns a plain array under `products` | LOW |
-| 4 | **Approve expense: writes but toast fails** | `ActivityLog::log()` does not exist; throws after the un-transacted write | LOW (MED across all 11 sites) |
-| 5 | **Financial audit "performed by" empty** | Eager-loaded relation serialises as `performedBy`, UI reads `performed_by` | LOW |
-| 6 | **Analytics: 6th card fails** | `withSum` subquery references `selling_price`/`cost_price` on `sale_items`, which has neither | LOW-MED |
-| 7 | **Products table: delete button in wrong place** | Cosmetic column in the executive products table | LOW |
-| 8 | **Export failure (all exports 404)** | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second one. Route also lacks `auth:sanctum` | LOW for the 404, MED for real xlsx |
-| 9 | **Activity logs: noise + employee scoping** | Dashboard widget passes no `log_name`; no importance rule for the rest | LOW-MED |
+| 1 | ✓ **Transactions page not accessible** | `RolePermissions` missing import in `FinanceController` -> HTTP 500. Also `finance/transactions/:id` route genuinely absent | LOW |
+| 2 | ✓ **Reports fail to load** | Same missing import, same file | LOW |
+| 3 | ✓ **Product Audit: no products selectable** | Dialogs read `products.data`; `ProductController::index()` returns a plain array under `products` | LOW |
+| 4 | ✓ **Approve expense: writes but toast fails** | `ActivityLog::log()` does not exist; throws after the un-transacted write | LOW (MED across all 11 sites) |
+| 5 | ✓ **Financial audit "performed by" empty** | Eager-loaded relation serialises as `performedBy`, UI reads `performed_by` | LOW |
+| 6 | ✓ **Analytics: 6th card fails** | `withSum` subquery references `selling_price`/`cost_price` on `sale_items`, which has neither | LOW-MED |
+| 7 | ✓ **Products table: delete button in wrong place** | Cosmetic column in the executive products table | LOW |
+| 8 | ✓ **Export failure (all exports 404)** | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second one. Route also lacks `auth:sanctum` | LOW for the 404, MED for real xlsx |
+| 9 | ✓ **Activity logs: noise + employee scoping** | Dashboard widget passes no `log_name`; no importance rule for the rest | LOW-MED |
 | 10 | **Stock transfer dispatch unique violation** | `resolveDestinationProduct()` searches through the branch global scope, cannot see the destination row, blind-inserts | LOW-MED |
 | 11 | **Workers: duplicate employee_code** | Code generated from a tenant-scoped `count()` against a global unique index; seeded rows have `business_id = NULL` so the count is permanently 0 | LOW-MED |
 | 12 | **Branches: no single-branch page** | No `dashboard/branches/:id` route or summary page | MED |

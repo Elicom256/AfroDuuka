@@ -19,7 +19,6 @@ const ALL_CATEGORIES = 'all';
 const BUSINESS_CATEGORIES = 'business';
 
 const LOG_NAME_COLORS: Record<string, string> = {
-  auth: 'bg-blue-500/10 text-blue-600',
   permission: 'bg-purple-500/10 text-purple-600',
   settings: 'bg-amber-500/10 text-amber-600',
   data_export: 'bg-green-500/10 text-green-600',
@@ -28,7 +27,11 @@ const LOG_NAME_COLORS: Record<string, string> = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  auth: 'Security (logins)',
+  permission: 'Permissions',
+  settings: 'Settings',
+  data_export: 'Data export',
+  customer: 'Customer',
+  default: 'Uncategorised',
 };
 
 const humanize = (value: string) =>
