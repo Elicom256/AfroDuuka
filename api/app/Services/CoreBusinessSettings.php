@@ -16,9 +16,12 @@ class CoreBusinessSettings
     public function coreSettings(string $businessId)
     {
         $settings = [];
-        $settings[] = SuppliersSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
+        // Suppliers and Customers are core People features the executive and branch
+        // manager are meant to manage, so a new business gets them enabled and the
+        // People sidebar entries visible. Everything below is opt-in and stays disabled.
+        $settings[] = SuppliersSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'enabled']);
         $settings[] = AttendanceSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
-        $settings[] = CustomersSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = CustomersSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'enabled']);
         $settings[] = PromotionsSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
         $settings[] = ReportsSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
         $settings[] = CreditSetting::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
