@@ -120,7 +120,7 @@ class UserService
 
         $role = Role::find($data['role_id']);
         ActivityLog::create([
-            'log_name' => 'permission',
+            'log_name' => 'Permission',
             'description' => 'User role assigned',
             'subject_type' => User::class,
             'subject_id' => $user->id,
@@ -225,7 +225,7 @@ class UserService
             $oldRole = Role::find($oldRoleId);
             $newRole = Role::find($validated['role_id']);
             ActivityLog::create([
-                'log_name' => 'permission',
+                'log_name' => 'Permission',
                 'description' => 'User role changed',
                 'subject_type' => User::class,
                 'subject_id' => $user->id,

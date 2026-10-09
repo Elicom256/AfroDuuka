@@ -307,7 +307,7 @@ supervisory roles to the business, a branch manager to their branch, and everyon
 `causedByUser($user)`. `ActivityLogPage` is routed with `scope='business'` for the executive
 and `scope='personal'` for Operations and BranchManager. So "employees see only their own
 logs" mostly holds, with one deviation: a branch manager sees their whole branch rather
-than only their own actions.
+than only its own actions.
 
 What is missing is the importance rule. The only filter is a single hardcoded string —
 `ActivityLogController` excludes exactly `'auth'`. There is no notion of importance, so
@@ -339,4 +339,77 @@ column that both map onto.
 
 - The xlsx conversion, per the chunk 4 note.
 - The `total_products` / `top_products` key mismatches from chunk 3.
+
+## Chunk 5 completion plan: item 9 — activity logs
+
+The first commit (3751ff4) only removed the `auth` noise. Still missing:
+
+1. **Normalise all snake_case log_names to sentences.** The user chose "Normalise to sentences".
+   Files to update:
+   - `AuthObserver.php`: `'auth'` → `'Authentication'`
+   - `UserService.php`: `'permission'` → `'Permission'`
+   - `ReportExportController.php`: `'data_export'` → `'Data Export'`
+   - All `Settings/*Controller.php`: `'settings'` → `'Settings'`
+   - `ActivityLogSeeder.php`: normalise all seeded log_names
+
+2. **Add importance rule.** The executive should see only important logs by default.
+   Spatie's automatic `default` logs (model events with no explicit log_name) are noise.
+   Add a `NOISE_LOG_NAMES` constant to `ActivityLogController` containing `['Authentication', 'Default']`.
+   When the UI sends `log_name=business` (the "All business" sentinel), exclude noise logs.
+   When the UI sends a specific category, show it as requested (the user is filtering).
+
+3. **Update `categories()` to exclude noise** so the filter dropdown doesn't show
+   "Authentication" or "Default" options.
+
+4. **Frontend**: The `ActivityLogPage` already sends `log_name=business` for the
+   "All business" option. No frontend changes needed since the backend handles it.
+
+### What is noise vs important
+
+| log_name | Verdict | Reason |
+|----------|---------|--------|
+| `Authentication` | noise | Login/logout events — the report explicitly says "Not x logged in" |
+| `Default` | noise | Spatie's automatic model events — no explicit category means noise |
+| `Permission` | important | Explicit user action |
+| `Settings` | important | Explicit user action |
+| `Data Export` | important | Explicit user action |
+| `Customer` | important | Explicit user action |
+| `Recorded Expense` | important | Explicit user action |
+| `Created Financial Audit` | important | Explicit user action |
+
+### Files to modify
+
+- `api/app/Observers/AuthObserver.php` — normalise log_name
+- `api/app/Services/UserService.php` — normalise log_name
+- `api/app/Http/Controllers/ReportExportController.php` — normalise log_name
+- `api/app/Http/Controllers/Settings/*.php` — normalise log_name
+- `api/database/seeders/ActivityLogSeeder.php` — normalise seeded log_names
+- `api/app/Http/Controllers/ActivityLogController.php` — add importance rule + categories filter
+- `api/tests/Feature/Audit/ActivityLoggingOnMutationTest.php` — update tests for new log_names
+- Any other tests that assert on log_name values
+
+## Chunk 6 plan: item 10 — stock transfer dispatch unique violation
+
+### The bug
+
+`StockTransferService::resolveDestinationProduct()` searches for a matching product on the
+destination branch by sku → barcode → name. But `Product` extends `BaseModel`, which applies
+the `EffectiveBranchScope` global scope. When an executive (pinned to branch 1) dispatches a
+transfer to branch 2, the scope filters out branch 2's products, so the method can't find the
+existing product and tries to create a duplicate — violating the
+`products_business_branch_id_name_unique` constraint.
+
+### The fix
+
+`resolveDestinationProduct` must query without the branch global scope, since it explicitly
+knows which branch it's looking for. Use `Product::withoutGlobalScope('branch')` when
+searching for the destination product. The business scope can stay — the destination branch
+belongs to the same business.
+
+### Files to modify
+
+- `api/app/Services/StockTransferService.php` — add `withoutGlobalScope('branch')` to the
+  `resolveDestinationProduct` query
+- Add a test that dispatches a transfer to a branch that already has a product with the same
+  name, asserting no unique violation
 

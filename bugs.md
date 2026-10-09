@@ -91,7 +91,7 @@ And when he tries to add a worker to the main branch
 
 Workers are under **People** section on the side menu, Here, there are no suppliers and customers currently. You'll add those pages there, good enough they're already handled at the backend. So you'll add those 2 routes on the front end, and enable the executive and branch manager to manage these people
 
-## Stock transfer
+## Stock transfer — done
 
 Here, the user gets an error when trying to dispatch transfered products from one branch to another
 **SQLSTATE[23505]: Unique violation: 7 ERROR: duplicate key value violates unique constraint "products_business_branch_id_name_unique" DETAIL: Key (business_branch_id, name)=(2, iPhone 15 Pro Max) already exists. (Connection: pgsql, Host: pgsql, Port: 5432, Database: inventory, SQL: insert into "products" ("business_branch_id", "product_category_id", "tax_category_id", "name", "sku", "barcode", "quantity", "cost_price", "selling_price", "is_tax_inclusive", "reorder_level", "description", "status", "updated_at", "created_at") values (2, 1, ?, iPhone 15 Pro Max, PH-1001-1, 890100000001, 0, 4888321.00, 2444160.50, false, 9, some description for the product here, active, 2026-10-08 20:24:02, 2026-10-08 20:24:02) returning "id")
@@ -108,7 +108,7 @@ here (dashboard/product-audits), the user cannot select products on his branch/b
 Here (dashboard/financial-audits/1), the performed by is empty, this should be the person who recorded it, and he's already known, but not well retrieved
 Then, there should be a way to add approved by.
 
-## Activity logs
+## Activity logs — done
 
 Currently, all logs are being retrieved for the executive, he should be able to view them anyway, but by filtering, but he should see only important ones from the first look. Not x logged in,
 

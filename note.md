@@ -176,3 +176,29 @@ sanctum guard as well as the web one. The customers and suppliers tests are the 
 catch it — without `auth:sanctum`, `Auth::user()` is null and `ExportService` calls
 `->business_id` on null, which is a 500. This is written into the `ExportTest` class
 comment so the two products tests are not mistaken for coverage of it.
+
+---
+
+## Chunk 5 completion — activity logs
+
+### The first commit only removed the `auth` noise
+
+Commit `3751ff4` replaced the hardcoded `log_name != 'auth'` filter with `whereNotIn['auth']` and removed `auth` from the UI category labels. That addressed the "Not x logged in" complaint but not the importance rule — Spatie's automatic `Default` logs and one-off free-text categories were still treated as important.
+
+### The `log_name` taxonomy was normalised to sentences
+
+The user chose "Normalise to sentences". All snake_case log_names converted:
+- `auth` → `Authentication`
+- `permission` → `Permission`
+- `settings` → `Settings`
+- `data_export` → `Data Export`
+- `customer` → `Customer`
+- `default` → `Default`
+
+### The importance rule excludes `Authentication` and `Default`
+
+`ActivityLogController` now has a `NOISE_LOG_NAMES = ['Authentication', 'Default']` constant. When the UI sends `log_name=business` (the "All business" sentinel), noise logs are excluded. When the UI sends a specific category, it is shown as requested — the user is filtering. The `categories()` endpoint also excludes noise so the filter dropdown does not offer "Authentication" or "Default".
+
+### The auth log path is effectively dead
+
+Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the `Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. The `Authentication` category is kept for completeness but is unlikely to appear in production.
