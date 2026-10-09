@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Worker;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WorkerService
 {
@@ -13,13 +14,20 @@ class WorkerService
     public function addWorker(array $data)
     {
         return $this->profileService->create($data, function ($user, $data) {
-            $work = Worker::whereHas('user', function ($q) use ($data) {
-                $q->where('business_id', $data['business_id'] ?? Auth::user()->business_id);
-            })->count();
+            $employeeCode = DB::transaction(function () {
+                $max = Worker::withoutGlobalScopes()
+                    ->where('employee_code', 'like', 'EMP-%')
+                    ->lockForUpdate()
+                    ->max('employee_code');
+
+                $next = $max ? (int) substr($max, 4) + 1 : 1;
+
+                return 'EMP-'.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
+            });
 
             return Worker::create([
                 'user_id' => $user->id,
-                'employee_code' => 'EMP-'.str_pad($work + 1, 5, '0', STR_PAD_LEFT),
+                'employee_code' => $employeeCode,
                 'department' => $data['department'] ?? null,
                 'position' => $data['position'] ?? null,
                 'employment_type' => $data['employment_type'] ?? 'full_time',
