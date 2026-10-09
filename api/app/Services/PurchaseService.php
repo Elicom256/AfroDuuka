@@ -55,6 +55,7 @@ class PurchaseService
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'cost_price' => $item['cost_price'],
+                    'selling_price' => $item['selling_price'] ?? null,
                     'subtotal' => $item['cost_price'] * $item['quantity'],
                 ]);
             }
@@ -87,6 +88,9 @@ class PurchaseService
                 if ($product) {
                     $product->increment('quantity', $receivedQty);
                     $product->update(['cost_price' => $item->cost_price]);
+                    if ($item->selling_price) {
+                        $product->update(['selling_price' => $item->selling_price]);
+                    }
                 }
             }
 

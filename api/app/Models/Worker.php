@@ -20,8 +20,6 @@ class Worker extends BaseModel
         'hire_date',
         'status',
         'remarks',
-        'business_id',
-        'business_branch_id',
     ];
 
     /**

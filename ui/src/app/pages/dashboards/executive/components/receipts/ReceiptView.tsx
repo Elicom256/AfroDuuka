@@ -5,24 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Receipt as ReceiptIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import * as QRCode from 'qrcode';
 
-/**
- * The receipt document, and the only place it is drawn.
- *
- * This is a pure presentation component: it fetches nothing and owns no state, so every
- * surface that shows a receipt shows this one. It was extracted from ReceiptDetail,
- * which is the reference design, because the POS receipt modal had been written
- * separately and had drifted into a different layout, a different set of fields and a
- * different set of totals — the same sale read two ways depending on where you sold it.
- *
- * Data is expected in the shape GET /receipts/{id} returns, so callers should hand over
- * that payload rather than assembling their own. POS used to render straight from the
- * sale it had just created; that payload carries receipt.items but not receipt.user or
- * receipt.customer, which this design renders, so it now asks for the receipt itself.
- *
- * Chrome and actions are deliberately not part of this: the surrounding card, the back
- * link, the PDF buttons and the POS print button belong to the surface, not the document.
- */
 export const ReceiptView = ({ receipt }: { receipt: any }) => {
   const { currency } = useCurrency();
 
@@ -39,6 +23,17 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
     }
   };
 
+  // Business identity from the receipt's branch
+  const business = receipt.businessBranch?.business;
+  const businessName = business?.name ?? '';
+  const businessLogo = business?.logo
+    ? `${import.meta.env.VITE_BASE_URL}/storage/logo/${business.logo}`
+    : null;
+
+  // QR code linking to the platform's main page
+  const platformUrl = 'https://duukaflow.com';
+  const qrCodeUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(platformUrl)}&choe=UTF-8`;
+
   return (
     <Card className='rounded-3xl border border-border/70 bg-card p-6'>
       <CardHeader>
@@ -48,6 +43,9 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
             <CardTitle>Receipt {receipt.receipt_number}</CardTitle>
           </div>
           <Badge variant={statusVariant(receipt.status)}>{receipt.status}</Badge>
+          {businessName && (
+            <div className='text-sm text-muted-foreground'>{businessName}</div>
+          )}
         </div>
         <CardDescription>{format(new Date(receipt.created_at), 'PPPP p')}</CardDescription>
       </CardHeader>
@@ -76,6 +74,22 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
           <div>
             <h3 className='font-semibold mb-2'>Receipt Number</h3>
             <p className='text-sm text-muted-foreground'>{receipt.receipt_number}</p>
+          </div>
+        </div>
+
+        <div className='mt-4'>
+          <h3 className='font-semibold mb-2'>Business</h3>
+          <div className='grid gap-2'>
+            {businessLogo && (
+              <img
+                src={businessLogo}
+                alt={businessName}
+                className='h-6 w-6 object-cover rounded'
+              />
+            )}
+            {businessName && (
+              <span className='text-sm'>{businessName}</span>
+            )}
           </div>
         </div>
 
@@ -123,51 +137,54 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
 
         <Separator />
 
-        <div className='space-y-2'>
-          <div className='flex justify-between text-sm'>
-            <span className='text-muted-foreground'>Subtotal</span>
-            <span>
-              {currency} {Number(receipt.subtotal).toLocaleString()}
-            </span>
-          </div>
-          {Number(receipt.discount) > 0 && (
+        <div>
+          <h3 className='font-semibold mb-4'>Totals</h3>
+          <div className='space-y-2'>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>Discount</span>
-              <span className='text-red-500'>
-                -{currency} {Number(receipt.discount).toLocaleString()}
-              </span>
-            </div>
-          )}
-          {Number(receipt.tax) > 0 && (
-            <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>Tax</span>
+              <span className='text-muted-foreground'>Subtotal</span>
               <span>
-                {currency} {Number(receipt.tax).toLocaleString()}
+                {currency} {Number(receipt.subtotal).toLocaleString()}
               </span>
             </div>
-          )}
-          <Separator />
-          <div className='flex justify-between text-lg font-bold'>
-            <span>Grand Total</span>
-            <span>
-              {currency} {Number(receipt.total).toLocaleString()}
-            </span>
-          </div>
-          <Separator />
-          <div className='flex justify-between text-sm'>
-            <span className='text-muted-foreground'>Amount Paid</span>
-            <span>
-              {currency} {Number(receipt.amount_paid).toLocaleString()}
-            </span>
-          </div>
-          {Number(receipt.change_given) > 0 && (
-            <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>Change Given</span>
+            {Number(receipt.discount) > 0 && (
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>Discount</span>
+                <span className='text-red-500'>
+                  -{currency} {Number(receipt.discount).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {Number(receipt.tax) > 0 && (
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>Tax</span>
+                <span>
+                  {currency} {Number(receipt.tax).toLocaleString()}
+                </span>
+              </div>
+            )}
+            <Separator />
+            <div className='flex justify-between text-lg font-bold'>
+              <span>Grand Total</span>
               <span>
-                {currency} {Number(receipt.change_given).toLocaleString()}
+                {currency} {Number(receipt.total).toLocaleString()}
               </span>
             </div>
-          )}
+            <Separator />
+            <div className='flex justify-between text-sm'>
+              <span className='text-muted-foreground'>Amount Paid</span>
+              <span>
+                {currency} {Number(receipt.amount_paid).toLocaleString()}
+              </span>
+            </div>
+            {Number(receipt.change_given) > 0 && (
+              <div className='flex justify-between text-sm'>
+                <span className='text-muted-foreground'>Change Given</span>
+                <span>
+                  {currency} {Number(receipt.change_given).toLocaleString()}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {receipt.notes && (

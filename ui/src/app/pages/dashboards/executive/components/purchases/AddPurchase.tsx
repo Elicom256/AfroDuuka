@@ -28,6 +28,7 @@ interface PurchaseItem {
   product_id: string;
   quantity: string;
   cost_price: string;
+  selling_price: string;
 }
 
 export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }: AddPurchaseProps) => {
@@ -35,7 +36,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    items: [{ product_id: '', quantity: '', cost_price: '' }] as PurchaseItem[],
+    items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }] as PurchaseItem[],
     supplier_id: '',
     payment_status_id: '',
     reference: '',
@@ -45,7 +46,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { product_id: '', quantity: '', cost_price: '' }],
+      items: [...prev.items, { product_id: '', quantity: '', cost_price: '', selling_price: '' }],
     }));
   };
 
@@ -71,7 +72,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
     e.preventDefault();
 
     const validItems = formData.items.filter(
-      (item) => item.product_id && item.quantity && item.cost_price,
+      (item) => item.product_id && item.quantity && item.cost_price && item.selling_price,
     );
 
     if (validItems.length === 0) {
@@ -96,6 +97,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           product_id: Number(item.product_id),
           quantity: Number(item.quantity),
           cost_price: Number(item.cost_price),
+          selling_price: Number(item.selling_price),
         })),
         payment_status_id: formData.payment_status_id,
         reference: formData.reference || null,
@@ -107,7 +109,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
         // Reset form
         setOpen(false);
         setFormData({
-          items: [{ product_id: '', quantity: '', cost_price: '' }],
+          items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }],
           supplier_id: '',
           payment_status_id: '',
           reference: '',
@@ -227,6 +229,14 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                       value={item.cost_price}
                       onChange={(e) => updateItem(index, 'cost_price', e.target.value)}
                       required
+                    />
+                  </div>
+                  <div className='col-span-4'>
+                    <Label htmlFor='selling-price'>Selling Price ({currency})</Label>
+                    <Input id='selling-price'
+                      type='number'
+                      value={item.selling_price}
+                      onChange={(e) => updateItem(index, 'selling_price', e.target.value)}
                     />
                   </div>
 
