@@ -31,7 +31,7 @@ class StoreCashFlowAdjustmentRequest extends FormRequest
                 return;
             }
 
-            $resolved = EffectiveBranchScope::branchesFor($this->user());
+            $resolved = EffectiveBranchScope::validationBranchesFor($this->user());
 
             if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
                 $fail('The selected business branch is outside your scope.');

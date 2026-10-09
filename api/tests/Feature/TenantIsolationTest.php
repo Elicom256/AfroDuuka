@@ -587,7 +587,15 @@ class TenantIsolationTest extends TestCase
         $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
         $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
 
-        Sanctum::actingAs($this->branchUser($business, $branchA));
+        // BranchManager is not elevated — branch isolation must still hold for them.
+        // Executive (the default branchUser role) is elevated and may act cross-branch;
+        // see EffectiveBranchScope::validationBranchesFor().
+        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'BranchManager']);
+        Sanctum::actingAs(User::factory()->create([
+            'business_id' => $business->id,
+            'business_branch_id' => $branchA->id,
+            'role_id' => $role->id,
+        ]));
 
         $this->postJson('/api/products', [
             'name' => 'Sneaky Widget',

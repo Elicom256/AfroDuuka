@@ -41,6 +41,37 @@ class EffectiveBranchScope
     }
 
     /**
+     * Like branchesFor(), but elevated roles are permitted every branch of their
+     * business regardless of whether onboarding pinned them to one.
+     *
+     * Used by form-request validation only — branchesFor() continues to drive the
+     * global query scope so branch isolation in queries is unchanged. Without this,
+     * an executive pinned to branch 1 is rejected by every form request that
+     * validates business_branch_id: "The server rejected that request" on any
+     * branch other than main.
+     *
+     * @return array{0:int|null,1:int[]}|null
+     */
+    public static function validationBranchesFor(?User $user): ?array
+    {
+        $resolved = static::branchesFor($user);
+
+        if ($resolved === null || $user === null) {
+            return $resolved;
+        }
+
+        if (RolePermissions::isElevated($user)) {
+            $ids = BusinessBranch::where('business_id', $user->business_id)
+                ->pluck('id')
+                ->all();
+
+            return [1, $ids];
+        }
+
+        return $resolved;
+    }
+
+    /**
      * Resolve the branch a report should be scoped to, from user input.
      *
      * Reports are per branch: one document describes one branch's month, never a

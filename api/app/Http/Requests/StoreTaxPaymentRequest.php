@@ -27,7 +27,7 @@ class StoreTaxPaymentRequest extends FormRequest
 
     public function rules(): array
     {
-        $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+        $resolved = EffectiveBranchScope::validationBranchesFor(Auth::user());
         $branchIds = $resolved === null ? null : $resolved[1];
 
         $branchWithinSet = function ($attribute, $value, $fail) use ($branchIds) {

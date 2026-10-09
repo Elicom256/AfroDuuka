@@ -16,7 +16,7 @@ class UpdateTaxRateRequest extends FormRequest
 
     public function rules(): array
     {
-        $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+        $resolved = EffectiveBranchScope::validationBranchesFor(Auth::user());
         $branchIds = $resolved === null ? null : $resolved[1];
 
         $taxCategoryRule = Rule::exists('tax_categories', 'id');

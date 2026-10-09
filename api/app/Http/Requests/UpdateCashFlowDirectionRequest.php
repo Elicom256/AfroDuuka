@@ -38,7 +38,7 @@ class UpdateCashFlowDirectionRequest extends FormRequest
                 return;
             }
 
-            $resolved = EffectiveBranchScope::branchesFor($this->user());
+            $resolved = EffectiveBranchScope::validationBranchesFor($this->user());
 
             if ($resolved !== null && ! in_array((int) $cashFlow->business_branch_id, $resolved[1], true)) {
                 $fail('This transaction is outside your branch scope.');
