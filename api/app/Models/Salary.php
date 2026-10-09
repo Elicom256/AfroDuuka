@@ -5,21 +5,9 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @property int $id
- * @property int $business_id
- * @property int|null $business_branch_id
- * @property int $role_id
- * @property decimal $amount
- * @property string $period
- * @property string $status
- * @property int|null $set_by
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- */
-class EmployeeSalary extends BaseModel
+class Salary extends BaseModel
 {
     use HasFactory, LogsActivity;
 
@@ -44,8 +32,8 @@ class EmployeeSalary extends BaseModel
         return $this->belongsTo(Role::class);
     }
 
-    public function worker(): BelongsTo
+    public function employees(): HasMany
     {
-        return $this->belongsTo(Worker::class);
+        return $this->hasMany(Worker::class, 'salary_id');
     }
 }
