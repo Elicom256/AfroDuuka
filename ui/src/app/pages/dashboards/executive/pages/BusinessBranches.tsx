@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
 import { AddBranch } from '../components/branches/AddBranch';
@@ -24,26 +25,27 @@ export const BusinessBranches = () => {
         {/* branches */}
         <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 py-10'>
           {branches?.map((branch: any) => (
-            <Card key={branch.id} className='rounded-xl border '>
-              <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                <CardDescription>{branch.name}</CardDescription>
-                <CardAction>
-                  <Badge>{branch.status}</Badge>
-                </CardAction>
-              </CardHeader>
-              <CardContent>
-                <div className='flex flex-col text-sm'>
-                  <div className='flex items-center gap-2'>
-                    {/* <span>Address:</span> */}
-                    <span>{branch.address}</span>
+            <Link key={branch.id} to={`/dashboard/branches/${branch.id}`}>
+              <Card className='rounded-xl border hover:border-primary/50 hover:shadow-md transition-all cursor-pointer'>
+                <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                  <CardDescription>{branch.name}</CardDescription>
+                  <CardAction>
+                    <Badge>{branch.status}</Badge>
+                  </CardAction>
+                </CardHeader>
+                <CardContent>
+                  <div className='flex flex-col text-sm'>
+                    <div className='flex items-center gap-2'>
+                      <span>{branch.address}</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className='w-full h-full flex items-center justify-center text-muted-foreground gap-2'>
-                <span>Tel</span>
-                <span>{branch.phone}</span>
-              </CardFooter>
-            </Card>
+                </CardContent>
+                <CardFooter className='w-full h-full flex items-center justify-center text-muted-foreground gap-2'>
+                  <span>Tel</span>
+                  <span>{branch.phone}</span>
+                </CardFooter>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

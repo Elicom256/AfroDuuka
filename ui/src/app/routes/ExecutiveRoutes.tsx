@@ -27,6 +27,7 @@ const PurchaseReturn = lazy(() => import('../pages/dashboards/executive/componen
 const ExecutiveSaleReturnsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveSaleReturnsPage').then((m) => ({ default: m.ExecutiveSaleReturnsPage })));
 const ExecutivePurchaseReturnsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutivePurchaseReturnsPage').then((m) => ({ default: m.ExecutivePurchaseReturnsPage })));
 const BusinessBranches = lazy(() => import('../pages/dashboards/executive/pages/BusinessBranches').then((m) => ({ default: m.BusinessBranches })));
+const BranchDetail = lazy(() => import('../pages/dashboards/executive/pages/BranchDetail').then((m) => ({ default: m.BranchDetail })));
 const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })));
 const ExecutiveMessagesPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveMessagesPage').then((m) => ({ default: m.ExecutiveMessagesPage })));
 const ExecutiveNotificationsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveNotificationsPage').then((m) => ({ default: m.ExecutiveNotificationsPage })));
@@ -162,6 +163,7 @@ export const ExecutiveRoutes = () => {
             <Route path='expense-categories' element={<ExecutiveExpenseCategoriesPage />} />
             <Route path='expenses' element={<ExecutiveExpensesPage />} />
             <Route path='branches' element={<BusinessBranches />} />
+            <Route path='branches/:id' element={<BranchDetail />} />
             <Route path='subscriptions' element={<ExecutiveSubscriptionPaymentsPage />} />
             <Route path='product-audits' element={<ExecutiveProductAuditsPage />} />
             <Route path='product-audits/:id' element={<ExecutiveProductAuditPage />} />

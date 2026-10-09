@@ -77,7 +77,7 @@ This page should pull currecy rates from google or any trusted currecy rate api,
 4000 | 1
 In a tabular format
 
-## Workers
+## Workers — done
 
 First things first, remove business_id and business_branch_id from worker, because they already appear on user, who's a worker
 clean up that from model -> migration etc
