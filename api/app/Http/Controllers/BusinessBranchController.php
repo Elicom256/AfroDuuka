@@ -62,8 +62,14 @@ class BusinessBranchController extends Controller
         // of another tenant still 404s at route-model binding.
         $branchId = $branch->id;
 
+        // Counted through the worker -> user link, not a business_branch_id column on
+        // workers. That column is no longer mass-assignable (the branch is an attribute
+        // of the user), so querying it silently counts nothing: every worker row has
+        // NULL there and the card reads zero. Joining users is what the data actually
+        // supports, and it is the same source Worker::getBusinessBranchAttribute() uses.
         $branch->worker_count = Worker::withoutGlobalScope('branch')
-            ->where('business_branch_id', $branchId)->count();
+            ->whereHas('user', fn ($query) => $query->where('business_branch_id', $branchId))
+            ->count();
         $branch->product_count = Product::withoutGlobalScope('branch')
             ->where('business_branch_id', $branchId)->count();
         $branch->total_sales = (float) Sale::withoutGlobalScope('branch')

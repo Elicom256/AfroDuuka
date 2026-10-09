@@ -55,7 +55,14 @@ class AttendanceController extends Controller
         $workerIds = collect($request->validated()['attendances'])->pluck('worker_id');
 
         // Scoped lookup: only workers the current user may touch (L1 on Worker).
-        $branchById = Worker::whereIn('id', $workerIds)->pluck('business_branch_id', 'id');
+        // Read through `user.business_branch_id`, not a column on workers — that column
+        // is no longer mass-assignable, so it is NULL on every row and this used to
+        // return an empty map, silently falling through to the caller's own branch for
+        // every worker in the batch.
+        $branchById = Worker::with('user')
+            ->whereIn('id', $workerIds)
+            ->get()
+            ->mapWithKeys(fn (Worker $worker) => [$worker->id => $worker->user?->business_branch_id]);
 
         $records = collect($request->validated()['attendances'])
             ->map(function ($attendance) use ($user, $branchById) {

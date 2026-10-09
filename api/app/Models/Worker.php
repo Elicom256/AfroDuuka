@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Worker extends BaseModel
 {
@@ -45,8 +46,21 @@ class Worker extends BaseModel
         return $this->hasMany(EmployeeRemuneration::class);
     }
 
-    public function employeeSalaries(): HasMany
+    /**
+     * The salaries this worker is paid under, reached through the role on their user
+     * record. Workers carry no role column of their own — `users.role_id` is the
+     * identity layer. Plural because a role can carry more than one salary: one
+     * covering every branch and one pinned to a single branch.
+     */
+    public function salaries(): HasManyThrough
     {
-        return $this->hasMany(EmployeeSalary::class);
+        return $this->hasManyThrough(
+            Salary::class,
+            User::class,
+            'user_id',
+            'role_id',
+            'id',
+            'role_id',
+        );
     }
 }

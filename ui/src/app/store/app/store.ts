@@ -39,7 +39,7 @@ import { whatsappQuery } from '../features/business/executive/whatsappQuery';
 import { printersQuery } from '../features/business/executive/printersQuery';
 import { stockTransfersQuery } from '../features/business/executive/stockTransfersQuery';
 import { reorderRulesQuery } from '../features/business/executive/reorderRulesQuery';
-import { employeeSalaryQuery } from '../features/business/executive/employeeSalaryQuery';
+import { salaryQuery } from '../features/business/executive/salaryQuery';
 import { countriesQuery } from '../features/countries/countriesQuery';
 import { cashFlowQuery } from '../features/business/executive/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
@@ -98,7 +98,7 @@ export const store = configureStore({
     [printersQuery.reducerPath]: printersQuery.reducer,
     [stockTransfersQuery.reducerPath]: stockTransfersQuery.reducer,
     [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
-    [employeeSalaryQuery.reducerPath]: employeeSalaryQuery.reducer,
+    [salaryQuery.reducerPath]: salaryQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
     [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
     [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
@@ -168,7 +168,7 @@ export const store = configureStore({
       printersQuery.middleware,
       stockTransfersQuery.middleware,
       reorderRulesQuery.middleware,
-      employeeSalaryQuery.middleware,
+      salaryQuery.middleware,
       attendanceSettingsQuery.middleware,
       customerSettingsQuery.middleware,
       paymentSettingsQuery.middleware,

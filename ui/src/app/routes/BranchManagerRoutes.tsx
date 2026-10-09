@@ -36,7 +36,7 @@ const ExecutiveFinanceTransactionPage = lazy(() => import('../pages/dashboards/e
 const ExecutiveFinanceReportsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceReportsPage').then((m) => ({ default: m.ExecutiveFinanceReportsPage })));
 const ExecutiveFinanceCashFlowPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveFinanceCashFlowPage').then((m) => ({ default: m.ExecutiveFinanceCashFlowPage })));
 const ExecutiveEmployeeRemunerationPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveEmployeeRemunerationPage').then((m) => ({ default: m.ExecutiveEmployeeRemunerationPage })));
-const ExecutiveEmployeeSalaryPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveEmployeeSalaryPage').then((m) => ({ default: m.ExecutiveEmployeeSalaryPage })));
+const ExecutiveSalariesPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveSalariesPage').then((m) => ({ default: m.ExecutiveSalariesPage })));
 const ExecutiveAttendancePage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveAttendancePage').then((m) => ({ default: m.ExecutiveAttendancePage })));
 const ExecutivePromotionsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutivePromotionsPage').then((m) => ({ default: m.ExecutivePromotionsPage })));
 const ExecutiveCouponsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveCouponsPage').then((m) => ({ default: m.ExecutiveCouponsPage })));
@@ -101,7 +101,7 @@ export const BranchManagerRoutes = () => {
             <Route path='finance/cashflow' element={<ExecutiveFinanceCashFlowPage />} />
             <Route path='cashflow' element={<ExecutiveFinanceCashFlowPage />} />
             <Route path='attendance' element={<ExecutiveAttendancePage />} />
-            <Route path='employee-salaries' element={<ExecutiveEmployeeSalaryPage />} />
+            <Route path='salaries' element={<ExecutiveSalariesPage />} />
             <Route path='remuneration' element={<ExecutiveEmployeeRemunerationPage />} />
             <Route path='activity-log' element={<ActivityLogPage />} />
             <Route path='promotions' element={<ExecutivePromotionsPage />} />
