@@ -24,7 +24,7 @@ cheap-and-isolated.
 | 11 | Workers: duplicate employee_code | Code generated from a tenant-scoped `count()` against a global unique index; seeded rows have `business_id = NULL` so the count is permanently 0 | LOW-MED | **done** |
 | 12 | Branches: no single-branch page | No `dashboard/branches/:id` route or summary page | MED | **done** |
 | 13 | Workers: cannot add to another branch | `EffectiveBranchScope::branchesFor()` grants all-branches only when `business_branch_id IS NULL`, and onboarding always pins the executive to one branch. Affects 39 form requests | MED | **done** |
-| 14 | Suppliers + Customers pages | Backend exists, no frontend routes under People | MED | |
+| 14 | Suppliers + Customers pages | Backend exists, no frontend routes under People | MED | **done** |
 | 15 | Product update on purchase | Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not editable at purchase time | MED | |
 | 16 | Receipt redesign (business name, logo, QR) | Template and React component never read business identity; no `business()` relation; no QR dependency; dompdf `enable_remote=false` | MED | |
 | 17 | Workers: drop `business_id`/`business_branch_id` | Duplicated from `users`, actor-stamped by `BaseModel`, read by `AttendanceController` | MED | |
@@ -475,4 +475,47 @@ Two tests asserted the old behaviour with an Executive actor and were rewritten 
 
 Backend for both already exists. Add frontend routes/pages under the **People** section and
 let executive and branch manager manage them. Next up.
+
+## Chunk 9 result: item 14 — done (`c793f85`), parity-only
+
+The premise of the bug was stale: the Suppliers and Customers pages, routes, sidebar entries,
+tables, form dialogs and export buttons **already existed**. The two real gaps were:
+
+1. **New businesses seeded both features `disabled`.** `CoreBusinessSettings::coreSettings()`
+   created `SuppliersSettings` and `CustomersSettings` with `status => 'disabled'`, and the
+   sidebar gates each People item on `useFeatureSettings()[settingKey]`. So an executive saw
+   no Suppliers/Customers until they found the Settings toggles. Both now default to
+   `enabled`; every other core setting stays opt-in.
+2. **BranchManager had no `customers/:id` route.** `BranchManagerRoutes.tsx` had
+   `suppliers/:id` but only the customer list, so a branch manager could not open a customer.
+   Added the lazy `Customer` import and the `customers/:id` route, matching suppliers.
+
+The branch-manager supplier **write** boundary is deliberately left alone. `SupplierPolicy`
++ `RolePermissions::canManageSuppliers()` (elevated only) and `SupplierPermissionsTest`
+encode that a supplier is business-level with one `supplier_code` per business, so a branch
+manager may read the list (purchases need a supplier name) but not fork it per branch. The
+bug's "branch manager manages suppliers" wording conflicts with that rule, and the user chose
+to keep it.
+
+Also fixed a latent item-12 type error: `BranchDetail.tsx` passed `useParams()`'s
+`string | undefined` id straight into `useBranchQuery(id)`, which only surfaced when
+`npm run build` was run for this chunk.
+
+### Files
+
+- `api/app/Services/CoreBusinessSettings.php`
+- `api/tests/Feature/CoreBusinessSettingsTest.php` (3 tests)
+- `ui/src/app/routes/BranchManagerRoutes.tsx`
+- `ui/src/app/pages/dashboards/executive/pages/BranchDetail.tsx`
+
+### Verification
+
+- Backend **814 passed** (2398 assertions), full suite.
+- Frontend **787 passed**, full suite, `npm run build` clean, eslint clean on touched files.
+
+## Chunk 10 plan: item 15 — product update on purchase
+
+Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not
+editable at purchase time. Next up.
+
 

@@ -235,3 +235,37 @@ rule protects.
 `api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
 cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
 `!data/.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
+
+---
+
+## Chunk 9 — item 14: suppliers/customers (parity only)
+
+### The bug premise was stale
+
+The pages, routes, sidebar entries, tables, dialogs and exports for Suppliers and Customers
+already existed (`ExecutiveRoutes.tsx:97,114`, `ExecutiveSuppliersPage.tsx`,
+`ExecutiveCustomersPage.tsx`). The bug was reported before that frontend work landed.
+
+### Why the executive "saw no suppliers/customers"
+
+`CoreBusinessSettings::coreSettings()` seeded `SuppliersSettings` and `CustomersSettings`
+with `status => 'disabled'`, and `useFeatureSettings()` hides the People sidebar items whose
+`settingKey` is disabled. So a new business showed neither entry until the executive toggled
+them under Settings. Both now default to `enabled`; other core settings stay disabled.
+
+### Branch-manager customer detail was the one real route gap
+
+`BranchManagerRoutes.tsx` had `suppliers/:id` but only `customers` — no detail. Added
+`customers/:id`, reusing the executive `Customer` component.
+
+### The supplier write boundary is intentional and was kept
+
+`SupplierPermissionsTest` (13 tests) and `RolePermissions::canManageSuppliers()` document
+that a supplier is business-level (one `supplier_code`, `business_branch_id` null), so
+BranchManager may read but not author. The bug's "branch manager manages suppliers" was not
+implemented, per user decision.
+
+### Latent item-12 type error
+
+`BranchDetail.tsx` passed `useParams()`'s `string | undefined` into `useBranchQuery(id)`;
+`npm run build` (not run at item 12) caught it. Fixed with `id ?? ''`.
