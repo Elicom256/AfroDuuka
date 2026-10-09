@@ -166,7 +166,7 @@ class StockTransferService
      */
     private function resolveDestinationProduct(Product $sourceProduct, int $toBranchId): Product
     {
-        $base = Product::where('business_branch_id', $toBranchId);
+        $base = Product::withoutGlobalScope('branch')->where('business_branch_id', $toBranchId);
 
         $match = null;
         if ($sourceProduct->sku) {
