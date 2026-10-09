@@ -5,7 +5,9 @@ import { Activity } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export const RecentActivity = () => {
-  const { data, isLoading } = useGetActivityLogsQuery({ per_page: 5 });
+  // `log_name=business` is the sentinel that excludes noise categories (the page-level
+  // filter uses the same one), so the dashboard's first look matches the activity page.
+  const { data, isLoading } = useGetActivityLogsQuery({ per_page: 5, log_name: 'business' });
   const logs = data?.data ?? [];
 
   if (isLoading) {
