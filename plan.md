@@ -20,10 +20,10 @@ cheap-and-isolated.
 | 7 | Products table: delete button in wrong place | Cosmetic column in the executive products table | LOW | **done** |
 | 8 | Export failure (all exports 404) | `VITE_BASE_URL` already ends in `/api`; `ExportButton` appends a second. Route also lacks `auth:sanctum` | LOW for the 404, MED for xlsx | **done** (404 + auth; xlsx deferred) |
 | 9 | Activity logs: noise + employee scoping | Dashboard widget passes no `log_name`; no importance rule | LOW-MED | **done** |
-| 10 | Stock transfer dispatch unique violation | `resolveDestinationProduct()` searches through the branch global scope, cannot see the destination row, blind-inserts | LOW-MED | |
-| 11 | Workers: duplicate employee_code | Code generated from a tenant-scoped `count()` against a global unique index; seeded rows have `business_id = NULL` so the count is permanently 0 | LOW-MED | |
-| 12 | Branches: no single-branch page | No `dashboard/branches/:id` route or summary page | MED | |
-| 13 | Workers: cannot add to another branch | `EffectiveBranchScope::branchesFor()` grants all-branches only when `business_branch_id IS NULL`, and onboarding always pins the executive to one branch. Affects 39 form requests | MED | |
+| 10 | Stock transfer dispatch unique violation | `resolveDestinationProduct()` searches through the branch global scope, cannot see the destination row, blind-inserts | LOW-MED | **done** |
+| 11 | Workers: duplicate employee_code | Code generated from a tenant-scoped `count()` against a global unique index; seeded rows have `business_id = NULL` so the count is permanently 0 | LOW-MED | **done** |
+| 12 | Branches: no single-branch page | No `dashboard/branches/:id` route or summary page | MED | **done** |
+| 13 | Workers: cannot add to another branch | `EffectiveBranchScope::branchesFor()` grants all-branches only when `business_branch_id IS NULL`, and onboarding always pins the executive to one branch. Affects 39 form requests | MED | **done** |
 | 14 | Suppliers + Customers pages | Backend exists, no frontend routes under People | MED | |
 | 15 | Product update on purchase | Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not editable at purchase time | MED | |
 | 16 | Receipt redesign (business name, logo, QR) | Template and React component never read business identity; no `business()` relation; no QR dependency; dompdf `enable_remote=false` | MED | |
@@ -412,4 +412,67 @@ belongs to the same business.
   `resolveDestinationProduct` query
 - Add a test that dispatches a transfer to a branch that already has a product with the same
   name, asserting no unique violation
+
+## Chunk 6/7 results: items 10, 11, 12 — done
+
+- **Item 10** (`3311a65`): `resolveDestinationProduct()` now queries
+  `Product::withoutGlobalScope('branch')->where('business_branch_id', $toBranchId)` so it sees
+  the destination row instead of blind-inserting.
+- **Item 11** (`8a6718b`): `WorkerService::addWorker()` generates `employee_code` inside the
+  transaction from `Worker::withoutGlobalScopes()->lockForUpdate()->max('employee_code') + 1`,
+  so the global unique index is respected even when seeded rows have `business_id = NULL`.
+- **Item 12** (`b0f0869`): added lazy `dashboard/branches/:id` route in `ExecutiveRoutes.tsx`,
+  new `BranchDetail.tsx` (workers/products/income/expense cards + edit/delete), and made the
+  branch cards in `BusinessBranches.tsx` link to it.
+
+## Chunk 8: item 13 — cannot add workers to another branch
+
+### The bug
+
+All ~24 `*Request` classes validate `business_branch_id` with a `$branchWithinSet` closure
+that resolves `EffectiveBranchScope::branchesFor($user)` and rejects any id outside
+`[null, [$user->business_branch_id]]`. Onboarding pins an executive to branch 1, so an
+executive can only ever post to branch 1 — "The server rejected that request. Check the
+values and try again." on every other branch.
+
+### Why not fix `branchesFor()`
+
+The first attempt added the elevated check directly to `branchesFor()`. That method also
+drives `EffectiveBranchScope::apply()`, the global query scope on every `BaseModel`, so
+elevated roles suddenly saw every branch's rows in queries and **18 isolation tests failed**
+(35 before the non-existent `RolePermissions::isExecutive()` typo was corrected to
+`isElevated()`). The global scope is intentionally unchanged.
+
+### The fix (`ee83d4e`)
+
+Added `EffectiveBranchScope::validationBranchesFor(?User)`, which returns
+`branchesFor()` for everyone except elevated roles, and every branch id of the user's
+business for `RolePermissions::isElevated()` users (`executive`, `coresupport`, `siteadmin`).
+All 24 form-request closures now call `validationBranchesFor()`. The query scope still calls
+`branchesFor()`, so branch isolation in reads is untouched.
+
+Two tests asserted the old behaviour with an Executive actor and were rewritten to use a
+`BranchManager` (non-elevated), which is who the isolation rule actually protects:
+
+- `TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch`
+- `TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch`
+
+### Files
+
+- `api/app/Support/Tenant/EffectiveBranchScope.php`
+- `api/app/Http/Requests/*.php` (24 request classes)
+- `api/tests/Feature/TenantIsolationTest.php`
+- `api/tests/Feature/Tax/TaxPaymentTest.php`
+- `api/storage/framework/cache/.gitignore`, `.../data/.gitignore` — Laravel's default cache
+  ignores, which were missing; the cache directory had been re-committed on nearly every
+  push. This ends it.
+
+### Verification
+
+- Backend **811 passed** (2393 assertions), full suite.
+
+## Chunk 9 plan: item 14 — Suppliers + Customers pages
+
+Backend for both already exists. Add frontend routes/pages under the **People** section and
+let executive and branch manager manage them. Next up.
 
