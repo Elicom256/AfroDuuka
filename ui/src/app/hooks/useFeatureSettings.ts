@@ -22,12 +22,14 @@ export const useFeatureSettings = (): FeatureSettings => {
 
   const isEnabled = (data: any): boolean => {
     if (!data) return false;
-    if (Array.isArray(data)) return data.some((item: any) => item.status === 'enabled');
-    if (data.data) {
-      if (Array.isArray(data.data)) return data.data.some((item: any) => item.status === 'enabled');
-      return data.data?.status === 'enabled';
-    }
-    return data?.status === 'enabled';
+
+    // Every settings endpoint answers `{ settings, message }`; reading `data.data`
+    // missed the payload entirely, so every gated sidebar entry (suppliers,
+    // customers, reports, promotions, attendance) stayed hidden no matter the status.
+    const payload = data.settings ?? data.data ?? data;
+
+    if (Array.isArray(payload)) return payload.some((item: any) => item?.status === 'enabled');
+    return payload?.status === 'enabled';
   };
 
   return {

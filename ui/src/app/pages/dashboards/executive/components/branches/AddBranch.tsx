@@ -45,13 +45,13 @@ export const AddBranch = () => {
       <DialogTrigger asChild>
         <Button>
           <Plus className='h-4 w-4 mr-2' />
-          Add Product
+          Add Branch
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-106.25'>
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription>Enter the details for the new product.</DialogDescription>
+          <DialogTitle>Add New Branch</DialogTitle>
+          <DialogDescription>Enter the details for the new branch.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>

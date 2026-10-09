@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 interface ExportButtonProps {
   type: 'products' | 'sales' | 'purchases' | 'customers' | 'suppliers';
@@ -23,6 +24,7 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
   const [open, setOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [format, setFormat] = useState<'csv' | 'xlsx'>('csv');
 
   const handleExport = async () => {
     try {
@@ -33,9 +35,6 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
         if (dateTo) params.set('date_to', dateTo);
       }
       const qs = params.toString();
-      // VITE_BASE_URL already ends in /api, so adding another one here sent every export
-      // to /api/api/exports/{type}, which matches no route and answered 404. Every other
-      // slice in the app builds its URL as `${VITE_BASE_URL}/<resource>`.
       const url = `${import.meta.env.VITE_BASE_URL}/exports/${type}${qs ? `?${qs}` : ''}`;
 
       const response = await fetch(url, {
@@ -45,14 +44,34 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
       if (!response.ok) throw new Error('Export failed');
 
       const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `${type}-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(downloadUrl);
-      document.body.removeChild(a);
+
+      if (format === 'csv') {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `${type}-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+      } else {
+        // XLSX: read the CSV text, then generate a workbook via SheetJS
+        const text = await response.text();
+        const rows = text.trim().split('\n').map((r) => r.split(','));
+        if (rows.length === 0) throw new Error('Empty export data');
+        const headers = rows.shift()!;
+        const allRows = [headers, ...rows];
+        const sheet = XLSX.utils.aoa_to_sheet(allRows);
+        const workbook: any = { SheetNames: ['data'], Sheets: { data: sheet } };
+        const base64 = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+        const downloadUrl = `data:application/octet-stream;base64,${base64}`;
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `${type}-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
 
       toast.success(`${label} downloaded successfully`);
       setOpen(false);
@@ -75,7 +94,7 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
             <DialogDescription>
               {withDateRange
                 ? 'Select a date range to export data.'
-                : 'Export all data to CSV format.'}
+                : 'Export all data.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -108,9 +127,11 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
             <Button variant='outline' onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleExport}>
-              <Download className='h-4 w-4' />
-              Download CSV
+            <Button onClick={() => setFormat('csv')}>
+              Export CSV
+            </Button>
+            <Button onClick={() => setFormat('xlsx')}>
+              Export XLSX
             </Button>
           </DialogFooter>
         </DialogContent>
