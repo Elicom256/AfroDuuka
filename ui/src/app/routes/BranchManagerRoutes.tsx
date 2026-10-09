@@ -11,6 +11,7 @@ const ExecutiveWorkersPage = lazy(() => import('../pages/dashboards/executive/pa
 const ExecutiveProductsPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveProductsPage').then((m) => ({ default: m.ExecutiveProductsPage })));
 const ExecutiveSuppliersPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveSuppliersPage').then((m) => ({ default: m.ExecutiveSuppliersPage })));
 const Supplier = lazy(() => import('../pages/dashboards/executive/components/suppliers/Supplier').then((m) => ({ default: m.Supplier })));
+const Customer = lazy(() => import('../pages/dashboards/executive/components/customers/Customer').then((m) => ({ default: m.Customer })));
 const ExecutiveOrdersPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveOrdersPage').then((m) => ({ default: m.ExecutiveOrdersPage })));
 const QuotationsPage = lazy(() => import('../pages/dashboards/shared/quotations/QuotationsPage').then((m) => ({ default: m.QuotationsPage })));
 const ExecutiveSalesPage = lazy(() => import('../pages/dashboards/executive/pages/ExecutiveSalesPage').then((m) => ({ default: m.ExecutiveSalesPage })));
@@ -91,6 +92,7 @@ export const BranchManagerRoutes = () => {
             <Route path='orders' element={<ExecutiveOrdersPage />} />
             <Route path='quotations' element={<QuotationsPage />} />
             <Route path='customers' element={<ExecutiveCustomersPage />} />
+            <Route path='customers/:id' element={<Customer />} />
             <Route path='analytics' element={<ExecutiveAnalyticsPage />} />
             <Route path='reports' element={<ExecutiveReportsPage />} />
             <Route path='finance/transactions' element={<ExecutiveFinanceTransactionsPage />} />

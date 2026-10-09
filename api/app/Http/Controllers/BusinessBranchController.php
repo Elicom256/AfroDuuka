@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBusinessBranchRequest;
 use App\Http\Requests\UpdateBusinessBranchRequest;
 use App\Models\BusinessBranch;
+use App\Models\Expense;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\Worker;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessBranchController extends Controller
@@ -53,6 +56,21 @@ class BusinessBranchController extends Controller
      */
     public function show(BusinessBranch $branch)
     {
+        // The summary cards on dashboard/branches/{id}. Each count drops the branch
+        // global scope because an executive pinned to branch 1 still opens branch 2's
+        // page and must see branch 2's figures; the business scope stays, so a branch
+        // of another tenant still 404s at route-model binding.
+        $branchId = $branch->id;
+
+        $branch->worker_count = Worker::withoutGlobalScope('branch')
+            ->where('business_branch_id', $branchId)->count();
+        $branch->product_count = Product::withoutGlobalScope('branch')
+            ->where('business_branch_id', $branchId)->count();
+        $branch->total_sales = (float) Sale::withoutGlobalScope('branch')
+            ->where('business_branch_id', $branchId)->sum('total_amount');
+        $branch->total_expenses = (float) Expense::withoutGlobalScope('branch')
+            ->where('business_branch_id', $branchId)->sum('amount');
+
         return response()->json(['message' => 'Fetched branch!', 'branch' => $branch], 200);
     }
 

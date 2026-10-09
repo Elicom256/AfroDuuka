@@ -1,25 +1,42 @@
 import { useParams, Link } from 'react-router-dom';
-import { useBranchQuery } from '@/app/store/features/business/branches/branchesQuery';
+import { useBranchQuery, useDeleteBranchMutation } from '@/app/store/features/business/branches/branchesQuery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Phone, Users, Package, TrendingUp, TrendingDown } from 'lucide-react';
 import { PageLoadingState } from '@/utils/PageLoadingState';
+import { EditBranch } from '../components/branches/EditBranch';
+import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
+import { toast } from 'sonner';
+import { serverMessage } from '@/app/utils/errorMessage';
 
 export const BranchDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, isError } = useBranchQuery(id);
+  const { data, isLoading, isError } = useBranchQuery(id ?? '');
+  const [deleteBranch, { isLoading: isDeleting }] = useDeleteBranchMutation();
 
   if (isLoading) return <PageLoadingState />;
   if (isError || !data) {
     return (
-      <div className="py-8 text-center text-sm text-destructive">
+      <div className='py-8 text-center text-sm text-destructive'>
         Could not load branch. Please try again.
       </div>
     );
   }
 
   const branch = data.branch ?? data;
+
+  const handleDelete = async () => {
+    try {
+      const res = await deleteBranch(branch.id).unwrap();
+      toast.success(res?.message ?? 'Branch deleted');
+    } catch (error) {
+      // The API refuses to delete a branch that has traded (it says why), so the
+      // server's own explanation is what the user needs to see.
+      toast.error(serverMessage(error, 'Failed to delete the branch!'));
+      throw error;
+    }
+  };
 
   return (
     <div className="space-y-6 px-10">
@@ -88,10 +105,14 @@ export const BranchDetail = () => {
       </div>
 
       <div className="flex gap-3">
-        <Link to={`/dashboard/branches/${id}/edit`}>
-          <Button variant="outline">Edit Branch</Button>
-        </Link>
-        <Button variant="destructive">Delete Branch</Button>
+        <EditBranch branch={branch} />
+        <ConfirmDeleteButton
+          onConfirm={handleDelete}
+          isDeleting={isDeleting}
+          title="Delete this branch?"
+          description="Branches that have traded cannot be deleted — the server will explain if that is the case here."
+          trigger={<Button variant="destructive">Delete Branch</Button>}
+        />
       </div>
     </div>
   );
