@@ -108,7 +108,7 @@ here (dashboard/product-audits), the user cannot select products on his branch/b
 Here (dashboard/financial-audits/1), the performed by is empty, this should be the person who recorded it, and he's already known, but not well retrieved
 Then, there should be a way to add approved by.
 
-## Activity logs
+## Activity logs — done
 
 Currently, all logs are being retrieved for the executive, he should be able to view them anyway, but by filtering, but he should see only important ones from the first look. Not x logged in,
 

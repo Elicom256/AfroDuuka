@@ -388,3 +388,28 @@ The first commit (3751ff4) only removed the `auth` noise. Still missing:
 - `api/tests/Feature/Audit/ActivityLoggingOnMutationTest.php` — update tests for new log_names
 - Any other tests that assert on log_name values
 
+## Chunk 6 plan: item 10 — stock transfer dispatch unique violation
+
+### The bug
+
+`StockTransferService::resolveDestinationProduct()` searches for a matching product on the
+destination branch by sku → barcode → name. But `Product` extends `BaseModel`, which applies
+the `EffectiveBranchScope` global scope. When an executive (pinned to branch 1) dispatches a
+transfer to branch 2, the scope filters out branch 2's products, so the method can't find the
+existing product and tries to create a duplicate — violating the
+`products_business_branch_id_name_unique` constraint.
+
+### The fix
+
+`resolveDestinationProduct` must query without the branch global scope, since it explicitly
+knows which branch it's looking for. Use `Product::withoutGlobalScope('branch')` when
+searching for the destination product. The business scope can stay — the destination branch
+belongs to the same business.
+
+### Files to modify
+
+- `api/app/Services/StockTransferService.php` — add `withoutGlobalScope('branch')` to the
+  `resolveDestinationProduct` query
+- Add a test that dispatches a transfer to a branch that already has a product with the same
+  name, asserting no unique violation
+
