@@ -28,12 +28,13 @@ interface PurchaseItem {
   product_id: string;
   quantity: string;
   cost_price: string;
+  selling_price: string;
 }
 
 export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePurchase }: EditPurchaseProps) => {
   const { currency } = useCurrency();
   const [formData, setFormData] = useState<{ items: PurchaseItem[]; supplier_id: string; note: string }>({
-    items: [{ product_id: '', quantity: '', cost_price: '' }],
+    items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }],
     supplier_id: '',
     note: '',
   });
@@ -46,6 +47,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
         product_id: String(item.product_id ?? ''),
         quantity: String(item.quantity ?? ''),
         cost_price: String(item.cost_price ?? item.unit_cost ?? ''),
+        selling_price: String(item.selling_price ?? ''),
       }));
 
       setFormData({
@@ -60,7 +62,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { product_id: '', quantity: '', cost_price: '' }],
+      items: [...prev.items, { product_id: '', quantity: '', cost_price: '', selling_price: '' }],
     }));
   };
 
@@ -82,7 +84,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.cost_price);
+    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.cost_price && item.selling_price);
 
     if (validItems.length === 0) {
       toast.error('Please add at least one purchase item.');
@@ -95,6 +97,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
         product_id: Number(item.product_id),
         quantity: Number(item.quantity),
         cost_price: Number(item.cost_price),
+        selling_price: Number(item.selling_price),
         subtotal: Number(item.quantity) * Number(item.cost_price),
       }));
 
@@ -209,6 +212,17 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
                       onChange={(e) => updateItem(index, 'cost_price', e.target.value)}
                       className='col-span-3'
                       required
+                    />
+                  </div>
+                  <div className='grid grid-cols-4 items-center gap-4'>
+                    <Label htmlFor={`selling_price-${index}`} className='text-right'>
+                      Selling Price
+                    </Label>
+                    <Input
+                      id={`selling_price-${index}`}
+                      type='number'
+                      value={item.selling_price}
+                      onChange={(e) => updateItem(index, 'selling_price', e.target.value)}
                     />
                   </div>
                   {item.quantity && item.cost_price && (

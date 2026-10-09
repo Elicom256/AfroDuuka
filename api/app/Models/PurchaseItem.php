@@ -24,6 +24,7 @@ class PurchaseItem extends Model
         'product_id',
         'quantity',
         'cost_price',
+        'selling_price',
         'subtotal',
     ];
 
