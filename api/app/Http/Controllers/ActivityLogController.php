@@ -18,6 +18,12 @@ class ActivityLogController extends Controller
      */
     private const SUPERVISORY_ROLES = ['executive', 'siteadmin', 'coresupport'];
 
+    /**
+     * Log categories that are noise — automatic events with no explicit category.
+     * The executive sees only important logs unless he filters to a specific category.
+     */
+    private const NOISE_LOG_NAMES = ['Authentication', 'Default'];
+
     public function index(IndexActivityLogRequest $request): AnonymousResourceCollection
     {
         $user = $request->user();
@@ -28,10 +34,10 @@ class ActivityLogController extends Controller
 
         $this->scopeVisibility($query, $user);
 
-        // The UI sends "business" as a sentinel for "all categories except auth".
+        // The UI sends "business" as a sentinel for "all important categories".
         $logName = $request->validated('log_name');
         if ($logName === 'business') {
-            $query->whereNotIn('log_name', ['auth']);
+            $query->whereNotIn('log_name', self::NOISE_LOG_NAMES);
         } else {
             $query->inLogNames($logName);
         }
@@ -69,7 +75,7 @@ class ActivityLogController extends Controller
 
         $categories = $query
             ->whereNotNull('log_name')
-            ->whereNotIn('log_name', ['auth'])
+            ->whereNotIn('log_name', self::NOISE_LOG_NAMES)
             ->distinct()
             ->orderBy('log_name')
             ->pluck('log_name');

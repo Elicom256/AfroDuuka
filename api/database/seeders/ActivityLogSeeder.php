@@ -73,13 +73,13 @@ class ActivityLogSeeder extends Seeder
     {
         return collect([
             [
-                'log_name' => 'auth',
+                'log_name' => 'Authentication',
                 'event' => 'logged_in',
                 'description' => ':name logged in',
                 'properties' => ['attributes' => ['ip' => '127.0.0.1']],
             ],
             [
-                'log_name' => 'permission',
+                'log_name' => 'Permission',
                 'event' => 'role_assigned',
                 'description' => 'Role assigned to :name',
                 'properties' => [
@@ -88,7 +88,7 @@ class ActivityLogSeeder extends Seeder
                 ],
             ],
             [
-                'log_name' => 'settings',
+                'log_name' => 'Settings',
                 'event' => 'updated',
                 'description' => 'Customer settings updated by :name',
                 'properties' => [
@@ -97,7 +97,7 @@ class ActivityLogSeeder extends Seeder
                 ],
             ],
             [
-                'log_name' => 'data_export',
+                'log_name' => 'Data Export',
                 'event' => 'exported',
                 'description' => 'Report export requested by :name',
                 'properties' => [
@@ -105,7 +105,7 @@ class ActivityLogSeeder extends Seeder
                 ],
             ],
             [
-                'log_name' => 'customer',
+                'log_name' => 'Customer',
                 'event' => 'updated',
                 'description' => 'Customer record updated by :name',
                 'properties' => [

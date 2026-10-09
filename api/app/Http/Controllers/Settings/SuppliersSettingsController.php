@@ -48,7 +48,7 @@ class SuppliersSettingsController extends Controller
         $suppliersSetting->update($validated);
 
         ActivityLog::create([
-            'log_name' => 'settings',
+            'log_name' => 'Settings',
             'description' => 'Supplier settings updated',
             'subject_type' => SuppliersSettings::class,
             'subject_id' => $suppliersSetting->id,

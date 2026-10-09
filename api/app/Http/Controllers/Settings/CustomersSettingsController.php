@@ -48,7 +48,7 @@ class CustomersSettingsController extends Controller
         $customersSetting->update($validated);
 
         ActivityLog::create([
-            'log_name' => 'settings',
+            'log_name' => 'Settings',
             'description' => 'Customer settings updated',
             'subject_type' => CustomersSettings::class,
             'subject_id' => $customersSetting->id,

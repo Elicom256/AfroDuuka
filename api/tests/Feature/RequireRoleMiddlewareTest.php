@@ -206,13 +206,13 @@ class RequireRoleMiddlewareTest extends TestCase
         ]);
 
         ActivityLog::create([
-            'log_name' => 'default',
+            'log_name' => 'Default',
             'description' => 'In my branch',
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
         ]);
         ActivityLog::create([
-            'log_name' => 'default',
+            'log_name' => 'Default',
             'description' => 'In another branch',
             'business_id' => $this->business->id,
             'business_branch_id' => $otherBranch->id,

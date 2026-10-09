@@ -19,19 +19,19 @@ const ALL_CATEGORIES = 'all';
 const BUSINESS_CATEGORIES = 'business';
 
 const LOG_NAME_COLORS: Record<string, string> = {
-  permission: 'bg-purple-500/10 text-purple-600',
-  settings: 'bg-amber-500/10 text-amber-600',
-  data_export: 'bg-green-500/10 text-green-600',
-  customer: 'bg-cyan-500/10 text-cyan-600',
-  default: 'bg-gray-500/10 text-muted-foreground',
+  Permission: 'bg-purple-500/10 text-purple-600',
+  Settings: 'bg-amber-500/10 text-amber-600',
+  'Data Export': 'bg-green-500/10 text-green-600',
+  Customer: 'bg-cyan-500/10 text-cyan-600',
+  Default: 'bg-gray-500/10 text-muted-foreground',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  permission: 'Permissions',
-  settings: 'Settings',
-  data_export: 'Data export',
-  customer: 'Customer',
-  default: 'Uncategorised',
+  Permission: 'Permissions',
+  Settings: 'Settings',
+  'Data Export': 'Data Export',
+  Customer: 'Customer',
+  Default: 'Uncategorised',
 };
 
 const humanize = (value: string) =>

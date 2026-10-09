@@ -36,7 +36,7 @@ class ReportExportController extends Controller
         $export = ReportExport::create($request->validated());
 
         ActivityLog::create([
-            'log_name' => 'data_export',
+            'log_name' => 'Data Export',
             'description' => 'Report export requested',
             'subject_type' => ReportExport::class,
             'subject_id' => $export->id,

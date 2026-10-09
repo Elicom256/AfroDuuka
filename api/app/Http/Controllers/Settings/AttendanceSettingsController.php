@@ -48,7 +48,7 @@ class AttendanceSettingsController extends Controller
         $attendanceSetting->update($validated);
 
         ActivityLog::create([
-            'log_name' => 'settings',
+            'log_name' => 'Settings',
             'description' => 'Attendance settings updated',
             'subject_type' => AttendanceSettings::class,
             'subject_id' => $attendanceSetting->id,

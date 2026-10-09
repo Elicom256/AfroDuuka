@@ -48,7 +48,7 @@ class ReportsSettingsController extends Controller
         $reportsSetting->update($validated);
 
         ActivityLog::create([
-            'log_name' => 'settings',
+            'log_name' => 'Settings',
             'description' => 'Reports settings updated',
             'subject_type' => ReportsSettings::class,
             'subject_id' => $reportsSetting->id,
