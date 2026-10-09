@@ -50,7 +50,7 @@ class UpdateSupplierRequest extends FormRequest
         $userId = $supplier?->user_id;
 
         $branchWithinSet = function ($attribute, $value, $fail) {
-            $resolved = EffectiveBranchScope::branchesFor(Auth::user());
+            $resolved = EffectiveBranchScope::validationBranchesFor(Auth::user());
             if ($resolved !== null && ! in_array((int) $value, $resolved[1], true)) {
                 $fail('The selected business branch is outside your scope.');
             }

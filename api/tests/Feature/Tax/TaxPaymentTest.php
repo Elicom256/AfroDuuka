@@ -134,6 +134,18 @@ class TaxPaymentTest extends TestCase
 
     public function test_payment_tax_category_must_belong_to_own_branch(): void
     {
+        // BranchManager is not elevated — cross-branch tax category must be rejected.
+        // Executive is elevated and may use any branch in their business; see
+        // EffectiveBranchScope::validationBranchesFor().
+        $role = Role::factory()->create(['business_id' => $this->business->id, 'name' => 'BranchManager']);
+        $user = User::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => $role->id,
+        ]);
+
+        Sanctum::actingAs($user);
+
         $this->postJson('/api/tax-payments', [
             'tax_category_id' => $this->otherCategory->id,
             'amount' => 1_000_000,
