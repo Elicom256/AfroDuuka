@@ -8,7 +8,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 
 export const BranchDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, isError } = useBranchQuery(id);
+  const { data, isLoading, isError } = useBranchQuery(id ?? '');
 
   if (isLoading) return <PageLoadingState />;
   if (isError || !data) {
