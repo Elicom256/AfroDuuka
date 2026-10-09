@@ -202,3 +202,36 @@ The user chose "Normalise to sentences". All snake_case log_names converted:
 ### The auth log path is effectively dead
 
 Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the `Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. The `Authentication` category is kept for completeness but is unlikely to appear in production.
+
+---
+
+## Chunk 8 — item 13: branch scope validation
+
+### `branchesFor()` is load-bearing for query isolation
+
+`EffectiveBranchScope::branchesFor()` is consumed twice: by `apply()` (the global query
+scope on every `BaseModel`) and by the `$branchWithinSet` closure in ~24 form requests.
+Loosening it for elevated roles fixed the form request but let elevated users read every
+branch's rows, and 18 isolation tests failed. The two jobs were separated:
+`validationBranchesFor()` is the relaxed set for validation; `branchesFor()` still drives
+reads.
+
+### `isExecutive()` does not exist
+
+First attempt called `RolePermissions::isExecutive($user)`; PHP threw an `Error` for the
+undefined method. The real method is `isElevated()` (`executive`, `coresupport`, `siteadmin`).
+The 35 failures on that attempt were the typo plus the genuine 18.
+
+### Two isolation tests used the wrong actor
+
+`TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch` and
+`TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch` both created an
+**Executive** and asserted cross-branch rejection — the exact behaviour the bug report says
+is wrong. Rewritten to use a branch-scoped `BranchManager`, which is the role the isolation
+rule protects.
+
+### The cache directory was re-committed almost every push
+
+`api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
+cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
+`!data/.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
