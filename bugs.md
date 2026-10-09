@@ -51,7 +51,7 @@ The Salary will have these columns
 id, bueiness_id, business_branch_id, role_id, amount, period(or any name which fits well to represent that the salary is monthly/yearly), status(enum of active, inactive), set_by(who set the salary)
 Now, the business_branch_id should be nullable, in case all the branches have similar salaries by role
 
-## Branches
+## Branches — done
 
 Branches should be fully manageable by the executive, and also, there should be easy view/management of a single branch
 Currently, the executive reaches dashboard/branches only, and he should access a branch by id like dashboard/branches/id when he taps on a branch
