@@ -25,12 +25,12 @@ cheap-and-isolated.
 | 12 | Branches: no single-branch page | No `dashboard/branches/:id` route or summary page | MED | **done** |
 | 13 | Workers: cannot add to another branch | `EffectiveBranchScope::branchesFor()` grants all-branches only when `business_branch_id IS NULL`, and onboarding always pins the executive to one branch. Affects 39 form requests | MED | **done** |
 | 14 | Suppliers + Customers pages | Backend exists, no frontend routes under People | MED | **done** |
-| 15 | Product update on purchase | Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not editable at purchase time | MED | |
-| 16 | Receipt redesign (business name, logo, QR) | Template and React component never read business identity; no `business()` relation; no QR dependency; dompdf `enable_remote=false` | MED | |
-| 17 | Workers: drop `business_id`/`business_branch_id` | Duplicated from `users`, actor-stamped by `BaseModel`, read by `AttendanceController` | MED | |
-| 18 | Expenses missing from analytics | Analytics read `cash_flows` only; `expenses` rows are mirrored only via `ExpenseController::store()`, so seeders/updates/deletes desync | HIGH | |
-| 19 | Currency rates from a live source | Fully manual today; needs provider config, an artisan sync command, and a schedule | HIGH | |
-| 20 | EmployeeSalary -> Salary rename | Model, controller, requests, migrations, seeders, routes, frontend all renamed; role now drives salary | HIGH | |
+| 15 | Product update on purchase | [x]  Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not editable at purchase time | MED | |
+| 16 | Receipt redesign (business name, logo, QR) | [x]  Template and React component never read business identity; no `business()` relation; no QR dependency; dompdf `enable_remote=false` | MED | |
+| 17 | Workers: drop `business_id`/`business_branch_id` | [x]  Duplicated from `users`, actor-stamped by `BaseModel`, read by `AttendanceController` | MED | |
+| 18 | Expenses missing from analytics | [x]  Analytics read `cash_flows` only; `expenses` rows are mirrored only via `ExpenseController::store()`, so seeders/updates/deletes desync | HIGH | |
+| 19 | Currency rates from a live source | [x]  Fully manual today; needs provider config, an artisan sync command, and a schedule | HIGH | |
+| 20 | EmployeeSalary -> Salary rename | [x]  Model, controller, requests, migrations, seeders, routes, frontend all renamed; role now drives salary | HIGH | |
 | -- | Subscriptions | Explicitly deferred in bugs.md | SKIP | |
 
 ---
