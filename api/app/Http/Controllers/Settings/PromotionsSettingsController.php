@@ -48,7 +48,7 @@ class PromotionsSettingsController extends Controller
         $promotionsSetting->update($validated);
 
         ActivityLog::create([
-            'log_name' => 'settings',
+            'log_name' => 'Settings',
             'description' => 'Promotions settings updated',
             'subject_type' => PromotionsSettings::class,
             'subject_id' => $promotionsSetting->id,
