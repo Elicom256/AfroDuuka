@@ -6,6 +6,32 @@ rediscover the reasoning.
 
 ---
 
+## Chunk 5 completion — activity logs
+
+### The first commit only removed the `auth` noise
+
+Commit `3751ff4` replaced the hardcoded `log_name != 'auth'` filter with `whereNotIn['auth']` and removed `auth` from the UI category labels. That addressed the "Not x logged in" complaint but not the importance rule — Spatie's automatic `Default` logs and one-off free-text categories were still treated as important.
+
+### The `log_name` taxonomy was normalised to sentences
+
+The user chose "Normalise to sentences". All snake_case log_names converted:
+- `auth` → `Authentication`
+- `permission` → `Permission`
+- `settings` → `Settings`
+- `data_export` → `Data Export`
+- `customer` → `Customer`
+- `default` → `Default`
+
+### The importance rule excludes `Authentication` and `Default`
+
+`ActivityLogController` now has a `NOISE_LOG_NAMES = ['Authentication', 'Default']` constant. When the UI sends `log_name=business` (the "All business" sentinel), noise logs are excluded. When the UI sends a specific category, it is shown as requested — the user is filtering. The `categories()` endpoint also excludes noise so the filter dropdown does not offer "Authentication" or "Default".
+
+### The auth log path is effectively dead
+
+Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the `Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. The `Authentication` category is kept for completeness but is unlikely to appear in production.
+
+---
+
 ## Chunk 1 — transactions and reports
 
 ### Nobody can be named from a person, a customer, or a supplier
@@ -42,6 +68,39 @@ fixed in this chunk — it is a data-model decision, not a filter tweak.
 `renders the todos page for Executive` failed identically with every change stashed, so it
 predates chunk 1. It did not reproduce in chunks 2 and 3 and the suite is now green, but it
 was never diagnosed. Treat as flaky rather than fixed.
+
+---
+
+## Chunk 8 — item 13: branch scope validation
+
+### `branchesFor()` is load-bearing for query isolation
+
+`EffectiveBranchScope::branchesFor()` is consumed twice: by `apply()` (the global query
+scope on every `BaseModel`) and by the `$branchWithinSet` closure in ~24 form requests.
+Loosening it for elevated roles fixed the form request but let elevated users read every
+branch's rows, and 18 isolation tests failed. The two jobs were separated:
+`validationBranchesFor()` is the relaxed set for validation; `branchesFor()` still drives
+reads.
+
+### `isExecutive()` does not exist
+
+First attempt called `RolePermissions::isExecutive($user)`; PHP threw an `Error` for the
+undefined method. The real method is `isElevated()` (`executive`, `coresupport`, `siteadmin`).
+The 35 failures on that attempt were the typo plus the genuine 18.
+
+### Two isolation tests used the wrong actor
+
+`TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch` and
+`TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch` both created an
+**Executive** and asserted cross-branch rejection — the exact behaviour the bug report says
+is wrong. Rewritten to use a branch-scoped `BranchManager`, which is the role the isolation
+rule protects.
+
+### The cache directory was re-committed almost every push
+
+`api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
+cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
+`!.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
 
 ---
 
@@ -137,10 +196,6 @@ and purchases. Fixed in chunk 4 alongside the 404.
 `a.download = \`${type}-...csv\`` regardless of what the server actually sends. Will need
 updating when the xlsx conversion lands.
 
----
-
-## Chunk 4 — products table, exports
-
 ### The export columns did not exist
 
 `ExportService` read `name`, `phone`, `email` and `location` off `Customer` and `Supplier`.
@@ -202,39 +257,6 @@ The user chose "Normalise to sentences". All snake_case log_names converted:
 ### The auth log path is effectively dead
 
 Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the `Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. The `Authentication` category is kept for completeness but is unlikely to appear in production.
-
----
-
-## Chunk 8 — item 13: branch scope validation
-
-### `branchesFor()` is load-bearing for query isolation
-
-`EffectiveBranchScope::branchesFor()` is consumed twice: by `apply()` (the global query
-scope on every `BaseModel`) and by the `$branchWithinSet` closure in ~24 form requests.
-Loosening it for elevated roles fixed the form request but let elevated users read every
-branch's rows, and 18 isolation tests failed. The two jobs were separated:
-`validationBranchesFor()` is the relaxed set for validation; `branchesFor()` still drives
-reads.
-
-### `isExecutive()` does not exist
-
-First attempt called `RolePermissions::isExecutive($user)`; PHP threw an `Error` for the
-undefined method. The real method is `isElevated()` (`executive`, `coresupport`, `siteadmin`).
-The 35 failures on that attempt were the typo plus the genuine 18.
-
-### Two isolation tests used the wrong actor
-
-`TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch` and
-`TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch` both created an
-**Executive** and asserted cross-branch rejection — the exact behaviour the bug report says
-is wrong. Rewritten to use a branch-scoped `BranchManager`, which is the role the isolation
-rule protects.
-
-### The cache directory was re-committed almost every push
-
-`api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
-cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
-`!data/.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
 
 ---
 
