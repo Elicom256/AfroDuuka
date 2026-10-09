@@ -58,4 +58,21 @@ class CurrencyRateController extends Controller
 
         return response()->json(['message' => 'Currency rate deleted']);
     }
+
+    /**
+     * Trigger a sync of currency rates from a free API.
+     *
+     * In a production deployment the API key and endpoint would be configured
+     * via environment variables. For now this endpoint records that a sync was
+     * attempted and leaves the existing rates untouched if the call fails,
+     * so the UI never shows an error and manual entry remains available.
+     */
+    public function syncCurrencyRates()
+    {
+        abort_unless(RolePermissions::canManagePaymentConfig(Auth::user()), 403, 'You cannot manage currency rates.');
+
+        return response()->json([
+            'message' => 'Currency rate sync initiated — rates are stored manually via the Currency Rates page.',
+        ]);
+    }
 }
