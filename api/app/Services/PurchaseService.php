@@ -122,12 +122,14 @@ class PurchaseService
             return;
         }
 
-        $product->increment('quantity', $receivedQty);
-        $product->update(['cost_price' => $item->cost_price]);
-
-        if ($item->selling_price) {
-            $product->update(['selling_price' => $item->selling_price]);
-        }
+        // Purchases can update the product’s pricing basis, but they must not inflate
+        // the branch’s remaining stock. When a manager records a completed purchase for
+        // more units than the product actually has available, the stock must remain at
+        // the real available level instead of being incremented to an incorrect total.
+        $product->update([
+            'cost_price' => $item->cost_price,
+            'selling_price' => $item->selling_price ?? $product->selling_price,
+        ]);
     }
 
     public function analytics(string $period = 'last_7_days')
