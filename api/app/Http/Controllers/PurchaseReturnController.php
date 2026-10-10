@@ -18,7 +18,7 @@ class PurchaseReturnController extends Controller
 
     public function index()
     {
-        $purchaseReturns = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
+        $purchaseReturns = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier.user', 'processedByUser')
             ->orderByDesc('created_at')
             ->get();
 
@@ -40,7 +40,7 @@ class PurchaseReturnController extends Controller
 
     public function show(string $purchaseReturn)
     {
-        $purchaseReturn = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier', 'processedByUser')
+        $purchaseReturn = PurchaseReturn::with('purchaseReturnItems.purchaseItem.product', 'supplier.user', 'processedByUser')
             ->findOrFail($purchaseReturn);
 
         return response()->json(['message' => 'Purchase return fetched!', 'purchase_return' => $purchaseReturn]);

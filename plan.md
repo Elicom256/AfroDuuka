@@ -14,7 +14,7 @@ touchable are ranked where their dependency clears.
 | # | Item | Root cause / why it was left | Complexity | |
 |---|------|------------------------------|-----------|-|
 | 1 | Dead file: `ExecutiveFinancesPage.tsx` | Imported nowhere and not routed; the "View All Transactions" button on it is unreachable | LOW | **done** |
-| 2 | Person-naming sweep (`?.name`) | `Customer`/`Supplier`/`User` have no `name` column; the item-5 fault "is probably not the last place it happens" | LOW-MED | |
+| 2 | Person-naming sweep (`?.name`) | `Customer`/`Supplier`/`User` have no `name` column; the item-5 fault "is probably not the last place it happens" | LOW-MED | **done** |
 | 3 | Analytics: `total_products` never returned | Both analytics pages read `analytics.data.total_products`; `ProductService::analytics()` returns `lowStock`/`outOfStock`/totals, not that key — pages show zeros | LOW-MED | |
 | 4 | `todosRoutes.test.tsx` flake | Failed once on a clean checkout in chunk 1, never diagnosed; green in chunks 2+ but treat as flaky | MED | |
 | 5 | Audit dialogs branch mismatch | `GET /api/products` takes no branch param but the dialogs' dropdown does; `StoreProductAuditRequest` validates with bare `exists:products,id` then `createAudit()` branch-scoped `findOrFail`. Deferred pending item 13, which is now fixed | MED | |

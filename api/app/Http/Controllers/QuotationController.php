@@ -16,7 +16,7 @@ class QuotationController extends Controller
 
     public function index(): JsonResponse
     {
-        $query = Quotation::with(['customer', 'items', 'acceptedOrder']);
+        $query = Quotation::with(['customer.user', 'items', 'acceptedOrder']);
 
         if ($status = request('status')) {
             if ($status === 'expired') {
@@ -79,7 +79,7 @@ class QuotationController extends Controller
 
         return response()->json([
             'message' => 'Quotation fetched successfully',
-            'quotation' => $quotation->load(['items.product', 'customer', 'user', 'acceptedOrder']),
+            'quotation' => $quotation->load(['items.product', 'customer.user', 'user', 'acceptedOrder']),
         ]);
     }
 
@@ -166,7 +166,7 @@ class QuotationController extends Controller
     {
         $this->authorize('view', $quotation);
 
-        $quotation->load(['items.product', 'customer', 'user', 'businessBranch']);
+        $quotation->load(['items.product', 'customer.user', 'user', 'businessBranch']);
 
         $pdf = Pdf::loadView('pdfs.quotation', compact('quotation'));
 

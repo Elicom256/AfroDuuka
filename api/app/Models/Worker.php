@@ -23,6 +23,17 @@ class Worker extends BaseModel
         'remarks',
     ];
 
+    protected $appends = ['name'];
+
+    public function getNameAttribute(): string
+    {
+        if ($this->relationLoaded('user') && $this->user) {
+            return trim($this->user->firstname.' '.$this->user->lastname);
+        }
+
+        return $this->employee_code ?? '';
+    }
+
     /**
      * Worker belongs to a User (identity layer)
      */

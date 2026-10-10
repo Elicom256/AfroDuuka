@@ -15,7 +15,7 @@ class SaleOrderController extends Controller
 {
     public function index(): JsonResponse
     {
-        $orders = SaleOrder::with('items.product', 'customer')
+        $orders = SaleOrder::with('items.product', 'customer.user')
             ->orderByDesc('created_at')
             ->get();
 
@@ -60,13 +60,13 @@ class SaleOrderController extends Controller
                 ]);
             }
 
-            return response()->json(['message' => 'Order created', 'data' => $order->load('items.product', 'customer')], 201);
+            return response()->json(['message' => 'Order created', 'data' => $order->load('items.product', 'customer.user')], 201);
         });
     }
 
     public function show(SaleOrder $sale_order): JsonResponse
     {
-        return response()->json(['message' => 'Order fetched', 'data' => $sale_order->load('items.product', 'customer')]);
+        return response()->json(['message' => 'Order fetched', 'data' => $sale_order->load('items.product', 'customer.user')]);
     }
 
     public function update(UpdateSaleOrderRequest $request, SaleOrder $sale_order): JsonResponse
@@ -79,7 +79,7 @@ class SaleOrderController extends Controller
 
         $sale_order->update($request->validated());
 
-        return response()->json(['message' => 'Order updated', 'data' => $sale_order->load('items.product', 'customer')]);
+        return response()->json(['message' => 'Order updated', 'data' => $sale_order->load('items.product', 'customer.user')]);
     }
 
     public function destroy(SaleOrder $sale_order): JsonResponse
