@@ -151,7 +151,13 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <h1>{{ $receipt->businessBranch?->name ?? 'Store' }}</h1>
+            @if($logoBase64)
+            <img src="{{ $logoBase64 }}" alt="Business Logo" style="max-width: 80px; max-height: 80px; margin: 0 auto 10px; display: block;" />
+            @endif
+            <h1>{{ $businessName ?? 'Store' }}</h1>
+            @if($branchName)
+            <p style="font-size: 13px; color: #555; margin-top: 2px;">{{ $branchName }}</p>
+            @endif
             <p>{{ $receipt->businessBranch?->address ?? '' }}</p>
         </div>
 
@@ -254,6 +260,13 @@
         <div class="thank-you">
             Thank you for your purchase!
         </div>
+
+        @if($qrBase64)
+        <div style="text-align: center; margin-top: 15px;">
+            <img src="{{ $qrBase64 }}" alt="QR Code" style="width: 100px; height: 100px;" />
+            <p style="font-size: 9px; color: #999; margin-top: 4px;">Scan to visit our platform</p>
+        </div>
+        @endif
 
         <div class="footer">
             Receipt #{{ $receipt->receipt_number }} | Generated on {{ now()->format('F j, Y g:i A') }}

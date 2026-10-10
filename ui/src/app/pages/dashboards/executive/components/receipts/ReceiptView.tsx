@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -30,9 +31,14 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
     ? `${import.meta.env.VITE_BASE_URL}/storage/logo/${business.logo}`
     : null;
 
-  // QR code linking to the platform's main page
-  const platformUrl = 'https://duukaflow.com';
-  const qrCodeUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(platformUrl)}&choe=UTF-8`;
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+  useEffect(() => {
+    const platformUrl = 'https://duukaflow.com';
+    QRCode.toDataURL(platformUrl, { width: 150, margin: 1 })
+      .then(setQrCodeUrl)
+      .catch(() => setQrCodeUrl(''));
+  }, []);
 
   return (
     <Card className='rounded-3xl border border-border/70 bg-card p-6'>
@@ -193,6 +199,16 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
             <div>
               <h3 className='font-semibold mb-1'>Notes</h3>
               <p className='text-sm text-muted-foreground'>{receipt.notes}</p>
+            </div>
+          </>
+        )}
+
+        {qrCodeUrl && (
+          <>
+            <Separator />
+            <div className='flex flex-col items-center gap-2'>
+              <img src={qrCodeUrl} alt='Platform QR Code' className='h-32 w-32' />
+              <p className='text-xs text-muted-foreground'>Scan to visit our platform</p>
             </div>
           </>
         )}
