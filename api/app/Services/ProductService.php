@@ -40,6 +40,8 @@ class ProductService
     {
         $products = Product::query();
 
+        $totalProducts = (clone $products)->count();
+
         $totalInventoryValue = (clone $products)
             ->selectRaw('SUM(quantity * cost_price) as total')
             ->first()
@@ -107,6 +109,7 @@ class ProductService
             ->get();
 
         return [
+            'total_products' => $totalProducts,
             'totalInventoryValue' => $totalInventoryValue,
             'totalPotentialRevenue' => $totalPotentialRevenue,
             'totalExpectedProfit' => $profits,

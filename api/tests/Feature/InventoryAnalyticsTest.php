@@ -89,6 +89,7 @@ class InventoryAnalyticsTest extends TestCase
         $response = $this->getJson('/api/products/analytics')->assertOk();
 
         foreach ([
+            'total_products',
             'totalInventoryValue',
             'totalPotentialRevenue',
             'totalExpectedProfit',

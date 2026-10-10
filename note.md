@@ -484,3 +484,18 @@ name don't trigger an N+1.
 
 Verified: `user.name`, `customer.name`, `supplier.name`, `worker.name` all serialise;
 backend 845 passed (2492 assertions); frontend tsc clean, 801 passed.
+
+## Chunk 12 — `total_products` was read but never returned
+
+`OperationsAnalyticsPage` renders a "Total Products" card from `analytics.data.total_products`
+(the `/products/analytics` endpoint), but `ProductService::analytics()` never returned that
+key — it returned `lowStock`, `outOfStock`, the value totals, and the breakdown lists. The card
+has been showing a hardcoded `?? 0` fallback the whole time.
+
+The note left it "for a decision rather than a guess": the natural source is the analytics
+endpoint itself, which is what the page already calls. So the service now counts the branch's
+products (`total_products`) and returns it alongside the other keys, and
+`InventoryAnalyticsTest::test_it_carries_the_keys_its_consumers_read` pins it so it stays.
+
+`StockSummaryReport` also reads a `total_products` key, but from `/stock-summary`
+(`StockSummaryReportsService`), which already returns it — that page was correct.
