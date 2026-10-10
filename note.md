@@ -455,3 +455,47 @@ normalisation, ahead of the ranked order. This chunk is the verification pass:
 
 Verification: backend 845 passed (2492 assertions); frontend tsc clean, 805 passed
 (18 files). No code changes needed — row 20 marked **done**.
+
+## Chunk 12 — the `?.name` sweep, fixed at the source
+
+Every `customer.name`, `supplier.name`, `worker.name` and `user.name` read in the UI was
+returning blank because **PHP accessors don't serialise unless appended**. `User` already
+had `getNameAttribute()` but no `$appends`; `Customer`/`Supplier`/`Worker` had no accessor
+at all. Measured via `->toArray()`: none of the four emitted `name`.
+
+Fixed in the models so the whole class is resolved, not just the grepped sites:
+
+- `User`: added `protected $appends = ['name'];` (accessor already existed).
+- `Customer`: added `$appends = ['name']` and an accessor (company_name → user
+  firstname/lastname → "Customer"); converted the old `name()` helper to the accessor.
+- `Supplier`: added `$appends = ['name']` and an accessor (same hierarchy → "Supplier").
+- `Worker`: added `$appends = ['name']` and an accessor (loaded user name → employee_code).
+- `CheckNotificationsJob`: the only `->name()` caller, switched to the accessor.
+
+Then eager-loaded the relations the accessors need where the UI actually renders names:
+
+- `SaleController::index` now loads `customer.user`.
+- `SaleOrderController` (index/show/store/update) loads `customer.user`.
+- `QuotationController` loads `customer.user` everywhere.
+- `PurchaseReturnController` loads `supplier.user`.
+
+Accessors guard on `relationLoaded('user')` so list endpoints that don't need the person
+name don't trigger an N+1.
+
+Verified: `user.name`, `customer.name`, `supplier.name`, `worker.name` all serialise;
+backend 845 passed (2492 assertions); frontend tsc clean, 801 passed.
+
+## Chunk 12 — `total_products` was read but never returned
+
+`OperationsAnalyticsPage` renders a "Total Products" card from `analytics.data.total_products`
+(the `/products/analytics` endpoint), but `ProductService::analytics()` never returned that
+key — it returned `lowStock`, `outOfStock`, the value totals, and the breakdown lists. The card
+has been showing a hardcoded `?? 0` fallback the whole time.
+
+The note left it "for a decision rather than a guess": the natural source is the analytics
+endpoint itself, which is what the page already calls. So the service now counts the branch's
+products (`total_products`) and returns it alongside the other keys, and
+`InventoryAnalyticsTest::test_it_carries_the_keys_its_consumers_read` pins it so it stays.
+
+`StockSummaryReport` also reads a `total_products` key, but from `/stock-summary`
+(`StockSummaryReportsService`), which already returns it — that page was correct.

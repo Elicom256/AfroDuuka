@@ -173,7 +173,7 @@ class CheckNotificationsJob implements ShouldQueue
                         $recipient,
                         'overdue_payment',
                         'Overdue Payment Alert',
-                        'Customer '.$customer->name().' has overdue payments.',
+                        'Customer '.$customer->name.' has overdue payments.',
                         ['customer_id' => $customer->id],
                         Customer::class,
                         $customer->id

@@ -20,7 +20,7 @@ class SaleController extends Controller
 
     public function index()
     {
-        $sales = Sale::with('saleItems', 'businessBranch')
+        $sales = Sale::with('saleItems', 'customer.user', 'businessBranch')
             ->orderByDesc('created_at')
             ->get();
 

@@ -23,6 +23,8 @@ class Customer extends BaseModel
         'business_branch_id',
     ];
 
+    protected $appends = ['name'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -38,8 +40,16 @@ class Customer extends BaseModel
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
-    public function name(): string
+    public function getNameAttribute(): string
     {
-        return $this->company_name ?: ($this->user ? trim($this->user->firstname.' '.$this->user->lastname) : 'Customer');
+        if ($this->company_name) {
+            return $this->company_name;
+        }
+
+        if ($this->relationLoaded('user') && $this->user) {
+            return trim($this->user->firstname.' '.$this->user->lastname);
+        }
+
+        return 'Customer';
     }
 }

@@ -24,6 +24,21 @@ class Supplier extends BaseModel
         'business_branch_id',
     ];
 
+    protected $appends = ['name'];
+
+    public function getNameAttribute(): string
+    {
+        if ($this->company_name) {
+            return $this->company_name;
+        }
+
+        if ($this->relationLoaded('user') && $this->user) {
+            return trim($this->user->firstname.' '.$this->user->lastname);
+        }
+
+        return 'Supplier';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
