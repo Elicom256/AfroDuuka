@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Receipt;
-use BaconQrCode\Encoder\Encoder;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use App\Support\ReceiptQrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 
@@ -78,20 +75,15 @@ class ReceiptController extends Controller
         if ($business?->logo) {
             $logoPath = Storage::disk('public')->path("logo/{$business->logo}");
             if (file_exists($logoPath)) {
-                $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode(file_get_contents($logoPath));
+                $logoBase64 = 'data:image/'.pathinfo($logoPath, PATHINFO_EXTENSION).';base64,'.base64_encode(file_get_contents($logoPath));
             }
         }
 
         $qrBase64 = null;
         $platformUrl = config('app.url', 'https://duukaflow.com');
         try {
-            $renderer = new ImageRenderer(
-                new RendererStyle(150),
-                new SvgImageBackEnd()
-            );
-            $qrSvg = (new Encoder($renderer))->encode($platformUrl);
-            $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
-        } catch (\Exception $e) {
+            $qrBase64 = ReceiptQrCode::svgDataUri($platformUrl);
+        } catch (\Throwable $e) {
             // QR generation failure should not block PDF generation
         }
 
