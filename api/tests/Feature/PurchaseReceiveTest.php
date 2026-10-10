@@ -251,6 +251,31 @@ class PurchaseReceiveTest extends TestCase
         $this->assertEquals(9000, (float) $product->selling_price);
     }
 
+    public function test_creating_completed_purchase_without_selling_price_keeps_existing_price(): void
+    {
+        $this->product->update(['selling_price' => 20000]);
+
+        $response = $this->postJson('/api/purchases/branch-purchases', [
+            'supplier_id' => null,
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'payment_status_id' => $this->paymentMethod->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 2,
+                    'cost_price' => 6500,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+
+        $this->assertSame(10, (int) Product::find($this->product->id)->quantity);
+        $this->assertEquals(6500, (float) Product::find($this->product->id)->cost_price);
+        $this->assertEquals(20000, (float) Product::find($this->product->id)->selling_price);
+    }
+
     public function test_creating_pending_purchase_does_not_update_product_until_received(): void
     {
         $response = $this->postJson('/api/purchases/branch-purchases', [

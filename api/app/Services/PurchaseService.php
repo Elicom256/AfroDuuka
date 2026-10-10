@@ -126,10 +126,10 @@ class PurchaseService
         // the branch’s remaining stock. When a manager records a completed purchase for
         // more units than the product actually has available, the stock must remain at
         // the real available level instead of being incremented to an incorrect total.
-        $product->update([
-            'cost_price' => $item->cost_price,
-            'selling_price' => $item->selling_price ?? $product->selling_price,
-        ]);
+        $product->forceFill([
+            'cost_price' => (float) $item->cost_price,
+            'selling_price' => $item->selling_price !== null ? (float) $item->selling_price : $product->selling_price,
+        ])->save();
     }
 
     public function analytics(string $period = 'last_7_days')
