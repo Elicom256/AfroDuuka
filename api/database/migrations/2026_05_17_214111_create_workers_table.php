@@ -23,8 +23,6 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'suspended'])
                 ->default('active');
             $table->text('remarks')->nullable();
-            $table->foreignId('business_id')->nullable()->index()->constrained('businesses')->nullOnDelete();
-            $table->foreignId('business_branch_id')->nullable()->index()->constrained('business_branches')->nullOnDelete();
 
             $table->timestamps();
         });

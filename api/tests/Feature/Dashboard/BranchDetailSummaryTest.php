@@ -66,8 +66,6 @@ class BranchDetailSummaryTest extends TestCase
         Worker::create([
             'user_id' => $workerUser->id,
             'employee_code' => 'EMP-00091',
-            'business_id' => $this->business->id,
-            'business_branch_id' => $this->branchTwo->id,
         ]);
 
         Product::factory()->create([
