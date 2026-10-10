@@ -599,3 +599,18 @@ untouched and still green.
 Verification: backend 852 passed (2517 assertions, +4 new); `npx tsc -b` clean; vitest
 801 passed (18 files). The xlsx body was also unzipped manually to confirm a real
 workbook with shared strings, not a renamed CSV.
+Chunk 17 — plan item 7 closed as **won't fix**.
+
+`topProducts` in ProductService::analytics() crashed because sale_items stores no cost,
+so realised per-product profit could not be derived correctly (see the note at note.md
+150-163 and the ProductService::analytics() comment). The two options on the table were
+a cost-at-sale column on sale_items (migration + backfill from current products'
+cost_price + wiring the three item writers) or leaving it.
+
+**User decision: no cost column.** Cost price is unnecessary on the sale_items table.
+The `topProducts` analytics key stays removed; no consumer reads it. No migration, no
+schema change.
+
+Accepted limitation: profit figures derived from sale_items cannot be reconstructed for
+historical rows with a true cost-at-sale. If the business later wants this, it is a
+deliberate schema decision, not a fix.
