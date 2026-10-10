@@ -28,7 +28,7 @@ cheap-and-isolated.
 | 15 | Product update on purchase | [x]  Product mutation lives on `/receive`, which the UI never calls; `selling_price` is not editable at purchase time | MED | **done** |
 | 16 | Receipt redesign (business name, logo, QR) | [x]  Template and React component never read business identity; no `business()` relation; no QR dependency; dompdf `enable_remote=false` | MED | **done** |
 | 17 | Workers: drop `business_id`/`business_branch_id` | [x]  Duplicated from `users`, actor-stamped by `BaseModel`, read by `AttendanceController` | MED | **done** |
-| 18 | Expenses missing from analytics | [x]  Analytics read `cash_flows` only; `expenses` rows are mirrored only via `ExpenseController::store()`, so seeders/updates/deletes desync | HIGH | |
+| 18 | Expenses missing from analytics | [x]  Analytics read `cash_flows` only; `expenses` rows are mirrored only via `ExpenseController::store()`, so seeders/updates/deletes desync | HIGH | **done** |
 | 19 | Currency rates from a live source | [x]  Fully manual today; needs provider config, an artisan sync command, and a schedule | HIGH | |
 | 20 | EmployeeSalary -> Salary rename | [x]  Model, controller, requests, migrations, seeders, routes, frontend all renamed; role now drives salary | HIGH | |
 | -- | Subscriptions | Explicitly deferred in bugs.md | SKIP | |
