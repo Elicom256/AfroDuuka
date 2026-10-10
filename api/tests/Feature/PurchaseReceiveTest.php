@@ -79,7 +79,7 @@ class PurchaseReceiveTest extends TestCase
         ]);
     }
 
-    public function test_receiving_purchase_keeps_stock_stable_when_recorded(): void
+    public function test_receiving_purchase_increases_stock_by_confirmed_quantity(): void
     {
         $response = $this->postJson("/api/purchases/branch-purchases/{$this->purchase->id}/receive", [
             'items' => [
@@ -89,7 +89,7 @@ class PurchaseReceiveTest extends TestCase
 
         $response->assertStatus(200);
 
-        $this->assertEquals(10, $this->product->fresh()->quantity);
+        $this->assertEquals(13, $this->product->fresh()->quantity);
     }
 
     public function test_receiving_purchase_updates_cost_price(): void
@@ -193,7 +193,7 @@ class PurchaseReceiveTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_creating_completed_purchase_does_not_inflate_stock_beyond_available_inventory_and_updates_prices(): void
+    public function test_creating_completed_purchase_adds_received_quantity_and_updates_prices(): void
     {
         $this->product->update(['quantity' => 10]);
 
@@ -216,7 +216,7 @@ class PurchaseReceiveTest extends TestCase
             ->assertJsonPath('purchase.status', 'completed');
 
         $product = Product::find($this->product->id);
-        $this->assertSame(10, (int) $product->quantity);
+        $this->assertSame(30, (int) $product->quantity);
         $this->assertEquals(8000, (float) $product->cost_price);
         $this->assertEquals(12000, (float) $product->selling_price);
 
@@ -226,7 +226,7 @@ class PurchaseReceiveTest extends TestCase
         ]);
     }
 
-    public function test_creating_purchase_without_status_defaults_to_completed_and_does_not_inflate_stock(): void
+    public function test_creating_purchase_without_status_defaults_to_pending_without_updating_stock_or_prices(): void
     {
         $response = $this->postJson('/api/purchases/branch-purchases', [
             'supplier_id' => null,
@@ -243,12 +243,12 @@ class PurchaseReceiveTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('purchase.status', 'completed');
+            ->assertJsonPath('purchase.status', 'pending');
 
         $product = Product::find($this->product->id);
         $this->assertSame(10, (int) $product->quantity);
-        $this->assertEquals(6000, (float) $product->cost_price);
-        $this->assertEquals(9000, (float) $product->selling_price);
+        $this->assertEquals(5000, (float) $product->cost_price);
+        $this->assertEquals(7500, (float) $product->selling_price);
     }
 
     public function test_creating_completed_purchase_without_selling_price_keeps_existing_price(): void
@@ -271,7 +271,7 @@ class PurchaseReceiveTest extends TestCase
 
         $response->assertStatus(200);
 
-        $this->assertSame(10, (int) Product::find($this->product->id)->quantity);
+        $this->assertSame(12, (int) Product::find($this->product->id)->quantity);
         $this->assertEquals(6500, (float) Product::find($this->product->id)->cost_price);
         $this->assertEquals(20000, (float) Product::find($this->product->id)->selling_price);
     }

@@ -46,7 +46,7 @@ class PurchaseController extends Controller
         $validated = $request->validated();
         $purchase = $this->purchaseService->savePurchase($validated);
 
-        return response()->json(['message' => 'Purchase Completed Successfully!', 'purchase' => $purchase]);
+        return response()->json(['message' => 'Purchase recorded successfully.', 'purchase' => $purchase]);
     }
 
     /**
