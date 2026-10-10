@@ -435,3 +435,23 @@ no-duplication, provider failure, and forced base.
 - `php artisan test` → **845 passed** (2492 assertions)
 - New: `CurrencyRateSyncTest` — 4 passed
 
+
+## Chunk 11 — item 20: EmployeeSalary -> Salary (verification + tracking)
+
+The rename was already implemented in 0a8aeac during the salaries migration
+normalisation, ahead of the ranked order. This chunk is the verification pass:
+
+- Model `Salary`, controller, `Store/UpdateSalaryRequest`, `SalaryPolicy`, factory,
+  seeder, and the `salaries` migration (id, business_id, nullable
+  business_branch_id, role_id, amount, period, status enum, set_by, soft deletes)
+  all exist and speak the role-driven contract; `EmployeeSalary*` is gone apart from
+  explanatory comments. Route is `/dashboard/salaries`, frontend uses `salaryQuery`
+  + `ExecutiveSalariesPage`/`SalaryForm`/`SalaryPanel`, sidebar splits Payroll and
+  Salaries.
+
+- `SalaryTest` (15 tests) pins: role-keying, monthly_payroll excluding yearly/
+  inactive, all-branches null business_branch_id, branch pinning, cross-tenant role/
+  branch refusal on create, soft delete, 404 on unknown id, and 401 unauthenticated.
+
+Verification: backend 845 passed (2492 assertions); frontend tsc clean, 805 passed
+(18 files). No code changes needed — row 20 marked **done**.

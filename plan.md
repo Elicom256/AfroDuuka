@@ -30,7 +30,7 @@ cheap-and-isolated.
 | 17 | Workers: drop `business_id`/`business_branch_id` | [x]  Duplicated from `users`, actor-stamped by `BaseModel`, read by `AttendanceController` | MED | **done** |
 | 18 | Expenses missing from analytics | [x]  Analytics read `cash_flows` only; `expenses` rows are mirrored only via `ExpenseController::store()`, so seeders/updates/deletes desync | HIGH | **done** |
 | 19 | Currency rates from a live source | [x]  Fully manual today; needs provider config, an artisan sync command, and a schedule | HIGH | **done** |
-| 20 | EmployeeSalary -> Salary rename | [x]  Model, controller, requests, migrations, seeders, routes, frontend all renamed; role now drives salary | HIGH | |
+| 20 | EmployeeSalary -> Salary rename | [x]  Model, controller, requests, migrations, seeders, routes, frontend all renamed; role now drives salary | HIGH | **done** |
 | -- | Subscriptions | Explicitly deferred in bugs.md | SKIP | |
 
 ---
