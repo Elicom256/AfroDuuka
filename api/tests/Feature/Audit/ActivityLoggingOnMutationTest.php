@@ -172,8 +172,6 @@ class ActivityLoggingOnMutationTest extends TestCase
             'employee_code' => 'EMP-'.uniqid(),
             'employment_type' => 'full_time',
             'status' => 'active',
-            'business_id' => $this->business->id,
-            'business_branch_id' => $this->branch->id,
         ]);
 
         return EmployeeRemuneration::create([

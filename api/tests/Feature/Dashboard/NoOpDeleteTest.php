@@ -71,8 +71,6 @@ class NoOpDeleteTest extends TestCase
         return Worker::create([
             'user_id' => $user->id,
             'employee_code' => 'EMP-'.str_pad((string) $user->id, 5, '0', STR_PAD_LEFT),
-            'business_id' => $this->executive->business_id,
-            'business_branch_id' => $this->branch->id,
         ]);
     }
 
