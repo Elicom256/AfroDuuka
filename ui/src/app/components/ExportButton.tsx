@@ -23,9 +23,8 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
   const [open, setOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [format, setFormat] = useState<'csv' | 'xlsx'>('csv');
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     try {
       const token = localStorage.getItem('token');
       const params = new URLSearchParams({ format });
@@ -108,10 +107,10 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
             <Button variant='outline' onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setFormat('csv')}>
+            <Button onClick={() => handleExport('csv')}>
               Export CSV
             </Button>
-            <Button onClick={() => setFormat('xlsx')}>
+            <Button onClick={() => handleExport('xlsx')}>
               Export XLSX
             </Button>
           </DialogFooter>
