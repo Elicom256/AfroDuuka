@@ -60,6 +60,17 @@ export const purchasesQuery = createApi({
       }),
       invalidatesTags: ['PurchasesAPI'],
     }),
+    receivePurchase: builder.mutation<
+      any,
+      { id: number | string; items: { purchase_item_id: number; quantity: number }[] }
+    >({
+      query: ({ id, items }) => ({
+        url: `/${id}/receive`,
+        method: 'POST',
+        body: { items },
+      }),
+      invalidatesTags: ['PurchasesAPI'],
+    }),
   }),
 });
 
@@ -70,4 +81,5 @@ export const {
   useUpdatePurchaseMutation,
   useDeletePurchaseMutation,
   usePurchaseAnalyticsQuery,
+  useReceivePurchaseMutation,
 } = purchasesQuery;
