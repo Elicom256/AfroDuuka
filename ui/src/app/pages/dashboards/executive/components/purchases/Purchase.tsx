@@ -1,18 +1,21 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePurchaseQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { ArrowLeftCircle } from 'lucide-react';
+import { ArrowLeftCircle, PackageCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { ReceivePurchase } from './ReceivePurchase';
 
 export const Purchase = () => {
   const { currency } = useCurrency();
   const { id } = useParams<{ id: string }>();
+  const [receiveOpen, setReceiveOpen] = useState(false);
   const {
     data: purchaseData,
     isLoading: purchaseLoading,
@@ -53,11 +56,17 @@ export const Purchase = () => {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center gap-4'>
+      <div className='flex items-center justify-between'>
         <Link to='../purchases' className='flex items-center gap-2 text-blue-400 hover:underline'>
           <ArrowLeftCircle />
           <span>Back to Purchases</span>
         </Link>
+        {purchase.status === 'pending' && (
+          <Button onClick={() => setReceiveOpen(true)}>
+            <PackageCheck className='h-4 w-4 mr-2' />
+            Receive
+          </Button>
+        )}
       </div>
 
       <Card className='rounded-3xl border border-border/70 bg-card p-6'>
@@ -127,6 +136,20 @@ export const Purchase = () => {
           </div>
         </CardContent>
       </Card>
+
+      {purchase.status === 'pending' && (
+        <ReceivePurchase
+          open={receiveOpen}
+          onOpenChange={setReceiveOpen}
+          purchaseId={purchase.id}
+          items={purchaseItems.map((item: any) => ({
+            id: item.id,
+            product_name: item?.product?.name ?? 'Unknown',
+            quantity: item.quantity,
+          }))}
+          onReceived={refetch}
+        />
+      )}
     </div>
   );
 };

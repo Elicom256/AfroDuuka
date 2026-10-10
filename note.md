@@ -6,6 +6,32 @@ rediscover the reasoning.
 
 ---
 
+## Chunk 5 completion — activity logs
+
+### The first commit only removed the `auth` noise
+
+Commit `3751ff4` replaced the hardcoded `log_name != 'auth'` filter with `whereNotIn['auth']` and removed `auth` from the UI category labels. That addressed the "Not x logged in" complaint but not the importance rule — Spatie's automatic `Default` logs and one-off free-text categories were still treated as important.
+
+### The `log_name` taxonomy was normalised to sentences
+
+The user chose "Normalise to sentences". All snake_case log_names converted:
+- `auth` → `Authentication`
+- `permission` → `Permission`
+- `settings` → `Settings`
+- `data_export` → `Data Export`
+- `customer` → `Customer`
+- `default` → `Default`
+
+### The importance rule excludes `Authentication` and `Default`
+
+`ActivityLogController` now has a `NOISE_LOG_NAMES = ['Authentication', 'Default']` constant. When the UI sends `log_name=business` (the "All business" sentinel), noise logs are excluded. When the UI sends a specific category, it is shown as requested — the user is filtering. The `categories()` endpoint also excludes noise so the filter dropdown does not offer "Authentication" or "Default".
+
+### The auth log path is effectively dead
+
+Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::login`), so the `Login`/`Logout`/`Failed` events that `AuthObserver` listens for never fire. The `Authentication` category is kept for completeness but is unlikely to appear in production.
+
+---
+
 ## Chunk 1 — transactions and reports
 
 ### Nobody can be named from a person, a customer, or a supplier
@@ -42,6 +68,39 @@ fixed in this chunk — it is a data-model decision, not a filter tweak.
 `renders the todos page for Executive` failed identically with every change stashed, so it
 predates chunk 1. It did not reproduce in chunks 2 and 3 and the suite is now green, but it
 was never diagnosed. Treat as flaky rather than fixed.
+
+---
+
+## Chunk 8 — item 13: branch scope validation
+
+### `branchesFor()` is load-bearing for query isolation
+
+`EffectiveBranchScope::branchesFor()` is consumed twice: by `apply()` (the global query
+scope on every `BaseModel`) and by the `$branchWithinSet` closure in ~24 form requests.
+Loosening it for elevated roles fixed the form request but let elevated users read every
+branch's rows, and 18 isolation tests failed. The two jobs were separated:
+`validationBranchesFor()` is the relaxed set for validation; `branchesFor()` still drives
+reads.
+
+### `isExecutive()` does not exist
+
+First attempt called `RolePermissions::isExecutive($user)`; PHP threw an `Error` for the
+undefined method. The real method is `isElevated()` (`executive`, `coresupport`, `siteadmin`).
+The 35 failures on that attempt were the typo plus the genuine 18.
+
+### Two isolation tests used the wrong actor
+
+`TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch` and
+`TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch` both created an
+**Executive** and asserted cross-branch rejection — the exact behaviour the bug report says
+is wrong. Rewritten to use a branch-scoped `BranchManager`, which is the role the isolation
+rule protects.
+
+### The cache directory was re-committed almost every push
+
+`api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
+cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
+`!.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
 
 ---
 
@@ -137,10 +196,6 @@ and purchases. Fixed in chunk 4 alongside the 404.
 `a.download = \`${type}-...csv\`` regardless of what the server actually sends. Will need
 updating when the xlsx conversion lands.
 
----
-
-## Chunk 4 — products table, exports
-
 ### The export columns did not exist
 
 `ExportService` read `name`, `phone`, `email` and `location` off `Customer` and `Supplier`.
@@ -205,39 +260,6 @@ Login is Sanctum-token based (`UserService` calls `createToken`, never `Auth::lo
 
 ---
 
-## Chunk 8 — item 13: branch scope validation
-
-### `branchesFor()` is load-bearing for query isolation
-
-`EffectiveBranchScope::branchesFor()` is consumed twice: by `apply()` (the global query
-scope on every `BaseModel`) and by the `$branchWithinSet` closure in ~24 form requests.
-Loosening it for elevated roles fixed the form request but let elevated users read every
-branch's rows, and 18 isolation tests failed. The two jobs were separated:
-`validationBranchesFor()` is the relaxed set for validation; `branchesFor()` still drives
-reads.
-
-### `isExecutive()` does not exist
-
-First attempt called `RolePermissions::isExecutive($user)`; PHP threw an `Error` for the
-undefined method. The real method is `isElevated()` (`executive`, `coresupport`, `siteadmin`).
-The 35 failures on that attempt were the typo plus the genuine 18.
-
-### Two isolation tests used the wrong actor
-
-`TenantIsolationTest::test_branch_user_cannot_create_product_in_a_different_branch` and
-`TaxPaymentTest::test_payment_tax_category_must_belong_to_own_branch` both created an
-**Executive** and asserted cross-branch rejection — the exact behaviour the bug report says
-is wrong. Rewritten to use a branch-scoped `BranchManager`, which is the role the isolation
-rule protects.
-
-### The cache directory was re-committed almost every push
-
-`api/storage/framework/cache/` had no `.gitignore`, so `git add -A` kept staging framework
-cache files. Added Laravel's default `cache/.gitignore` (`*`, `!data/`, `!.gitignore`,
-`!data/.gitignore`) and `cache/data/.gitignore` (`*`, `!.gitignore`).
-
----
-
 ## Chunk 9 — item 14: suppliers/customers (parity only)
 
 ### The bug premise was stale
@@ -269,3 +291,119 @@ implemented, per user decision.
 
 `BranchDetail.tsx` passed `useParams()`'s `string | undefined` into `useBranchQuery(id)`;
 `npm run build` (not run at item 12) caught it. Fixed with `id ?? ''`.
+
+---
+
+## Migration normalisation — one salaries table, one Salary model
+
+### There were two migrations creating `salaries`, and the wrong one had already run
+
+`2026_10_09_175742_create_salaries_table` created `salaries` with nothing but `id`,
+`timestamps` — a stub. `2026_10_09_200000_create_salaries_table` has the real shape.
+
+The stub was committed *and migrated* (dev DB row, batch 1), so the real migration
+could never run: it is `Schema::create('salaries')` against a table that already
+existed. `migrate:status` showed 200000 "Pending" forever, and `salaries` stayed
+2 columns wide. Deleting the stub alone is not enough — the table and the
+`migrations` row have to be reconciled too, which is what this chunk did.
+
+Deleted, with a guard that refuses to run if either table has rows:
+
+- `2026_10_09_175742_create_salaries_table.php` (the stub)
+- `2026_06_19_202844_create_employee_salaries_table.php` — the superseded
+  per-worker `employee_salaries` table. `bugs.md` item 20 replaces it, and
+  nothing read it after the rename.
+- `2026_01_01_000010_create_purchase_items_table.php.bak` — a stray backup
+  committed in `621552b`. It is a full migration file, so Laravel would have
+  tried to load it as a second `purchase_items` creation.
+
+The other duplicate timestamps in the directory (`2026_01_01_000003`,
+`2026_05_21_202854`, `2026_09_26_000001`, …) are **not** duplicates — they are
+different tables that happen to share a prefix. `grep` on `Schema::create` finds
+`salaries` as the only table created twice. Left alone deliberately.
+
+### The `Schema::table` index block was not dead weight
+
+`bugs.md` item 20's `salaries` migration closed with a second
+`Schema::table('salaries', ...)` adding two indexes, and that reads as noise next
+to a single `Schema::create`. It was removed as a *statement* — the indexes moved
+into the `Schema::create` closure — but they are kept, because
+`foreignId()->constrained()` creates the FK constraint and **not** an index in
+Postgres, and `BaseModel` applies a `business_id` scope plus
+`EffectiveBranchScope` filters `business_branch_id` on every read of this table.
+Dropping them would be a silent full scan on the payroll query.
+
+### `booted()` in a `BaseModel` subclass silently drops the tenant scopes
+
+`Salary` overrides `booted()` to re-assert a null `business_branch_id`. Laravel
+calls `static::booted()` **once**, and it resolves to the most-derived
+definition — so the parent's `booted()` never runs, and with it both global
+scopes and the `business_id` stamp. The symptom is invisible in a single-tenant
+test: the model reads across tenants, and `business_id` lands NULL against a
+NOT NULL column. Caught by the cross-tenant test in `SalaryTest`, which saw
+another business's row. `parent::booted()` is required in every subclass that
+declares its own. `ActivityLog` is unaffected — it extends Spatie's `Activity`,
+not `BaseModel`.
+
+### An explicit `business_branch_id: null` was being overwritten
+
+`BaseModel`'s `creating` hook stamps the caller's branch when the attribute is
+not set, and it tests with `isset()` — which is **also** false for an explicit
+null. So passing `null` to mean "all branches" is indistinguishable from omitting
+it, and the creator's branch wins.
+
+`EffectiveBranchScope`'s own comment documents a NULL `business_branch_id` as the
+business-level value, so that representation is the intended one and was simply
+unreachable from any request. Fixed locally on `Salary` with a
+`$coversAllBranches` flag, because changing the hook would change what "unset"
+means for every model in the app. `update()` ignores a null too, so the
+controller `forceFill`s it.
+
+### The `enum:active,inactive` cast does not exist in Laravel 13
+
+Both the old `EmployeeSalary` and the new `Salary` carried
+`'status' => 'enum:active,inactive'`. That is not a supported cast in Laravel 13 —
+it raised `InvalidCastException` on **every read** of the model, and it is the
+reason the old controller was unusable rather than merely mismatched. It was
+never exercised because no test touched the model. Now a plain string cast; the
+DB check constraint and the form requests hold the value to active/inactive.
+
+### `BranchDetailSummaryTest` was already broken at HEAD
+
+Not caused by this chunk, and it was **masked** by the duplicate migration. Commit
+`621552b` removed `business_id`/`business_branch_id` from `Worker::$fillable`
+(bugs.md item 17), so `Worker::create([... 'business_branch_id' => $branch])` in
+the test silently drops both, while two readers still queried the now-never-written
+column:
+
+- `BusinessBranchController::show()` counted workers by that column, so the
+  branch page's worker card read 0.
+- `AttendanceController::store()` built its branch map from it, so the map was
+  always empty and every worker in an attendance batch fell through to the
+  *caller's* branch.
+
+Both now go through `user.business_branch_id` — the same source
+`Worker::getBusinessBranchAttribute()` already used. Worth remembering: dropping a
+column from `$fillable` does not stop readers querying it, and Eloquent does not
+raise on a mass-assigned unknown key.
+
+### `SalarySeeder` cannot read `Role` through the model
+
+`Role` carries `BaseModel`'s tenant scopes and a seeder has no authenticated user,
+so `Role::query()` resolves to `whereRaw('0 = 1')` and finds nothing. The first
+attempt failed with `Call to undefined relationship [business]` on `Role` (there
+is no `business()` relation on it), and the second with a NOT NULL violation on
+`business_id`, because with no session there is no context to stamp it from. It
+reads `roles` through the query builder and sets `business_id` explicitly. The
+guard is `whereNotNull('business_id')` on roles, which is also how a platform role
+with no business is skipped.
+
+### Verification
+
+- `docker compose exec -T backend php artisan test` → **833 passed** (2468 assertions)
+- `pint --test` on all 14 touched PHP files → clean
+- `npx tsc -b` → clean
+- `npx vitest run` → **803 passed** across 18 files
+- `npx vite build` → built
+- `todosRoutes.test.tsx` failed once in a full run and passed alone and on re-run.
+  Consistent with the flakiness already recorded in chunk 1; not diagnosed.

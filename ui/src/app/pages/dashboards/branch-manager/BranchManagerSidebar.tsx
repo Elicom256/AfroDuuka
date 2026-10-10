@@ -78,7 +78,7 @@ const navSections: NavigationSection[] = [
       { label: 'Expenses', to: '/expenses', icon: Receipt },
       { label: 'Attendance', to: '/attendance', icon: AlertTriangle, settingKey: 'attendance' },
       { label: 'Payroll', to: '/remuneration', icon: Users },
-      { label: 'Salaries', to: '/employee-salaries', icon: DollarSign },
+      { label: 'Salaries', to: '/salaries', icon: DollarSign },
     ],
   },
   {

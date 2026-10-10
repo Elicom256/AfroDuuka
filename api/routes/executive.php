@@ -9,8 +9,8 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeRemunerationController;
-use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Support\Facades\Route;
@@ -47,8 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('attendances', AttendanceController::class);
     // ============== employee remuneration ===================
     Route::apiResource('employee-remuneration', EmployeeRemunerationController::class);
-    // ============== employee salary ===================
-    Route::apiResource('employee-salary', EmployeeSalaryController::class);
+    // ============== salaries ===================
+    Route::apiResource('salaries', SalaryController::class);
     // ============== activity logs ===================
     Route::get('activity-logs/categories', [ActivityLogController::class, 'categories']);
     Route::apiResource('activity-logs', ActivityLogController::class)->only(['index', 'show', 'destroy']);
