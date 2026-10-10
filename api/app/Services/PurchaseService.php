@@ -42,16 +42,21 @@ class PurchaseService
         $total_amount = collect($validated['items'])->sum(fn ($i) => $i['cost_price'] * $i['quantity']);
 
         return DB::transaction(function () use ($validated, $branchId, $total_amount, $notificationService, $user) {
+            $status = $validated['status'] ?? 'completed';
+            $isCompleted = $status === 'completed';
+
             $purchase = Purchase::create([
                 'supplier_id' => $validated['supplier_id'],
                 'business_branch_id' => $branchId,
                 'total_amount' => $total_amount,
-                'status' => $validated['status'] ?? 'pending',
+                'status' => $status,
                 'note' => $validated['note'] ?? null,
+                'received_at' => $isCompleted ? now() : null,
+                'received_by' => $isCompleted ? $user?->id : null,
             ]);
 
             foreach ($validated['items'] as $item) {
-                PurchaseItem::create([
+                $purchaseItem = PurchaseItem::create([
                     'purchase_id' => $purchase->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
@@ -59,6 +64,10 @@ class PurchaseService
                     'selling_price' => $item['selling_price'] ?? null,
                     'subtotal' => $item['cost_price'] * $item['quantity'],
                 ]);
+
+                if ($isCompleted) {
+                    $this->applyReceivedToProduct($purchaseItem, (int) $purchaseItem->quantity);
+                }
             }
 
             $supplier = Supplier::find($purchase->supplier_id);
@@ -85,18 +94,11 @@ class PurchaseService
 
                 if ($receivedQty < 0 || $receivedQty > (int) $item->quantity) {
                     throw ValidationException::withMessages([
-                "items.{$item->id}.quantity" => "Received quantity for item {$item->product_id} exceeds the ordered quantity.",
-            ]);
+                        "items.{$item->id}.quantity" => "Received quantity for item {$item->product_id} exceeds the ordered quantity.",
+                    ]);
                 }
 
-                $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
-                if ($product) {
-                    $product->increment('quantity', $receivedQty);
-                    $product->update(['cost_price' => $item->cost_price]);
-                    if ($item->selling_price) {
-                        $product->update(['selling_price' => $item->selling_price]);
-                    }
-                }
+                $this->applyReceivedToProduct($item, $receivedQty);
             }
 
             $purchase->update([
@@ -107,6 +109,25 @@ class PurchaseService
 
             return $purchase->fresh()->load('purchaseItems');
         });
+    }
+
+    private function applyReceivedToProduct(PurchaseItem $item, int $receivedQty): void
+    {
+        if ($receivedQty <= 0) {
+            return;
+        }
+
+        $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
+        if (! $product) {
+            return;
+        }
+
+        $product->increment('quantity', $receivedQty);
+        $product->update(['cost_price' => $item->cost_price]);
+
+        if ($item->selling_price) {
+            $product->update(['selling_price' => $item->selling_price]);
+        }
     }
 
     public function analytics(string $period = 'last_7_days')
