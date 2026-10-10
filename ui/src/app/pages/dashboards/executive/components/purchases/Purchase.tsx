@@ -64,7 +64,7 @@ export const Purchase = () => {
         {purchase.status === 'pending' && (
           <Button onClick={() => setReceiveOpen(true)}>
             <PackageCheck className='h-4 w-4 mr-2' />
-            Receive
+            Verify & Mark Complete
           </Button>
         )}
       </div>
@@ -74,6 +74,9 @@ export const Purchase = () => {
           <CardTitle className='flex items-center gap-2'>
             Purchase Details
             <Badge variant='secondary'>ID: {purchase.id}</Badge>
+            <Badge variant={purchase.status === 'pending' ? 'secondary' : 'default'}>
+              {purchase.status === 'pending' ? 'Pending' : 'Completed'}
+            </Badge>
           </CardTitle>
           <CardDescription className='flex items-center gap-2 italic'>
             <span>Datehh: </span>
