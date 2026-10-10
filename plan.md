@@ -1,46 +1,66 @@
-# Fix: the items in `note.md`, easiest first
+# Plan: Fix purchase stock and pricing logic
 
-The `bugs.md` ranking (items 1–20) is complete; `note.md` records things the chunks
-turned up that were deliberately **not** fixed, each with the reason it was left
-alone. This plan picks those back up. One chunk at a time, pushed after each; mark
-the row `**done**` and rewrite the plan for the next one.
+## Objective
 
-## Ranking (easiest -> hardest)
+Fix the purchase flow so that when a branch manager or executive records a purchase of 20 phones and only 10 are available, the remaining stock stays at 10 instead of incorrectly becoming 30. Also ensure product prices are updated after that purchase.
 
-Ties broken by blast radius: cheap-and-unblocks-others ranks above
-cheap-and-isolated. Items that needed a product/schema decision before being
-touchable are ranked where their dependency clears.
+## Step 1: Reproduce and isolate the bug
 
-| # | Item | Root cause / why it was left | Complexity | |
-|---|------|------------------------------|-----------|-|
-| 1 | Dead file: `ExecutiveFinancesPage.tsx` | Imported nowhere and not routed; the "View All Transactions" button on it is unreachable | LOW | **done** |
-| 2 | Person-naming sweep (`?.name`) | `Customer`/`Supplier`/`User` have no `name` column; the item-5 fault "is probably not the last place it happens" | LOW-MED | **done** |
-| 3 | Analytics: `total_products` never returned | `OperationsAnalyticsPage` reads `analytics.data.total_products`, `ProductService::analytics()` returns `lowStock`/`outOfStock`/totals, not that key — the "Total Products" card showed 0 | LOW-MED | **done** |
-| 4 | `todosRoutes.test.tsx` flake | Route-block `waitFor` resolved on a transient fallback 404 (waited for "page OR 404"), so the post-`waitFor` asserts could run before the lazy tree mounted the todos page. Hardened: pin session via `waitForSession()`, then wait for the exact page text | MED | **done** |
-| 5 | Audit dialogs branch mismatch | `GET /api/products` takes no branch param but the dialogs' dropdown does; `StoreProductAuditRequest` validates with bare `exists:products,id` then `createAudit()` branch-scoped `findOrFail`. Deferred pending item 13, which is now fixed | MED | **done** |
-| 6 | xlsx export conversion | No `maatwebsite/excel`/`phpspreadsheet`; needs new dependency + `zip`/`xml` PHP extensions in Docker; `ExportButton.tsx` hardcodes a `.csv` download name | MED-HIGH | **done** |
-| 7 | cost-at-sale column | Per-product profit needs the cost the sale was made at; `sale_items` stores no cost. Schema decision, not a bug fix | HIGH | **won't fix** (user: cost price is unnecessary on `sale_items`) |
+- Locate the purchase creation flow and the product stock update logic.
+- Confirm the current calculation that adds purchased quantity to remaining stock instead of respecting the actual available quantity.
+- Trace where the product price is updated or skipped during purchase processing.
 
----
+## Step 2: Define the correct business behavior
 
-## Chunk 1 plan: item 1 — delete dead `ExecutiveFinancesPage.tsx`
+- Starting stock example: 10 units available.
+- Purchase request: 20 units.
+- Correct result: stock should not jump to 30; it should remain at 10 (or be handled according to the actual available inventory rule the business expects).
+- After the transaction, prices tied to the product or branch should be refreshed/updated to reflect the purchase outcome.
 
-`ui/src/app/pages/dashboards/executive/pages/ExecutiveFinancesPage.tsx` exports
-`ExecutiveFinancesPage`, which is imported nowhere and not routed. The sidebar's
-Financials section links Cash Flow (`/cashflow`), Transactions
-(`/finance/transactions`) and Reports (`/finance/reports`) — all to real pages, none
-to a `/finances` or `/financials` route. The file's only unique feature, the "View
-All Transactions" button, is unreachable.
+## Step 3: Add a failing regression test
 
-Grep confirms: no import references, no tests, no dynamic-import string.
+- Write a targeted test covering the 10-available / 20-purchased scenario.
+- Assert the stock remains correct after the purchase.
+- Assert the price update logic is triggered once the purchase is recorded.
+- Run the relevant tests to confirm the bug is reproduced before the fix.
 
-### Files to modify
+## Step 4: Fix the stock update logic
 
-- Deleted `ui/src/app/pages/dashboards/executive/pages/ExecutiveFinancesPage.tsx`.
-- Also deleted `ui/src/app/pages/dashboards/executive/pages/executive-placeholder-pages.tsx` — the whole file was dead: it re-exported a *second* `ExecutiveFinancesPage` (line 120) plus placeholder versions of pages that all live in their own routed files (`ExecutiveCustomersPage`, `ExecutiveAnalyticsPage`, `ExecutiveReportsPage`, `ExecutiveSuppliersPage`, `ExecutivePromotionsPage`, `ExecutiveCouponsPage`, `ExecutiveSettingsPage`). Nothing imports or routes any of them.
+- Inspect the service, model, or controller responsible for purchase processing.
+- Replace the incorrect stock update logic with the correct inventory calculation.
+- Ensure the code never inflates remaining stock beyond the real available inventory.
+- If the business rule requires capped calculation or quantity validation, implement that explicitly.
 
-### Verification
+## Step 5: Fix the price update logic
 
-- `npx tsc -b` clean.
-- `npx vitest run` — 801 passed (18 files). Test count dropped 805→801 because `themeContrast.test.ts` walks the file tree and fits over every `.tsx`; the 2 removed files were compliant (used `bg-muted`/`text-muted-foreground`), so only their parameterised entries disappeared.
-- Grep confirms zero remaining references to either export anywhere in `ui/src`.
+- Find the product price sync/update code path used after purchase.
+- Ensure price fields are recalculated or refreshed when purchase data is saved.
+- Confirm the updated values are persisted in the database and exposed in API/UI responses.
+
+## Step 6: Validate the purchase flow end-to-end
+
+- Test a normal purchase with enough stock.
+- Test the edge case where requested quantity exceeds available stock.
+- Confirm the UI/API returns the corrected remaining quantity and updated pricing.
+
+## Step 7: Run targeted verification
+
+- Run the smallest relevant test suite or endpoint checks for this functionality.
+- Check for regressions in nearby purchase and inventory features.
+- Fix any failing validations before moving on.
+
+## Step 8: Review and prepare for merge
+
+- Confirm the patch is limited to the inventory and pricing logic.
+- Ensure naming, comments, and logic read clearly for future maintenance.
+- Check for any related branch or product update code paths that should receive the same fix.
+
+## Step 9: Commit and push to the current branch
+
+- Commit the fix with a clear message describing the purchase stock and price update correction.
+- Push the branch to the current remote branch.
+- Confirm the branch is updated and ready for review.
+
+## Expected outcome
+
+The purchase process will correctly reflect inventory and price changes, and the stock update will no longer incorrectly increase available quantity in the scenario described above.
