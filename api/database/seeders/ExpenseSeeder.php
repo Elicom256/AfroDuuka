@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\CashFlow;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Illuminate\Database\Seeder;
@@ -71,7 +72,7 @@ class ExpenseSeeder extends Seeder
         ];
 
         foreach ($expenses as $exp) {
-            Expense::firstOrCreate(
+            $expense = Expense::firstOrCreate(
                 ['business_id' => $business->id, 'vendor' => $exp['vendor'], 'description' => $exp['description']],
                 [
                     'expense_category_id' => $exp['expense_category_id'],
@@ -84,6 +85,23 @@ class ExpenseSeeder extends Seeder
                     'status' => $exp['status'],
                 ]
             );
+
+            if (! $expense->cashFlow) {
+                CashFlow::create([
+                    'transaction_code' => 'CF-EXP-'.str_pad($expense->id, 6, '0', STR_PAD_LEFT),
+                    'type' => 'expense',
+                    'amount' => $exp['amount'],
+                    'currency' => 'UGX',
+                    'business_id' => $business->id,
+                    'business_branch_id' => $exp['business_branch_id'],
+                    'expense_id' => $expense->id,
+                    'description' => $exp['description'],
+                    'category' => 'expenses',
+                    'payment_method' => 'cash',
+                    'status' => 'completed',
+                    'transaction_date' => $exp['payment_date'],
+                ]);
+            }
         }
 
         $this->command->info('✅ Seeded '.count($expenses).' expenses');

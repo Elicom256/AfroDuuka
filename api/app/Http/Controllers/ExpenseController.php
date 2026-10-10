@@ -96,12 +96,21 @@ class ExpenseController extends Controller
 
     public function update(UpdateExpenseRequest $request, Expense $expense): JsonResponse
     {
-        $expense->update($request->validated());
+        $validated = $request->validated();
+        $expense->update($validated);
+
+        $cashFlow = $expense->cashFlow;
+        if ($cashFlow) {
+            $cashFlow->update([
+                'amount' => $validated['amount'] ?? $expense->amount,
+                'transaction_date' => $validated['payment_date'] ?? $expense->payment_date?->toDateString(),
+            ]);
+        }
 
         $this->activity_log->activity(
             'updated_expense',
             "Updated expense ID {$expense->id}",
-            ['changes' => $request->validated()],
+            ['changes' => $validated],
             $expense,
         );
 
@@ -113,6 +122,11 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense): JsonResponse
     {
+        $cashFlow = $expense->cashFlow;
+        if ($cashFlow) {
+            $cashFlow->delete();
+        }
+
         $expense->delete();
 
         $this->activity_log->activity(

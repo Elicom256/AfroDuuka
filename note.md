@@ -407,3 +407,51 @@ with no business is skipped.
 - `npx vite build` → built
 - `todosRoutes.test.tsx` failed once in a full run and passed alone and on re-run.
   Consistent with the flakiness already recorded in chunk 1; not diagnosed.
+
+## Chunk 10 — items 18 & 19: expense analytics mirroring, live currency rates
+
+### Item 18: expenses were missing from analytics because cash_flows desynced
+
+Analytics read only `cash_flows`. `ExpenseController::store()` mirrored the expense
+via `CashFlowService::createCashFlowForExpense()`, but `update()` and `destroy()` did
+not, and `ExpenseSeeder` created expenses with no mirror at all. Fixed: `update()` now
+refreshes the mirrored row amount/date, `destroy()` deletes it, and the seeder creates
+a `CF-EXP-*` mirror per seeded expense when absent.
+
+### Item 19: currency rates had no live source
+
+`syncCurrencyRates()` was a no-op stub with no route, and no artisan command, schedule
+or provider config existed. Added `config/currency.php`, `CurrencyRateService` (fetch,
+per-business upsert, delete-then-insert refresh so reruns never duplicate), the
+`duukaflow:currency:sync-rates` command, a `POST /sync` route, and a 06:00 daily
+schedule in `routes/console.php`. `currency_rates.business_id` is NOT NULL, so rates
+are written per business, grouped by base currency to keep one provider call per
+currency; `withoutGlobalScopes()` + explicit `business_id` is used because a command
+has no authenticated user to stamp from. New `CurrencyRateSyncTest` covers sync,
+no-duplication, provider failure, and forced base.
+
+### Verification
+
+- `php artisan test` → **845 passed** (2492 assertions)
+- New: `CurrencyRateSyncTest` — 4 passed
+
+
+## Chunk 11 — item 20: EmployeeSalary -> Salary (verification + tracking)
+
+The rename was already implemented in 0a8aeac during the salaries migration
+normalisation, ahead of the ranked order. This chunk is the verification pass:
+
+- Model `Salary`, controller, `Store/UpdateSalaryRequest`, `SalaryPolicy`, factory,
+  seeder, and the `salaries` migration (id, business_id, nullable
+  business_branch_id, role_id, amount, period, status enum, set_by, soft deletes)
+  all exist and speak the role-driven contract; `EmployeeSalary*` is gone apart from
+  explanatory comments. Route is `/dashboard/salaries`, frontend uses `salaryQuery`
+  + `ExecutiveSalariesPage`/`SalaryForm`/`SalaryPanel`, sidebar splits Payroll and
+  Salaries.
+
+- `SalaryTest` (15 tests) pins: role-keying, monthly_payroll excluding yearly/
+  inactive, all-branches null business_branch_id, branch pinning, cross-tenant role/
+  branch refusal on create, soft delete, 404 on unknown id, and 401 unauthenticated.
+
+Verification: backend 845 passed (2492 assertions); frontend tsc clean, 805 passed
+(18 files). No code changes needed — row 20 marked **done**.
