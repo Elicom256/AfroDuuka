@@ -19,7 +19,7 @@ touchable are ranked where their dependency clears.
 | 4 | `todosRoutes.test.tsx` flake | Route-block `waitFor` resolved on a transient fallback 404 (waited for "page OR 404"), so the post-`waitFor` asserts could run before the lazy tree mounted the todos page. Hardened: pin session via `waitForSession()`, then wait for the exact page text | MED | **done** |
 | 5 | Audit dialogs branch mismatch | `GET /api/products` takes no branch param but the dialogs' dropdown does; `StoreProductAuditRequest` validates with bare `exists:products,id` then `createAudit()` branch-scoped `findOrFail`. Deferred pending item 13, which is now fixed | MED | **done** |
 | 6 | xlsx export conversion | No `maatwebsite/excel`/`phpspreadsheet`; needs new dependency + `zip`/`xml` PHP extensions in Docker; `ExportButton.tsx` hardcodes a `.csv` download name | MED-HIGH | **done** |
-| 7 | cost-at-sale column | Per-product profit needs the cost the sale was made at; `sale_items` stores no cost. Schema decision, not a bug fix | HIGH | |
+| 7 | cost-at-sale column | Per-product profit needs the cost the sale was made at; `sale_items` stores no cost. Schema decision, not a bug fix | HIGH | **won't fix** (user: cost price is unnecessary on `sale_items`) |
 
 ---
 
