@@ -614,3 +614,25 @@ schema change.
 Accepted limitation: profit figures derived from sale_items cannot be reconstructed for
 historical rows with a true cost-at-sale. If the business later wants this, it is a
 deliberate schema decision, not a fix.
+
+Chunk 18 — receipt PDF download (BaconQrCode v2 API on a v3 install).
+
+Every receipt failed to download from `/dashboard/receipts` from the moment the QR code
+was added to the receipt design (f532b16). `ReceiptController::pdf()` called
+`(new Encoder($renderer))->encode($platformUrl)` — the BaconQrCode v2 shape — while the
+installed library is v3.1.1, where `Encoder::encode()` is a static method requiring an
+error-correction level. The resulting `ArgumentCountError` extends `Error`, not
+`Exception`, so the `catch (\Exception)` meant to make the QR optional did not catch it:
+the endpoint returned 500 and the frontend's catch logged to the console, so the user saw
+nothing download and no toast.
+
+- New `App\Support\ReceiptQrCode::svgDataUri()` renders the platform QR through the v3
+  `Writer` API and returns a `data:image/svg+xml;base64,` URI.
+- `ReceiptController::pdf()` uses it, and the surrounding catch is now `\Throwable`, so a
+  QR failure can never take a receipt down again. Because that swallow makes a broken QR
+  invisible at the endpoint, the QR has its own unit test instead of relying on a 500.
+- New `tests/Feature/ReceiptPdfTest.php` (4 tests): JSON contract (base64 payload +
+  filename + `%PDF` magic), direct download (`content-disposition`), the QR helper
+  producing an SVG data URI, and the PDF still downloading when QR generation throws.
+
+Verification: backend 856 passed (2526 assertions, +4 new). No frontend change.
