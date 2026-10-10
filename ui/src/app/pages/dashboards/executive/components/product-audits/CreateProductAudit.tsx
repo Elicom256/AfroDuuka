@@ -17,18 +17,26 @@ type Props = {
 export const CreateProductAudit = ({ branches }: Props) => {
   const [open, setOpen] = useState(false);
   const [addAudit, { isLoading }] = useAddProductAuditMutation();
-  const { data: productsData } = useProductsQuery();
-
-  // GET /api/products answers { message, products } where products is a plain
-  // collection, not a paginator. Reading one level deeper made this undefined, so the
-  // select rendered no options at all and the audit could not be filled in.
-  const products = productsData?.products ?? [];
   const [formData, setFormData] = useState({
     business_branch_id: '',
     audit_date: new Date().toISOString().split('T')[0],
     status: 'draft',
     notes: '',
   });
+  const selectedBranch = formData.business_branch_id ? Number(formData.business_branch_id) : undefined;
+  const { data: productsData } = useProductsQuery(selectedBranch);
+
+  // GET /api/products answers { message, products } where products is a plain
+  // collection, not a paginator. Reading one level deeper made this undefined, so the
+  // select rendered no options at all and the audit could not be filled in.
+  //
+  // The endpoint is asked for the selected branch's products and the list is filtered
+  // again here so a stale cache entry can never offer a product from a branch the
+  // audit is not for -- the old list mixed every branch's products, and a product from
+  // a different branch then failed somewhere deep in createAudit as a 404.
+  const products = (productsData?.products ?? []).filter(
+    (p: any) => !selectedBranch || Number(p.business_branch_id) === selectedBranch
+  );
   const [items, setItems] = useState<Array<{ product_id: string; counted_quantity: string; notes: string }>>([
     { product_id: '', counted_quantity: '0', notes: '' },
   ]);
