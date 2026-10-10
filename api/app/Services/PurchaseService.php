@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseService
 {
@@ -71,7 +72,9 @@ class PurchaseService
     public function receivePurchase(Purchase $purchase, array $receivedItems, ?int $receivedBy = null): Purchase
     {
         if ($purchase->status === 'completed' && ! is_null($purchase->received_at)) {
-            throw new Exception('This purchase has already been received and stock has been updated.', 422);
+            throw ValidationException::withMessages([
+                'purchase' => 'This purchase has already been received and stock has been updated.',
+            ]);
         }
 
         return DB::transaction(function () use ($purchase, $receivedItems, $receivedBy) {
@@ -81,7 +84,9 @@ class PurchaseService
                 $receivedQty = (int) ($receivedItems[$item->id] ?? $item->quantity);
 
                 if ($receivedQty < 0 || $receivedQty > (int) $item->quantity) {
-                    throw new Exception("Received quantity for item {$item->product_id} is invalid.", 422);
+                    throw ValidationException::withMessages([
+                "items.{$item->id}.quantity" => "Received quantity for item {$item->product_id} exceeds the ordered quantity.",
+            ]);
                 }
 
                 $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
