@@ -499,3 +499,41 @@ products (`total_products`) and returns it alongside the other keys, and
 
 `StockSummaryReport` also reads a `total_products` key, but from `/stock-summary`
 (`StockSummaryReportsService`), which already returns it — that page was correct.
+
+## Chunk 13 — `todosRoutes.test.tsx` flake diagnosed and hardened
+
+The route-block tests never reproduced in six re-runs, so the diagnosis is from the
+code, not the failure. The torn read is real though:
+
+```js
+await waitFor(() => {
+  expect(count('Quick task entry') + count('Page Not Found')).toBeGreaterThan(0);
+});
+expect(showsTodosPage()).toBe(true);   // runs the instant waitFor resolves
+expect(showsNotFound()).toBe(false);
+```
+
+`waitFor` treats the predicate as satisfied the moment EITHER string renders. During a
+fresh mount the tree goes loading (ExecutionRoutes gates on its own `useLoggedinUserQuery`)
+then mounts a page via `lazy()` under `Suspense`. A fallback 404 can appear in that
+window (ExecutiveRoutes has `<Route path='*' element={<NotFound/>} />`); if the
+predicate fired on it, `showsTodosPage()` was asserted before TodoList's lazy chunk had
+resolved, and could fail identically on any run — it just happened to roll heads on a
+clean checkout in chunk 1 and tails since.
+
+The sidebar block already had the antidote: `waitForSession()` waits for the
+`loggedinUser` query to be `fulfilled` before asserting. The route block never used it.
+Hardened both route-block tests that used the either-or predicate:
+
+- `renders the todos page for %s` now does `await waitForSession()` first, then
+  `waitFor(() => expect(showsTodosPage()).toBe(true))`, then asserts 404 absent.
+- `serves the standalone create-todo route` previously waited for "Page Not Found" count
+  to be 0 — vacuously true before the tree mounted anything. It now waits for "Add New
+  Task" (the TodoForm's actual heading) after `waitForSession()`.
+
+The positive-term assertions (`no dashboard` for supplier, and the unknown-path 404) are
+terminal states and were already safe.
+
+Verification: `npx tsc -b` clean; vitest 801 passed (18 files); the wildcard test file
+re-run 8 more times total (14/14 each) without a failure, matching the "green since
+chunks 2+" observation while now removing the race it sat on.
