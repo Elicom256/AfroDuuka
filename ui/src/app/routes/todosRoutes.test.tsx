@@ -143,12 +143,18 @@ describe('/dashboard/todos is reachable from every dashboard', () => {
 
     renderAt('/dashboard/todos');
 
+    // Wait for the session to settle first. Before /users/me resolves, AppRoutes
+    // shows a loading state and then the tree the *previous* role mapped to; a
+    // waitFor on "either the page or the 404 appears" can resolve on the fallback
+    // route while the todos page is still mounting, and the asserts below then run
+    // against a tree that is not the one under test. Same race waitForSession()
+    // closes for the sidebar block, fixed for the route block too.
+    await waitForSession();
+
     await waitFor(() => {
-      expect(screen.queryAllByText('Quick task entry').length + screen.queryAllByText('Page Not Found').length)
-        .toBeGreaterThan(0);
+      expect(showsTodosPage()).toBe(true);
     });
 
-    expect(showsTodosPage()).toBe(true);
     expect(showsNotFound()).toBe(false);
   });
 
@@ -157,8 +163,12 @@ describe('/dashboard/todos is reachable from every dashboard', () => {
 
     renderAt('/dashboard/create-todo');
 
+    // Same race as the list route: waiting for "Page Not Found" to be absent is
+    // vacuously true before the tree has mounted. Wait for the page we expect to
+    // actually render, then assert the 404 is not there.
+    await waitForSession();
     await waitFor(() => {
-      expect(screen.queryAllByText('Page Not Found').length).toBe(0);
+      expect(screen.queryAllByText('Add New Task').length).toBeGreaterThan(0);
     });
 
     expect(showsNotFound()).toBe(false);
