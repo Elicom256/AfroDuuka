@@ -19,10 +19,15 @@ class PurchaseReceiveTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private BusinessBranch $branch;
+
     private Product $product;
+
     private Purchase $purchase;
+
     private PurchaseItem $purchaseItem;
+
     private PaymentMethod $paymentMethod;
 
     protected function setUp(): void
@@ -186,5 +191,87 @@ class PurchaseReceiveTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_creating_completed_purchase_updates_product_quantity_and_prices(): void
+    {
+        $response = $this->postJson('/api/purchases/branch-purchases', [
+            'supplier_id' => null,
+            'business_branch_id' => $this->branch->id,
+            'status' => 'completed',
+            'payment_status_id' => $this->paymentMethod->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 3,
+                    'cost_price' => 8000,
+                    'selling_price' => 12000,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('purchase.status', 'completed');
+
+        $product = Product::find($this->product->id);
+        $this->assertSame(13, (int) $product->quantity);
+        $this->assertEquals(8000, (float) $product->cost_price);
+        $this->assertEquals(12000, (float) $product->selling_price);
+
+        $this->assertDatabaseHas('purchases', [
+            'id' => $response->json('purchase.id'),
+            'status' => 'completed',
+        ]);
+    }
+
+    public function test_creating_purchase_without_status_defaults_to_completed_and_updates_product(): void
+    {
+        $response = $this->postJson('/api/purchases/branch-purchases', [
+            'supplier_id' => null,
+            'business_branch_id' => $this->branch->id,
+            'payment_status_id' => $this->paymentMethod->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 2,
+                    'cost_price' => 6000,
+                    'selling_price' => 9000,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('purchase.status', 'completed');
+
+        $product = Product::find($this->product->id);
+        $this->assertSame(12, (int) $product->quantity);
+        $this->assertEquals(6000, (float) $product->cost_price);
+        $this->assertEquals(9000, (float) $product->selling_price);
+    }
+
+    public function test_creating_pending_purchase_does_not_update_product_until_received(): void
+    {
+        $response = $this->postJson('/api/purchases/branch-purchases', [
+            'supplier_id' => null,
+            'business_branch_id' => $this->branch->id,
+            'status' => 'pending',
+            'payment_status_id' => $this->paymentMethod->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity' => 4,
+                    'cost_price' => 7000,
+                    'selling_price' => 11000,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('purchase.status', 'pending');
+
+        $product = Product::find($this->product->id);
+        $this->assertSame(10, (int) $product->quantity);
+        $this->assertEquals(5000, (float) $product->cost_price);
+        $this->assertEquals(7500, (float) $product->selling_price);
     }
 }
