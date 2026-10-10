@@ -537,3 +537,34 @@ terminal states and were already safe.
 Verification: `npx tsc -b` clean; vitest 801 passed (18 files); the wildcard test file
 re-run 8 more times total (14/14 each) without a failure, matching the "green since
 chunks 2+" observation while now removing the race it sat on.
+Chunk 15 — the audit dialogs branch mismatch (plan item 5).
+
+The dialogs' branch dropdown comes from GET /api/branches (every branch of the
+business) but the product list came from GET /api/products with no branch parameter, so
+the two could disagree. Worse, StoreProductAuditRequest validated items.*.product_id
+with a bare `exists:products,id`, so a product id from another branch passed validation
+and then failed scope-aware inside ProductAuditService::createAudit() as a 404 instead
+of a 422.
+
+Fix, split across three layers:
+
+- GET /api/products honors an optional `business_branch_id` query param
+  (ProductController::index adds `where('business_branch_id', ...)` when filled), so the
+  dialog can pull exactly the selected branch's products.
+- StoreProductAuditRequest scopes `items.*.product_id` to the audit's business branch
+  (`Rule::exists('products','id')->where('business_branch_id', (int) $this->input('business_branch_id'))`),
+  and UpdateProductAuditRequest scopes it to the route's `productAudit`'s branch the same
+  way. An id from a different branch now rejects with 422 from validation.
+- The dialogs pass the selected audit branch into the products query
+  (`branchProductsQuery.ts` now takes `number | void`), and re-filter the loaded list
+  client-side against that branch so a stale cache entry never offers a foreign
+  branch's product.
+
+New `ProductAuditBranchScopingTest`: branch-filtered product list, cross-branch item
+rejected 422, same-branch item accepted.
+
+Verification: backend 848 passed (2499 assertions, +3 new); `npx tsc -b` clean; vitest
+801 passed (18 files). The occasional "1 error" on a full vitest run is a load-dependent
+jsdom teardown race in routeGuards.test.tsx (RAf callback touching `window.location`
+after teardown) — it passes 3/3 in isolation and baseline runs show the same underlying
+middleware timing warnings.

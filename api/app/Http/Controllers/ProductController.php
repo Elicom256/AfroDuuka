@@ -28,6 +28,10 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with(['productCategory', 'taxCategory', 'attachments'])
+            ->when(
+                request()->filled('business_branch_id'),
+                fn ($query) => $query->where('business_branch_id', request('business_branch_id'))
+            )
             ->orderBy('id', 'asc')
             ->get();
 

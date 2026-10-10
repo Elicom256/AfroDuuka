@@ -14,11 +14,14 @@ export const productsQuery = createApi({
   }),
   tagTypes: ['ProductsAPI'],
   endpoints: (builder) => ({
-    // get products (no params - uses user's business_branch_id from auth)
-    products: builder.query<any, void>({
-      query: () => ({
+    // get products. Accepts an optional business_branch_id so a screen that offers a
+    // branch dropdown (product audits) can pull that branch's products; omitting it
+    // keeps the previous no-arg behaviour (the caller's effective scope).
+    products: builder.query<any, number | void>({
+      query: (business_branch_id) => ({
         url: '/',
         method: 'GET',
+        params: business_branch_id ? { business_branch_id } : {},
       }),
       providesTags: ['ProductsAPI'],
     }),

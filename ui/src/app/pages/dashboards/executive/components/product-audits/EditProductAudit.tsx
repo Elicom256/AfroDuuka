@@ -18,11 +18,18 @@ type Props = {
 
 export const EditProductAudit = ({ open, onOpenChange, audit }: Props) => {
   const [updateAudit, { isLoading }] = useUpdateProductAuditMutation();
-  const { data: productsData } = useProductsQuery();
+  const auditBranch = audit?.business_branch_id ? Number(audit.business_branch_id) : undefined;
+  const { data: productsData } = useProductsQuery(auditBranch);
   // GET /api/products answers { message, products } where products is a plain
   // collection, not a paginator. Reading one level deeper made this undefined, so the
   // select rendered no options at all and the audit could not be filled in.
-  const products = productsData?.products ?? [];
+  //
+  // An audit's items must belong to the branch the audit was opened for; the endpoint
+  // is asked for that branch's products and the list is filtered again here so a stale
+  // cache entry cannot offer a product from another branch.
+  const products = (productsData?.products ?? []).filter(
+    (p: any) => !auditBranch || Number(p.business_branch_id) === auditBranch
+  );
 
   const [formData, setFormData] = useState({
     audit_date: '',
