@@ -636,3 +636,30 @@ nothing download and no toast.
   producing an SVG data URI, and the PDF still downloading when QR generation throws.
 
 Verification: backend 856 passed (2526 assertions, +4 new). No frontend change.
+
+Chunk 19 — purchase records now move stock and prices at creation.
+
+The user reported that a product's cost/selling price and quantity never changed after an
+executive recorded a purchase. `PurchaseService::savePurchase()` only wrote the purchase
+and items, defaulting status to `pending`; the stock/cost/selling update lived in the
+separate `receivePurchase()` step, so the "Record Purchase" flow (which does not send a
+status and just shows "Purchase Completed Successfully!" and cash-flow effects) never
+reached the product. bugs.md's "Product update" item was originally fixed at receive
+(4ebfba6) — which is why it read as unaddressed.
+
+Fix:
+- `PurchaseService::savePurchase()` now applies quantity/cost_price/selling_price to each
+  product immediately when the purchase is recorded as `completed`, stamps `received_at`/
+  `received_by`, and shares the logic with `receivePurchase()` via a private
+  `applyReceivedToProduct()` helper (pessimistic-locked increment + price rewrite).
+- Explicit `status => pending` purchases are untouched until the Receive step, so the
+  two-step order-then-receive workflow still works and remains covered by PurchaseReceiveTest.
+- `StorePurchaseRequest` default status changed `pending` → `completed`, so every UI record
+  (executive/operations add-purchase, both omit status) now updates the product on save.
+- Procurement's PO-receive flow is a separate ordering feature and is unchanged.
+
+New tests in PurchaseReceiveTest (+3): completed purchase updates quantity + both prices;
+purchase without status defaults to completed and updates the product; pending purchase
+does not touch the product until received.
+
+Verification: backend 859 passed (2542 assertions, +3). No frontend change; tsc clean.
