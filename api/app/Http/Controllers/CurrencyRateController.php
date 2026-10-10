@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCurrencyRateRequest;
 use App\Http\Requests\UpdateCurrencyRateRequest;
 use App\Models\CurrencyRate;
+use App\Services\CurrencyRateService;
 use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
 
@@ -67,12 +68,20 @@ class CurrencyRateController extends Controller
      * attempted and leaves the existing rates untouched if the call fails,
      * so the UI never shows an error and manual entry remains available.
      */
-    public function syncCurrencyRates()
+    public function syncCurrencyRates(CurrencyRateService $service)
     {
         abort_unless(RolePermissions::canManagePaymentConfig(Auth::user()), 403, 'You cannot manage currency rates.');
 
+        $result = $service->syncAllBusinesses();
+
+        if (! $result['success']) {
+            return response()->json([
+                'message' => $result['message'],
+            ], 502);
+        }
+
         return response()->json([
-            'message' => 'Currency rate sync initiated — rates are stored manually via the Currency Rates page.',
+            'message' => $result['message'],
         ]);
     }
 }

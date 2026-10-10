@@ -407,3 +407,31 @@ with no business is skipped.
 - `npx vite build` → built
 - `todosRoutes.test.tsx` failed once in a full run and passed alone and on re-run.
   Consistent with the flakiness already recorded in chunk 1; not diagnosed.
+
+## Chunk 10 — items 18 & 19: expense analytics mirroring, live currency rates
+
+### Item 18: expenses were missing from analytics because cash_flows desynced
+
+Analytics read only `cash_flows`. `ExpenseController::store()` mirrored the expense
+via `CashFlowService::createCashFlowForExpense()`, but `update()` and `destroy()` did
+not, and `ExpenseSeeder` created expenses with no mirror at all. Fixed: `update()` now
+refreshes the mirrored row amount/date, `destroy()` deletes it, and the seeder creates
+a `CF-EXP-*` mirror per seeded expense when absent.
+
+### Item 19: currency rates had no live source
+
+`syncCurrencyRates()` was a no-op stub with no route, and no artisan command, schedule
+or provider config existed. Added `config/currency.php`, `CurrencyRateService` (fetch,
+per-business upsert, delete-then-insert refresh so reruns never duplicate), the
+`duukaflow:currency:sync-rates` command, a `POST /sync` route, and a 06:00 daily
+schedule in `routes/console.php`. `currency_rates.business_id` is NOT NULL, so rates
+are written per business, grouped by base currency to keep one provider call per
+currency; `withoutGlobalScopes()` + explicit `business_id` is used because a command
+has no authenticated user to stamp from. New `CurrencyRateSyncTest` covers sync,
+no-duplication, provider failure, and forced base.
+
+### Verification
+
+- `php artisan test` → **845 passed** (2492 assertions)
+- New: `CurrencyRateSyncTest` — 4 passed
+
