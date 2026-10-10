@@ -19,10 +19,16 @@ class PurchaseService
 
     protected AnalyticsTrendHelper $analyticsTrendHelper;
 
-    public function __construct(CashFlowService $cashFlowService, AnalyticsTrendHelper $analyticsTrendHelper)
-    {
+    protected InventoryService $inventoryService;
+
+    public function __construct(
+        CashFlowService $cashFlowService,
+        AnalyticsTrendHelper $analyticsTrendHelper,
+        InventoryService $inventoryService
+    ) {
         $this->cashFlowService = $cashFlowService;
         $this->analyticsTrendHelper = $analyticsTrendHelper;
+        $this->inventoryService = $inventoryService;
     }
 
     public function savePurchase($validated, ?string $business_branch_id = null)
@@ -42,7 +48,7 @@ class PurchaseService
         $total_amount = collect($validated['items'])->sum(fn ($i) => $i['cost_price'] * $i['quantity']);
 
         return DB::transaction(function () use ($validated, $branchId, $total_amount, $notificationService, $user) {
-            $status = $validated['status'] ?? 'completed';
+            $status = $validated['status'] ?? 'pending';
             $isCompleted = $status === 'completed';
 
             $purchase = Purchase::create([
@@ -117,15 +123,24 @@ class PurchaseService
             return;
         }
 
+        $product = Product::whereKey($item->product_id)->first();
+        if (! $product) {
+            return;
+        }
+
+        $this->inventoryService->stockIn(
+            $product,
+            $receivedQty,
+            'purchase',
+            (int) $item->purchase_id,
+            "purchase:{$item->purchase_id}:item:{$item->id}"
+        );
+
         $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
         if (! $product) {
             return;
         }
 
-        // Purchases can update the product’s pricing basis, but they must not inflate
-        // the branch’s remaining stock. When a manager records a completed purchase for
-        // more units than the product actually has available, the stock must remain at
-        // the real available level instead of being incremented to an incorrect total.
         $product->forceFill([
             'cost_price' => (float) $item->cost_price,
             'selling_price' => $item->selling_price !== null ? (float) $item->selling_price : $product->selling_price,
