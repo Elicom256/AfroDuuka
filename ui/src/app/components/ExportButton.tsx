@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 
 interface ExportButtonProps {
   type: 'products' | 'sales' | 'purchases' | 'customers' | 'suppliers';
@@ -29,13 +28,13 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
   const handleExport = async () => {
     try {
       const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({ format });
       if (withDateRange) {
         if (dateFrom) params.set('date_from', dateFrom);
         if (dateTo) params.set('date_to', dateTo);
       }
       const qs = params.toString();
-      const url = `${import.meta.env.VITE_BASE_URL}/exports/${type}${qs ? `?${qs}` : ''}`;
+      const url = `${import.meta.env.VITE_BASE_URL}/exports/${type}?${qs}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -43,35 +42,17 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
 
       if (!response.ok) throw new Error('Export failed');
 
+      // The server answers csv or xlsx depending on the format we asked for. The blob
+      // is attached verbatim; there is no client-side conversion anymore.
       const blob = await response.blob();
-
-      if (format === 'csv') {
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `${type}-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(downloadUrl);
-        document.body.removeChild(a);
-      } else {
-        // XLSX: read the CSV text, then generate a workbook via SheetJS
-        const text = await response.text();
-        const rows = text.trim().split('\n').map((r) => r.split(','));
-        if (rows.length === 0) throw new Error('Empty export data');
-        const headers = rows.shift()!;
-        const allRows = [headers, ...rows];
-        const sheet = XLSX.utils.aoa_to_sheet(allRows);
-        const workbook: any = { SheetNames: ['data'], Sheets: { data: sheet } };
-        const base64 = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
-        const downloadUrl = `data:application/octet-stream;base64,${base64}`;
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `${type}-${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${type}-${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
 
       toast.success(`${label} downloaded successfully`);
       setOpen(false);

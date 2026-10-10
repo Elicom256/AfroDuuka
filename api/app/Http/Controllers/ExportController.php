@@ -12,7 +12,8 @@ class ExportController extends Controller
     public function export(Request $request, string $type)
     {
         $filters = $request->only(['date_from', 'date_to']);
+        $format = $request->string('format', 'csv')->toString();
 
-        return $this->exportService->export($type, $filters);
+        return $this->exportService->export($type, $filters, $format);
     }
 }
