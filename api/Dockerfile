@@ -32,7 +32,9 @@ RUN install-php-extensions \
     opcache \
     pcntl \
     bcmath \
-    exif
+    exif \
+    gd \
+    zip
 
 # The upstream image sets CAP_NET_BIND_SERVICE on the frankenphp binary so it can
 # bind :80/:443 as a non-root user. Platforms that run containers with

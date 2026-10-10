@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exports\RowsExport;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -11,6 +12,8 @@ use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Excel as ExcelWriter;
+use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExportService
@@ -28,14 +31,22 @@ class ExportService
         return $companyName ?: trim(implode(' ', array_filter([$user?->firstname, $user?->lastname])));
     }
 
-    public function export(string $type, array $filters = [])
+    /**
+     * @param  string  $format  csv (default) or xlsx. Anything else is a client error,
+     *                          answered 404 exactly like an unknown export type.
+     */
+    public function export(string $type, array $filters = [], string $format = 'csv')
     {
+        if (! in_array($format, ['csv', 'xlsx'], true)) {
+            throw new NotFoundHttpException("Unknown export format: {$format}");
+        }
+
         return match ($type) {
-            'products' => $this->exportProducts(),
-            'sales' => $this->exportSales($filters),
-            'purchases' => $this->exportPurchases($filters),
-            'customers' => $this->exportCustomers(),
-            'suppliers' => $this->exportSuppliers(),
+            'products' => $this->exportProducts($format),
+            'sales' => $this->exportSales($filters, $format),
+            'purchases' => $this->exportPurchases($filters, $format),
+            'customers' => $this->exportCustomers($format),
+            'suppliers' => $this->exportSuppliers($format),
             // A bad path segment is a client error, not a server one. Throwing a plain
             // InvalidArgumentException here surfaced as a 500, which reads as "the export
             // is broken" when the caller simply asked for a type that does not exist.
@@ -43,7 +54,7 @@ class ExportService
         };
     }
 
-    private function exportProducts()
+    private function exportProducts(string $format)
     {
         $resolved = EffectiveBranchScope::branchesFor(Auth::user());
         $branchIds = $resolved !== null ? $resolved[1] : null;
@@ -60,10 +71,10 @@ class ExportService
             $p->reorder_level, $p->cost_price, $p->selling_price, $p->status,
         ]);
 
-        return $this->streamCsv('products', $headers, $rows);
+        return $this->stream('products', $headers, $rows, $format);
     }
 
-    private function exportSales(array $filters)
+    private function exportSales(array $filters, string $format)
     {
         $resolved = EffectiveBranchScope::branchesFor(Auth::user());
         $branchIds = $resolved !== null ? $resolved[1] : null;
@@ -88,10 +99,10 @@ class ExportService
             $s->saleItems->sum('quantity'), $s->subtotal, $s->tax_amount, $s->total_amount, $s->status,
         ]);
 
-        return $this->streamCsv('sales', $headers, $rows);
+        return $this->stream('sales', $headers, $rows, $format);
     }
 
-    private function exportPurchases(array $filters)
+    private function exportPurchases(array $filters, string $format)
     {
         $resolved = EffectiveBranchScope::branchesFor(Auth::user());
         $branchIds = $resolved !== null ? $resolved[1] : null;
@@ -116,10 +127,10 @@ class ExportService
             $p->purchaseItems->sum('quantity'), $p->total_amount, $p->status,
         ]);
 
-        return $this->streamCsv('purchases', $headers, $rows);
+        return $this->stream('purchases', $headers, $rows, $format);
     }
 
-    private function exportCustomers()
+    private function exportCustomers(string $format)
     {
         $customers = Customer::with('user')
             ->where('business_id', Auth::user()->business_id)
@@ -136,10 +147,10 @@ class ExportService
             $c->created_at->format('Y-m-d'),
         ]);
 
-        return $this->streamCsv('customers', $headers, $rows);
+        return $this->stream('customers', $headers, $rows, $format);
     }
 
-    private function exportSuppliers()
+    private function exportSuppliers(string $format)
     {
         $suppliers = Supplier::with('user')
             ->where('business_id', Auth::user()->business_id)
@@ -156,11 +167,30 @@ class ExportService
             $s->created_at->format('Y-m-d'),
         ]);
 
-        return $this->streamCsv('suppliers', $headers, $rows);
+        return $this->stream('suppliers', $headers, $rows, $format);
     }
 
-    private function streamCsv(string $filename, array $headers, $rows)
+    /**
+     * One response shape for both formats: csv keeps the hand-rolled streamed writer
+     * with a UTF-8 BOM (Excel needs the BOM to decode the file), xlsx is built in
+     * memory by PhpSpreadsheet via Maatwebsite's RowsExport and served as the binary
+     * content type.
+     */
+    private function stream(string $filename, array $headers, $rows, string $format)
     {
+        if ($format === 'xlsx') {
+            $export = new RowsExport($headers, $rows->toArray());
+
+            return Response::make(
+                Excel::raw($export, ExcelWriter::XLSX),
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => "attachment; filename={$filename}-".date('Y-m-d').'.xlsx',
+                ]
+            );
+        }
+
         $callback = function () use ($headers, $rows) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));

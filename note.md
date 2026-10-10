@@ -568,3 +568,34 @@ Verification: backend 848 passed (2499 assertions, +3 new); `npx tsc -b` clean; 
 jsdom teardown race in routeGuards.test.tsx (RAf callback touching `window.location`
 after teardown) — it passes 3/3 in isolation and baseline runs show the same underlying
 middleware timing warnings.
+Chunk 16 — server-side xlsx export (plan item 6).
+
+Previously ExportButton converted the server's CSV text to xlsx in the browser with
+SheetJS (xlsx@0.18.5 committed in d972e79). That client-side hack split rows on
+, and \n, so any field containing a comma or line break came out misaligned in the
+spreadsheet. Chosen fix: serve a real xlsx from the backend.
+
+- `composer require maatwebsite/excel:^3.1` (3.1.70) in the backend container. Its
+  phpspreadsheet dependency needed `ext-gd` and `ext-zip`, which are now in both
+  Dockerfiles (install-php-extensions gd zip) and were installed at runtime in the dev
+  container to unblock composer without waiting on a rebuild.
+- New `App\Exports\RowsExport` (FromArray + WithHeadings). `ExportService::export()`
+  takes a `format` arg (csv default, xlsx), threading it through every type; the
+  `streamCsv` writer became `stream`, with the xlsx branch using
+  `Excel::raw(new RowsExport(...), XLSX)` wrapped in a Response with the OOXML content
+  type and an `.xlsx` Content-Disposition. An unknown format answers 404 like an
+  unknown type.
+- `ExportController` passes `format` from the query string (default csv, so existing
+  callers still get text/csv).
+- `ExportButton.tsx` now asks the server for the chosen format and attaches the blob
+  verbatim -- no client-side xlsx parsing, no comma-splitting. The SheetJS `xlsx`
+  dependency and the unused `Download` icon import were removed.
+
+New ExportTest coverage: xlsx content type + Content-Disposition for products, an xlsx
+variant of the customers export, all five types producing a real OOXML zip (body starts
+with PK\x03\x04), and an unknown format answered 404. The existing CSV tests are
+untouched and still green.
+
+Verification: backend 852 passed (2517 assertions, +4 new); `npx tsc -b` clean; vitest
+801 passed (18 files). The xlsx body was also unzipped manually to confirm a real
+workbook with shared strings, not a renamed CSV.

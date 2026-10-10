@@ -7,6 +7,7 @@ use App\Models\BusinessBranch;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -193,7 +194,7 @@ class ExportTest extends TestCase
             'quantity' => 10,
         ]);
 
-        $sale = \App\Models\Sale::create([
+        $sale = Sale::create([
             'business_id' => $this->business->id,
             'business_branch_id' => $this->branch->id,
             'user_id' => $this->user->id,
@@ -217,5 +218,46 @@ class ExportTest extends TestCase
     public function test_an_unknown_export_type_is_refused(): void
     {
         $this->getJson('/api/exports/nonsense')->assertNotFound();
+    }
+
+    /**
+     * The xlsx branch (plan item 6) serves a PhpSpreadsheet workbook instead of the CSV
+     * stream, carrying the right content type and a Content-Disposition naming the .xlsx.
+     * The body must be a real OOXML zip -- PK\x03\x04 -- not a renamed CSV.
+     */
+    public function test_the_products_export_can_be_requested_as_xlsx(): void
+    {
+        Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'name' => 'Maize Flour 1kg',
+        ]);
+
+        $response = $this->getJson('/api/exports/products?format=xlsx')->assertOk();
+
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('content-disposition', 'attachment; filename=products-'.date('Y-m-d').'.xlsx');
+
+        $body = $response->getContent();
+        $this->assertStringStartsWith("PK\x03\x04", $body, 'The xlsx export must be a real OOXML zip, not a renamed CSV.');
+    }
+
+    public function test_the_customers_export_can_be_requested_as_xlsx(): void
+    {
+        $this->getJson('/api/exports/customers?format=xlsx')->assertOk();
+    }
+
+    public function test_all_export_types_support_xlsx(): void
+    {
+        foreach (['products', 'sales', 'purchases', 'customers', 'suppliers'] as $type) {
+            $response = $this->getJson("/api/exports/{$type}?format=xlsx")->assertOk();
+
+            $body = $response->getContent();
+            $this->assertStringStartsWith("PK\x03\x04", $body, "{$type} export must be a real OOXML zip");
+        }
+    }
+
+    public function test_an_unknown_export_format_is_refused(): void
+    {
+        $this->getJson('/api/exports/products?format=doc')->assertNotFound();
     }
 }
