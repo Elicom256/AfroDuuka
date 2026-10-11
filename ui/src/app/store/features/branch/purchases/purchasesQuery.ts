@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
 export const purchasesQuery = createApi({
   reducerPath: 'purchasesPath',
@@ -12,21 +13,21 @@ export const purchasesQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['PurchasesAPI'],
+  tagTypes: [apiTags.purchases, apiTags.dashboard],
   endpoints: (builder) => ({
     purchases: builder.query<any, void>({
       query: () => ({
         url: '/',
         method: 'GET',
       }),
-      providesTags: ['PurchasesAPI'],
+      providesTags: withDashboard(apiTags.purchases),
     }),
     purchase: builder.query<any, number>({
       query: (id) => ({
         url: `/${id}`,
         method: 'GET',
       }),
-      providesTags: ['PurchasesAPI'],
+      providesTags: withDashboard(apiTags.purchases),
     }),
 
     purchaseAnalytics: builder.query({
@@ -35,7 +36,7 @@ export const purchasesQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['PurchasesAPI'],
+      providesTags: withDashboard(apiTags.purchases),
     }),
     addPurchase: builder.mutation<any, any>({
       query: (body) => ({
@@ -43,7 +44,7 @@ export const purchasesQuery = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['PurchasesAPI'],
+      invalidatesTags: withDashboard(apiTags.purchases),
     }),
     updatePurchase: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
@@ -51,14 +52,14 @@ export const purchasesQuery = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['PurchasesAPI'],
+      invalidatesTags: withDashboard(apiTags.purchases),
     }),
     deletePurchase: builder.mutation<any, number | string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['PurchasesAPI'],
+      invalidatesTags: withDashboard(apiTags.purchases),
     }),
     receivePurchase: builder.mutation<
       any,
@@ -78,7 +79,7 @@ export const purchasesQuery = createApi({
         method: 'POST',
         body: { items, note },
       }),
-      invalidatesTags: ['PurchasesAPI'],
+      invalidatesTags: withDashboard(apiTags.purchases),
     }),
   }),
 });

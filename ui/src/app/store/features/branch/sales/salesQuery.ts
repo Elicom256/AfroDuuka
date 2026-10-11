@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
 export const salesQuery = createApi({
   reducerPath: 'salesPath',
@@ -12,21 +13,21 @@ export const salesQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['SalesAPI'],
+  tagTypes: [apiTags.sales, apiTags.dashboard],
   endpoints: (builder) => ({
     sales: builder.query<any, void>({
       query: () => ({
         url: '/',
         method: 'GET',
       }),
-      providesTags: ['SalesAPI'],
+      providesTags: withDashboard(apiTags.sales),
     }),
     sale: builder.query<any, string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'GET',
       }),
-      providesTags: ['SalesAPI'],
+      providesTags: withDashboard(apiTags.sales),
     }),
     getSalesAnalytics: builder.query({
       query: (period = 'last_7_days') => ({
@@ -34,7 +35,7 @@ export const salesQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['SalesAPI'],
+      providesTags: withDashboard(apiTags.sales),
     }),
     getReturnAnalytics: builder.query({
       query: (period = 'last_7_days') => ({
@@ -42,10 +43,7 @@ export const salesQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      // 'SaleReturnsAPI' was listed here but is not one of this slice's tagTypes, so
-      // it could never be provided or invalidated by this api. The sale-returns slice
-      // invalidates SalesAPI directly instead.
-      providesTags: ['SalesAPI'],
+      providesTags: withDashboard(apiTags.sales),
     }),
     addSale: builder.mutation<any, any>({
       query: (body) => ({
@@ -53,7 +51,7 @@ export const salesQuery = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['SalesAPI'],
+      invalidatesTags: withDashboard(apiTags.sales),
     }),
     updateSale: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
@@ -61,7 +59,7 @@ export const salesQuery = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['SalesAPI'],
+      invalidatesTags: withDashboard(apiTags.sales),
     }),
   }),
 });
