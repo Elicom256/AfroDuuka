@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
 export type MonthlyPerformanceBranch = {
   name: string;
@@ -32,111 +33,97 @@ export type MonthlyPerformanceScope = { month: string; branchId: string };
 
 type ApiEnvelope<T> = { message: string; data: T };
 
-export const branchReportsQuery = createApi({
-  reducerPath: 'reportsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/reports`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-
-      return headers;
-    },
-  }),
-  tagTypes: ['Reports'],
+export const branchReportsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // `id` is optional and empty means every branch, because this card exists to compare
     // them: defaulting it to the first branch would make best and worst performing branch
     // the same branch and quietly turn a comparison into a lookup.
     branchPerformance: builder.query<any, { id?: string; period: string }>({
       query: ({ id, period }) => ({
-        url: `/branch-performance`,
+        url: `/reports/branch-performance`,
         method: 'GET',
         params: { id: id || undefined, period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     stockSummary: builder.query<any, string>({
       query: (period) => ({
-        url: '/stock-summary',
+        url: '/reports/stock-summary',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     lowStock: builder.query<any, string>({
       query: (period) => ({
-        url: '/low-stock',
+        url: '/reports/low-stock',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     outOfStock: builder.query<any, string>({
       query: (period) => ({
-        url: '/out-of-stock',
+        url: '/reports/out-of-stock',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     deadStock: builder.query<any, string>({
       query: (period) => ({
-        url: '/dead-stock',
+        url: '/reports/dead-stock',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     inventoryValuation: builder.query<any, string>({
       query: (period) => ({
-        url: '/inventory-valuation',
+        url: '/reports/inventory-valuation',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     salesByProduct: builder.query<any, string>({
       query: (period) => ({
-        url: '/sales-by-product',
+        url: '/reports/sales-by-product',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     stockMovement: builder.query<any, string>({
       query: (period) => ({
-        url: '/stock-movement',
+        url: '/reports/stock-movement',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
     // Generic reports list endpoints used elsewhere in the app
     branchReports: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/reports/',
         method: 'GET',
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     branchReport: builder.query<any, string>({
       query: (id: string) => ({
-        url: `/${id}`,
+        url: `/reports/${id}`,
         method: 'GET',
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     // The monthly performance document that the notification email attaches, as
@@ -153,11 +140,11 @@ export const branchReportsQuery = createApi({
     // nothing would surface as a 422 in the UI for no reason the user can act on.
     monthlyPerformance: builder.query<ApiEnvelope<MonthlyPerformanceReport>, MonthlyPerformanceScope>({
       query: ({ month, branchId }) => ({
-        url: '/monthly-performance',
+        url: '/reports/monthly-performance',
         method: 'GET',
         params: { month, branch_id: branchId },
       }),
-      providesTags: ['Reports'],
+      providesTags: withDashboard(apiTags.reports),
     }),
 
     // A mutation, not a query, because it must only run when the button is pressed: a
@@ -171,7 +158,7 @@ export const branchReportsQuery = createApi({
     // supported way to ask for one.
     monthlyPerformancePdf: builder.mutation<Blob, MonthlyPerformanceScope>({
       query: ({ month, branchId }) => ({
-        url: '/monthly-performance/pdf',
+        url: '/reports/monthly-performance/pdf',
         method: 'GET',
         params: { month, branch_id: branchId },
         responseHandler: async (response: Response) => response.blob(),
