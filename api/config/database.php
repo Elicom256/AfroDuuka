@@ -87,8 +87,13 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             // Neon's pooled endpoint (PgBouncer transaction mode) breaks DDL
             // run inside migrations' transactions when real prepared
-            // statements are used; emulating prepares avoids it.
-            'options' => env('DB_EMULATE_PREPARES', false)
+            // statements are used; emulating prepares avoids it. The same
+            // pooled endpoint also resurfaces as SQLSTATE[25P02] "current
+            // transaction is aborted" on the first statement of a request when
+            // native (server-side) prepared statements are replayed across
+            // pooled backends, so emulation is the default unless explicitly
+            // disabled (DB_EMULATE_PREPARES=false / 0).
+            'options' => ! in_array(env('DB_EMULATE_PREPARES'), ['false', '0'], true)
                 ? [\PDO::ATTR_EMULATE_PREPARES => true]
                 : [],
         ],
