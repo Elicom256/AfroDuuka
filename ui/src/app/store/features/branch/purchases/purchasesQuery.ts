@@ -62,12 +62,21 @@ export const purchasesQuery = createApi({
     }),
     receivePurchase: builder.mutation<
       any,
-      { id: number | string; items: { purchase_item_id: number; quantity: number }[] }
+      {
+        id: number | string;
+        items: Array<{
+          purchase_item_id: number;
+          quantity: number;
+          cost_price?: number;
+          selling_price?: number | null;
+        }>;
+        note?: string | null;
+      }
     >({
-      query: ({ id, items }) => ({
+      query: ({ id, items, note }) => ({
         url: `/${id}/receive`,
         method: 'POST',
-        body: { items },
+        body: { items, note },
       }),
       invalidatesTags: ['PurchasesAPI'],
     }),

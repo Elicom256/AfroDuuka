@@ -76,17 +76,24 @@ class PurchaseController extends Controller
         abort_unless(RolePermissions::canReceivePurchaseOrder(Auth::user()), 403, 'You cannot receive purchase orders.');
 
         $request->validate([
+            'note' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.purchase_item_id' => 'required|exists:purchase_items,id',
             'items.*.quantity' => 'required|integer|min:0',
+            'items.*.cost_price' => 'sometimes|numeric|min:0',
+            'items.*.selling_price' => 'nullable|numeric|min:0',
         ]);
 
         $receivedItems = [];
         foreach ($request->input('items', []) as $item) {
-            $receivedItems[(int) $item['purchase_item_id']] = (int) $item['quantity'];
+            $receivedItems[(int) $item['purchase_item_id']] = [
+                'quantity' => (int) $item['quantity'],
+                'cost_price' => array_key_exists('cost_price', $item) ? (float) $item['cost_price'] : null,
+                'selling_price' => array_key_exists('selling_price', $item) && $item['selling_price'] !== null && $item['selling_price'] !== '' ? (float) $item['selling_price'] : null,
+            ];
         }
 
-        $updatedPurchase = $this->purchaseService->receivePurchase($purchase, $receivedItems, auth()->id());
+        $updatedPurchase = $this->purchaseService->receivePurchase($purchase, $receivedItems, auth()->id(), $request->input('note', $purchase->note));
 
         return response()->json([
             'message' => 'Purchase received and stock updated successfully.',
