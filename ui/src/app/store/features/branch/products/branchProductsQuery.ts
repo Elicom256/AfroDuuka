@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
 export const productsQuery = createApi({
   reducerPath: 'productsPath',
@@ -12,7 +13,7 @@ export const productsQuery = createApi({
       return headers;
     },
   }),
-  tagTypes: ['ProductsAPI'],
+  tagTypes: [apiTags.products, apiTags.dashboard],
   endpoints: (builder) => ({
     // get products. Accepts an optional business_branch_id so a screen that offers a
     // branch dropdown (product audits) can pull that branch's products; omitting it
@@ -23,7 +24,7 @@ export const productsQuery = createApi({
         method: 'GET',
         params: business_branch_id ? { business_branch_id } : {},
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
     // get one product by id
     product: builder.query<any, string>({
@@ -31,7 +32,7 @@ export const productsQuery = createApi({
         url: `/${id}`,
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
 
     // analytics
@@ -40,7 +41,7 @@ export const productsQuery = createApi({
         url: '/analytics',
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
 
     // expiring products analytics
@@ -49,7 +50,7 @@ export const productsQuery = createApi({
         url: '/expiring',
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
 
     // smart restocking predictions
@@ -58,7 +59,7 @@ export const productsQuery = createApi({
         url: '/restocking',
         method: 'GET',
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
 
     // metrics
@@ -68,7 +69,7 @@ export const productsQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['ProductsAPI'],
+      providesTags: withDashboard(apiTags.products),
     }),
     // add product
     addProduct: builder.mutation<any, any>({
@@ -77,7 +78,7 @@ export const productsQuery = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['ProductsAPI'],
+      invalidatesTags: withDashboard(apiTags.products),
     }),
 
     // update product
@@ -87,7 +88,7 @@ export const productsQuery = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['ProductsAPI'],
+      invalidatesTags: withDashboard(apiTags.products),
     }),
 
     // delete product
@@ -96,7 +97,7 @@ export const productsQuery = createApi({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['ProductsAPI'],
+      invalidatesTags: withDashboard(apiTags.products),
     }),
   }),
 });
