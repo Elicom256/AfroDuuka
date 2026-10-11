@@ -10,11 +10,9 @@ import { businessQuery } from '../features/business/setup/businessQuery';
 import { onboardingQuery } from '../features/business/setup/onboardingQuery';
 import { rolesQuery } from '../features/business/roles/rolesQuery';
 import { supplierQuery } from '../features/business/suppliers/supplierQuery';
-import { branchesQuery } from '../features/business/branches/branchesQuery';
 import { branchWorkersQuery } from '../features/branch/workers/branchWorkersQuery';
 import { branchCustomersQuery } from '../features/branch/customers/branchCustomersQuery';
 import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
-import { branchReportsQuery } from '../features/branch/reports/branchReportsQuery';
 import { notificationsApi } from '../features/branch/notifications/notificationsQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
@@ -62,11 +60,9 @@ export const store = configureStore({
     [businessQuery.reducerPath]: businessQuery.reducer,
     [rolesQuery.reducerPath]: rolesQuery.reducer,
     [supplierQuery.reducerPath]: supplierQuery.reducer,
-    [branchesQuery.reducerPath]: branchesQuery.reducer,
     [branchWorkersQuery.reducerPath]: branchWorkersQuery.reducer,
     [branchCustomersQuery.reducerPath]: branchCustomersQuery.reducer,
     [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
-    [branchReportsQuery.reducerPath]: branchReportsQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
@@ -118,11 +114,9 @@ export const store = configureStore({
       businessQuery.middleware,
       rolesQuery.middleware,
       supplierQuery.middleware,
-      branchesQuery.middleware,
       branchWorkersQuery.middleware,
       branchCustomersQuery.middleware,
       branchSuppliersQuery.middleware,
-      branchReportsQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       attachmentsQuery.middleware,

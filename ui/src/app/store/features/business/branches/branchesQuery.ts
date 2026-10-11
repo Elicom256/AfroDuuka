@@ -1,72 +1,64 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const branchesQuery = createApi({
-  reducerPath: 'branchesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/branches`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['BranchesAPI'],
+export const branchesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     branches: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/dashboard/branches/',
         method: 'GET',
       }),
-      providesTags: ['BranchesAPI'],
+      providesTags: withDashboard(apiTags.branches),
     }),
     branch: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/branches/${id}`,
         method: 'GET',
       }),
-      providesTags: ['BranchesAPI'],
+      providesTags: withDashboard(apiTags.branches),
     }),
+    // Branch bookkeeping changes the branch list and the reports keyed on it, but
+    // no money or stock numbers.
     addBranch: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/',
+        url: '/dashboard/branches/',
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['BranchesAPI'],
+      invalidatesTags: withDashboard(apiTags.branches, apiTags.reports),
     }),
     updateBranch: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
-        url: `/${id}`,
+        url: `/dashboard/branches/${id}`,
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['BranchesAPI'],
+      invalidatesTags: withDashboard(apiTags.branches, apiTags.reports),
     }),
     deleteBranch: builder.mutation<any, number | string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/branches/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['BranchesAPI'],
+      invalidatesTags: withDashboard(apiTags.branches, apiTags.reports),
     }),
-    // dynamics
+    // Branch activity is a money read-model, so it shares the tags the money writers
+    // invalidate: a sale or purchase must move it.
     branchDynamics: builder.query<any, void>({
       query: () => ({
-        url: `/dynamics`,
+        url: `/dashboard/branches/dynamics`,
         method: 'GET',
       }),
-      providesTags: ['BranchesAPI'],
+      providesTags: withDashboard(apiTags.branches, apiTags.cashflow, apiTags.finance, apiTags.reports),
     }),
     // ============== cashflow analytics ===================
     cashFlowAnalytics: builder.query<any, any>({
       query: (period = 'last_7_days') => ({
-        url: '/cashflow/analytics',
+        url: '/dashboard/branches/cashflow/analytics',
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['BranchesAPI'],
+      providesTags: withDashboard(apiTags.branches, apiTags.cashflow, apiTags.finance, apiTags.reports),
     }),
   }),
 });
