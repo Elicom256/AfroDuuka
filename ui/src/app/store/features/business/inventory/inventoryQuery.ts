@@ -1,16 +1,11 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const inventoryQuery = createApi({
-  reducerPath: 'inventoryPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/products`,
-  }),
-  tagTypes: [apiTags.inventory, apiTags.dashboard],
+export const inventoryQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getInventory: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/products/',
         method: 'GET',
       }),
       providesTags: withDashboard(apiTags.inventory),

@@ -1,18 +1,7 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const productAuditQuery = createApi({
-  reducerPath: 'productAuditPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/product-audits`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ProductAuditAPI'],
+export const productAuditQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProductAudits: builder.query<any, any>({
       query: (params) => {
@@ -24,36 +13,53 @@ export const productAuditQuery = createApi({
         if (params?.date_to) searchParams.set('date_to', params.date_to);
         if (params?.search) searchParams.set('search', params.search);
         const qs = searchParams.toString();
-        return { url: `/?${qs}`, method: 'GET' };
+        return { url: `/product-audits/?${qs}`, method: 'GET' };
       },
-      providesTags: ['ProductAuditAPI'],
+      providesTags: withDashboard(apiTags.productAudit),
     }),
     getProductAudit: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
-      providesTags: ['ProductAuditAPI'],
+      query: (id) => ({ url: `/product-audits/${id}`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.productAudit),
     }),
+    // Approving/creating an audit reconciles counted stock against the system, so
+    // product and inventory figures move with it.
     addProductAudit: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
-      invalidatesTags: ['ProductAuditAPI'],
+      query: (body) => ({ url: '/product-audits/', method: 'POST', body }),
+      invalidatesTags: withDashboard(
+        apiTags.productAudit,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     updateProductAudit: builder.mutation<any, { id: string | number; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['ProductAuditAPI'],
+      query: ({ id, body }) => ({ url: `/product-audits/${id}`, method: 'PUT', body }),
+      invalidatesTags: withDashboard(
+        apiTags.productAudit,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     deleteProductAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['ProductAuditAPI'],
+      query: (id) => ({ url: `/product-audits/${id}`, method: 'DELETE' }),
+      invalidatesTags: withDashboard(apiTags.productAudit),
     }),
     approveProductAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}/approve`, method: 'POST' }),
-      invalidatesTags: ['ProductAuditAPI'],
+      query: (id) => ({ url: `/product-audits/${id}/approve`, method: 'POST' }),
+      invalidatesTags: withDashboard(
+        apiTags.productAudit,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     cancelProductAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}/cancel`, method: 'POST' }),
-      invalidatesTags: ['ProductAuditAPI'],
+      query: (id) => ({ url: `/product-audits/${id}/cancel`, method: 'POST' }),
+      invalidatesTags: withDashboard(apiTags.productAudit),
     }),
     getProductAuditReport: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}/report`, method: 'GET' }),
+      query: (id) => ({ url: `/product-audits/${id}/report`, method: 'GET' }),
     }),
   }),
 });
