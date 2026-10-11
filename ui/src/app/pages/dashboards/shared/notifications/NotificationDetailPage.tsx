@@ -12,6 +12,7 @@ import {
   useMarkAsReadMutation,
 } from '@/app/store/features/branch/notifications/notificationsQuery';
 import {
+  NOTIFICATIONS_ROUTE,
   notificationRouteForType,
   notificationTypeLabel,
 } from '../../executive/components/notifications/notificationUtils';
@@ -51,7 +52,7 @@ export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'branch
   if (isError || !notification) {
     return (
       <div className='space-y-4 p-6'>
-        <Button variant='ghost' onClick={() => navigate(`/${scope}/notifications`)}>
+        <Button variant='ghost' onClick={() => navigate(NOTIFICATIONS_ROUTE)}>
           <ArrowLeft className='mr-2 h-4 w-4' />
           Back to notifications
         </Button>
@@ -64,11 +65,11 @@ export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'branch
     );
   }
 
-  const relatedRoute = notificationRouteForType(notification.type, scope);
+  const relatedRoute = notificationRouteForType(notification, scope);
 
   return (
     <div className='space-y-6 p-6'>
-      <Button variant='ghost' className='-ml-3' onClick={() => navigate(`/${scope}/notifications`)}>
+      <Button variant='ghost' className='-ml-3' onClick={() => navigate(NOTIFICATIONS_ROUTE)}>
         <ArrowLeft className='mr-2 h-4 w-4' />
         Back to notifications
       </Button>
