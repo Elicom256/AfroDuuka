@@ -1,13 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authListenerMiddleware } from './authListener';
 import { apiErrorMiddleware } from '../apiErrorMiddleware';
+import { baseApi } from '../baseApi';
 import { authQuery } from '../features/auth/authQuery';
 import { workersQuery } from '../features/business/workers/workersQuery';
 import { productCategoriesQuery } from '../features/business/products/productsQuery';
-import { salesQuery } from '../features/branch/sales/salesQuery';
-import { purchasesQuery } from '../features/branch/purchases/purchasesQuery';
-import { saleReturnsQuery } from '../features/branch/sale-returns/saleReturnsQuery';
-import { purchaseReturnsQuery } from '../features/branch/purchase-returns/purchaseReturnsQuery';
 import { customersQuery } from '../features/business/customers/customersQuery';
 import { inventoryQuery } from '../features/business/inventory/inventoryQuery';
 import { businessQuery } from '../features/business/setup/businessQuery';
@@ -68,13 +65,10 @@ import { procurementApi } from '../features/procurement/procurementQuery';
 
 export const store = configureStore({
   reducer: {
+    [baseApi.reducerPath]: baseApi.reducer,
     [authQuery.reducerPath]: authQuery.reducer,
     [workersQuery.reducerPath]: workersQuery.reducer,
     [productCategoriesQuery.reducerPath]: productCategoriesQuery.reducer,
-    [salesQuery.reducerPath]: salesQuery.reducer,
-    [purchasesQuery.reducerPath]: purchasesQuery.reducer,
-    [saleReturnsQuery.reducerPath]: saleReturnsQuery.reducer,
-    [purchaseReturnsQuery.reducerPath]: purchaseReturnsQuery.reducer,
     [customersQuery.reducerPath]: customersQuery.reducer,
     [inventoryQuery.reducerPath]: inventoryQuery.reducer,
     [businessQuery.reducerPath]: businessQuery.reducer,
@@ -138,13 +132,10 @@ export const store = configureStore({
 
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
+      baseApi.middleware,
       authQuery.middleware,
       workersQuery.middleware,
       productCategoriesQuery.middleware,
-      salesQuery.middleware,
-      purchasesQuery.middleware,
-      saleReturnsQuery.middleware,
-      purchaseReturnsQuery.middleware,
       customersQuery.middleware,
       inventoryQuery.middleware,
       businessQuery.middleware,

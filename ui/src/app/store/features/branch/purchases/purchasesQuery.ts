@@ -1,30 +1,18 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const purchasesQuery = createApi({
-  reducerPath: 'purchasesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/purchases/branch-purchases`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: [apiTags.purchases, apiTags.dashboard],
+export const purchasesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     purchases: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/purchases/branch-purchases/',
         method: 'GET',
       }),
       providesTags: withDashboard(apiTags.purchases),
     }),
     purchase: builder.query<any, number>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/purchases/branch-purchases/${id}`,
         method: 'GET',
       }),
       providesTags: withDashboard(apiTags.purchases),
@@ -32,34 +20,57 @@ export const purchasesQuery = createApi({
 
     purchaseAnalytics: builder.query({
       query: (period = 'last_7_days') => ({
-        url: '/analytics?period=last_7_days',
+        url: '/purchases/branch-purchases/analytics?period=last_7_days',
         method: 'GET',
         params: { period },
       }),
       providesTags: withDashboard(apiTags.purchases),
     }),
+    // Receiving (and editing) a purchase changes stock and cost, and posts to the
+    // money read-models, so all of those tags are invalidated together.
     addPurchase: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/',
+        url: '/purchases/branch-purchases/',
         method: 'POST',
         body,
       }),
-      invalidatesTags: withDashboard(apiTags.purchases),
+      invalidatesTags: withDashboard(
+        apiTags.purchases,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.finance,
+        apiTags.cashflow,
+        apiTags.reports
+      ),
     }),
     updatePurchase: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
-        url: `/${id}`,
+        url: `/purchases/branch-purchases/${id}`,
         method: 'PUT',
         body,
       }),
-      invalidatesTags: withDashboard(apiTags.purchases),
+      invalidatesTags: withDashboard(
+        apiTags.purchases,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.finance,
+        apiTags.cashflow,
+        apiTags.reports
+      ),
     }),
     deletePurchase: builder.mutation<any, number | string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/purchases/branch-purchases/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: withDashboard(apiTags.purchases),
+      invalidatesTags: withDashboard(
+        apiTags.purchases,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.finance,
+        apiTags.cashflow,
+        apiTags.reports
+      ),
     }),
     receivePurchase: builder.mutation<
       any,
@@ -75,11 +86,18 @@ export const purchasesQuery = createApi({
       }
     >({
       query: ({ id, items, note }) => ({
-        url: `/${id}/receive`,
+        url: `/purchases/branch-purchases/${id}/receive`,
         method: 'POST',
         body: { items, note },
       }),
-      invalidatesTags: withDashboard(apiTags.purchases),
+      invalidatesTags: withDashboard(
+        apiTags.purchases,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.finance,
+        apiTags.cashflow,
+        apiTags.reports
+      ),
     }),
   }),
 });
