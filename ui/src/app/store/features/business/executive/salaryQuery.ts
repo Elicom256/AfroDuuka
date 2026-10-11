@@ -1,42 +1,32 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const salaryQuery = createApi({
-  reducerPath: 'salariesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/salaries`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['Salary'],
+export const salaryQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     salaries: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
-      providesTags: ['Salary'],
+      query: () => ({ url: '/dashboard/salaries/', method: 'GET' }),
+      providesTags: withDashboard(apiTags.salary),
     }),
 
     salary: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
-      providesTags: ['Salary'],
+      query: (id) => ({ url: `/dashboard/salaries/${id}`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.salary),
     }),
 
+    // Payroll lands in the ledger, so the finance and cash-flow read models move too.
     storeSalary: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
-      invalidatesTags: ['Salary'],
+      query: (body) => ({ url: '/dashboard/salaries/', method: 'POST', body }),
+      invalidatesTags: withDashboard(apiTags.salary, apiTags.finance, apiTags.cashflow),
     }),
 
     updateSalary: builder.mutation<any, { id: string | number; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['Salary'],
+      query: ({ id, body }) => ({ url: `/dashboard/salaries/${id}`, method: 'PUT', body }),
+      invalidatesTags: withDashboard(apiTags.salary, apiTags.finance, apiTags.cashflow),
     }),
 
     deleteSalary: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Salary'],
+      query: (id) => ({ url: `/dashboard/salaries/${id}`, method: 'DELETE' }),
+      invalidatesTags: withDashboard(apiTags.salary, apiTags.finance, apiTags.cashflow),
     }),
   }),
 });

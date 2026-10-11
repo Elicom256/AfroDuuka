@@ -15,7 +15,6 @@ import { branchWorkersQuery } from '../features/branch/workers/branchWorkersQuer
 import { branchCustomersQuery } from '../features/branch/customers/branchCustomersQuery';
 import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
 import { branchReportsQuery } from '../features/branch/reports/branchReportsQuery';
-import { branchFinancesQuery } from '../features/branch/finances/branchFinancesQuery';
 import { notificationsApi } from '../features/branch/notifications/notificationsQuery';
 import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
 import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
@@ -33,9 +32,7 @@ import { paymentGatewaysQuery } from '../features/business/executive/paymentGate
 import { whatsappQuery } from '../features/business/executive/whatsappQuery';
 import { printersQuery } from '../features/business/executive/printersQuery';
 import { reorderRulesQuery } from '../features/business/executive/reorderRulesQuery';
-import { salaryQuery } from '../features/business/executive/salaryQuery';
 import { countriesQuery } from '../features/countries/countriesQuery';
-import { cashFlowQuery } from '../features/business/executive/cashFlowQuery';
 import { aiQuery } from '../features/ai/aiQuery';
 import { todoQuery } from '../features/todos/todoQuery';
 import { plansQuery } from '../features/plans/plansQuery';
@@ -44,7 +41,6 @@ import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery
 import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
 import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
 import { expenseCategoriesQuery } from '../features/business/executive/expenseCategoriesQuery';
-import { expenseQuery } from '../features/business/executive/expenseQuery';
 import { activityLogQuery } from '../features/business/executive/activityLogQuery';
 import { reportExportsQuery } from '../features/business/executive/reportExportsQuery';
 import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
@@ -53,8 +49,6 @@ import { ordersQuery } from '../features/orders/ordersQuery';
 import { purchaseOrdersQuery } from '../features/orders/purchaseOrdersQuery';
 import { quotationsQuery } from '../features/orders/quotationsQuery';
 import { couponsQuery } from '../features/coupons/couponsQuery';
-import { financeQuery } from '../features/finance/financeQuery';
-import { financialAuditQuery } from '../features/audit/financialAuditQuery';
 import { taxCategoriesQuery, taxPaymentsQuery, taxRatesQuery } from '../features/business/tax/taxQuery';
 import { procurementApi } from '../features/procurement/procurementQuery';
 
@@ -73,7 +67,6 @@ export const store = configureStore({
     [branchCustomersQuery.reducerPath]: branchCustomersQuery.reducer,
     [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
     [branchReportsQuery.reducerPath]: branchReportsQuery.reducer,
-    [branchFinancesQuery.reducerPath]: branchFinancesQuery.reducer,
     [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
     [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
     [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
@@ -84,7 +77,6 @@ export const store = configureStore({
     [whatsappQuery.reducerPath]: whatsappQuery.reducer,
     [printersQuery.reducerPath]: printersQuery.reducer,
     [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
-    [salaryQuery.reducerPath]: salaryQuery.reducer,
     [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
     [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
     [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
@@ -93,7 +85,6 @@ export const store = configureStore({
     [supplierSettingsQuery.reducerPath]: supplierSettingsQuery.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [countriesQuery.reducerPath]: countriesQuery.reducer,
-    [cashFlowQuery.reducerPath]: cashFlowQuery.reducer,
     [aiQuery.reducerPath]: aiQuery.reducer,
     [todoQuery.reducerPath]: todoQuery.reducer,
     [plansQuery.reducerPath]: plansQuery.reducer,
@@ -102,7 +93,6 @@ export const store = configureStore({
     [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
     [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
     [expenseCategoriesQuery.reducerPath]: expenseCategoriesQuery.reducer,
-    [expenseQuery.reducerPath]: expenseQuery.reducer,
     [activityLogQuery.reducerPath]: activityLogQuery.reducer,
     [reportExportsQuery.reducerPath]: reportExportsQuery.reducer,
     [receiptsQuery.reducerPath]: receiptsQuery.reducer,
@@ -111,8 +101,6 @@ export const store = configureStore({
     [purchaseOrdersQuery.reducerPath]: purchaseOrdersQuery.reducer,
     [quotationsQuery.reducerPath]: quotationsQuery.reducer,
     [couponsQuery.reducerPath]: couponsQuery.reducer,
-    [financeQuery.reducerPath]: financeQuery.reducer,
-    [financialAuditQuery.reducerPath]: financialAuditQuery.reducer,
     [taxCategoriesQuery.reducerPath]: taxCategoriesQuery.reducer,
     [taxRatesQuery.reducerPath]: taxRatesQuery.reducer,
     [taxPaymentsQuery.reducerPath]: taxPaymentsQuery.reducer,
@@ -135,7 +123,6 @@ export const store = configureStore({
       branchCustomersQuery.middleware,
       branchSuppliersQuery.middleware,
       branchReportsQuery.middleware,
-      branchFinancesQuery.middleware,
       branchPromotionsQuery.middleware,
       branchAttendanceQuery.middleware,
       attachmentsQuery.middleware,
@@ -146,7 +133,6 @@ export const store = configureStore({
       whatsappQuery.middleware,
       printersQuery.middleware,
       reorderRulesQuery.middleware,
-      salaryQuery.middleware,
       attendanceSettingsQuery.middleware,
       customerSettingsQuery.middleware,
       paymentSettingsQuery.middleware,
@@ -155,7 +141,6 @@ export const store = configureStore({
       supplierSettingsQuery.middleware,
       notificationsApi.middleware,
       countriesQuery.middleware,
-      cashFlowQuery.middleware,
       aiQuery.middleware,
       todoQuery.middleware,
       plansQuery.middleware,
@@ -164,7 +149,6 @@ export const store = configureStore({
       subscriptionPaymentsQuery.middleware,
       superAdminBusinessesQuery.middleware,
       expenseCategoriesQuery.middleware,
-      expenseQuery.middleware,
       activityLogQuery.middleware,
       reportExportsQuery.middleware,
       receiptsQuery.middleware,
@@ -172,8 +156,6 @@ export const store = configureStore({
       ordersQuery.middleware,
       purchaseOrdersQuery.middleware,
       couponsQuery.middleware,
-      financeQuery.middleware,
-      financialAuditQuery.middleware,
       taxCategoriesQuery.middleware,
       taxRatesQuery.middleware,
       taxPaymentsQuery.middleware,

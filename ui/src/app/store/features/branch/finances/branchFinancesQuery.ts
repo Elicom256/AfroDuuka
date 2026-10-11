@@ -1,25 +1,16 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const branchFinancesQuery = createApi({
-  reducerPath: 'branchFinancesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/finances`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['BranchFinancesAPI'],
+// This reads the same /finances feed as financeQuery, so it keys off the finance
+// tag rather than a tag of its own: any finance mutation already invalidates it.
+export const branchFinancesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     branchFinances: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/finances/',
         method: 'GET',
       }),
-      providesTags: ['BranchFinancesAPI'],
+      providesTags: withDashboard(apiTags.finance),
     }),
   }),
 });

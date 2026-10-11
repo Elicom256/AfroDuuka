@@ -13,6 +13,7 @@
  * Grouping:
  *  - stock domain ... products, inventory, stockTransfers, productAudit, priceHistory
  *  - money domain .. sales, purchases, saleReturns, purchaseReturns, finance, cashflow, expenses, salary
+ *  - audits ......... financialAudit
  *  - read model .... reports, branches (dashboard / cashflow analytics), dashboard (umbrella)
  */
 export const apiTags = {
@@ -31,6 +32,8 @@ export const apiTags = {
   cashflow: 'CashFlowAPI',
   expenses: 'ExpenseAPI',
   salary: 'Salary',
+  // audits
+  financialAudit: 'FinancialAuditAPI',
   // read model
   reports: 'Reports',
   branches: 'BranchesAPI',
@@ -56,6 +59,7 @@ export const sharedApiTagTypes = [
   apiTags.cashflow,
   apiTags.expenses,
   apiTags.salary,
+  apiTags.financialAudit,
   apiTags.reports,
   apiTags.branches,
   apiTags.dashboard,

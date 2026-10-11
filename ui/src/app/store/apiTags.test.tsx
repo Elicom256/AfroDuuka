@@ -66,6 +66,7 @@ describe('shared RTK tags registry', () => {
       apiTags.cashflow,
       apiTags.expenses,
       apiTags.salary,
+      apiTags.financialAudit,
       apiTags.reports,
       apiTags.branches,
       apiTags.dashboard,
