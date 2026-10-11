@@ -1,44 +1,62 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const stockTransfersQuery = createApi({
-  reducerPath: 'stockTransfersPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/stock-transfers`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) headers.set('authorization', `Bearer ${token}`);
-      return headers;
-    },
-  }),
-  tagTypes: ['StockTransfersAPI'],
+export const stockTransfersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     stockTransfers: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
-      providesTags: ['StockTransfersAPI'],
+      query: () => ({ url: '/stock-transfers/', method: 'GET' }),
+      providesTags: withDashboard(apiTags.stockTransfers),
     }),
     stockTransfer: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
-      providesTags: ['StockTransfersAPI'],
+      query: (id) => ({ url: `/stock-transfers/${id}`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.stockTransfers),
     }),
+    // A transfer moves stock between branches, so product and inventory figures
+    // move with it.
     createStockTransfer: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
-      invalidatesTags: ['StockTransfersAPI'],
+      query: (body) => ({ url: '/stock-transfers/', method: 'POST', body }),
+      invalidatesTags: withDashboard(
+        apiTags.stockTransfers,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     dispatchStockTransfer: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}/dispatch`, method: 'POST' }),
-      invalidatesTags: ['StockTransfersAPI'],
+      query: (id) => ({ url: `/stock-transfers/${id}/dispatch`, method: 'POST' }),
+      invalidatesTags: withDashboard(
+        apiTags.stockTransfers,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     receiveStockTransfer: builder.mutation<any, any>({
-      query: ({ id, ...body }) => ({ url: `/${id}/receive`, method: 'POST', body }),
-      invalidatesTags: ['StockTransfersAPI'],
+      query: ({ id, ...body }) => ({ url: `/stock-transfers/${id}/receive`, method: 'POST', body }),
+      invalidatesTags: withDashboard(
+        apiTags.stockTransfers,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     cancelStockTransfer: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}/cancel`, method: 'POST' }),
-      invalidatesTags: ['StockTransfersAPI'],
+      query: (id) => ({ url: `/stock-transfers/${id}/cancel`, method: 'POST' }),
+      invalidatesTags: withDashboard(
+        apiTags.stockTransfers,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
     deleteStockTransfer: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['StockTransfersAPI'],
+      query: (id) => ({ url: `/stock-transfers/${id}`, method: 'DELETE' }),
+      invalidatesTags: withDashboard(
+        apiTags.stockTransfers,
+        apiTags.products,
+        apiTags.inventory,
+        apiTags.reports
+      ),
     }),
   }),
 });

@@ -1,28 +1,16 @@
 /*-----------------------------------------------------------------------------------
- * RTK Query slice: priceHistoryQuery
+ * RTK Query endpoints: priceHistoryQuery
  * -------------------------------
- * Endpoints for price history data.
+ * Endpoints for price history data, injected into the shared baseApi so a change
+ * that writes price history can invalidate it from another domain.
  *   - productPriceHistory: product-specific timeline (paginated)
  *   - priceHistoryAnalytics: aggregated price change analytics
- * Base URL points to the main API; requests go to /products/{id}/price-history
- * and /price-history/analytics respectively.
  *---------------------------------------------------------------------------------*/
 
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const priceHistoryQuery = createApi({
-  reducerPath: 'priceHistoryPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_BASE_URL,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['PriceHistory'],
+export const priceHistoryQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Paginated price timeline for a single product
     productPriceHistory: builder.query<any, { productId: string; page?: number; per_page?: number }>({
@@ -31,7 +19,7 @@ export const priceHistoryQuery = createApi({
         method: 'GET',
         params: { page, per_page },
       }),
-      providesTags: ['PriceHistory'],
+      providesTags: withDashboard(apiTags.priceHistory),
     }),
 
     // Price change analytics over a period
@@ -41,12 +29,9 @@ export const priceHistoryQuery = createApi({
         method: 'GET',
         params: { period },
       }),
-      providesTags: ['PriceHistory'],
+      providesTags: withDashboard(apiTags.priceHistory),
     }),
   }),
 });
 
-export const {
-  useProductPriceHistoryQuery,
-  usePriceHistoryAnalyticsQuery,
-} = priceHistoryQuery;
+export const { useProductPriceHistoryQuery, usePriceHistoryAnalyticsQuery } = priceHistoryQuery;
