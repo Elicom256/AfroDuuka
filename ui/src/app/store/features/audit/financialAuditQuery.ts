@@ -1,18 +1,7 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
-export const financialAuditQuery = createApi({
-  reducerPath: 'financialAuditPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/financial-audits`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['FinancialAuditAPI'],
+export const financialAuditQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getFinancialAudits: builder.query<any, any>({
       query: (params) => {
@@ -24,36 +13,39 @@ export const financialAuditQuery = createApi({
         if (params?.date_to) searchParams.set('date_to', params.date_to);
         if (params?.search) searchParams.set('search', params.search);
         const qs = searchParams.toString();
-        return { url: `/?${qs}`, method: 'GET' };
+        return { url: `/financial-audits/?${qs}`, method: 'GET' };
       },
-      providesTags: ['FinancialAuditAPI'],
+      providesTags: withDashboard(apiTags.financialAudit),
     }),
     getFinancialAudit: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
-      providesTags: ['FinancialAuditAPI'],
+      query: (id) => ({ url: `/financial-audits/${id}`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.financialAudit),
     }),
+    // Creating or approving an audit reconciles the ledger, so the finance and
+    // cash-flow read models move with it.
     addFinancialAudit: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
-      invalidatesTags: ['FinancialAuditAPI'],
+      query: (body) => ({ url: '/financial-audits/', method: 'POST', body }),
+      invalidatesTags: withDashboard(apiTags.financialAudit, apiTags.finance, apiTags.cashflow),
     }),
     updateFinancialAudit: builder.mutation<any, { id: string | number; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['FinancialAuditAPI'],
+      query: ({ id, body }) => ({ url: `/financial-audits/${id}`, method: 'PUT', body }),
+      invalidatesTags: withDashboard(apiTags.financialAudit, apiTags.finance, apiTags.cashflow),
     }),
     deleteFinancialAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['FinancialAuditAPI'],
+      query: (id) => ({ url: `/financial-audits/${id}`, method: 'DELETE' }),
+      invalidatesTags: withDashboard(apiTags.financialAudit),
     }),
     approveFinancialAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}/approve`, method: 'POST' }),
-      invalidatesTags: ['FinancialAuditAPI'],
+      query: (id) => ({ url: `/financial-audits/${id}/approve`, method: 'POST' }),
+      invalidatesTags: withDashboard(apiTags.financialAudit, apiTags.finance, apiTags.cashflow),
     }),
     cancelFinancialAudit: builder.mutation<any, string | number>({
-      query: (id) => ({ url: `/${id}/cancel`, method: 'POST' }),
-      invalidatesTags: ['FinancialAuditAPI'],
+      query: (id) => ({ url: `/financial-audits/${id}/cancel`, method: 'POST' }),
+      invalidatesTags: withDashboard(apiTags.financialAudit),
     }),
     getFinancialAuditReport: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}/report`, method: 'GET' }),
+      query: (id) => ({ url: `/financial-audits/${id}/report`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.financialAudit),
     }),
   }),
 });

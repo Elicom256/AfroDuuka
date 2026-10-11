@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+import { apiTags, withDashboard } from '@/app/store/apiTags';
 
 /**
  * Which way money moved. Mirrors App\Enums\CashFlowDirection on the server, which rejects
@@ -13,28 +14,11 @@ type CashFlowRecord = {
   direction: CashFlowDirection | null;
 };
 
-export const cashFlowQuery = createApi({
-  reducerPath: 'cashFlowPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/finances`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  /**
-   * FinanceAPI is this slice's own name for the finance query tags. It is declared here so
-   * invalidating it from a cash-flow mutation typechecks; the tag is only ever *read* by
-   * financeQuery, so nothing in this slice serves it.
-   */
-  tagTypes: ['CashFlowAPI', 'FinanceAPI'],
+export const cashFlowQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCashFlows: builder.query<any, number | void>({
-      query: (page = 1) => ({ url: `/?page=${page}`, method: 'GET' }),
-      providesTags: ['CashFlowAPI'],
+      query: (page = 1) => ({ url: `/finances/?page=${page}`, method: 'GET' }),
+      providesTags: withDashboard(apiTags.cashflow),
     }),
 
     /**
@@ -42,7 +26,7 @@ export const cashFlowQuery = createApi({
      * required.
      *
      * Such a row is excluded from the cash balance — the server has no sign for it — which
-     * is why the executive dashboard warns about them. Both slices are invalidated: this
+     * is why the executive dashboard warns about them. Both domains are invalidated: this
      * one for the ledger row itself, and FinanceAPI because `unsigned_adjustments` and
      * `cash_balance` come from the dashboard query, which is what the warning is driven by.
      * Invalidating only the first would leave the warning on screen after a repair that
@@ -53,11 +37,11 @@ export const cashFlowQuery = createApi({
       { id: number; direction: CashFlowDirection }
     >({
       query: ({ id, direction }) => ({
-        url: `/adjustments/${id}/direction`,
+        url: `/finances/adjustments/${id}/direction`,
         method: 'PATCH',
         body: { direction },
       }),
-      invalidatesTags: ['CashFlowAPI', 'FinanceAPI'],
+      invalidatesTags: withDashboard(apiTags.cashflow, apiTags.finance),
     }),
   }),
 });
