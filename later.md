@@ -79,3 +79,57 @@ error: failed to solve: process "/bin/sh -c composer install         --no-intera
 - `api/config/database.php` (pgsql connection options)
 - `renderenv.md` (document `DB_EMULATE_PREPARES=true`)
 - Render dashboard env vars (manual step)
+
+---
+
+# BEFORE LAUNCH checklist (full-app audit, 2026-10-11)
+
+Full-app audit across API security, API production ops, UI, and deployment/infra.
+Status scoring: DONE (in repo, commit listed) / needs-deploy (in repo, code ready, Render redeploy pending) / SHORT (1-line searchable description) / decision (env or product choice needed).
+
+## Immediate (code already fixed in this branch)
+- [DONE] Neon/PgBouncer 25P02 on POS/sales/purchases — config/database.php now defaults pgsql to emulated prepares unless `DB_EMULATE_PREPARES=false`. Commit `ea22a44`. **needs-deploy** on Render.
+- [DONE] Render compose build failure (phpspreadsheet needs ext-gd; bare composer image lacks it) — vendor stage now builds from the runtime base; verified locally. Commit `b64b57f`. **needs-deploy** on Render.
+- [DONE] Procurement API slice: relative `/api/procurement` baseUrl + token read from a non-existent `auth` reducer → now uses `VITE_BASE_URL` + `localStorage.getItem('token')` like every other slice (would 502/bearer-less on prod).
+- [DONE] UI nginx: security headers now sent on hashed assets (add_header inheritance bug) and index.html set `Cache-Control: no-store`.
+- [DONE] UI Dockerfile: `npm install` → `npm ci`, and the build now FAILS if the `VITE_BASE_URL` build arg is missing (no more silently baking `http://localhost/api`).
+- [DONE] `qrcode` moved devDependencies → dependencies (runtime import in ReceiptView).
+- [DONE] API CORS locked down: published `config/cors.php`, origins = `CORS_ALLOWED_ORIGINS` env (default `https://afroduuka-ui.onrender.com`), credentials off.
+- [DONE] `reports` apiResource was registered without an auth guard → `auth:sanctum` now explicit (401 instead of policy 403 for guests).
+- [DONE] SNS signing-cert URL host check tightened to exactly `sns.<region>.amazonaws.com[.cn]` (was any `.amazonaws.com` suffix); unit test `tests/Unit/WhatsApp/SnsSignatureVerifierTest.php` added.
+- [FIXED+REVERTED] Printer DELETE — already covered by the Central delete gate (BlockRestrictedRoleActions); added a comment documenting the reason instead.
+
+## UI — CORRECTNESS / prod wiring
+- [decision] `ui/.env` still points `VITE_BASE_URL=http://localhost/api` (its own file, not committed issue: `ui/dist` from an earlier local build contains 68 baked occurrences). Ensure every deploy passes `--build-arg VITE_BASE_URL=https://afroduuka-api.onrender.com/api`. The Dockerfile now enforces it.
+- [SHORT] `ui/src/app/store/features/branch/receipts/receiptsQuery.ts:34` hardcoded `|| 'http://localhost/api'` fallback — replace with `import.meta.env.VITE_BASE_URL` (or drop the fallback).
+- [SHORT] Audit any other hardcoded `/api` or `localhost` strings in `ui/src` (`grep -rn "http://localhost" ui/src`).
+
+## API — SECURITY (needs decision or careful check)
+- [decision] Sanctum token expiry: `api/config/sanctum.php` `expiration => null` (tokens never expire). No refresh flow exists in the SPA, so a short TTL forces re-login. Pick 7–30d; add 401 re-login handling in the SPA.
+- [SHORT] `api/app/Http/Requests/UpdateUserRequest.php:36` — unscoped `role_id` could escalate privileges (e.g. a branch manager setting their own role to Executive). Scope to the caller's business + allowed set; add a test.
+- [SHORT] PaymentGateway API exposes stored credentials via index/show (`api/routes/payment-gateways.php`). Mask secrets server-side (return `configured: true` only) unless the frontend needs real values.
+- [SHORT] Default new-user password `'password'` — force change on first login or generate a random one via email.
+- [decision] Login throttling is per-IP only (`ThrottleRequests`); acceptable pre-launch. If credential stuffing is a concern, add per-account throttling.
+- [SHORT] `reports` prefix group uses `auth:sanctum` but no `role` gate — double-check PolicyViewAll covers every business role.
+
+## API — PRODUCTION OPS
+- [HIGH decision] **No queue worker on Render.** Nothing runs `queue:work`; local `docker-compose.yml` has a worker service but Render has none. `QUEUE_CONNECTION=database` + no worker ⇒ CheckNotificationsJob / WhatsApp / SES suppression jobs accumulate in `jobs` table silently. Options: (a) paid Render worker service, (b) cron endpoint/`queue:work --stop-when-empty`, (c) handle synchronously (`QUEUE_CONNECTION=sync`) if acceptable for low volume. Also add `render.yaml` for reproducible deploys.
+- [HIGH decision] **Scheduler** (`routes/console.php`) does not run on Render — scheduled reports/notifications/backups won't fire. Use Render Cron or a supervisor process for `schedule:work`.
+- [SHORT] `APP_DEBUG=true` and `APP_URL=http://localhost` in renderenv.md — flip to `false` / `https://afroduuka-ui.onrender.com` before launch.
+- [SHORT] Logs go to ephemeral container filesystem (lost on Redeploy). Point `LOG_CHANNEL` at a persistent sink (Neon? no — use a host/Sentry/papertrail) or accept loss.
+- [SHORT] `config/database.php` PgBouncer: consider auto-detecting `-pooler.` in `DB_URL` so `DB_EMULATE_PREPARES` cannot be accidentally unset again.
+- [SHORT] Add DB-backed "warm" pool or keep `php artisan octane:reload` after deploy; verify connections don't pile up past Neon pool limit.
+- [SHORT] Verify migrations run on release (entrypoint supports `SKIP_MIGRATIONS=true` sidecar) and `php artisan about` shows production mode.
+
+## DATA / SEEDING
+- [decision] `DatabaseSeeder` is dev-oriented; do NOT run it on prod. Create a guarded `ProductionSeeder` (or `--seed` for a specific class) that provisions only: default roles (BusinessService creates them on signup), PaymentMethod rows (PaymentMethodSeeder — NOT in DatabaseSeeder today), plan/currency reference data.
+- [SHORT] Verify every export/excel path (phpspreadsheet) works on prod PHP (ext-gd now present in base image — verified fix).
+
+## DEPLOY BUILD / LAUNCH PATH
+- [SHORT] `ui/dist/` root-owned from an earlier `sudo` build — `npm run build` fails at `prepare-out-dir` until `sudo rm -rf ui/dist`. Do this once locally before the next build.
+- [SHORT] Confirm Render UI Dockerfile build passes `--build-arg VITE_BASE_URL=https://afroduuka-api.onrender.com/api`.
+- [SHORT] Manual smoke on prod after redeploy: login → POS checkout completes → dashboard loads → a scheduled-notifications trigger fires → a report PDF/export downloads → product image uploads (8M post size) → WhatsApp outbox flush.
+- [SHORT] Custom domain + TLS: nginx only listens on :80 (no cert); terminate TLS at Render/Router level.
+
+## Perf noticed (not blocking)
+- [SHORT] `roles` name lookup runs inside every tenant query transaction start; memoised per user/role in BusinessContext already. Fine for launch; revisit only if dashboard latency shows up on the pooler.
