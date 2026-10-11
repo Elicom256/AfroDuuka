@@ -47,10 +47,19 @@ RUN setcap -r /usr/local/bin/frankenphp
 # ------------------------------------------------------------------------------
 # Dependency layer (Composer)
 # ------------------------------------------------------------------------------
-
-FROM composer:2 AS vendor
+#
+# Resolved from `base` rather than FROM composer:2: the official composer image
+# is a bare PHP 8.5 CLI with almost none of the runtime extensions, so composer
+# install there fails phpspreadsheet's platform check for ext-gd (and would lie
+# about any other dependency against PHP 8.5 vs the runtime's 8.3). Installing
+# against `base` resolves every package exactly as the runtime sees it.
+FROM base AS vendor
 
 WORKDIR /app
+
+# The FrankenPHP base does not ship composer; borrow the binary from the
+# official image so the rest of this stage is just the runtime PHP.
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 # Only dependency files first for optimal layer caching
 COPY composer.json composer.lock ./
@@ -77,8 +86,8 @@ ARG GROUP_ID=1000
 
 WORKDIR /app
 
-# FIXED: Copy the global composer executable from the vendor stage into system binaries
-COPY --from=vendor /usr/bin/composer /usr/bin/composer
+# Copy the global composer executable from the vendor stage into system binaries
+COPY --from=vendor /usr/local/bin/composer /usr/local/bin/composer
 
 # Copy dependencies from vendor stage
 COPY --link --from=vendor /app/vendor ./vendor
