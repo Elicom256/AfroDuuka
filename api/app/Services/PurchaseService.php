@@ -84,7 +84,7 @@ class PurchaseService
         });
     }
 
-    public function receivePurchase(Purchase $purchase, array $receivedItems, ?int $receivedBy = null): Purchase
+    public function receivePurchase(Purchase $purchase, array $receivedItems, ?int $receivedBy = null, ?string $note = null): Purchase
     {
         if ($purchase->status === 'completed' && ! is_null($purchase->received_at)) {
             throw ValidationException::withMessages([
@@ -92,17 +92,23 @@ class PurchaseService
             ]);
         }
 
-        return DB::transaction(function () use ($purchase, $receivedItems, $receivedBy) {
+        return DB::transaction(function () use ($purchase, $receivedItems, $receivedBy, $note) {
             $userId = $receivedBy ?? Auth::id();
 
             foreach ($purchase->purchaseItems as $item) {
-                $receivedQty = (int) ($receivedItems[$item->id] ?? $item->quantity);
+                $received = $receivedItems[$item->id] ?? ['quantity' => $item->quantity, 'cost_price' => null, 'selling_price' => null];
+                $receivedQty = (int) ($received['quantity'] ?? $item->quantity);
 
                 if ($receivedQty < 0 || $receivedQty > (int) $item->quantity) {
                     throw ValidationException::withMessages([
                         "items.{$item->id}.quantity" => "Received quantity for item {$item->product_id} exceeds the ordered quantity.",
                     ]);
                 }
+
+                $item->update([
+                    'cost_price' => $received['cost_price'] ?? $item->cost_price,
+                    'selling_price' => $received['selling_price'] ?? $item->selling_price,
+                ]);
 
                 $this->applyReceivedToProduct($item, $receivedQty);
             }
@@ -111,6 +117,7 @@ class PurchaseService
                 'status' => 'completed',
                 'received_at' => now(),
                 'received_by' => $userId,
+                'note' => $note ?? $purchase->note,
             ]);
 
             return $purchase->fresh()->load('purchaseItems');

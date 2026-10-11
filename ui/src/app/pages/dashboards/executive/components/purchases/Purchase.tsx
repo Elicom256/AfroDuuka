@@ -149,7 +149,10 @@ export const Purchase = () => {
             id: item.id,
             product_name: item?.product?.name ?? 'Unknown',
             quantity: item.quantity,
+            cost_price: Number(item.cost_price ?? 0),
+            selling_price: item.selling_price == null ? null : Number(item.selling_price),
           }))}
+          note={purchase.note ?? ''}
           onReceived={refetch}
         />
       )}
