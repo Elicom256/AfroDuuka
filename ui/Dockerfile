@@ -8,8 +8,13 @@ WORKDIR /app
 ARG VITE_BASE_URL
 ENV VITE_BASE_URL=$VITE_BASE_URL
 
+# Fail the build loudly if a deploy forgot the API origin: baking the default
+# http://localhost/api into the bundle would otherwise ship a broken app.
+RUN test -n "$VITE_BASE_URL" \
+    || (echo "ERROR: VITE_BASE_URL build arg is required (e.g. --build-arg VITE_BASE_URL=https://afroduuka-api.onrender.com/api)" && exit 1)
+
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 

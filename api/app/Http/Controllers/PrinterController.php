@@ -59,6 +59,9 @@ class PrinterController extends Controller
 
     public function destroy(Printer $printer)
     {
+        // Delete is not gated here on purpose; the Central delete gate in
+        // BlockRestrictedRoleActions refuses it for restricted roles (see
+        // MutatingRouteAuthorizationAuditTest::INTENTIONAL).
         $printer->delete();
 
         return response()->json(['message' => 'Printer deleted']);

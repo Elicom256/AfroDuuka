@@ -75,9 +75,9 @@ export interface ProcurementOverview {
 export const procurementApi = createApi({
   reducerPath: 'procurementApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api/procurement',
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth?.token;
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/procurement`,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }

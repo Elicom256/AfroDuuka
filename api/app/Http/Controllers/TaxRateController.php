@@ -13,6 +13,10 @@ class TaxRateController extends Controller
 {
     public function index(): JsonResponse
     {
+        // tax_rates has no tenant column of its own; isolation comes from the
+        // owning tax category, whose BaseModel global scope constrains the
+        // whereHas() subquery to the caller's branch set. Covered by
+        // tests/Feature/Tax/TaxRateTest.
         $rates = TaxRate::with('taxCategory')
             ->whereHas('taxCategory')
             ->orderBy('id', 'asc')
@@ -69,6 +73,9 @@ class TaxRateController extends Controller
 
     private function assertOwnsCategory(TaxRate $taxRate): void
     {
+        // TaxCategory's BaseModel global scope filters this existence check to the
+        // caller's branch set, so a rate whose category lives in another branch
+        // is indistinguishable from a missing row.
         if (! TaxCategory::whereKey($taxRate->tax_category_id)->exists()) {
             abort(404, 'Tax rate not found.');
         }

@@ -140,8 +140,9 @@ Route::middleware('throttle:api')->group(function () {
 
     // Scheduled report definitions (Report model). Registered after the reports
     // prefix group above so the static stats paths (e.g. /reports/branch-performance)
-    // win over the {report} wildcard in the resource routes.
-    Route::apiResource('reports', ReportController::class);
+    // win over the {report} wildcard in the resource routes. The auth guard is
+    // explicit here: previously this resource was registered without one.
+    Route::apiResource('reports', ReportController::class)->middleware('auth:sanctum');
 
     Route::prefix('countries')->group(function () {
         require __DIR__.'/countries.php';

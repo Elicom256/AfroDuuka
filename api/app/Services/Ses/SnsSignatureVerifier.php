@@ -27,7 +27,7 @@ class SnsSignatureVerifier
     /**
      * Only ever fetch a signing certificate from AWS.
      */
-    private const CERT_HOST_SUFFIX = '.amazonaws.com';
+    private const CERT_HOST_RE = '/^sns\.[a-z0-9-]+\.amazonaws\.com(\.cn)?$/';
 
     /**
      * @param  array<string, mixed>  $payload  The decoded SNS envelope.
@@ -145,11 +145,11 @@ class SnsSignatureVerifier
     }
 
     /**
-     * HTTPS, and genuinely on an AWS domain.
+     * HTTPS, and genuinely on an AWS SNS certificate host.
      *
-     * Checks the parsed host rather than a substring, so
-     * "https://sns.us-east-1.amazonaws.com.evil.test/cert.pem" — which contains the
-     * allowed string — is rejected.
+     * SNS serves signing certificates only from https://sns.<region>.amazonaws.com/
+     * (and the .cn variant). A host that merely ends in .amazonaws.com — for example
+     * "sns.us-east-1.amazonaws.com.evil.test" — is rejected.
      */
     public function isAwsCertificateUrl(string $url): bool
     {
@@ -161,12 +161,7 @@ class SnsSignatureVerifier
 
         $host = strtolower((string) ($parts['host'] ?? ''));
 
-        if ($host === '' || ! str_ends_with($host, self::CERT_HOST_SUFFIX)) {
-            return false;
-        }
-
-        // A bare "amazonaws.com" is not a host AWS serves certificates from.
-        return $host !== 'amazonaws.com' && ! preg_match('/^\d+\.\d+\.\d+\.\d+$/', $host);
+        return preg_match(self::CERT_HOST_RE, $host) === 1;
     }
 
     /**
