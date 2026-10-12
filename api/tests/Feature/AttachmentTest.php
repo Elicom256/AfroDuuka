@@ -20,11 +20,31 @@ class AttachmentTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
+    /** SOI marker followed by enough bytes to be a plausible truncated JPEG. */
+    private const JPEG_BYTES = "\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00";
+
+    /** PDF header plus a minimal body — enough for the signature check. */
+    private const PDF_BYTES = "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n";
+
     protected User $user;
 
     protected Business $business;
 
     protected BusinessBranch $branch;
+
+    /**
+     * A fake upload whose bytes are real for its extension.
+     *
+     * UploadedFile::fake()->create() writes a file of the requested size filled with
+     * zeros, which used to satisfy the mimes rule because that rule only reads the
+     * client-reported MIME header. It does not satisfy RealFileContent, and should not:
+     * these tests are about the upload path working, so they now hand over a file that
+     * genuinely is what it claims to be.
+     */
+    private function fileWithContent(string $name, string $mime, string $bytes): UploadedFile
+    {
+        return UploadedFile::fake()->createWithContent($name, $bytes)->mimeType($mime);
+    }
 
     protected function setUp(): void
     {
@@ -65,7 +85,7 @@ class AttachmentTest extends TestCase
         $product = $this->makeProduct();
 
         $response = $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('iphone.jpg', 500, 'image/jpeg'),
+            'file' => $this->fileWithContent('iphone.jpg', 'image/jpeg', self::JPEG_BYTES),
         ]);
 
         $response->assertStatus(201)
@@ -89,7 +109,7 @@ class AttachmentTest extends TestCase
         $product = $this->makeProduct();
 
         $response = $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('manual.pdf', 500, 'application/pdf'),
+            'file' => $this->fileWithContent('manual.pdf', 'application/pdf', self::PDF_BYTES),
         ]);
 
         $response->assertStatus(201);
@@ -100,7 +120,7 @@ class AttachmentTest extends TestCase
     {
         $product = $this->makeProduct();
         $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('front.jpg', 500, 'image/jpeg'),
+            'file' => $this->fileWithContent('front.jpg', 'image/jpeg', self::JPEG_BYTES),
         ]);
 
         $response = $this->getJson("/api/products/{$product->id}/attachments")
@@ -114,7 +134,7 @@ class AttachmentTest extends TestCase
     {
         $product = $this->makeProduct();
         $upload = $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('front.jpg', 500, 'image/jpeg'),
+            'file' => $this->fileWithContent('front.jpg', 'image/jpeg', self::JPEG_BYTES),
         ]);
         $attachment = $upload->json('attachment');
 
@@ -131,7 +151,7 @@ class AttachmentTest extends TestCase
         $product = $this->makeProduct($otherBranch);
 
         $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('sneaky.jpg', 500, 'image/jpeg'),
+            'file' => $this->fileWithContent('sneaky.jpg', 'image/jpeg', self::JPEG_BYTES),
         ])->assertStatus(404);
     }
 
@@ -168,7 +188,7 @@ class AttachmentTest extends TestCase
         ]);
 
         $this->postJson("/api/dashboard/customers/{$customer->id}/attachments", [
-            'file' => UploadedFile::fake()->create('kra.pdf', 300, 'application/pdf'),
+            'file' => $this->fileWithContent('kra.pdf', 'application/pdf', self::PDF_BYTES),
         ])->assertStatus(201);
 
         $this->assertDatabaseHas('attachments', [
@@ -182,11 +202,97 @@ class AttachmentTest extends TestCase
     {
         $product = $this->makeProduct();
         $this->postJson("/api/products/{$product->id}/attachments", [
-            'file' => UploadedFile::fake()->create('cover.jpg', 500, 'image/jpeg'),
+            'file' => $this->fileWithContent('cover.jpg', 'image/jpeg', self::JPEG_BYTES),
         ]);
 
         $this->getJson("/api/products/{$product->id}")
             ->assertStatus(200)
             ->assertJsonStructure(['product' => ['cover_url', 'attachments']]);
+    }
+
+    /**
+     * The mimes rule reads the MIME type out of the client's own multipart headers, so
+     * a script announcing image/jpeg passed it. These are the cases that would have
+     * stored a file whose extension says one thing and whose contents are another.
+     */
+    public function test_a_mislabelled_file_is_refused(): void
+    {
+        $product = $this->makeProduct();
+
+        // A PHP payload with a .jpg name, honestly declared as text/html by the client —
+        // the mimes rule would refuse this on the header alone, so the content rule is
+        // not what catches it. Asserting it anyway pins the behaviour.
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => UploadedFile::fake()->createWithContent('shell.jpg', '<?php system($_GET["c"]); ?>')
+                ->mimeType('text/html'),
+        ])->assertStatus(422);
+
+        $this->assertDatabaseCount('attachments', 0);
+    }
+
+    public function test_a_binary_blob_named_as_an_image_is_refused(): void
+    {
+        $product = $this->makeProduct();
+
+        // This is the one the old rule could not catch: the client says image/jpeg, the
+        // name says .jpg, and mimes is satisfied. Only reading the bytes notices.
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => UploadedFile::fake()->createWithContent('payload.jpg', str_repeat("\x00\x01\x02", 64))
+                ->mimeType('image/jpeg'),
+        ])->assertStatus(422);
+
+        $this->assertDatabaseCount('attachments', 0);
+    }
+
+    public function test_a_pdf_named_as_a_pdf_but_holding_a_zip_is_refused(): void
+    {
+        $product = $this->makeProduct();
+
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => UploadedFile::fake()->createWithContent('report.pdf', "PK\x03\x04".str_repeat("\0", 64))
+                ->mimeType('application/pdf'),
+        ])->assertStatus(422);
+
+        $this->assertDatabaseCount('attachments', 0);
+    }
+
+    public function test_an_ole2_file_named_as_docx_is_refused(): void
+    {
+        $product = $this->makeProduct();
+
+        // A legacy .doc is an OLE2 compound document, not the ZIP container a .docx is.
+        // Swapping one extension for the other is how a macro-enabled file gets past a
+        // "documents only" rule.
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => UploadedFile::fake()->createWithContent('invoice.docx', "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1".str_repeat("\0", 64))
+                ->mimeType('application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+        ])->assertStatus(422);
+
+        $this->assertDatabaseCount('attachments', 0);
+    }
+
+    public function test_a_plain_csv_is_accepted(): void
+    {
+        $product = $this->makeProduct();
+
+        // The rule has to accept the legitimate formats too — a .csv with no binary
+        // bytes in it is exactly what should arrive.
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => $this->fileWithContent('stock.csv', 'text/csv', "sku,qty\nABC-1,4\nABC-2,9\n"),
+        ])->assertStatus(201);
+
+        $this->assertDatabaseCount('attachments', 1);
+    }
+
+    public function test_a_binary_blob_named_as_csv_is_refused(): void
+    {
+        $product = $this->makeProduct();
+
+        $this->postJson("/api/products/{$product->id}/attachments", [
+            'file' => UploadedFile::fake()->createWithContent('stock.csv', str_repeat("\x00\x01", 64))
+                ->mimeType('text/csv'),
+        ])->assertStatus(422);
+
+        $this->assertDatabaseCount('attachments', 0);
     }
 }

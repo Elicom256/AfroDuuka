@@ -258,6 +258,33 @@ class ExportTest extends TestCase
 
     public function test_an_unknown_export_format_is_refused(): void
     {
-        $this->getJson('/api/exports/products?format=doc')->assertNotFound();
+        // 422, not the 404 this used to expect. The export resource exists and the
+        // request reached it; what is wrong is the format parameter, which is what 422
+        // is for. The 404 came from ExportService's own whitelist, which is still there
+        // as a backstop for direct service calls but is no longer the first thing to
+        // answer over HTTP.
+        $this->getJson('/api/exports/products?format=doc')->assertStatus(422);
+    }
+
+    public function test_an_unbounded_date_range_is_refused(): void
+    {
+        // Exports are built in memory, so an unbounded range is a memory bound. The
+        // service still applies date_from/date_to, but nothing used to cap how far
+        // apart they could be.
+        $this->getJson('/api/exports/products?date_from=2015-01-01&date_to=2026-01-01')
+            ->assertStatus(422);
+    }
+
+    public function test_a_date_range_within_the_cap_is_accepted(): void
+    {
+        $this->getJson('/api/exports/products?date_from=2026-01-01&date_to=2026-03-01')
+            ->assertStatus(200);
+    }
+
+    public function test_a_malformed_date_is_a_422_not_a_500(): void
+    {
+        // These reached whereDate() unchecked and became a Postgres cast error.
+        $this->getJson('/api/exports/products?date_from=not-a-date')->assertStatus(422);
+        $this->getJson('/api/exports/products?date_to=13/45/2026')->assertStatus(422);
     }
 }
