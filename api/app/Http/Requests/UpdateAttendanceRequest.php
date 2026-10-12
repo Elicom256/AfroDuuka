@@ -12,11 +12,7 @@ class UpdateAttendanceRequest extends FormRequest
         return Auth::check();
     }
 
-    public function prepareForValidation()
-    {
-
-        // $this->input("check_out", null);
-    }
+    public function prepareForValidation() {}
 
     public function rules(): array
     {

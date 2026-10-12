@@ -153,16 +153,6 @@ class UserController extends Controller
         ], 200);
     }
 
-    //  branch worker
-    //  public function updateWorker(User $worker)
-    // {
-    //     $worker = $worker->load("role");
-    //     return response()->json([
-    //         'message' => 'Worker retrieved successfully',
-    //         'worker' => $worker,
-    //     ], 200);
-    // }
-
     /**
      * Store a newly created user in storage
      */
@@ -231,12 +221,10 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         try {
-            // $user = Auth::user();
             abort_unless($user->business_id === Auth::user()?->business_id, 404);
             $validated = $request->validated();
             $user = $this->userService->updateUser($user, $validated);
 
-            // $updated_user = $worker->update($validated);
             return response()->json([
                 'message' => 'User updated successfully',
                 'data' => $user,

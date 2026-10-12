@@ -23,7 +23,6 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        // $business_id = Auth::user()->business_id;
         $workers = Worker::with(['user.role', 'user.businessBranch', 'attendances'])
             ->whereHas('user.role', function ($q) {
                 RolePermissions::excludeRoleNames($q, 'name', [RolePermissions::OWNER_ROLE]);

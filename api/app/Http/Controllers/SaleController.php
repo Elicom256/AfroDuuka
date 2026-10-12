@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Sale;
 use App\Services\SaleItemService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 
 class SaleController extends Controller
 {
@@ -55,7 +54,6 @@ class SaleController extends Controller
     public function salesAnalytics()
     {
         try {
-            // $period = request()->query('period', 'last_7_days');
             $period = request()->query('period', 'last_7_days');
             $allowedPeriods = ['today', 'last_7_days', 'last_30_days', 'this_month', 'last_month'];
             if (! in_array($period, $allowedPeriods)) {
