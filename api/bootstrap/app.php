@@ -110,6 +110,31 @@ return Application::configure(basePath: dirname(__DIR__))
 
         });
 
+        $exceptions->render(function (
+            ValidationException $e,
+            $request
+        ) {
+
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            // Keeps Laravel's field-keyed `errors` map, which is the shape the SPA
+            // already reads (see firstFieldError() in Onboarding.tsx) — only `message`
+            // changes. Laravel's default is "The given data was invalid.", which tells
+            // an operator nothing and, on the surfaces that show `message` and drop
+            // `errors`, reads as an unexplained failure. Leading with the first real
+            // message names the offending field without changing the contract.
+            $first = collect($e->errors())->flatten()->first();
+
+            return response()->json([
+                'message' => $first !== null
+                    ? $first
+                    : $e->getMessage(),
+                'errors' => $e->errors(),
+            ], $e->status);
+        });
+
         /**
          * Last-resort renderer for API routes, and deliberately narrow.
          *
