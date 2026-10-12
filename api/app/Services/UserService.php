@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\TooManyLoginAttemptsException;
 use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
@@ -12,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 
 class UserService
 {
+    public function __construct(private readonly LoginThrottle $loginThrottle) {}
+
     /**
      * Normalise a handle to the stored form: exactly one leading "@", lowercased.
      *
@@ -67,6 +70,17 @@ class UserService
         $input = (string) $credentials['email'];
         $bare = ltrim($input, '@');
 
+        $ip = (string) (request()->ip() ?? 'unknown');
+
+        // Checked before the password so a locked account cannot be probed at all, and
+        // before the user lookup so the response does not reveal whether the address
+        // exists — a locked non-existent account and a locked real one answer alike.
+        if ($this->loginThrottle->tooManyAttempts($input)) {
+            throw new TooManyLoginAttemptsException(
+                $this->loginThrottle->availableIn($input)
+            );
+        }
+
         $user = User::where('email', $input)
             ->orWhere('username', $input)
             ->orWhere('username', $bare)
@@ -75,8 +89,20 @@ class UserService
 
         // Verify user exists and password matches
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            $this->loginThrottle->hit($input, $ip);
+
+            // The attempt counter is only mentioned once the account is actually
+            // locked. Telling a caller "2 attempts left" while they are still guessing
+            // tells them the address is real, which is the one thing the single
+            // "invalid credentials" message exists to withhold.
+            $remaining = $this->loginThrottle->remaining($input);
+
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are invalid.'],
+                'email' => [
+                    $remaining === 0
+                        ? 'Too many failed attempts. Try again later.'
+                        : 'The provided credentials are invalid.',
+                ],
             ]);
         }
 
@@ -88,6 +114,11 @@ class UserService
                 'email' => ['This account is not active.'],
             ]);
         }
+
+        // Correct credentials clear both counters: the failures that led here were the
+        // user's own typos, and keeping them would lock them out right after a typo
+        // they just fixed.
+        $this->loginThrottle->clear($input, $ip);
 
         // Generate API token for Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
