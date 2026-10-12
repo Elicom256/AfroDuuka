@@ -83,8 +83,15 @@ class TransactionTaxTest extends TestCase
 
     protected function checkout(array $items, array $payments = []): TestResponse
     {
+        // Default tender is over-generous rather than the item total. This helper
+        // existed before checkout enforced payment coverage, and paying exactly
+        // qty*unit_price happened to be enough only while the taxed cases were the
+        // ones opting out — for a tax-exclusive line the real total is that figure
+        // plus tax, so the old default under-tendered and the sale was correctly
+        // refused. The tests are about the tax that lands on the receipt, not about
+        // tendering to the penny, so pay a round figure above any of them.
         $total = collect($items)->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
-        $payments = $payments ?: [['method' => 'cash', 'amount' => $total]];
+        $payments = $payments ?: [['method' => 'cash', 'amount' => $total * 2]];
 
         return $this->postJson('/api/pos/checkout', [
             'items' => $items,
