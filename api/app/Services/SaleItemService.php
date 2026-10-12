@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\CoreSettings\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Product;
@@ -79,7 +80,12 @@ class SaleItemService
                     throw new Exception('Product not found', 404);
                 }
                 if ($product->quantity < $requestedQuantities->get((int) $product->id)) {
-                    throw new Exception('Products available are few to what you want to sale', 301);
+                    throw InsufficientStockException::for(
+                        (int) $product->id,
+                        (int) $requestedQuantities->get((int) $product->id),
+                        (int) $product->quantity,
+                        $product->name ?? null,
+                    );
                 }
 
                 // Evaluated against the quantity this sale leaves behind, not the one it
