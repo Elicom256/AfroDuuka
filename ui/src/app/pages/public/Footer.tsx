@@ -1,41 +1,59 @@
-import { Link, Mail } from 'lucide-react';
-import { FaFacebook, FaGithub, FaLinkedinIn, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
+import type { ComponentType, SVGProps } from 'react';
+import { Link2, Mail, MessageCircle } from 'lucide-react';
 
-const socials = [
+import {
+  FacebookMark,
+  GithubMark,
+  LinkedInMark,
+  XMark,
+  type IconProps,
+} from '@/app/components/BrandIcons';
+
+/**
+ * lucide-react rather than react-icons: react-icons/fa6 alone pulls roughly 1,500
+ * brand glyphs into the bundle to render the six below, and the project already
+ * standardises on lucide everywhere else. The four real brand marks are inlined in
+ * BrandIcons.tsx, since lucide deliberately ships none.
+ *
+ * Icon is typed as a plain SVG component rather than LucideIcon because the list
+ * mixes the two: LucideIcon's return type is ReactNode, which does not satisfy the
+ * narrower signature the inline marks have.
+ */
+const socials: { name: string; href: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
   {
     name: 'GitHub',
     href: 'https://github.com/Elijah-ug',
-    icon: <FaGithub />,
+    Icon: GithubMark,
   },
   {
     name: 'X',
     href: 'https://x.com/ElicomElijah?t=9gAYJg6agmVW0GCKtYwPSA&s=08',
-    icon: <FaXTwitter className='h-4 w-4' />,
+    Icon: XMark,
   },
   {
     name: 'LinkedIn',
     href: 'https://www.linkedin.com/in/mugisha-elijah-88a291239/',
-    icon: <FaLinkedinIn className='h-4 w-4' />,
+    Icon: LinkedInMark,
   },
   {
     name: 'Email',
     href: 'elicomelijah330@gmail.com',
-    icon: <Mail className='h-4 w-4' />,
+    Icon: Mail,
   },
   {
     name: 'Facebook',
     href: 'https://www.facebook.com/profile.php?id=61594724313686',
-    icon: <FaFacebook className='h-4 w-4' />,
+    Icon: FacebookMark,
   },
   {
     name: 'WhatsApp',
     href: 'https://wa.me/256731794401/?text=Hello%20Elicom%2C%20auto%20inserted/',
-    icon: <FaWhatsapp className='h-4 w-4' />,
+    Icon: MessageCircle,
   },
   {
     name: 'Portfolio',
     href: 'https://elicomelijah.vercel.app/',
-    icon: <Link className='h-4 w-4' />,
+    Icon: Link2,
   },
 ];
 
@@ -66,7 +84,7 @@ export const Footer: React.FC = () => {
                 rel='noreferrer'
                 className='inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-4 py-2 text-sm text-muted-foreground transition hover:border-primary hover:text-foreground hover:bg-background'
               >
-                {social.icon}
+                <social.Icon className='h-4 w-4' />
                 <span>{social.name}</span>
               </a>
             ))}
