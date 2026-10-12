@@ -12,6 +12,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Services\UserService;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -109,35 +110,41 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::tenantVisible()
-            ->whereHas('role', function ($q) {
-                RolePermissions::excludeRoleNames($q, 'name', [
-                    ...RolePermissions::COUNTERPARTY_ROLES,
-                    RolePermissions::OWNER_ROLE,
-                ]);
-            })
-            ->with(['business', 'role', 'businessBranch'])
-            ->get();
+        $users = ListLimit::apply(
+            User::tenantVisible()
+                ->whereHas('role', function ($q) {
+                    RolePermissions::excludeRoleNames($q, 'name', [
+                        ...RolePermissions::COUNTERPARTY_ROLES,
+                        RolePermissions::OWNER_ROLE,
+                    ]);
+                })
+                ->with(['business', 'role', 'businessBranch']),
+            request()
+        );
 
         return response()->json([
             'message' => 'Users retrieved successfully',
             'data' => $users,
+            ...ListLimit::truncationNotice(),
         ], 200);
     }
 
     // all branch workers
     public function workers()
     {
-        $users = User::tenantVisible()
-            ->whereHas('role', function ($q) {
-                RolePermissions::excludeRoleNames($q, 'name', [RolePermissions::OWNER_ROLE]);
-            })
-            ->with(['business', 'role', 'businessBranch'])
-            ->get();
+        $users = ListLimit::apply(
+            User::tenantVisible()
+                ->whereHas('role', function ($q) {
+                    RolePermissions::excludeRoleNames($q, 'name', [RolePermissions::OWNER_ROLE]);
+                })
+                ->with(['business', 'role', 'businessBranch']),
+            request()
+        );
 
         return response()->json([
             'message' => 'Workers retrieved successfully',
             'data' => $users,
+            ...ListLimit::truncationNotice(),
         ], 200);
     }
 

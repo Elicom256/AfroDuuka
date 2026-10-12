@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateStockTransferRequest;
 use App\Models\StockTransfer;
 use App\Services\StockTransferService;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,12 +32,18 @@ class StockTransferController extends Controller
 
     public function index()
     {
-        $transfers = StockTransfer::where('business_id', auth()->user()->business_id)
-            ->with(['fromBranch', 'toBranch', 'items.product', 'transferredBy'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $transfers = ListLimit::apply(
+            StockTransfer::where('business_id', auth()->user()->business_id)
+                ->with(['fromBranch', 'toBranch', 'items.product', 'transferredBy'])
+                ->orderBy('created_at', 'desc'),
+            request()
+        );
 
-        return response()->json(['message' => 'Fetched stock transfers', 'data' => $transfers]);
+        return response()->json([
+            'message' => 'Fetched stock transfers',
+            'data' => $transfers,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     public function store(StoreStockTransferRequest $request)
