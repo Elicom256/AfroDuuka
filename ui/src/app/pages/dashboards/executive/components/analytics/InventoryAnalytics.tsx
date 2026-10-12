@@ -132,7 +132,7 @@ export const InventoryAnalytics = () => {
 
           <div className='rounded-xl border p-4 flex flex-col items-center justify-center'>
             <h4 className='font-medium mb-2'>Slow Moving Items</h4>
-            <p className='text-3xl font-bold'>{analytics.slowMoving?.length || 0}</p>
+            <p className='text-3xl font-bold'>{analytics.slowMoving ?? 0}</p>
           </div>
         </div>
       </CardContent>
