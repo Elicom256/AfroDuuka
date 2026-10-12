@@ -3,13 +3,13 @@
 namespace App\Services;
 
 use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
+use App\Jobs\ProvisionOwnerRecipientsJob;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Subscription;
 use App\Models\User;
-use App\Services\Notifications\RecipientProvisioner;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -180,36 +180,43 @@ class BusinessService
      * "Basic" plan if one exists, falling back to the oldest active plan. The trial
      * starts now, ends in 30 days and is marked as active, matching the pattern of
      * StoreSubscriptionRequest's trial defaults.
+     *
+     * A failure here is no longer caught. This runs inside create()'s transaction, so
+     * swallowing the error committed a tenant with no subscription at all: onboarding
+     * reported success, and the business then sat in a state the billing screens, the
+     * lifecycle job and the trial-expiry notification all read as "never subscribed".
+     * A failed insert is not a degraded onboarding, it is a half-built one, and the
+     * owner can simply submit the form again. Rolling back keeps the whole record
+     * either present or absent.
      */
     private function attachTrialSubscription(Business $business): void
     {
-        try {
-            $plan = Plan::where('is_active', true)
-                ->orWhere('status', 'active')
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->first();
+        $plan = Plan::where('is_active', true)
+            ->orWhere('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->first();
 
-            if ($plan === null) {
-                return;
-            }
-
-            $now = now();
-
-            Subscription::create([
+        if ($plan === null) {
+            // No plan configured yet is a deployment state, not a failure — there is
+            // simply nothing to attach, and the owner can pick a plan later.
+            Log::warning('No active plan available to attach a trial subscription to', [
                 'business_id' => $business->id,
-                'plan_id' => $plan->id,
-                'status' => 'active',
-                'starts_at' => $now,
-                'ends_at' => $now->copy()->addDays(30),
-                'trial_ends_at' => $now->copy()->addDays(30),
             ]);
-        } catch (\Throwable $e) {
-            Log::error('Could not attach free trial subscription', [
-                'business_id' => $business->id,
-                'exception' => $e->getMessage(),
-            ]);
+
+            return;
         }
+
+        $now = now();
+
+        Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'starts_at' => $now,
+            'ends_at' => $now->copy()->addDays(30),
+            'trial_ends_at' => $now->copy()->addDays(30),
+        ]);
     }
 
     /**
@@ -220,27 +227,19 @@ class BusinessService
      * earlier. It is deliberately after BusinessRegistered too: that listener only reads
      * the business's own contact details, and recipients are not a prerequisite for it.
      *
-     * A failure here is logged, not thrown. Registration is the user's one interaction
-     * with the product so far; failing to create them a business because a notification
-     * preference row could not be written would be a bad trade, and the recipients can
-     * be created later without any data loss.
+     * A failure here must not fail registration. The owner has exactly one interaction
+     * with the product so far and refusing to create them a business over a notification
+     * preference row would be a bad trade — the recipients are recoverable afterwards,
+     * the tenant is not. So this dispatches a job instead of writing the rows inline:
+     * the transaction commits either way, and the job carries retries for the case where
+     * the database was briefly unavailable. See ProvisionOwnerRecipientsJob.
+     *
+     * afterCommit() because the business row does not exist yet at this point; dispatching
+     * inline would let a worker pick the job up before the transaction commits and
+     * resolve nothing.
      */
     private function provisionRecipients(Business $business, User $user): void
     {
-        try {
-            $result = app(RecipientProvisioner::class)->ensureOwner($business, $user);
-
-            if ($result['skipped'] !== []) {
-                Log::info('Notification recipients skipped channels at registration', [
-                    'business_id' => $business->id,
-                    'skipped' => $result['skipped'],
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Could not provision notification recipients', [
-                'business_id' => $business->id,
-                'exception' => $e->getMessage(),
-            ]);
-        }
+        ProvisionOwnerRecipientsJob::dispatch($business->id, $user->id)->afterCommit();
     }
 }
