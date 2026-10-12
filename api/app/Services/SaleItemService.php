@@ -206,11 +206,16 @@ class SaleItemService
         $currentEnd = $window['end'];
         $days = $window['days'];
 
+        // No with('saleItems'). Every sale and every line behind it was being
+        // materialised only to have quantities summed in PHP, so the memory cost grew
+        // with the tenant's whole trading history for a handful of figures. Units are
+        // now one aggregate query — see unitsSoldBySale().
         $sales = Sale::where('status', 'completed')
             ->where('created_at', '>=', $currentStart)
             ->where('created_at', '<=', $currentEnd)
-            ->with('saleItems')
             ->get();
+
+        $unitsBySale = $this->unitsSoldBySale($sales->pluck('id')->all());
 
         // Revenue is dated by when the return was processed, so a period that has
         // already been reported never moves because of a later return.
@@ -224,7 +229,7 @@ class SaleItemService
         // Units are different from money: only returns of sales made inside this
         // window may reduce this window's units sold.
         $returnedQuantity = $this->returnsOfSalesInPeriod($currentStart, $currentEnd)['quantity'];
-        $itemsSold = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity')) - $returnedQuantity;
+        $itemsSold = array_sum($unitsBySale) - $returnedQuantity;
 
         $previousStart = match ($period) {
             'today' => Carbon::yesterday()->startOfDay(),
@@ -238,8 +243,9 @@ class SaleItemService
         $previousSales = Sale::where('status', 'completed')
             ->where('created_at', '>=', $previousStart)
             ->where('created_at', '<', $currentStart)
-            ->with('saleItems')
             ->get();
+
+        $previousUnitsBySale = $this->unitsSoldBySale($previousSales->pluck('id')->all());
 
         $previousReturns = $this->returnsProcessedBetween($previousStart, $currentStart->copy()->subSecond());
         $previousReturnedQuantity = $this->returnsOfSalesInPeriod($previousStart, $currentStart->copy()->subSecond())['quantity'];
@@ -248,18 +254,18 @@ class SaleItemService
         $previousTotalSales = $previousGrossSales - $previousReturns['revenue'];
         $previousTransactions = $previousSales->count();
         $previousAvg = $previousTransactions > 0 ? $previousTotalSales / $previousTransactions : 0;
-        $previousItemsSold = $previousSales->sum(fn ($sale) => $sale->saleItems->sum('quantity')) - $previousReturnedQuantity;
+        $previousItemsSold = array_sum($previousUnitsBySale) - $previousReturnedQuantity;
 
         $salesTrend = $sales->groupBy(function ($sale) {
             return Carbon::parse($sale->created_at)->format('M d');
-        })->map(function ($group) {
+        })->map(function ($group) use ($unitsBySale) {
             return [
                 'date' => $group->first()->created_at->format('M d'),
                 // Gross by sale date, and net because returns processed the same
                 // day are netted off here, so the points still sum to the totals.
                 'amount' => $group->sum('total_amount'),
                 'count' => $group->count(),
-                'items' => $group->sum(fn ($sale) => $sale->saleItems->sum('quantity')),
+                'items' => $group->sum(fn ($sale) => $unitsBySale[$sale->id] ?? 0),
             ];
         })->values();
 
@@ -465,6 +471,41 @@ class SaleItemService
                 ->where('created_at', '<=', $end));
     }
 
+    /**
+     * Units sold per sale id, as [sale_id => quantity].
+     *
+     * Replaces `with('saleItems')` plus a PHP-side `->sum('quantity')` over the
+     * hydrated relation. Both analytics methods needed only a total and a per-sale
+     * figure for the trend, and neither reads a single other field on the line item —
+     * so the whole relation was being pulled across the wire to compute numbers the
+     * database could have aggregated without returning a row.
+     *
+     * A sale with no line items is absent from the map rather than present with a
+     * zero, so callers read it with `?? 0`. That is deliberate: an empty array here
+     * means "no sales matched", and returning a sparse map rather than a full one keeps
+     * the callers' array_sum honest without them having to pre-fill.
+     *
+     * Sales are passed as ids rather than models so a caller that already has the
+     * collection does not pay for a second lookup.
+     *
+     * @param  array<int>  $saleIds
+     * @return array<int, int>
+     */
+    private function unitsSoldBySale(array $saleIds): array
+    {
+        if ($saleIds === []) {
+            return [];
+        }
+
+        return SaleItem::query()
+            ->whereIn('sale_id', $saleIds)
+            ->groupBy('sale_id')
+            ->selectRaw('sale_id, COALESCE(SUM(quantity), 0) as units')
+            ->pluck('units', 'sale_id')
+            ->map(static fn ($units) => (int) $units)
+            ->all();
+    }
+
     public function returnAnalytics(string $period = 'last_7_days')
     {
         $window = $this->analyticsTrendHelper->resolvePeriodWindow($period);
@@ -474,11 +515,10 @@ class SaleItemService
         $sales = Sale::where('status', 'completed')
             ->where('created_at', '>=', $currentStart)
             ->where('created_at', '<=', $currentEnd)
-            ->with('saleItems')
             ->get();
 
         $grossSales = $sales->sum('total_amount');
-        $totalSoldQuantity = $sales->sum(fn ($sale) => $sale->saleItems->sum('quantity'));
+        $totalSoldQuantity = array_sum($this->unitsSoldBySale($sales->pluck('id')->all()));
 
         // Dated by processing time and limited to completed returns, so this
         // window can report returns made in it even when the sale they came from

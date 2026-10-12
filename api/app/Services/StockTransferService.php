@@ -57,15 +57,24 @@ class StockTransferService
 
             $transfer->load('items');
 
+            // Every source product is locked in one statement rather than one per line.
+            // lockForUpdate still holds them all for the transaction, so the guard
+            // against a concurrent dispatch moving the same stock is intact — a
+            // per-row lock acquired N times in a loop gave the same protection at the
+            // cost of N round trips, and a transfer with 40 lines paid 40 of them
+            // before doing any work.
+            $sourceProducts = Product::where('business_branch_id', $transfer->from_branch_id)
+                ->whereIn('id', $transfer->items->pluck('product_id')->filter()->unique())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
             foreach ($transfer->items as $item) {
-                // lockForUpdate, matching PosService::checkout(): reading quantity and
-                // then decrementing it is a read-modify-write, and two concurrent
-                // dispatches of the same product both read the pre-transfer quantity
-                // and wrote back a decrement from that stale number.
-                $sourceProduct = Product::where('business_branch_id', $transfer->from_branch_id)
-                    ->where('id', $item->product_id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+                $sourceProduct = $sourceProducts->get($item->product_id);
+
+                if ($sourceProduct === null) {
+                    throw new \Exception('One or more products are not available in the source branch.', 422);
+                }
 
                 if ($sourceProduct->quantity < $item->quantity_expected) {
                     throw new \Exception("Insufficient stock for product: {$sourceProduct->name}");
@@ -125,10 +134,17 @@ class StockTransferService
                 throw new \Exception('Only in-transit transfers can be received.');
             }
 
-            $transfer->load('items');
+            $transfer->load('items.product');
 
+            // Eager load rather than relying on the lazy relation: $item->product inside
+            // the loop fired one query per line, and both resolveDestinationProduct()
+            // below and the cost total afterwards read the same relation again.
             foreach ($transfer->items as $item) {
                 $receivedQty = $receivedItems[$item->id] ?? $item->quantity_expected;
+
+                if ($item->product === null) {
+                    throw new \Exception('One or more products on this transfer no longer exist.', 422);
+                }
 
                 $destProduct = $this->resolveDestinationProduct($item->product, $transfer->to_branch_id);
 
