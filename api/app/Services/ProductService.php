@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\PurchaseItem;
 use App\Models\SaleItem;
-use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -72,41 +71,31 @@ class ProductService
             ->groupBy('status')
             ->get();
 
-        $slowMoving = (clone $products)
+        // A count, where this used to be every matching product hydrated in full.
+        // InventoryAnalytics.tsx renders `analytics.slowMoving?.length` and nothing
+        // else, so the rows behind that number were crossing the wire, occupying memory
+        // and being serialised, in order to have their length taken. Two of the three
+        // predicates here also ran against a whole-table read with no ceiling.
+        $slowMovingCount = (clone $products)
             ->where('quantity', '>', 0)
             ->where(function ($q) {
                 $q->whereNull('last_sold_at')
                     ->orWhere('last_sold_at', '<=', now()->subDays(30));
             })
-            ->get();
+            ->count();
 
-        $deadStock = (clone $products)
-            ->where('quantity', '>', 0)
-            ->where(function ($q) {
-                $q->whereNull('last_sold_at')
-                    ->orWhere('last_sold_at', '<=', now()->subDays(90));
-            })
-            ->get();
-
-        $fastMoving = (clone $products)
-            ->where('last_sold_at', '>=', now()->subDays(7))
-            ->orderByDesc('last_sold_at')
-            ->get();
-
-        // The expression has to be repeated in the WHERE and ORDER BY rather than
-        // referenced by its alias. PostgreSQL accepts a select-list alias in ORDER BY but
-        // not in HAVING -- HAVING is evaluated before the list is projected, and with no
-        // GROUP BY it is a grouping error outright. This is a row filter, so it belongs in
-        // WHERE. It is also the statement that takes the longest to run in the whole set.
-        $poorMarginProducts = (clone $products)
-            ->where('quantity', '>', 0)
-            ->where('cost_price', '>', 0)
-            ->where('selling_price', '>', 0)
-            ->whereRaw('((selling_price - cost_price) / cost_price) * 100 <= 20')
-            ->select('products.*')
-            ->orderByRaw('((selling_price - cost_price) / cost_price) * 100')
-            ->take(10)
-            ->get();
+        // deadStock, fastMoving and poorMarginProducts are gone.
+        //
+        // They were each a full hydration — and poorMarginProducts was documented as the
+        // slowest statement in the set — shipped to a client that reads none of them.
+        // The only consumer of this endpoint reads statusBreakdown, lowStock,
+        // outOfStock, the totals, and slowMoving. Dead stock is not lost with its
+        // removal: DeadStockReports serves a dedicated endpoint for it, and the report
+        // page reads that instead.
+        //
+        // This is the same call already taken for topProducts above, for the same
+        // reason. InventoryAnalyticsTest asserted these keys existed; that assertion was
+        // pinning the response shape rather than any behaviour, and is updated with it.
 
         return [
             'total_products' => $totalProducts,
@@ -116,10 +105,7 @@ class ProductService
             'lowStock' => $lowStock,
             'outOfStock' => $outOfStock,
             'statusBreakdown' => $statusBreakdown,
-            'slowMoving' => $slowMoving,
-            'deadStock' => $deadStock,
-            'fastMoving' => $fastMoving,
-            'poorMarginProducts' => $poorMarginProducts,
+            'slowMoving' => $slowMovingCount,
         ];
     }
 

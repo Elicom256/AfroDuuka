@@ -97,11 +97,20 @@ class InventoryAnalyticsTest extends TestCase
             'outOfStock',
             'statusBreakdown',
             'slowMoving',
-            'deadStock',
-            'fastMoving',
-            'poorMarginProducts',
         ] as $key) {
             $this->assertArrayHasKey($key, $response->json('data'));
+        }
+
+        // slowMoving is a count, not a list. It used to be every matching product
+        // hydrated in full so this card could take its length.
+        $this->assertIsInt($response->json('data.slowMoving'));
+
+        // deadStock, fastMoving and poorMarginProducts were removed: no consumer read
+        // them, and each was a full hydration — poorMarginProducts was documented as the
+        // slowest statement in the set. Dead stock is still reachable through
+        // DeadStockReports on its own endpoint.
+        foreach (['deadStock', 'fastMoving', 'poorMarginProducts'] as $removed) {
+            $this->assertArrayNotHasKey($removed, $response->json('data'));
         }
     }
 

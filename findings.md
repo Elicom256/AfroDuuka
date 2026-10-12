@@ -23,7 +23,7 @@ rather than quietly dropped — see §12 and §2.7.
 | 3 | Error Handling | P0 | ✅ |
 | 4 | Data Integrity & Race Conditions | P1 | ✅ |
 | 5 | Input Validation Gaps | P2 | ✅ |
-| 6 | Performance — N+1 Queries & Unpaginated Endpoints | P1 | ⬜ |
+| 6 | Performance — N+1 Queries & Unpaginated Endpoints | P1 | ⚠️ partial |
 | 7 | Code Quality — Dead Code, Duplication, Large Methods | P2 | ⬜ |
 | 8 | Frontend — State Management, Bundle, Types | P1/P2 | ⬜ |
 | 9 | DevOps & Configuration | P2 | ⬜ |
@@ -48,6 +48,7 @@ Recorded so a future drop is attributable.
 | After §3 | 868 passed (+6 new) | — |
 | After §4 | 868 passed | — |
 | After §5 | 888 passed (+20 new) | — |
+| After §6 | 900 passed (+12 new) | 808 passed |
 | After §12 | 868 passed | 808 passed |
 
 The 809 → 808 frontend drop is `themeContrast.test.ts`, which generates one case per
@@ -337,14 +338,61 @@ problem of this kind. Worth doing as its own pass if the codebase wants the cons
 
 ---
 
-# 6. Performance — N+1 Queries & Unpaginated Endpoints ⬜
+# 6. Performance — N+1 Queries & Unpaginated Endpoints ⚠️ partial
 
-Not started. Six N+1 sites (`SaleItemService`, `ProductService`, `ProcurementService`,
-`StockTransferService`, `ProductController::restocking`) and fourteen unpaginated list
-endpoints, including `ProductController`, `SaleController`, `PurchaseController` and
-`UserController`.
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 6.1 | N+1 in `SaleItemService` analytics | ✅ | One grouped aggregate; 4 tests pin the figures |
+| 6.2 | `ProductService` four full hydrations | ✅ | `slowMoving` → count; three unread keys removed |
+| 6.3 | N+1 in `ProcurementService` reorder | ✅ | Velocity batched; supplier resolved per business |
+| 6.4 | N+1 in `StockTransferService` | ✅ | Products locked/fetched in one statement |
+| 6.5 | `ProductController::restocking` | ✅ | Three sorts removed; they were only counted |
+| 6.6 | 14 unpaginated list endpoints | ⚠️ | Bounded, **not paginated** — see below |
+| 6.7 | `FinanceService::dashboard` unbounded | ⬜ | Does not hold — see below |
 
-**How**: `->paginate()` with a validated `per_page`, following `FinanceController::transactions()`.
+### The two findings that were not as described
+
+**6.3 — `resolveSupplier()` was not really resolving a supplier.** It took a `Product`,
+read nothing from it but the `business_id`, and returned the oldest active supplier for
+that business. Every product in a business asked an identical question and got an
+identical answer, so half the queries were pure waste *and* the signature was misleading.
+Resolved once per business now. Deliberately kept one-per-business — resolving the real
+supplier from purchase history is a better rule and is left for whoever wants it rather
+than folded in here.
+
+**6.7 — does not hold.** `FinanceService::dashboard` sums over all time with no date
+filter, but the sums are indexed aggregates on `cash_flows` (there are indexes on
+`(business_id, transaction_date)` and `(type, status)`) with no hydration behind them,
+and `recentTransactions` was already limited to ten. There is no performance problem to
+fix. Whether an *all-time* revenue figure is the right number to show on a dashboard is a
+product question rather than a performance one, and changing it silently would move
+figures users already read — so it is left alone and raised here instead.
+
+### 6.6 — bounded, but not paginated
+Twenty-five controllers return `->get()` with nothing on the request able to cap it.
+Seven of those carry records rather than reference data — sales, purchases, returns,
+transfers, users, reorder rules — and were materialising a tenant's whole trading
+history in one array in one request.
+
+`ListLimit` applies a ceiling **in SQL** (not to a hydrated collection, which would still
+have loaded every row before discarding it) and clamps the requested limit, so
+`?limit=999999999` does not restore the problem by another route. A truncated response
+now carries `truncated: true` — returning the first N rows silently reads as "this is all
+of them".
+
+**This is the half that could be done without rewriting the client**, and the other half
+is genuinely outstanding. These endpoints still return arrays precisely because the table
+components index the result directly; converting them to `->paginate()` replaces the
+array with a `{data, meta}` envelope and means updating every one of those components
+alongside, across the product's main screens. That is a real piece of work and should be
+planned as its own pass rather than smuggled in here.
+
+### 6.2 — three keys removed rather than optimised
+`slowMoving` is now the count it was being asked for. `deadStock`, `fastMoving` and
+`poorMarginProducts` were removed outright: no consumer read any of them, and
+`poorMarginProducts` was documented in that file as the slowest statement in the set.
+Dead stock is not lost — `DeadStockReports` serves it on its own endpoint. Same call the
+file already took for `topProducts`, for the same reason.
 
 ---
 
