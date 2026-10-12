@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\TooManyLoginAttemptsException;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
@@ -37,6 +38,12 @@ class UserController extends Controller
                 'message' => 'Login successful!',
                 'data' => $result,
             ], 200);
+        } catch (TooManyLoginAttemptsException $e) {
+            // Ahead of the generic catch: a lockout is a 429 with a Retry-After, not a
+            // 401. Returning 401 here would tell the caller their password is wrong and
+            // invite an immediate retry, which is the behaviour the lockout exists to
+            // interrupt. The exception renders itself.
+            return $e->render($request);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Login failed',
