@@ -166,6 +166,29 @@ class RolePermissions
     }
 
     /**
+     * Roles that work the till.
+     *
+     * Distinct from canModifyStock() and from every other capability here, because it is
+     * the one place a *counterparty* would otherwise qualify. A customer or supplier is
+     * an external party on the business's books, not staff on its payroll, yet both
+     * hold a User row carrying the business_id — StoreCustomerRequest assigns the
+     * 'customer' role alongside the caller's own tenant. They therefore satisfied
+     * RequireBusiness, and the POS routes were declared under auth:sanctum with no role
+     * gate, so a customer could ring up sales, take payment, decrement stock and write
+     * cash-flow rows.
+     *
+     * Named explicitly rather than expressed as "not a counterparty", because the roles
+     * that legitimately sell are known and an allow-list fails closed when a new role is
+     * added by mistake.
+     */
+    public const TILL_ROLES = ['operations', 'branchmanager', 'executive', 'coresupport', 'siteadmin'];
+
+    public static function canOperateTill(?User $user): bool
+    {
+        return in_array(static::roleName($user), static::TILL_ROLES, true);
+    }
+
+    /**
      * May the user exercise executive-level powers within their branch scope?
      *
      * True for Elevated roles (unrestricted) and BranchManager (branch-scoped).

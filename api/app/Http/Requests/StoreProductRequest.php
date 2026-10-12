@@ -60,8 +60,30 @@ class StoreProductRequest extends FormRequest
                     ->where('business_branch_id', $this->input('business_branch_id')),
             ],
             'name' => ['required', 'string', 'min:1', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:100'],
-            'barcode' => ['nullable', 'string', 'max:100'],
+
+            // Unique per branch, backed by products_branch_sku_unique /
+            // products_branch_barcode_unique. The index is the real guarantee; these
+            // rules exist so a duplicate produces a 422 naming the field instead of a
+            // 500 from a constraint violation, which a product form cannot act on.
+            //
+            // update() passes the product being edited so that re-saving a product
+            // without changing its sku does not collide with itself.
+            'sku' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'sku')
+                    ->where('business_branch_id', $this->input('business_branch_id'))
+                    ->ignore($this->route('product')),
+            ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'barcode')
+                    ->where('business_branch_id', $this->input('business_branch_id'))
+                    ->ignore($this->route('product')),
+            ],
             'track_serial' => ['nullable', 'boolean'],
             'quantity' => ['required', 'integer', 'min:0'],
             'cost_price' => ['required', 'numeric', 'min:0'],

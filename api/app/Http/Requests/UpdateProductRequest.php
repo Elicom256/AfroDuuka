@@ -83,8 +83,26 @@ class UpdateProductRequest extends FormRequest
                     ->when($taxBranch !== null, fn ($rule) => $rule->where('business_branch_id', $taxBranch)),
             ],
             'name' => ['nullable', 'string', 'min:1', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:100'],
-            'barcode' => ['nullable', 'string', 'max:100'],
+            'sku' => [
+                'nullable',
+                'string',
+                'max:100',
+                // See StoreProductRequest: the unique index is the guarantee, this is
+                // the readable failure. ignore($this->route('product')) is what lets a
+                // product be re-saved without changing its own sku or colliding with
+                // itself.
+                Rule::unique('products', 'sku')
+                    ->where('business_branch_id', $this->input('business_branch_id'))
+                    ->ignore($this->route('product')),
+            ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'barcode')
+                    ->where('business_branch_id', $this->input('business_branch_id'))
+                    ->ignore($this->route('product')),
+            ],
             'track_serial' => ['nullable', 'boolean'],
             'quantity' => ['nullable', 'integer', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],

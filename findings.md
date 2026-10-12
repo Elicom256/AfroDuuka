@@ -22,7 +22,7 @@ rather than quietly dropped — see §12 and §2.7.
 | 2 | Authentication & Authorization Gaps | P0 | ✅ |
 | 3 | Error Handling | P0 | ✅ |
 | 4 | Data Integrity & Race Conditions | P1 | ✅ |
-| 5 | Input Validation Gaps | P2 | ⬜ |
+| 5 | Input Validation Gaps | P2 | ✅ |
 | 6 | Performance — N+1 Queries & Unpaginated Endpoints | P1 | ⬜ |
 | 7 | Code Quality — Dead Code, Duplication, Large Methods | P2 | ⬜ |
 | 8 | Frontend — State Management, Bundle, Types | P1/P2 | ⬜ |
@@ -47,6 +47,7 @@ Recorded so a future drop is attributable.
 | After §2 | 862 passed | — |
 | After §3 | 868 passed (+6 new) | — |
 | After §4 | 868 passed | — |
+| After §5 | 888 passed (+20 new) | — |
 | After §12 | 868 passed | 808 passed |
 
 The 809 → 808 frontend drop is `themeContrast.test.ts`, which generates one case per
@@ -265,19 +266,74 @@ cart does not consume a number.
 
 ---
 
-# 5. Input Validation Gaps ⬜
+# 5. Input Validation Gaps ✅
 
-Not started.
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 5.1 | POS checkout never checked payments cover the total | ✅ | Checked in the request *and* the service; 7 tests |
+| 5.2 | Supplier and transfer IDs not checked against the caller's business | ✅ | Both scoped to the caller's tenant |
+| 5.3 | POS search has no minimum query length | ✅ | `min:2` on both search endpoints |
+| 5.4 | No duplicate SKU / barcode check per branch | ✅ | Unique indexes per branch + Form Request rules |
+| 5.5 | Export date range unbounded | ✅ | Capped at 366 days, dates validated |
+| 5.6 | Upload validated client-reported MIME only | ✅ | `RealFileContent` magic-byte rule; 6 tests |
+| 5.7 | ~11 endpoints validate inline instead of via Form Request | ⚠️ | Surfaced a real authorization gap instead — see below |
 
-| # | Item | Status |
-|---|------|--------|
-| 5.1 | POS checkout never checks payments cover the total, or rejects negative amounts — revenue loss | ⬜ |
-| 5.2 | Supplier and stock-transfer branch IDs not checked against the caller's business | ⬜ |
-| 5.3 | POS search has no minimum query length | ⬜ |
-| 5.4 | No duplicate SKU / barcode check per branch | ⬜ |
-| 5.5 | Export date range unbounded | ⬜ |
-| 5.6 | Upload validates client-reported MIME only, never file content | ⬜ |
-| 5.7 | ~11 endpoints validate inline instead of via Form Request | ⬜ |
+### 5.1 — the revenue one
+`PosCheckoutRequest` allowed any payment amount and `PosService::checkout()` summed
+what it was given. A short tender produced a `completed` sale whose payment rows were
+recorded as `paid`, a receipt showing **zero change** rather than money outstanding, and
+a cash-flow row booking the full amount as received. The goods had already left the
+counter.
+
+Checked in two places, because neither can see what the other can. The request compares
+the tender against the cart minus tax — knowable from the payload, so an underpayment is
+refused before anything is written. The service re-checks against the authoritative total
+once tax is resolved and a held sale's stored amount is read, and throws inside the
+transaction so the sale, its items and the stock decrement all roll back.
+
+`payments.*.amount` is now `gt:0`: a 0.00 tender row became a `paid` `SalePayment` for
+nothing while inflating the payment-method count on the receipt.
+
+`TransactionTaxTest`'s helper was under-tendering by exactly the tax on a tax-exclusive
+line — correct under the new rule, so the helper now pays above the item total. Those
+tests are about the tax on the receipt, not about tendering to the penny.
+
+### 5.2 — cross-tenant ids
+`supplier_id` on a purchase and `from_branch_id` / `to_branch_id` on a stock transfer
+were bare `exists:<table>,id`. The reads that follow are tenant-scoped and return null,
+which is why neither was visible: the record existed and its counterparty simply never
+rendered. Stock transfers already merged `business_id` from the session, so only the
+branch ids were open.
+
+### 5.4 — why the index matters here
+No constraint on `products.sku` or `products.barcode` at all. The POS barcode path
+resolves a product by barcode, so a duplicate decides which product a scanned code rings
+up, and `StockTransferService::resolveDestinationProduct()` matches on sku → barcode →
+name — a duplicate is precisely what makes a transfer create or pick the wrong product.
+Indexes are per `business_branch_id` because products are per-branch; a global index would
+forbid the same sku in two branches of one business. The migration **refuses to run
+while duplicates exist** and lists the offending branch, value and row ids, rather than
+failing with a constraint violation naming a constraint nobody has seen.
+
+### 5.7 — found a real gap instead of doing the refactor
+The item as written is 15 inline `$request->validate()` calls across 11 controllers —
+pure refactoring, no behaviour change, and 129 Form Request classes already exist to be
+consistent with. Auditing those 11 controllers for authorization turned up something
+better: **`PosController` had no role gate at all.**
+
+Both counterparties hold a `User` row carrying the tenant's `business_id`
+(`StoreCustomerRequest` assigns the `customer` role alongside the caller's own tenant,
+because a customer must belong to the business whose books it appears on). They
+satisfied `RequireBusiness` and reached the till — completing sales, taking payment,
+decrementing stock, writing cash-flow rows, and searching the catalogue.
+
+Fixed with `RequireTillAccess` over the whole route group, so the search endpoints are
+covered too. Four tests, one of which pins that Operations, BranchManager and Executive
+all still work the till — the failure mode for a gate like this is locking staff out.
+
+The mechanical Form Request extraction is deliberately **not** done here: it is a large
+diff with no behaviour change, and the remaining 10 controllers have no authorization
+problem of this kind. Worth doing as its own pass if the codebase wants the consistency.
 
 ---
 

@@ -298,6 +298,29 @@ class PosService
 
             $totalPaid = 0;
             $creditAmount = 0;
+
+            // PosCheckoutRequest compares the tender against the cart without tax,
+            // because tax is not in the payload. Now that the authoritative total is
+            // known — tax-inclusive, and read from the stored row when a held sale is
+            // being resumed — check it again before any of it is recorded.
+            //
+            // Without this, a tax-bearing cart, or a resumed held sale, still completed
+            // on a short tender: the receipt showed zero change, the cash-flow row
+            // recorded the full amount as received, and the difference was nobody's.
+            $totalPaid = array_sum(array_map(
+                static fn ($payment) => (float) ($payment['amount'] ?? 0),
+                $validated['payments']
+            ));
+
+            if (round($totalPaid, 2) < round($totalAmount, 2)) {
+                throw new Exception(sprintf(
+                    'Payments total %.2f but the sale is %.2f. Short by %.2f.',
+                    $totalPaid,
+                    $totalAmount,
+                    round($totalAmount - $totalPaid, 2)
+                ), 422);
+            }
+
             foreach ($validated['payments'] as $payment) {
                 SalePayment::create([
                     'sale_id' => $sale->id,
@@ -305,7 +328,6 @@ class PosService
                     'amount' => $payment['amount'],
                     'paymentStatus' => 'paid',
                 ]);
-                $totalPaid += $payment['amount'];
                 if ($payment['method'] === 'credit') {
                     $creditAmount += $payment['amount'];
                 }
