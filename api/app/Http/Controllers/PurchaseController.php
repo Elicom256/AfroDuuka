@@ -7,6 +7,7 @@ use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,11 +26,17 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        $purchases = Purchase::with('supplier', 'purchaseItems', 'businessBranch')
-            ->orderByDesc('created_at')
-            ->get();
+        $purchases = ListLimit::apply(
+            Purchase::with('supplier', 'purchaseItems', 'businessBranch')
+                ->orderByDesc('created_at'),
+            request()
+        );
 
-        return response()->json(['message' => 'Purchases fetched', 'purchases' => $purchases]);
+        return response()->json([
+            'message' => 'Purchases fetched',
+            'purchases' => $purchases,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

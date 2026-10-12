@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateReorderRuleRequest;
 use App\Models\Product;
 use App\Models\ReorderRule;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -16,11 +17,17 @@ class ReorderRuleController extends Controller
 {
     public function index()
     {
-        $rules = ReorderRule::where('business_id', Auth::user()->business_id)
-            ->with(['product', 'preferredSupplier'])
-            ->get();
+        $rules = ListLimit::apply(
+            ReorderRule::where('business_id', Auth::user()->business_id)
+                ->with(['product', 'preferredSupplier']),
+            request()
+        );
 
-        return response()->json(['message' => 'Fetched reorder rules', 'data' => $rules]);
+        return response()->json([
+            'message' => 'Fetched reorder rules',
+            'data' => $rules,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     public function store(StoreReorderRuleRequest $request)

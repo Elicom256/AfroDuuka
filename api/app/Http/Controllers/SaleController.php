@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSaleRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Sale;
 use App\Services\SaleItemService;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller
@@ -19,11 +20,17 @@ class SaleController extends Controller
 
     public function index()
     {
-        $sales = Sale::with('saleItems', 'customer.user', 'businessBranch')
-            ->orderByDesc('created_at')
-            ->get();
+        $sales = ListLimit::apply(
+            Sale::with('saleItems', 'customer.user', 'businessBranch')
+                ->orderByDesc('created_at'),
+            request()
+        );
 
-        return response()->json(['message' => 'All sales fetched', 'sales' => $sales]);
+        return response()->json([
+            'message' => 'All sales fetched',
+            'sales' => $sales,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

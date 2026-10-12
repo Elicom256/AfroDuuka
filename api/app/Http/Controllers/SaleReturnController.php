@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSaleReturnRequest;
 use App\Models\SaleReturn;
 use App\Services\SaleReturnService;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 class SaleReturnController extends Controller
@@ -19,11 +20,17 @@ class SaleReturnController extends Controller
 
     public function index()
     {
-        $saleReturns = SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
-            ->orderByDesc('created_at')
-            ->get();
+        $saleReturns = ListLimit::apply(
+            SaleReturn::with('saleReturnItems.saleItem.product', 'processedByUser')
+                ->orderByDesc('created_at'),
+            request()
+        );
 
-        return response()->json(['message' => 'All sale returns fetched', 'sale_returns' => $saleReturns]);
+        return response()->json([
+            'message' => 'All sale returns fetched',
+            'sale_returns' => $saleReturns,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     public function store(StoreSaleReturnRequest $request)
