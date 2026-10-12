@@ -15,7 +15,17 @@ class PosCustomerSearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => 'required|string|max:255',
+            // min:2 for the same reason as PosProductSearchRequest: the query is a
+            // LIKE over the customer list and a single character matches most names
+            // and phone numbers in it.
+            'q' => 'required|string|min:2|max:255',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'q.min' => 'Type at least two characters to search.',
         ];
     }
 }
