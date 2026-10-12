@@ -66,6 +66,62 @@ class RolePermissions
      */
     public const PLATFORM_OPERATOR_ROLES = ['coresupport', 'siteadmin'];
 
+    /**
+     * Roles that are counterparties on the business's books rather than staff on its
+     * payroll. They hold User rows so a sale or purchase can point at them, but they
+     * are not workforce records: they must not appear in the staff list, the worker
+     * picker, or anywhere an executive is choosing who to assign a branch to.
+     */
+    public const COUNTERPARTY_ROLES = ['customer', 'supplier'];
+
+    /**
+     * The tenant owner. Excluded from staff listings because the owner is not a worker
+     * — they cannot be marked present at a branch or be issued a salary — and they
+     * manage the business rather than work in it.
+     */
+    public const OWNER_ROLE = 'executive';
+
+    /**
+     * Normalise a role name the same way roleName() does, for use as a literal.
+     */
+    public static function normaliseRoleName(string $name): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', strtolower($name));
+    }
+
+    /**
+     * Exclude rows whose role name is one of the given names, matching case- and
+     * separator-insensitively.
+     *
+     * roleName() normalises in PHP before comparing, which is right for a single
+     * already-loaded user but impossible inside a WHERE clause — the stored spelling
+     * varies ("Executive", "editor", "BranchManager", "branch_manager") while the
+     * caller only knows the canonical name. So the stored column is normalised in SQL
+     * instead, and compared against the canonical names put through the same
+     * normaliser. Same invariant as roleName(), one place to keep it honest.
+     */
+    public static function excludeRoleNames($query, string $column = 'name', array $names = []): void
+    {
+        if ($names === []) {
+            return;
+        }
+
+        $normalised = array_values(array_map(
+            static fn (string $name): string => static::normaliseRoleName($name),
+            $names
+        ));
+
+        // One placeholder per value rather than a single array binding: PDO expands
+        // an array parameter into its elements, which turns `not in (?)` into
+        // `not in (?, ?, ?)` with the query's own placeholders left short by two.
+        $placeholders = implode(', ', array_fill(0, count($normalised), '?'));
+
+        $query->whereRaw(
+            "lower(regexp_replace({$column}, '[^a-z]', '', 'g')) not in ({$placeholders})",
+            $normalised
+        );
+    }
+
     public static function isPlatformOperator(?User $user): bool
     {
         return in_array(static::roleName($user), static::PLATFORM_OPERATOR_ROLES, true);

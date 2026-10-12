@@ -69,6 +69,7 @@ class SalaryController extends Controller
     public function show(Salary $salary): JsonResponse
     {
         $this->authorize('view', $salary);
+
         return response()->json([
             'message' => 'Fetched salary',
             'salary' => $salary->load(['role', 'businessBranch', 'setBy', 'employees']),

@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateWorkerRequest;
 use App\Models\User;
 use App\Models\Worker;
 use App\Services\WorkerService;
+use App\Support\Auth\RolePermissions;
 
 class WorkerController extends Controller
 {
@@ -25,7 +26,7 @@ class WorkerController extends Controller
         // $business_id = Auth::user()->business_id;
         $workers = Worker::with(['user.role', 'user.businessBranch', 'attendances'])
             ->whereHas('user.role', function ($q) {
-                $q->where('name', '!=', 'Executive');
+                RolePermissions::excludeRoleNames($q, 'name', [RolePermissions::OWNER_ROLE]);
             })
             ->with('attendances', function ($q) {
                 $q->latest()
