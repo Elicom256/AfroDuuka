@@ -9,6 +9,7 @@ use App\Services\ActivityLogService;
 use App\Services\CashFlowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -71,9 +72,17 @@ class ExpenseController extends Controller
         $this->authorize('create', Expense::class);
         $validated = $request->validated();
 
-        $expense = Expense::create($validated);
+        // The expense and the cash flow row that documents it are one fact. Written
+        // separately, a failure on the second left an expense with no ledger entry —
+        // which the cash-flow reports then silently omit, so the month's expenses and
+        // the month's cash flow disagreed with no error anywhere.
+        $expense = DB::transaction(function () use ($validated) {
+            $expense = Expense::create($validated);
 
-        $this->cashFlowService->createCashFlowForExpense($expense, (float) $validated['amount']);
+            $this->cashFlowService->createCashFlowForExpense($expense, (float) $validated['amount']);
+
+            return $expense;
+        });
 
         $this->activity_log->activity(
             'Recorded Expense',
@@ -101,15 +110,22 @@ class ExpenseController extends Controller
     {
         $this->authorize('update', $expense);
         $validated = $request->validated();
-        $expense->update($validated);
 
-        $cashFlow = $expense->cashFlow;
-        if ($cashFlow) {
-            $cashFlow->update([
-                'amount' => $validated['amount'] ?? $expense->amount,
-                'transaction_date' => $validated['payment_date'] ?? $expense->payment_date?->toDateString(),
-            ]);
-        }
+        // The amount and date live in two rows that have to agree — the cash-flow
+        // reports read the ledger, not the expense. A failure between the two writes
+        // left an expense restated without its ledger entry, so the two screens
+        // showed different figures for the same spend.
+        DB::transaction(function () use ($expense, $validated) {
+            $expense->update($validated);
+
+            $cashFlow = $expense->cashFlow;
+            if ($cashFlow) {
+                $cashFlow->update([
+                    'amount' => $validated['amount'] ?? $expense->amount,
+                    'transaction_date' => $validated['payment_date'] ?? $expense->payment_date?->toDateString(),
+                ]);
+            }
+        });
 
         $this->activity_log->activity(
             'updated_expense',
@@ -127,12 +143,19 @@ class ExpenseController extends Controller
     public function destroy(Expense $expense): JsonResponse
     {
         $this->authorize('delete', $expense);
-        $cashFlow = $expense->cashFlow;
-        if ($cashFlow) {
-            $cashFlow->delete();
-        }
 
-        $expense->delete();
+        // Ledger first, then the expense — and both together. A failure between them
+        // used to leave a deleted expense whose cash flow was already gone, or the
+        // reverse, and neither state is distinguishable from a spend that never
+        // happened without reading the activity log.
+        DB::transaction(function () use ($expense) {
+            $cashFlow = $expense->cashFlow;
+            if ($cashFlow) {
+                $cashFlow->delete();
+            }
+
+            $expense->delete();
+        });
 
         $this->activity_log->activity(
             'deleted_expense',

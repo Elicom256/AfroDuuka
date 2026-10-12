@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateCashFlowRequest;
 use App\Models\CashFlow;
 use App\Services\CashFlowService;
 use App\Services\UnsignedAdjustmentResolver;
+use Illuminate\Support\Facades\DB;
 
 class CashFlowController extends Controller
 {
@@ -59,7 +60,12 @@ class CashFlowController extends Controller
      */
     public function store(StoreCashFlowRequest $request)
     {
-        $cashFlow = CashFlow::create($request->validated());
+        // Transactional because CashFlow carries LogsActivity: the write and the
+        // activity_log entry it emits are two rows, and without this a failure
+        // between them leaves a ledger row nobody can see was ever touched. This is
+        // not the try/catch the docblock below rules out — an unexpected exception
+        // still propagates and still surfaces as a 500.
+        $cashFlow = DB::transaction(fn () => CashFlow::create($request->validated()));
 
         return response()->json([
             'message' => 'Cash flow created successfully',
@@ -105,7 +111,9 @@ class CashFlowController extends Controller
      */
     public function update(UpdateCashFlowRequest $request, CashFlow $cashFlow)
     {
-        $cashFlow->update($request->validated());
+        // Restating a ledger row is one of the few things the activity log exists to
+        // witness, so the change and its record have to land together — see store().
+        DB::transaction(fn () => $cashFlow->update($request->validated()));
 
         return response()->json([
             'message' => 'Cash flow updated successfully!',
@@ -141,15 +149,5 @@ class CashFlowController extends Controller
             'message' => "Direction recorded as {$cashFlow->direction}. This adjustment now moves the cash balance.",
             'data' => $cashFlow,
         ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CashFlow $cashFlow)
-    {
-        $cashFlow->delete();
-
-        return response()->json(['message' => 'Deleted cashflow!']);
     }
 }
