@@ -47,15 +47,6 @@ class UpdatePurchaseRequest extends FormRequest
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.cost_price' => ['required', 'numeric', 'min:0'],
-            // 'items.*.subtotal' => [ 'nullable', 'numeric', 'min:0' ],
         ];
     }
-    // public function messages(): array
-    // {
-    //     return [
-    //         'items.required' => 'At least one purchase item is required.',
-    //         'items.*.product_id.required' => 'Each item must have a product.',
-    //         'items.*.quantity.min' => 'Quantity must be at least 1.',
-    //     ];
-    // }
 }
