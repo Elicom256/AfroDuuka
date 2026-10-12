@@ -6,9 +6,13 @@ use App\Http\Middleware\RequireBusiness;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     /**
@@ -106,16 +110,42 @@ return Application::configure(basePath: dirname(__DIR__))
 
         });
 
+        /**
+         * Last-resort renderer for API routes, and deliberately narrow.
+         *
+         * Anything that already knows how to describe itself is left alone:
+         * HttpExceptionInterface carries the 4xx/5xx status and the prepared message
+         * for abort() and abort_unless(), ValidationException renders the field-keyed
+         * errors, AuthenticationException is handled above, and ModelNotFoundException
+         * becomes a 404. Only a genuine unexpected failure lands here — and it reports
+         * nothing the caller did not already know, because with APP_DEBUG=false a raw
+         * $e->getMessage() still names the table and column that failed.
+         *
+         * The narrow conditions matter as much as the message: a blanket \Throwable
+         * renderer registered alongside these is matched first and silently downgrades
+         * every 403 and 422 in the API into a 500, which is how a policy refusal starts
+         * reading as a server fault.
+         */
         $exceptions->render(function (
-            \Throwable $e,
+            Throwable $e,
             $request
         ) {
 
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'An unexpected error occurred.',
-                ], 500);
+            if (! $request->is('api/*')) {
+                return null;
             }
 
+            if ($e instanceof HttpResponseException
+                || $e instanceof HttpExceptionInterface
+                || $e instanceof ValidationException
+                || $e instanceof ModelNotFoundException) {
+                return null;
+            }
+
+            report($e);
+
+            return response()->json([
+                'message' => 'An unexpected error occurred.',
+            ], 500);
         });
     })->create();

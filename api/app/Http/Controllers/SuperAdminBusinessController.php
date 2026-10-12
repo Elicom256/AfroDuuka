@@ -4,15 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateBusinessStatusRequest;
 use App\Models\Business;
+use App\Support\Auth\RolePermissions;
 
 class SuperAdminBusinessController extends Controller
 {
     protected function ensureSiteAdmin(): void
     {
-        $user = auth()->user();
-
+        // RolePermissions::isPlatformOperator() rather than a raw name comparison:
+        // it goes through roleName(), which lowercases and strips separators and
+        // falls back to an unscoped role lookup, so a CoreSupport account (which has
+        // no business by design) is still recognised. The inline strtolower() this
+        // replaced read $user->role?->name, which the tenant scope blanks out for
+        // exactly those users.
         abort_unless(
-            $user && strtolower((string) ($user->role?->name ?? '')) === 'siteadmin',
+            RolePermissions::isPlatformOperator(auth()->user()),
             403,
             'Only the site administrator can manage businesses.'
         );

@@ -41,6 +41,7 @@ class PrinterController extends Controller
     public function show(Printer $printer)
     {
         $this->authorize('view', $printer);
+
         return response()->json(['message' => 'Fetched printer', 'data' => $printer]);
     }
 

@@ -79,8 +79,6 @@ class MutatingRouteAuthorizationAuditTest extends TestCase
 
         'DELETE api/finances/business-debits/{business_debit}' => 'Central delete gate.',
         'DELETE api/finances/business-credits/{business_credit}' => 'Central delete gate.',
-        'DELETE api/currency-rates/{currencyRate}' => 'Central delete gate.',
-        'DELETE api/payment-gateways/{paymentGateway}' => 'Central delete gate.',
         'DELETE api/printers/{printer}' => 'Central delete gate.',
         'DELETE api/reorder-rules/{reorderRule}' => 'Central delete gate.',
         'DELETE api/report-exports/{reportExport}' => 'Central delete gate.',
