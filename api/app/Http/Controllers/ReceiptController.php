@@ -11,6 +11,7 @@ class ReceiptController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Receipt::class);
         $query = Receipt::with(['user', 'customer', 'items']);
 
         if ($search = request('search')) {
@@ -55,6 +56,7 @@ class ReceiptController extends Controller
 
     public function show(Receipt $receipt)
     {
+        $this->authorize('view', $receipt);
         $receipt->load(['user', 'customer', 'items.product', 'sale', 'businessBranch']);
 
         return response()->json([
@@ -65,6 +67,7 @@ class ReceiptController extends Controller
 
     public function pdf(Receipt $receipt)
     {
+        $this->authorize('print', $receipt);
         $receipt->load(['user', 'customer', 'items', 'businessBranch.business']);
 
         $business = $receipt->businessBranch?->business;

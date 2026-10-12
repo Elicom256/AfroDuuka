@@ -147,6 +147,11 @@ class WhatsAppConfigController extends Controller
 
     public function templates()
     {
+        // Same floor as store/update/testMessage: these are the business's own
+        // message templates, and the log view below carries customer phone numbers
+        // and message bodies.
+        abort_unless(RolePermissions::canManagePaymentConfig(Auth::user()), 403, 'You cannot manage WhatsApp configuration.');
+
         $templates = WhatsAppTemplate::where('business_id', Auth::user()?->business_id)->get();
 
         return response()->json([
@@ -157,6 +162,11 @@ class WhatsAppConfigController extends Controller
 
     public function logs()
     {
+        // Delivery logs carry recipient phone numbers and rendered message bodies,
+        // so this is PII-bearing and held to the same floor as the rest of the
+        // WhatsApp config surface.
+        abort_unless(RolePermissions::canManagePaymentConfig(Auth::user()), 403, 'You cannot manage WhatsApp configuration.');
+
         $logs = WhatsAppMessageLog::where('business_id', Auth::user()?->business_id)
             ->latest('created_at')
             ->limit(20)
