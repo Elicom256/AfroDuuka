@@ -9,6 +9,7 @@ use App\Models\ReportExport;
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Manages async report export requests (CSV, XLSX, PDF).
@@ -33,23 +34,32 @@ class ReportExportController extends Controller
         // a business-level read.
         abort_unless(RolePermissions::canManageReports($request->user()), 403, 'You cannot request report exports.');
 
-        $export = ReportExport::create($request->validated());
+        // The export and its audit record are committed together, and this is the
+        // place that matters most: an export moves data outside the tenant scope, so
+        // an export row with no ActivityLog beside it is data that left the tenant
+        // with nobody recorded as having asked for it. Separate statements meant a
+        // failure on the log left exactly that, silently.
+        $export = DB::transaction(function () use ($request) {
+            $export = ReportExport::create($request->validated());
 
-        ActivityLog::create([
-            'log_name' => 'Data Export',
-            'description' => 'Report export requested',
-            'subject_type' => ReportExport::class,
-            'subject_id' => $export->id,
-            'causer_type' => User::class,
-            'causer_id' => Auth::id(),
-            'properties' => [
-                'attributes' => [
-                    'report_type' => $export->report_type,
-                    'format' => $export->format,
-                    'status' => $export->status,
+            ActivityLog::create([
+                'log_name' => 'Data Export',
+                'description' => 'Report export requested',
+                'subject_type' => ReportExport::class,
+                'subject_id' => $export->id,
+                'causer_type' => User::class,
+                'causer_id' => Auth::id(),
+                'properties' => [
+                    'attributes' => [
+                        'report_type' => $export->report_type,
+                        'format' => $export->format,
+                        'status' => $export->status,
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+
+            return $export;
+        });
 
         return response()->json(['message' => 'Report export queued', 'data' => $export], 201);
     }

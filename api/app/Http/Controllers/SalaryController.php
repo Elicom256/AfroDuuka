@@ -8,6 +8,7 @@ use App\Models\Salary;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SalaryController extends Controller
 {
@@ -43,22 +44,30 @@ class SalaryController extends Controller
     public function store(StoreSalaryRequest $request): JsonResponse
     {
         $this->authorize('create', Salary::class);
-        $salary = new Salary([
-            ...$request->validated(),
-            'set_by' => $request->user()?->id,
-        ]);
 
-        // See Salary::$coversAllBranches: an omitted branch_id is stamped with the
-        // creator's branch by BaseModel, and the flag is the only way to say
-        // "this salary applies to every branch" as a deliberate choice.
-        $salary->coversAllBranches = ! $request->filled('business_branch_id');
-        $salary->save();
+        // The salary row and the activity_log entry recording who set it are two
+        // writes. Payroll is sensitive enough that a salary with no record of who
+        // approved it is worse than no salary at all, so they commit together.
+        $salary = DB::transaction(function () use ($request) {
+            $salary = new Salary([
+                ...$request->validated(),
+                'set_by' => $request->user()?->id,
+            ]);
 
-        $this->activity_log->activity(
-            'Created Salary',
-            "Salary of {$salary->amount} per {$salary->period} set for the {$salary->role?->name} role",
-            subject: $salary,
-        );
+            // See Salary::$coversAllBranches: an omitted branch_id is stamped with the
+            // creator's branch by BaseModel, and the flag is the only way to say
+            // "this salary applies to every branch" as a deliberate choice.
+            $salary->coversAllBranches = ! $request->filled('business_branch_id');
+            $salary->save();
+
+            $this->activity_log->activity(
+                'Created Salary',
+                "Salary of {$salary->amount} per {$salary->period} set for the {$salary->role?->name} role",
+                subject: $salary,
+            );
+
+            return $salary;
+        });
 
         return response()->json([
             'message' => 'Salary created successfully',
@@ -81,23 +90,29 @@ class SalaryController extends Controller
         $this->authorize('update', $salary);
         $data = $request->validated();
 
-        // `business_branch_id` is nullable, so the UI sends an explicit null to mean
-        // "all branches". update() would ignore a null and leave the old branch in
-        // place, making that unreachable from the form; forceFill does not.
-        if (array_key_exists('business_branch_id', $data) && $data['business_branch_id'] === null) {
-            $salary->forceFill(['business_branch_id' => null])->save();
-        }
+        // Two separate writes to the same row: forceFill()->save() to clear the
+        // branch, then update() for the rest. A failure between them left a salary
+        // that had silently stopped applying to one branch while still showing the
+        // old amount — a payroll figure nobody could reconstruct. One save does both.
+        DB::transaction(function () use ($salary, $data, $request) {
+            // `business_branch_id` is nullable, so the UI sends an explicit null to mean
+            // "all branches". update() would ignore a null and leave the old branch in
+            // place, making that unreachable from the form; forceFill does not.
+            if (array_key_exists('business_branch_id', $data) && $data['business_branch_id'] === null) {
+                $salary->forceFill(['business_branch_id' => null]);
+            }
 
-        unset($data['business_branch_id']);
+            unset($data['business_branch_id']);
 
-        $salary->update($data);
+            $salary->update($data);
 
-        $this->activity_log->activity(
-            'Updated Salary',
-            "Salary record ID {$salary->id} updated",
-            ['changes' => $request->validated()],
-            $salary,
-        );
+            $this->activity_log->activity(
+                'Updated Salary',
+                "Salary record ID {$salary->id} updated",
+                ['changes' => $request->validated()],
+                $salary,
+            );
+        });
 
         return response()->json([
             'message' => 'Salary updated successfully',
@@ -108,13 +123,16 @@ class SalaryController extends Controller
     public function destroy(Request $request, Salary $salary): JsonResponse
     {
         $this->authorize('delete', $salary);
-        $salary->delete();
 
-        $this->activity_log->activity(
-            'Deleted Salary',
-            "Salary record ID {$salary->id} deleted",
-            subject: $salary,
-        );
+        DB::transaction(function () use ($salary) {
+            $salary->delete();
+
+            $this->activity_log->activity(
+                'Deleted Salary',
+                "Salary record ID {$salary->id} deleted",
+                subject: $salary,
+            );
+        });
 
         return response()->json([
             'message' => 'Salary deleted successfully',
