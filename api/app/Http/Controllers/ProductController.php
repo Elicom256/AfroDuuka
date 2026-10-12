@@ -7,12 +7,12 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Services\InventoryService;
 use App\Services\ProductService;
+use App\Services\RestockingPredictionService;
 use App\Support\Auth\RolePermissions;
 use App\Support\ListLimit;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -20,10 +20,16 @@ class ProductController extends Controller
 
     protected InventoryService $inventoryService;
 
-    public function __construct(ProductService $productService, InventoryService $inventoryService)
-    {
+    protected RestockingPredictionService $restockingPredictionService;
+
+    public function __construct(
+        ProductService $productService,
+        InventoryService $inventoryService,
+        RestockingPredictionService $restockingPredictionService,
+    ) {
         $this->productService = $productService;
         $this->inventoryService = $inventoryService;
+        $this->restockingPredictionService = $restockingPredictionService;
     }
 
     public function index()
@@ -116,79 +122,11 @@ class ProductController extends Controller
             $resolved = EffectiveBranchScope::branchesFor(Auth::user());
             $branchIds = $resolved !== null ? $resolved[1] : null;
             $thresholdDays = (int) request()->query('threshold', 14);
-            $periodDays = 30;
-
-            $lookbackDate = now()->subDays($periodDays);
-
-            $salesVelocity = DB::table('sale_items')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->whereNull('sales.deleted_at')
-                ->when($branchIds !== null, function ($query) use ($branchIds) {
-                    $query->whereIn('sales.business_branch_id', $branchIds);
-                })
-                ->where('sales.created_at', '>=', $lookbackDate)
-                ->select(
-                    'sale_items.product_id',
-                    DB::raw('SUM(sale_items.quantity) as total_sold'),
-                    DB::raw('COUNT(DISTINCT sales.id) as sale_count')
-                )
-                ->groupBy('sale_items.product_id')
-                ->get()
-                ->keyBy('product_id');
-
-            $products = Product::with('productCategory')->get();
-
-            $predictions = $products->map(function ($product) use ($salesVelocity, $periodDays, $thresholdDays) {
-                $velocityData = $salesVelocity->get($product->id);
-                $totalSold = $velocityData ? (int) $velocityData->total_sold : 0;
-                $dailyVelocity = $totalSold / max($periodDays, 1);
-                $daysUntilOut = $dailyVelocity > 0
-                    ? (int) floor($product->quantity / $dailyVelocity)
-                    : null;
-                $isAtRisk = $daysUntilOut !== null && $daysUntilOut <= $thresholdDays;
-                $isLowStock = $product->quantity <= $product->reorder_level && $product->reorder_level > 0;
-
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku,
-                    'quantity' => $product->quantity,
-                    'reorder_level' => $product->reorder_level,
-                    'daily_sales_velocity' => round($dailyVelocity, 2),
-                    'total_sold_30_days' => $totalSold,
-                    'days_until_out' => $daysUntilOut,
-                    'is_at_risk' => $isAtRisk,
-                    'is_low_stock' => $isLowStock,
-                    'last_sold_at' => $product->last_sold_at?->format('Y-m-d'),
-                ];
-            });
-
-            // Counted in place rather than by filtering into named collections and calling count()
-            // on each: $atRisk, $lowStock and $notSelling were sorted and materialised
-            // only to be reduced to three integers and discarded, so a tenant with 10,000
-            // products paid three full sorts to render three numbers on a card. The
-            // filters are identical, so the counts are identical.
-            $atRiskCount = $predictions->where(
-                fn ($prediction) => $prediction['is_at_risk'] === true
-            )->count();
-
-            $lowStockCount = $predictions->where(
-                fn ($prediction) => $prediction['is_low_stock'] === true
-            )->count();
-
-            $notSellingCount = $predictions->where(
-                fn ($prediction) => $prediction['total_sold_30_days'] === 0 && $prediction['quantity'] > 0
-            )->count();
+            $data = $this->restockingPredictionService->predictions($branchIds, $thresholdDays);
 
             return response()->json([
                 'message' => 'Restocking predictions fetched',
-                'data' => [
-                    'predictions' => $predictions,
-                    'at_risk_count' => $atRiskCount,
-                    'low_stock_count' => $lowStockCount,
-                    'not_selling_count' => $notSellingCount,
-                    'threshold_days' => $thresholdDays,
-                ],
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

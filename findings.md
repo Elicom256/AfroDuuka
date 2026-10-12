@@ -463,6 +463,11 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   capture.
 - This should become a dedicated service or query object, while the controller just
   delegates and responds.
+- Partial code cleanup completed: sales velocity, prediction mapping, and summary counts
+  now live in `RestockingPredictionService`; the controller retains branch scoping and
+  HTTP response handling. Syntax, route registration, and Composer autoload checks pass.
+  No restocking-specific test exists, and the database-backed suite remains blocked by
+  the unresolved `pgsql` host. Section 7 remains open.
 
 ### 7.4 `CouponController::store()` still carries business logic inline
 
