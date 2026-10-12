@@ -447,6 +447,7 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   reduce the risk of drift without changing behavior.
 - Partial code cleanup completed: sale resolution, line ownership and quantity checks,
   and refund subtotal calculation now share `prepareReturnItems()` in `SaleReturnService`.
+  Return-line persistence and optional restocking now also share `persistReturnItems()`.
   PHP syntax validation passed; the focused feature tests remain blocked because the
   configured `pgsql` host does not resolve. Section 7 remains open.
 

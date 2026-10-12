@@ -44,24 +44,7 @@ class SaleReturnService
                 'status' => 'completed',
             ]);
 
-            foreach ($returnItems as $ri) {
-                SaleReturnItem::create([
-                    'sale_return_id' => $saleReturn->id,
-                    'sale_item_id' => $ri['sale_item_id'],
-                    'quantity' => $ri['quantity'],
-                    'subtotal' => $ri['subtotal'],
-                    'condition' => $ri['condition'],
-                ]);
-
-                if ($saleReturn->restock) {
-                    $this->inventoryService->stockIn(
-                        $ri['product'],
-                        $ri['quantity'],
-                        'sale_return',
-                        $saleReturn->id
-                    );
-                }
-            }
+            $this->persistReturnItems($saleReturn, $returnItems);
 
             $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
             $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
@@ -100,24 +83,7 @@ class SaleReturnService
                 'restock' => $validated['restock'] ?? $saleReturn->restock,
             ]);
 
-            foreach ($returnItems as $ri) {
-                SaleReturnItem::create([
-                    'sale_return_id' => $saleReturn->id,
-                    'sale_item_id' => $ri['sale_item_id'],
-                    'quantity' => $ri['quantity'],
-                    'subtotal' => $ri['subtotal'],
-                    'condition' => $ri['condition'],
-                ]);
-
-                if ($saleReturn->restock) {
-                    $this->inventoryService->stockIn(
-                        $ri['product'],
-                        $ri['quantity'],
-                        'sale_return',
-                        $saleReturn->id
-                    );
-                }
-            }
+            $this->persistReturnItems($saleReturn, $returnItems);
 
             $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
             $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
@@ -186,6 +152,28 @@ class SaleReturnService
         }
 
         return [$sale, $totalRefund, $returnItems];
+    }
+
+    private function persistReturnItems(SaleReturn $saleReturn, array $returnItems): void
+    {
+        foreach ($returnItems as $returnItem) {
+            SaleReturnItem::create([
+                'sale_return_id' => $saleReturn->id,
+                'sale_item_id' => $returnItem['sale_item_id'],
+                'quantity' => $returnItem['quantity'],
+                'subtotal' => $returnItem['subtotal'],
+                'condition' => $returnItem['condition'],
+            ]);
+
+            if ($saleReturn->restock) {
+                $this->inventoryService->stockIn(
+                    $returnItem['product'],
+                    $returnItem['quantity'],
+                    'sale_return',
+                    $saleReturn->id
+                );
+            }
+        }
     }
 
     public function handleDeleteSaleReturn(SaleReturn $saleReturn): void
