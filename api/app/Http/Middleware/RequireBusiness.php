@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
-use App\Support\CurrentUserResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,6 +33,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireBusiness
 {
+    use ResolvesCurrentUser;
+
     /**
      * Route paths a not-yet-onboarded user may still reach.
      *
@@ -101,21 +102,4 @@ class RequireBusiness
         return false;
     }
 
-    /**
-     * Resolve the caller without depending on where this sits relative to auth:sanctum.
-     *
-     * This middleware is appended to the API group, which puts it before the per-route
-     * auth:sanctum, so $request->user() is usually still null when it runs. The guard is
-     * therefore resolved directly.
-     *
-     * Note what is NOT here: the RequestGuard dance RequireRole uses. Laravel\Sanctum\Guard
-     * is not an instance of Illuminate\Auth\RequestGuard, so that branch silently does
-     * nothing there. Copying it would look defensive while actually calling user() on the
-     * guard ahead of the framework and caching the unresolved result, which makes every
-     * later auth:sanctum check in the same request fail with a 401.
-     */
-    private function currentUser(Request $request): ?User
-    {
-        return CurrentUserResolver::resolve($request);
-    }
 }

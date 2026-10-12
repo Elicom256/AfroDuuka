@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
-use App\Support\CurrentUserResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +30,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class BlockRestrictedRoleActions
 {
+    use ResolvesCurrentUser;
+
     /**
      * Verbs that remove data. PUT/PATCH/POST are not included: a restricted role needs
      * POST for sales and receipts, and PUT for the stock counts it does own.
@@ -61,25 +62,4 @@ class BlockRestrictedRoleActions
         return $next($request);
     }
 
-    /**
-     * Resolve the caller without depending on where this sits relative to auth:sanctum.
-     *
-     * `auth:sanctum` is applied per route file while this is api group middleware, and
-     * nothing in the framework pins the two against each other. A check that read a
-     * null user would treat every restricted caller as anonymous and wave the delete
-     * straight through — the exact failure this class exists to prevent. So the role is
-     * resolved from *this* request rather than assumed to be there already.
-     *
-     * The guard is asked against the request handed to us, not the container's. In the
-     * pipeline they are the same object, so this is a no-op there; it matters when the
-     * middleware is exercised on its own, where reading the container's request would
-     * silently return no user and turn the check into a rubber stamp.
-     *
-     * With no valid token this returns null, the delete passes through, and auth:sanctum
-     * answers 401 as usual.
-     */
-    private function currentUser(Request $request): ?User
-    {
-        return CurrentUserResolver::resolve($request);
-    }
 }
