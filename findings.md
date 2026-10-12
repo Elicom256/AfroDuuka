@@ -476,6 +476,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
 - This is not a launch bug, but it is the kind of file that grows into a large method
   and becomes difficult to test in isolation as the coupon rules become more complex.
 - It is a good cleanup candidate once the launch-critical issues are closed out.
+- Partial code cleanup completed: `CouponService` now owns coupon sequence allocation
+  and persistence, while the controller retains authorization, validation, and HTTP
+  response handling. Syntax and Composer autoload checks pass; the feature test remains
+  blocked during database setup because `pgsql` does not resolve. Section 7 remains open.
 
 ### 7.5 Middleware repeats the same `currentUser()` pattern in multiple places
 

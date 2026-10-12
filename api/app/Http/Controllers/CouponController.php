@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Coupon;
+use App\Services\CouponService;
 use App\Support\Auth\RolePermissions;
-use App\Support\SequenceNumberGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CouponController extends Controller
 {
-    public function __construct(private readonly SequenceNumberGenerator $sequenceNumbers) {}
+    public function __construct(private readonly CouponService $couponService) {}
 
     public function index(): JsonResponse
     {
@@ -26,18 +26,7 @@ class CouponController extends Controller
         abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot create coupons.');
 
         $validated = $request->validate($this->couponRules());
-
-        // Allocated from a sequence rather than count() + 1. That count was
-        // tenant-scoped while coupons.code is globally unique, so two businesses
-        // sharing a four-character name prefix both started at 001 and the second
-        // insert always lost — and two requests in the same business could produce
-        // the same code, since nothing held the count and the insert together.
-        $code = $this->generateCouponCode();
-
-        $coupon = Coupon::create([
-            'code' => $code,
-            ...$validated,
-        ]);
+        $coupon = $this->couponService->create($validated, Auth::user());
 
         return response()->json(['message' => 'Coupon created', 'data' => $coupon], 201);
     }
@@ -73,13 +62,6 @@ class CouponController extends Controller
             'max_uses' => 'nullable|integer|min:1',
             'status' => 'sometimes|in:active,inactive,expired',
         ];
-    }
-
-    private function generateCouponCode(): string
-    {
-        $businessName = Auth::user()?->business?->name ?? 'BUSI';
-
-        return $this->sequenceNumbers->couponCode(substr($businessName, 0, 4));
     }
 
     public function destroy(Coupon $coupon): JsonResponse
