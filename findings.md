@@ -433,6 +433,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   in one call path. It is the clearest “large service method” smell in the codebase.
 - The refactor should split it into smaller steps such as `validateBranchAccess()`,
   `buildLineCalculations()`, and `finalizeSale()` so future POS changes are less risky.
+- Partial code cleanup completed: `calculateNewSaleLines()` now builds tax calculations
+  once per cart line and reuses them for sale totals and `SaleItem` persistence. PHP
+  syntax validation passed; the checkout feature suite is blocked during database setup
+  because `pgsql` does not resolve. Section 7 remains open.
 
 ### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
 

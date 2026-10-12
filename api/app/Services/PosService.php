@@ -15,6 +15,7 @@ use App\Models\SalePayment;
 use App\Models\StockMovement;
 use App\Support\Tenant\EffectiveBranchScope;
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -201,6 +202,7 @@ class PosService
             $totalDiscount = 0;
             $totalSubtotal = 0;
             $totalTaxAmount = 0;
+            $lineCalculations = [];
 
             if (isset($validated['sale_id'])) {
                 $sale = Sale::where('id', $validated['sale_id'])
@@ -215,21 +217,11 @@ class PosService
                     ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
                     ->value('total');
             } else {
-                foreach ($validated['items'] as $item) {
-                    $product = $products->get($item['product_id']);
-                    $tax = $this->taxService->calculateForProduct(
-                        $product,
-                        (float) $item['unit_price'],
-                        (int) $item['quantity'],
-                        (float) ($item['discount'] ?? 0)
-                    );
-                    $totalSubtotal += $tax['taxable_amount'];
-                    $totalTaxAmount += $tax['tax_amount'];
-                }
-
-                $totalAmount = round($totalSubtotal + $totalTaxAmount, 2);
-                $totalSubtotal = round($totalSubtotal, 2);
-                $totalTaxAmount = round($totalTaxAmount, 2);
+                $calculation = $this->calculateNewSaleLines($validated['items'], $products);
+                $lineCalculations = $calculation['lines'];
+                $totalAmount = $calculation['total_amount'];
+                $totalSubtotal = $calculation['subtotal'];
+                $totalTaxAmount = $calculation['tax_amount'];
 
                 $sale = Sale::create([
                     'business_branch_id' => $branchId,
@@ -241,16 +233,12 @@ class PosService
                     'status' => 'completed',
                 ]);
 
-                foreach ($validated['items'] as $item) {
+                foreach ($lineCalculations as $lineCalculation) {
+                    $item = $lineCalculation['item'];
                     $product = $products->get($item['product_id']);
                     $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
                     $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
-                    $tax = $this->taxService->calculateForProduct(
-                        $product,
-                        (float) $item['unit_price'],
-                        (int) $item['quantity'],
-                        (float) ($item['discount'] ?? 0)
-                    );
+                    $tax = $lineCalculation['tax'];
 
                     SaleItem::create([
                         'sale_id' => $sale->id,
@@ -366,6 +354,34 @@ class PosService
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
+    }
+
+    private function calculateNewSaleLines(array $items, Collection $products): array
+    {
+        $lines = [];
+        $subtotal = 0;
+        $taxAmount = 0;
+
+        foreach ($items as $item) {
+            $product = $products->get($item['product_id']);
+            $tax = $this->taxService->calculateForProduct(
+                $product,
+                (float) $item['unit_price'],
+                (int) $item['quantity'],
+                (float) ($item['discount'] ?? 0)
+            );
+
+            $lines[] = ['item' => $item, 'tax' => $tax];
+            $subtotal += $tax['taxable_amount'];
+            $taxAmount += $tax['tax_amount'];
+        }
+
+        return [
+            'lines' => $lines,
+            'total_amount' => round($subtotal + $taxAmount, 2),
+            'subtotal' => round($subtotal, 2),
+            'tax_amount' => round($taxAmount, 2),
+        ];
     }
 
     protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
