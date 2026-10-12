@@ -445,6 +445,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   path and missed in the other.
 - Extracting a shared `prepareReturnItems()` / `applyReturnSideEffects()` flow would
   reduce the risk of drift without changing behavior.
+- Partial code cleanup completed: sale resolution, line ownership and quantity checks,
+  and refund subtotal calculation now share `prepareReturnItems()` in `SaleReturnService`.
+  PHP syntax validation passed; the focused feature tests remain blocked because the
+  configured `pgsql` host does not resolve. Section 7 remains open.
 
 ### 7.3 `ProductController::restocking()` mixes query logic, prediction logic, and response shape
 
