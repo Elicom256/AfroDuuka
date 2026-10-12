@@ -44,37 +44,9 @@ class SaleReturnService
                 'status' => 'completed',
             ]);
 
-            foreach ($returnItems as $ri) {
-                SaleReturnItem::create([
-                    'sale_return_id' => $saleReturn->id,
-                    'sale_item_id' => $ri['sale_item_id'],
-                    'quantity' => $ri['quantity'],
-                    'subtotal' => $ri['subtotal'],
-                    'condition' => $ri['condition'],
-                ]);
+            $this->persistReturnItems($saleReturn, $returnItems);
 
-                if ($saleReturn->restock) {
-                    $this->inventoryService->stockIn(
-                        $ri['product'],
-                        $ri['quantity'],
-                        'sale_return',
-                        $saleReturn->id
-                    );
-                }
-            }
-
-            $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
-            $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
-
-            $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
-                ->sum('quantity');
-            $soldQuantity = $sale->saleItems->sum('quantity');
-
-            if ($returnedQuantity >= $soldQuantity) {
-                Receipt::where('sale_id', $sale->id)
-                    ->where('status', 'completed')
-                    ->update(['status' => 'refunded']);
-            }
+            $this->applyRefundSideEffects($saleReturn, $sale, $totalRefund, $validated);
 
             return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
         });
@@ -100,41 +72,9 @@ class SaleReturnService
                 'restock' => $validated['restock'] ?? $saleReturn->restock,
             ]);
 
-            foreach ($returnItems as $ri) {
-                SaleReturnItem::create([
-                    'sale_return_id' => $saleReturn->id,
-                    'sale_item_id' => $ri['sale_item_id'],
-                    'quantity' => $ri['quantity'],
-                    'subtotal' => $ri['subtotal'],
-                    'condition' => $ri['condition'],
-                ]);
+            $this->persistReturnItems($saleReturn, $returnItems);
 
-                if ($saleReturn->restock) {
-                    $this->inventoryService->stockIn(
-                        $ri['product'],
-                        $ri['quantity'],
-                        'sale_return',
-                        $saleReturn->id
-                    );
-                }
-            }
-
-            $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
-            $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
-
-            $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
-                ->sum('quantity');
-            $soldQuantity = $sale->saleItems->sum('quantity');
-
-            if ($returnedQuantity >= $soldQuantity) {
-                Receipt::where('sale_id', $sale->id)
-                    ->where('status', 'completed')
-                    ->update(['status' => 'refunded']);
-            } else {
-                Receipt::where('sale_id', $sale->id)
-                    ->where('status', 'refunded')
-                    ->update(['status' => 'completed']);
-            }
+            $this->applyRefundSideEffects($saleReturn, $sale, $totalRefund, $validated, restoreReceipt: true);
 
             return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
         });
@@ -186,6 +126,53 @@ class SaleReturnService
         }
 
         return [$sale, $totalRefund, $returnItems];
+    }
+
+    private function persistReturnItems(SaleReturn $saleReturn, array $returnItems): void
+    {
+        foreach ($returnItems as $returnItem) {
+            SaleReturnItem::create([
+                'sale_return_id' => $saleReturn->id,
+                'sale_item_id' => $returnItem['sale_item_id'],
+                'quantity' => $returnItem['quantity'],
+                'subtotal' => $returnItem['subtotal'],
+                'condition' => $returnItem['condition'],
+            ]);
+
+            if ($saleReturn->restock) {
+                $this->inventoryService->stockIn(
+                    $returnItem['product'],
+                    $returnItem['quantity'],
+                    'sale_return',
+                    $saleReturn->id
+                );
+            }
+        }
+    }
+
+    private function applyRefundSideEffects(
+        SaleReturn $saleReturn,
+        Sale $sale,
+        int|float $totalRefund,
+        array $validated,
+        bool $restoreReceipt = false,
+    ): void {
+        $this->cashFlowService->createCashFlowForSaleReturn($saleReturn, $totalRefund, $validated);
+        $this->customerCreditService->recordRefund(Auth::user(), $sale, $totalRefund);
+
+        $returnedQuantity = SaleReturnItem::whereIn('sale_item_id', $sale->saleItems->pluck('id'))
+            ->sum('quantity');
+        $soldQuantity = $sale->saleItems->sum('quantity');
+
+        if ($returnedQuantity >= $soldQuantity) {
+            Receipt::where('sale_id', $sale->id)
+                ->where('status', 'completed')
+                ->update(['status' => 'refunded']);
+        } elseif ($restoreReceipt) {
+            Receipt::where('sale_id', $sale->id)
+                ->where('status', 'refunded')
+                ->update(['status' => 'completed']);
+        }
     }
 
     public function handleDeleteSaleReturn(SaleReturn $saleReturn): void

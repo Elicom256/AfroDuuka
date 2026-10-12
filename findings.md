@@ -433,6 +433,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   in one call path. It is the clearest “large service method” smell in the codebase.
 - The refactor should split it into smaller steps such as `validateBranchAccess()`,
   `buildLineCalculations()`, and `finalizeSale()` so future POS changes are less risky.
+- Partial code cleanup completed: `calculateNewSaleLines()` now builds tax calculations
+  once per cart line and reuses them for sale totals and `SaleItem` persistence. PHP
+  syntax validation passed; the checkout feature suite is blocked during database setup
+  because `pgsql` does not resolve. Section 7 remains open.
 
 ### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
 
@@ -447,6 +451,9 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   reduce the risk of drift without changing behavior.
 - Partial code cleanup completed: sale resolution, line ownership and quantity checks,
   and refund subtotal calculation now share `prepareReturnItems()` in `SaleReturnService`.
+  Return-line persistence and optional restocking now also share `persistReturnItems()`.
+  Cash-flow and customer-credit posting plus receipt reconciliation now share
+  `applyRefundSideEffects()`, which retains the update path's receipt-restoration behavior.
   PHP syntax validation passed; the focused feature tests remain blocked because the
   configured `pgsql` host does not resolve. Section 7 remains open.
 
@@ -460,6 +467,11 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   capture.
 - This should become a dedicated service or query object, while the controller just
   delegates and responds.
+- Partial code cleanup completed: sales velocity, prediction mapping, and summary counts
+  now live in `RestockingPredictionService`; the controller retains branch scoping and
+  HTTP response handling. Syntax, route registration, and Composer autoload checks pass.
+  No restocking-specific test exists, and the database-backed suite remains blocked by
+  the unresolved `pgsql` host. Section 7 remains open.
 
 ### 7.4 `CouponController::store()` still carries business logic inline
 
@@ -468,6 +480,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
 - This is not a launch bug, but it is the kind of file that grows into a large method
   and becomes difficult to test in isolation as the coupon rules become more complex.
 - It is a good cleanup candidate once the launch-critical issues are closed out.
+- Partial code cleanup completed: `CouponService` now owns coupon sequence allocation
+  and persistence, while the controller retains authorization, validation, and HTTP
+  response handling. Syntax and Composer autoload checks pass; the feature test remains
+  blocked during database setup because `pgsql` does not resolve. Section 7 remains open.
 
 ### 7.5 Middleware repeats the same `currentUser()` pattern in multiple places
 
