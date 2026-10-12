@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\CoreSettings\PaymentMethod;
@@ -275,8 +276,16 @@ class TenantIsolationTest extends TestCase
             ], $branch->id);
 
             $this->fail('Expected the sale to be rejected when combined quantity exceeds stock.');
-        } catch (\Exception $exception) {
-            $this->assertSame(301, $exception->getCode());
+        } catch (InsufficientStockException $exception) {
+            // Asserted on the type and the shortfall rather than on 301, which was
+            // "Moved Permanently" and never a real status here — the POS controller
+            // clamped it out of range and answered 500, so the till was told to retry
+            // an unchanged cart. The type now carries the 409 and the numbers.
+            $this->assertSame($product->id, $exception->productId);
+            $this->assertSame(6, $exception->requested);
+            $this->assertSame(5, $exception->available);
+            $this->assertSame(1, $exception->context()['shortfall']);
+            $this->assertSame(409, $exception->getStatusCode());
         }
 
         $this->assertSame(5, $product->fresh()->quantity);

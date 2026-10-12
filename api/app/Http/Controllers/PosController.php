@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\PosCheckoutRequest;
 use App\Http\Requests\PosCustomerSearchRequest;
 use App\Http\Requests\PosProductSearchRequest;
@@ -85,6 +86,17 @@ class PosController extends Controller
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
+        } catch (InsufficientStockException $e) {
+            // Handled ahead of the generic catch below because it is a condition the
+            // till operator can act on: the shortfall is reported so the cart can be
+            // corrected and retried, rather than the operator reading "Checkout failed"
+            // and retrying the identical cart against unchanged stock.
+            Log::info('POS checkout rejected for insufficient stock', $e->context());
+
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['stock' => $e->context()],
+            ], 409);
         } catch (\Exception $e) {
             Log::error($e);
             $status = $e->getCode();
