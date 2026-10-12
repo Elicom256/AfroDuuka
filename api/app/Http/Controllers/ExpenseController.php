@@ -24,6 +24,7 @@ class ExpenseController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Expense::class);
         $query = Expense::with(['category', 'businessBranch', 'createdBy']);
 
         if ($request->filled('expense_category_id')) {
@@ -67,6 +68,7 @@ class ExpenseController extends Controller
 
     public function store(StoreExpenseRequest $request): JsonResponse
     {
+        $this->authorize('create', Expense::class);
         $validated = $request->validated();
 
         $expense = Expense::create($validated);
@@ -86,6 +88,7 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense): JsonResponse
     {
+        $this->authorize('view', $expense);
         $expense->load(['category', 'businessBranch', 'createdBy']);
 
         return response()->json([
@@ -96,6 +99,7 @@ class ExpenseController extends Controller
 
     public function update(UpdateExpenseRequest $request, Expense $expense): JsonResponse
     {
+        $this->authorize('update', $expense);
         $validated = $request->validated();
         $expense->update($validated);
 
@@ -122,6 +126,7 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense): JsonResponse
     {
+        $this->authorize('delete', $expense);
         $cashFlow = $expense->cashFlow;
         if ($cashFlow) {
             $cashFlow->delete();
@@ -142,6 +147,7 @@ class ExpenseController extends Controller
 
     public function approve(Expense $expense): JsonResponse
     {
+        $this->authorize('approve', $expense);
         $expense->update(['status' => 'approved']);
 
         $this->activity_log->activity(
