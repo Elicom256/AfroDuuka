@@ -46,15 +46,31 @@ class ProcurementService
 
         $products = $query->get();
 
-        $suggestions = $products->map(function (Product $product) {
-            $avgDailySales = $this->calculateSalesVelocity($product);
+        // Both lookups that used to run once per product are hoisted out of the loop.
+        //
+        // Velocity was a SUM over sale_items per product, so a tenant with 200 products
+        // at or below their reorder level issued 201 queries to draw one list. It is now
+        // a single grouped aggregate.
+        //
+        // resolveSupplier() is the stranger one: it reads only the product's
+        // business_id and then returns the oldest active supplier for that business, so
+        // every product in a business was asking the identical question and getting the
+        // identical answer. Resolved once per distinct business instead — same result,
+        // one query rather than one per product. See resolveSuppliersByBusiness().
+        $avgDailySalesByProduct = $this->salesVelocityByProduct($products->pluck('id')->all());
+        $suppliersByBusiness = $this->resolveSuppliersByBusiness(
+            $products->pluck('business_id')->filter()->unique()->all()
+        );
+
+        $suggestions = $products->map(function (Product $product) use ($avgDailySalesByProduct, $suppliersByBusiness) {
+            $avgDailySales = $avgDailySalesByProduct[$product->id] ?? 0.0;
             $daysRemaining = $avgDailySales > 0
                 ? round($product->quantity / $avgDailySales, 1)
                 : 999;
 
             $suggestedQty = $this->calculateSuggestedOrderQuantity($product, $avgDailySales);
 
-            $supplier = $this->resolveSupplier($product);
+            $supplier = $suppliersByBusiness[$product->business_id] ?? null;
 
             return [
                 'product_id' => $product->id,
@@ -78,6 +94,70 @@ class ProcurementService
             'total_suggestions' => $suggestions->count(),
             'total_estimated_value' => round($suggestions->sum('estimated_order_value'), 2),
         ];
+    }
+
+    /**
+     * Average daily units sold per product, as [product_id => rate].
+     *
+     * The per-product form of this was calculateSalesVelocity(), called once per product
+     * inside the reorder loop. Aggregating over the product set in a single statement turns
+     * N queries into one and returns one row per product that actually sold, so the missing
+     * entries are absent rather than zero — callers read them with ?? 0.0.
+     *
+     * A product with no sales has no row and no velocity, which is the same answer the
+     * per-product query gave, since SUM over nothing is NULL and NULL / $days is 0.
+     *
+     * @param  array<int>  $productIds
+     * @return array<int, float>
+     */
+    private function salesVelocityByProduct(array $productIds, int $days = 30): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        return SaleItem::query()
+            ->whereIn('product_id', $productIds)
+            ->where('created_at', '>=', Carbon::now()->subDays($days))
+            ->groupBy('product_id')
+            ->selectRaw('product_id, COALESCE(SUM(quantity), 0) as units')
+            ->pluck('units', 'product_id')
+            ->map(static fn ($units) => round(((int) $units) / $days, 2))
+            ->all();
+    }
+
+    /**
+     * The supplier each business would be ordering from, as [business_id => Supplier].
+     *
+     * The old resolveSupplier() took a Product and read nothing from it but the
+     * business_id, then returned the oldest active supplier for that business — so a
+     * reorder list asked the same question once per product and got the same answer. That is
+     * both wasted queries and a misleading signature: it reads like it resolves *this
+     * product's* supplier and does not.
+     *
+     * Kept one-per-business because that is what it actually did. Resolving the real
+     * supplier from a product's purchase history is a different and more useful rule, and is
+     * left for whoever wants it rather than folded in here.
+     *
+     * @param  array<int>  $businessIds
+     * @return array<int, Supplier>
+     */
+    private function resolveSuppliersByBusiness(array $businessIds): array
+    {
+        if ($businessIds === []) {
+            return [];
+        }
+
+        return Supplier::query()
+            ->whereIn('business_id', $businessIds)
+            ->where('status', 'active')
+            ->orderBy('created_at')
+            ->get()
+            // orderBy(created_at) means the first row per business is that business's
+            // oldest active supplier — the same row the per-product query returned.
+            ->groupBy('business_id')
+            ->map(static fn ($suppliers) => $suppliers->first())
+            ->all();
     }
 
     public function calculateSalesVelocity(Product $product, int $days = 30): float

@@ -155,17 +155,30 @@ class ProductController extends Controller
                 ];
             });
 
-            $atRisk = $predictions->where('is_at_risk', true)->sortBy('days_until_out')->values();
-            $lowStock = $predictions->where('is_low_stock', true)->sortBy('quantity')->values();
-            $notSelling = $predictions->where('total_sold_30_days', 0)->where('quantity', '>', 0)->values();
+            // Counted in place rather than by filtering into named collections and calling count()
+            // on each: $atRisk, $lowStock and $notSelling were sorted and materialised
+            // only to be reduced to three integers and discarded, so a tenant with 10,000
+            // products paid three full sorts to render three numbers on a card. The
+            // filters are identical, so the counts are identical.
+            $atRiskCount = $predictions->where(
+                fn ($prediction) => $prediction['is_at_risk'] === true
+            )->count();
+
+            $lowStockCount = $predictions->where(
+                fn ($prediction) => $prediction['is_low_stock'] === true
+            )->count();
+
+            $notSellingCount = $predictions->where(
+                fn ($prediction) => $prediction['total_sold_30_days'] === 0 && $prediction['quantity'] > 0
+            )->count();
 
             return response()->json([
                 'message' => 'Restocking predictions fetched',
                 'data' => [
                     'predictions' => $predictions,
-                    'at_risk_count' => $atRisk->count(),
-                    'low_stock_count' => $lowStock->count(),
-                    'not_selling_count' => $notSelling->count(),
+                    'at_risk_count' => $atRiskCount,
+                    'low_stock_count' => $lowStockCount,
+                    'not_selling_count' => $notSellingCount,
                     'threshold_days' => $thresholdDays,
                 ],
             ], 200);
