@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { getToken } from '@/lib/session';
 
 interface ExportButtonProps {
   type: 'products' | 'sales' | 'purchases' | 'customers' | 'suppliers';
@@ -26,7 +27,7 @@ export const ExportButton = ({ type, label = 'Export', withDateRange = false }: 
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params = new URLSearchParams({ format });
       if (withDateRange) {
         if (dateFrom) params.set('date_from', dateFrom);

@@ -4,6 +4,7 @@ use App\Http\Middleware\BlockRestrictedRoleActions;
 use App\Http\Middleware\RecoverFromAbortedTransaction;
 use App\Http\Middleware\RequireBusiness;
 use App\Http\Middleware\RequireRole;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -76,6 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             BlockRestrictedRoleActions::class,
+            SecurityHeaders::class,
         ]);
 
         // Runs after auth:sanctum so the caller is resolved before the tenant check.

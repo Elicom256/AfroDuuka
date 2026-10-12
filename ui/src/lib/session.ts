@@ -1,5 +1,17 @@
 const TOKEN_KEY = 'token';
 
+/**
+ * Token storage abstraction.
+ *
+ * All token access MUST go through these functions — never call
+ * localStorage.getItem('token') directly. This is the single seam where
+ * we can later swap localStorage for httpOnly cookies without touching
+ * the rest of the codebase.
+ *
+ * Security note: localStorage is accessible to any JS on the page (XSS risk).
+ * The CSP headers added in SecurityHeaders.php mitigate this. A full migration
+ * to httpOnly cookies is the long-term fix.
+ */
 export const getToken = (): string | null => localStorage.getItem(TOKEN_KEY);
 
 export const setToken = (token: string): void => localStorage.setItem(TOKEN_KEY, token);

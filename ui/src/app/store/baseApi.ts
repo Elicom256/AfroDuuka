@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { sharedApiTagTypes } from './apiTags';
+import { getToken } from '@/lib/session';
 
 /**
  * The single RTK Query slice for every feature that must share tag
@@ -24,7 +25,7 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }

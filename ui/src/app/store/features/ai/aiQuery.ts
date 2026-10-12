@@ -1,11 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { getToken } from '@/lib/session';
 
 export const aiQuery = createApi({
   reducerPath: 'aiPath',
   baseQuery: fetchBaseQuery({
     baseUrl: `${import.meta.env.VITE_BASE_URL}/ai`,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
