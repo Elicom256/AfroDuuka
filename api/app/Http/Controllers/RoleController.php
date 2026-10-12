@@ -6,6 +6,7 @@ use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Models\Role;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
@@ -15,9 +16,16 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::orderBy('name', 'desc')->get();
+        $roles = ListLimit::apply(
+            Role::orderBy('name', 'desc'),
+            request(),
+            ListLimit::REFERENCE
+        );
 
-        return response()->json($roles);
+        return response()->json([
+            'data' => $roles,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

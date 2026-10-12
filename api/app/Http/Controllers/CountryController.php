@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCountryRequest;
 use App\Http\Requests\UpdateCountryRequest;
 use App\Models\Country;
+use App\Support\ListLimit;
 
 class CountryController extends Controller
 {
@@ -13,11 +14,16 @@ class CountryController extends Controller
      */
     public function index()
     {
-        $countries = Country::orderBy('name')->get(['id', 'name', 'iso_alpha2', 'flag_emoji', 'currency_code', 'calling_code']);
+        $countries = ListLimit::apply(
+            Country::orderBy('name'),
+            request(),
+            ListLimit::REFERENCE
+        )->map(fn ($country) => $country->only(['id', 'name', 'iso_alpha2', 'flag_emoji', 'currency_code', 'calling_code']));
 
         return response()->json([
             'message' => 'Countries retrieved successfully',
             'data' => $countries,
+            ...ListLimit::truncationNotice(),
         ]);
     }
 

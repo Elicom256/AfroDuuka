@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\CoreSettings\SuppliersSettings;
 use App\Models\Supplier;
 use App\Services\SupplierService;
+use App\Support\ListLimit;
 
 class SupplierController extends Controller
 {
@@ -27,9 +28,17 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $suppliers = Supplier::with('user')->get();
+        $suppliers = ListLimit::apply(
+            Supplier::with('user')->orderByDesc('created_at'),
+            request(),
+            ListLimit::RECORDS
+        );
 
-        return response()->json(['message' => 'Fetched suppliers', 'suppliers' => $suppliers]);
+        return response()->json([
+            'message' => 'Fetched suppliers',
+            'suppliers' => $suppliers,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

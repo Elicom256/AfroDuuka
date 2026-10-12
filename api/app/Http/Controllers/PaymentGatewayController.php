@@ -6,6 +6,7 @@ use App\Http\Requests\StorePaymentGatewayRequest;
 use App\Http\Requests\UpdatePaymentGatewayRequest;
 use App\Models\PaymentGateway;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -15,9 +16,17 @@ class PaymentGatewayController extends Controller
 {
     public function index()
     {
-        $gateways = PaymentGateway::where('business_id', auth()->user()->business_id)->get();
+        $gateways = ListLimit::apply(
+            PaymentGateway::where('business_id', auth()->user()->business_id)->orderByDesc('created_at'),
+            request(),
+            ListLimit::REFERENCE
+        );
 
-        return response()->json(['message' => 'Fetched payment gateways', 'data' => $gateways]);
+        return response()->json([
+            'message' => 'Fetched payment gateways',
+            'data' => $gateways,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

@@ -5,14 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePlanRequest;
 use App\Http\Requests\UpdatePlanRequest;
 use App\Models\Plan;
+use App\Support\ListLimit;
 
 class PlanController extends Controller
 {
     public function index()
     {
-        $plans = Plan::orderBy('sort_order')->get();
+        $plans = ListLimit::apply(
+            Plan::orderBy('sort_order'),
+            request(),
+            ListLimit::REFERENCE
+        );
 
-        return response()->json(['plans' => $plans, 'message' => 'Plans retrieved']);
+        return response()->json([
+            'plans' => $plans,
+            'message' => 'Plans retrieved',
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     public function store(StorePlanRequest $request)
