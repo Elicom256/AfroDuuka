@@ -4,10 +4,9 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
+use App\Support\CurrentUserResolver;
 use Closure;
-use Illuminate\Auth\RequestGuard;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -55,20 +54,6 @@ class RequireRole
      */
     private function currentUser(Request $request): ?User
     {
-        $resolved = $request->user();
-
-        if ($resolved instanceof User) {
-            return $resolved;
-        }
-
-        $guard = Auth::guard('sanctum');
-
-        if ($guard instanceof RequestGuard) {
-            $guard->setRequest($request);
-        }
-
-        $user = $guard->user();
-
-        return $user instanceof User ? $user : null;
+        return CurrentUserResolver::resolve($request);
     }
 }
