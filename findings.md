@@ -435,8 +435,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   `buildLineCalculations()`, and `finalizeSale()` so future POS changes are less risky.
 - Partial code cleanup completed: `calculateNewSaleLines()` now builds tax calculations
   once per cart line and reuses them for sale totals and `SaleItem` persistence. PHP
-  syntax validation passed; the checkout feature suite is blocked during database setup
-  because `pgsql` does not resolve. Section 7 remains open.
+  syntax validation passed. New-sale creation, line persistence, inventory movements,
+  and low-stock notifications now run through `createSaleFromCart()`, leaving held-sale
+  resumption in its separate path. The checkout feature suite is blocked during database
+  setup because `pgsql` does not resolve. Section 7 remains open.
 
 ### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
 
