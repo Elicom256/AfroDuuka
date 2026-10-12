@@ -67,7 +67,7 @@ class StockTransferController extends Controller
 
             return response()->json(['message' => 'Stock transfer dispatched', 'data' => $transfer]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
         }
     }
 
@@ -91,7 +91,7 @@ class StockTransferController extends Controller
 
             return response()->json(['message' => 'Stock transfer received', 'data' => $transfer]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
         }
     }
 
@@ -139,7 +139,7 @@ class StockTransferController extends Controller
 
             return response()->json(['message' => 'Stock transfer cancelled', 'data' => $transfer]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
         }
     }
 

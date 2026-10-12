@@ -64,7 +64,7 @@ class QuotationController extends Controller
         try {
             $quotation = $this->quotations->create($request->validated());
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 422);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 422);
         }
 
         return response()->json([
@@ -90,7 +90,7 @@ class QuotationController extends Controller
         try {
             $updated = $this->quotations->update($quotation, $request->validated());
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
         }
 
         return response()->json([
@@ -120,7 +120,7 @@ class QuotationController extends Controller
         try {
             $sent = $this->quotations->send($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
         }
 
         return response()->json([
@@ -136,7 +136,7 @@ class QuotationController extends Controller
         try {
             $order = $this->quotations->accept($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
         }
 
         return response()->json([
@@ -153,7 +153,7 @@ class QuotationController extends Controller
         try {
             $cancelled = $this->quotations->cancel($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
         }
 
         return response()->json([

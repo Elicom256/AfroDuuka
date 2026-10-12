@@ -103,7 +103,7 @@ class SesWebhookController extends Controller
             Http::timeout(10)->get($url);
         } catch (Throwable $e) {
             Log::warning('Could not confirm the SES topic subscription', [
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ]);
         }
     }

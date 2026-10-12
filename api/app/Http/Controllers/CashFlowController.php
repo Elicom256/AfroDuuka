@@ -95,7 +95,7 @@ class CashFlowController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch inventory analytics!',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ]);
         }
     }

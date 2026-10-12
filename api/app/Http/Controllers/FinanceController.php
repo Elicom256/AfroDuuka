@@ -81,7 +81,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch finance dashboard',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -139,7 +139,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch transactions',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -172,7 +172,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Transaction not found',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -204,7 +204,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create adjustment',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -229,7 +229,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch revenue report',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -253,7 +253,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch expense report',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -276,7 +276,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch income summary',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -296,7 +296,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch branch statement',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -315,7 +315,7 @@ class FinanceController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch business statement',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }

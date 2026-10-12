@@ -40,7 +40,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Login failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 401);
         }
     }
@@ -169,7 +169,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'User creation failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 400);
         }
     }
@@ -197,7 +197,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'User creation failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 400);
         }
     }
@@ -235,7 +235,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'User update failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 400);
         }
     }
@@ -259,7 +259,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'User deletion failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 400);
         }
     }

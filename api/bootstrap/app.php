@@ -103,4 +103,17 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
         });
+
+        $exceptions->render(function (
+            \Throwable $e,
+            $request
+        ) {
+
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'An unexpected error occurred.',
+                ], 500);
+            }
+
+        });
     })->create();

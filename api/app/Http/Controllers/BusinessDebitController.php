@@ -115,7 +115,7 @@ class BusinessDebitController extends Controller
                 $validated['notes'] ?? null,
             );
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return response()->json(['message' => 'An error occurred. Please try again.'], 400);
         }
 
         return response()->json([

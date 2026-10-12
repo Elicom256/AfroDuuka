@@ -27,7 +27,7 @@ class PosController extends Controller
 
             return response()->json(['message' => 'Products fetched', 'data' => $products]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Search failed', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Search failed', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -53,7 +53,7 @@ class PosController extends Controller
 
             return response()->json(['message' => 'Customers fetched', 'data' => $customers]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Search failed', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Search failed', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -94,7 +94,7 @@ class PosController extends Controller
 
             return response()->json([
                 'message' => 'Checkout failed',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], $status);
         }
     }
@@ -124,7 +124,7 @@ class PosController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to hold sale', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to hold sale', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -137,7 +137,7 @@ class PosController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Not found'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch held sales', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to fetch held sales', 'error' => 'An error occurred. Please try again.'], 500);
         }
     }
 
@@ -148,7 +148,7 @@ class PosController extends Controller
 
             return response()->json(['message' => 'Held sale resumed', 'data' => $sale]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Held sale not found', 'error' => $e->getMessage()], 404);
+            return response()->json(['message' => 'Held sale not found', 'error' => 'An error occurred. Please try again.'], 404);
         }
     }
 
@@ -159,7 +159,7 @@ class PosController extends Controller
 
             return response()->json(['message' => 'Held sale deleted']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to delete held sale', 'error' => $e->getMessage()], 404);
+            return response()->json(['message' => 'Failed to delete held sale', 'error' => 'An error occurred. Please try again.'], 404);
         }
     }
 }

@@ -29,7 +29,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch procurement overview',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -48,7 +48,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch reorder suggestions',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -100,7 +100,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create purchase order',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -127,7 +127,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to approve purchase order',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -146,7 +146,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to mark purchase order as ordered',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -175,7 +175,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to receive purchase order',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }
@@ -194,7 +194,7 @@ class ProcurementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to cancel purchase order',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 422);
         }
     }

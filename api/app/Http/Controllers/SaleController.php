@@ -71,7 +71,7 @@ class SaleController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch purchases analytics',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -97,7 +97,7 @@ class SaleController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch return analytics',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }

@@ -68,7 +68,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch inventory analytics!',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -97,7 +97,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch expiring analytics',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -172,7 +172,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch restocking predictions',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -194,7 +194,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch Product Metrics!',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ]);
         }
     }

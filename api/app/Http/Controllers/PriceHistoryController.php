@@ -42,7 +42,7 @@ class PriceHistoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price timeline',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -65,7 +65,7 @@ class PriceHistoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price history',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
@@ -93,7 +93,7 @@ class PriceHistoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch price change analytics',
-                'error' => $e->getMessage(),
+                'error' => 'An error occurred. Please try again.',
             ], 500);
         }
     }
