@@ -74,7 +74,7 @@ class StoreUserRequest extends FormRequest
                 }),
             ],
             'branch_powers' => 'nullable|in:allowed,none',
-            'status' => 'nullable|in:active,suspended,sucked',
+            'status' => 'nullable|in:active,suspended,blocked',
         ];
     }
 }

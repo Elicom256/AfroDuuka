@@ -41,8 +41,16 @@ class AiController extends Controller
         return response()->json($result);
     }
 
-    public function tools(): JsonResponse
+    /**
+     * The tool registry is the assistant's capability surface: it names every action
+     * the model can be steered into and the shape of the business data each one
+     * returns. chat() is already held to elevated roles, so leaving this open let a
+     * non-elevated caller enumerate the whole surface the agent exposes.
+     */
+    public function tools(Request $request): JsonResponse
     {
+        abort_unless(RolePermissions::isElevated($request->user()), 403, 'You cannot use the assistant.');
+
         return response()->json([
             'tools' => $this->agent->definitions(),
         ]);

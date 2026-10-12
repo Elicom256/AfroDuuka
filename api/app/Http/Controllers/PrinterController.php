@@ -14,6 +14,7 @@ class PrinterController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Printer::class);
         $printers = Printer::all();
 
         return response()->json(['message' => 'Fetched printers', 'data' => $printers]);
@@ -39,6 +40,7 @@ class PrinterController extends Controller
 
     public function show(Printer $printer)
     {
+        $this->authorize('view', $printer);
         return response()->json(['message' => 'Fetched printer', 'data' => $printer]);
     }
 
