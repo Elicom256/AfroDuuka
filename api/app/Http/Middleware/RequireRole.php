@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Auth\RolePermissions;
-use App\Support\CurrentUserResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +22,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireRole
 {
+    use ResolvesCurrentUser;
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $this->currentUser($request);
@@ -44,16 +45,4 @@ class RequireRole
         ], 403);
     }
 
-    /**
-     * Resolve the caller without depending on where this sits relative to auth:sanctum.
-     *
-     * `auth:sanctum` is applied per route file while this is route-group middleware,
-     * and nothing in the framework pins the two against each other. A check that read a
-     * null user would treat every caller as anonymous and refuse the request — the
-     * exact failure class BlockRestrictedRoleActions guards against.
-     */
-    private function currentUser(Request $request): ?User
-    {
-        return CurrentUserResolver::resolve($request);
-    }
 }

@@ -475,6 +475,11 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
 - This is small in isolation, but it is a strong sign of repeated “copy the pattern from
   the last middleware” code that should be consolidated once the launch work is stabilised.
 
+> Partial code cleanup completed: the repeated middleware resolver logic has been
+> extracted into a shared `ResolvesCurrentUser` trait, with no behavior change in the
+> auth guards. The section itself remains open because this is only one code-quality
+> slice, not the full refactor pass.
+
 ### 7.6 The remaining work is mostly maintenance debt, not release-blocking logic
 
 - The earlier section 12 cleanup removed the obvious empty classes and dead wrappers. The
