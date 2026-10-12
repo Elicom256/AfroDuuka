@@ -420,12 +420,72 @@ pattern.
 
 # 7. Code Quality — Dead Code, Duplication, Large Methods ⬜
 
-Not started. The dead-code items overlap §12, now done.
+Still open. The dead-code cleanup in §12 already removed the obvious junk, so the
+remaining work here is the real maintainability debt: large service methods, repeated
+validation paths, and duplicated request-scoping logic that is easy to drift.
 
-Still open: `PosService::checkout()` at 200 lines, `SaleReturnService::handleCreateSaleReturn()`
-at 90, business logic in `ProductController::restocking()` and `CouponController::store()`,
-duplicated `currentUser()` across three middleware, and a duplicated analytics try/catch
-pattern across three controllers.
+### 7.1 `PosService::checkout()` is doing too much
+
+- `PosService::checkout()` now validates the cart, checks branch scope, allocates a
+  receipt number, handles tax math, creates the sale and items, persists payments,
+  creates stock movements and cash-flow entries, and sends follow-up notifications.
+- The method is not just long; it mixes boundary checks with persistence and accounting
+  in one call path. It is the clearest “large service method” smell in the codebase.
+- The refactor should split it into smaller steps such as `validateBranchAccess()`,
+  `buildLineCalculations()`, and `finalizeSale()` so future POS changes are less risky.
+
+### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
+
+- Both `handleCreateSaleReturn()` and `handleUpdateSaleReturn()` repeat the same
+  sequence: resolve the sale item, confirm it belongs to the same sale, calculate the
+  already-returned quantity, compute the refund subtotal, append the return item, restock,
+  post cash flow, and update receipt status.
+- The difference is mostly whether the original return is being created or replaced,
+  but the overlap is large enough that a future validation rule can be fixed in one
+  path and missed in the other.
+- Extracting a shared `prepareReturnItems()` / `applyReturnSideEffects()` flow would
+  reduce the risk of drift without changing behavior.
+
+### 7.3 `ProductController::restocking()` mixes query logic, prediction logic, and response shape
+
+- The method resolves branches, calculates 30-day sales velocity, builds prediction
+  values, counts at-risk / low-stock / not-selling products, and then serializes the
+  response in one function.
+- It already contains an explanatory comment about materialising three filtered copies
+  just to count them; that is exactly the code-quality smell this section is meant to
+  capture.
+- This should become a dedicated service or query object, while the controller just
+  delegates and responds.
+
+### 7.4 `CouponController::store()` still carries business logic inline
+
+- Coupon creation, validation, and any downstream rule generation are still co-located
+  in the controller rather than a dedicated service/factory.
+- This is not a launch bug, but it is the kind of file that grows into a large method
+  and becomes difficult to test in isolation as the coupon rules become more complex.
+- It is a good cleanup candidate once the launch-critical issues are closed out.
+
+### 7.5 Middleware repeats the same `currentUser()` pattern in multiple places
+
+- `RequireBusiness`, `RequireRole`, and `BlockRestrictedRoleActions` each resolve the
+  caller directly from the request and repeat custom auth/tenant checks in their own
+  way.
+- The repository already centralises this through `CurrentUserResolver`; the remaining
+  duplication is the maintenance smell rather than a functional bug.
+- This is small in isolation, but it is a strong sign of repeated “copy the pattern from
+  the last middleware” code that should be consolidated once the launch work is stabilised.
+
+### 7.6 The remaining work is mostly maintenance debt, not release-blocking logic
+
+- The earlier section 12 cleanup removed the obvious empty classes and dead wrappers. The
+  remaining code-quality backlog is the high-value maintenance pass: split large methods,
+  consolidate duplicated business logic, and centralise request-user resolution.
+- This currently stays in the “open but not urgent” bucket because it does not change the
+  product contract and it has a lower risk than the earlier security and transactional
+  findings.
+
+This section remains open; the notes above are the real next cleanup slice rather than an
+exhaustive sign-off.
 
 ---
 
