@@ -30,50 +30,9 @@ class SaleReturnService
     public function handleCreateSaleReturn(array $validated, ?string $business_branch_id = null)
     {
         return DB::transaction(function () use ($validated, $business_branch_id) {
-            $totalRefund = 0;
-            $returnItems = [];
-
-            $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($validated['items'][0]['sale_item_id'] ?? null);
-            $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
-
-            if (! $sale) {
-                throw new Exception('Sale not found.', 404);
-            }
+            [$sale, $totalRefund, $returnItems] = $this->prepareReturnItems($validated['items']);
 
             $branchId = $business_branch_id ?: $sale->business_branch_id;
-
-            foreach ($validated['items'] as $item) {
-                $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
-                if (! $saleItem) {
-                    throw new Exception('Sale item not found.', 404);
-                }
-
-                if ($saleItem->sale_id !== $sale->id) {
-                    throw new Exception('Sale item does not belong to this sale.', 404);
-                }
-
-                $alreadyReturned = SaleReturnItem::where('sale_item_id', $item['sale_item_id'])
-                    ->sum('quantity');
-
-                $available = $saleItem->quantity - $alreadyReturned;
-                if ($item['quantity'] > $available) {
-                    throw new Exception(
-                        "Cannot return more than {$available} of this product.",
-                        422
-                    );
-                }
-
-                $subtotal = $item['quantity'] * $saleItem->unit_price;
-                $totalRefund += $subtotal;
-
-                $returnItems[] = [
-                    'sale_item_id' => $item['sale_item_id'],
-                    'quantity' => $item['quantity'],
-                    'subtotal' => $subtotal,
-                    'condition' => $item['condition'] ?? null,
-                    'product' => $saleItem->product,
-                ];
-            }
 
             $saleReturn = SaleReturn::create([
                 'business_branch_id' => $branchId,
@@ -132,49 +91,7 @@ class SaleReturnService
             // count the original return alongside its replacement.
             $saleReturn->saleReturnItems()->delete();
 
-            $totalRefund = 0;
-            $returnItems = [];
-
-            $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($validated['items'][0]['sale_item_id'] ?? null);
-            $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
-
-            if (! $sale) {
-                throw new Exception('Sale not found.', 404);
-            }
-
-            foreach ($validated['items'] as $item) {
-                $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
-                if (! $saleItem) {
-                    throw new Exception('Sale item not found.', 404);
-                }
-
-                if ($saleItem->sale_id !== $sale->id) {
-                    throw new Exception('Sale item does not belong to this sale.', 404);
-                }
-
-                $alreadyReturned = SaleReturnItem::where('sale_item_id', $item['sale_item_id'])
-                    ->where('sale_return_id', '!=', $saleReturn->id)
-                    ->sum('quantity');
-
-                $available = $saleItem->quantity - $alreadyReturned;
-                if ($item['quantity'] > $available) {
-                    throw new Exception(
-                        "Cannot return more than {$available} of this product.",
-                        422
-                    );
-                }
-
-                $subtotal = $item['quantity'] * $saleItem->unit_price;
-                $totalRefund += $subtotal;
-
-                $returnItems[] = [
-                    'sale_item_id' => $item['sale_item_id'],
-                    'quantity' => $item['quantity'],
-                    'subtotal' => $subtotal,
-                    'condition' => $item['condition'] ?? null,
-                    'product' => $saleItem->product,
-                ];
-            }
+            [$sale, $totalRefund, $returnItems] = $this->prepareReturnItems($validated['items'], $saleReturn);
 
             $saleReturn->update([
                 'reason' => $validated['reason'] ?? $saleReturn->reason,
@@ -221,6 +138,54 @@ class SaleReturnService
 
             return $saleReturn->load(['saleReturnItems.saleItem.product', 'processedByUser']);
         });
+    }
+
+    private function prepareReturnItems(array $items, ?SaleReturn $replacing = null): array
+    {
+        $totalRefund = 0;
+        $returnItems = [];
+
+        $firstSaleItem = SaleItem::whereHas('sale')->with('product')->find($items[0]['sale_item_id'] ?? null);
+        $sale = $firstSaleItem ? Sale::with('saleItems.product')->find($firstSaleItem->sale_id) : null;
+
+        if (! $sale) {
+            throw new Exception('Sale not found.', 404);
+        }
+
+        foreach ($items as $item) {
+            $saleItem = SaleItem::whereHas('sale')->with('product')->lockForUpdate()->find($item['sale_item_id']);
+            if (! $saleItem) {
+                throw new Exception('Sale item not found.', 404);
+            }
+
+            if ($saleItem->sale_id !== $sale->id) {
+                throw new Exception('Sale item does not belong to this sale.', 404);
+            }
+
+            $alreadyReturnedQuery = SaleReturnItem::where('sale_item_id', $item['sale_item_id']);
+            if ($replacing !== null) {
+                $alreadyReturnedQuery->where('sale_return_id', '!=', $replacing->id);
+            }
+            $alreadyReturned = $alreadyReturnedQuery->sum('quantity');
+
+            $available = $saleItem->quantity - $alreadyReturned;
+            if ($item['quantity'] > $available) {
+                throw new Exception("Cannot return more than {$available} of this product.", 422);
+            }
+
+            $subtotal = $item['quantity'] * $saleItem->unit_price;
+            $totalRefund += $subtotal;
+
+            $returnItems[] = [
+                'sale_item_id' => $item['sale_item_id'],
+                'quantity' => $item['quantity'],
+                'subtotal' => $subtotal,
+                'condition' => $item['condition'] ?? null,
+                'product' => $saleItem->product,
+            ];
+        }
+
+        return [$sale, $totalRefund, $returnItems];
     }
 
     public function handleDeleteSaleReturn(SaleReturn $saleReturn): void
