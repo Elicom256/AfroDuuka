@@ -20,6 +20,7 @@ class SalaryController extends Controller
 
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', Salary::class);
         $salaries = Salary::with(['role', 'businessBranch', 'setBy'])
             ->latest()
             ->paginate(10);
@@ -41,6 +42,7 @@ class SalaryController extends Controller
 
     public function store(StoreSalaryRequest $request): JsonResponse
     {
+        $this->authorize('create', Salary::class);
         $salary = new Salary([
             ...$request->validated(),
             'set_by' => $request->user()?->id,
@@ -66,6 +68,7 @@ class SalaryController extends Controller
 
     public function show(Salary $salary): JsonResponse
     {
+        $this->authorize('view', $salary);
         return response()->json([
             'message' => 'Fetched salary',
             'salary' => $salary->load(['role', 'businessBranch', 'setBy', 'employees']),
@@ -74,6 +77,7 @@ class SalaryController extends Controller
 
     public function update(UpdateSalaryRequest $request, Salary $salary): JsonResponse
     {
+        $this->authorize('update', $salary);
         $data = $request->validated();
 
         // `business_branch_id` is nullable, so the UI sends an explicit null to mean
@@ -102,6 +106,7 @@ class SalaryController extends Controller
 
     public function destroy(Request $request, Salary $salary): JsonResponse
     {
+        $this->authorize('delete', $salary);
         $salary->delete();
 
         $this->activity_log->activity(
