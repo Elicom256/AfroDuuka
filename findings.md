@@ -448,6 +448,8 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
 - Partial code cleanup completed: sale resolution, line ownership and quantity checks,
   and refund subtotal calculation now share `prepareReturnItems()` in `SaleReturnService`.
   Return-line persistence and optional restocking now also share `persistReturnItems()`.
+  Cash-flow and customer-credit posting plus receipt reconciliation now share
+  `applyRefundSideEffects()`, which retains the update path's receipt-restoration behavior.
   PHP syntax validation passed; the focused feature tests remain blocked because the
   configured `pgsql` host does not resolve. Section 7 remains open.
 
