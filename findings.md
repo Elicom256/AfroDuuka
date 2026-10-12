@@ -21,7 +21,7 @@ rather than quietly dropped — see §12 and §2.7.
 | 1 | Security — Critical | P0 | ✅ |
 | 2 | Authentication & Authorization Gaps | P0 | ✅ |
 | 3 | Error Handling | P0 | ✅ |
-| 4 | Data Integrity & Race Conditions | P1 | ⬜ |
+| 4 | Data Integrity & Race Conditions | P1 | ✅ |
 | 5 | Input Validation Gaps | P2 | ⬜ |
 | 6 | Performance — N+1 Queries & Unpaginated Endpoints | P1 | ⬜ |
 | 7 | Code Quality — Dead Code, Duplication, Large Methods | P2 | ⬜ |
@@ -46,6 +46,7 @@ Recorded so a future drop is attributable.
 | After §1 | 862 passed | 756 (per project docs) |
 | After §2 | 862 passed | — |
 | After §3 | 868 passed (+6 new) | — |
+| After §4 | 868 passed | — |
 | After §12 | 868 passed | 808 passed |
 
 The 809 → 808 frontend drop is `themeContrast.test.ts`, which generates one case per
@@ -195,27 +196,72 @@ in mind for any future limiter work:
 
 ---
 
-# 4. Data Integrity & Race Conditions ⬜
+# 4. Data Integrity & Race Conditions ✅
 
-Not started.
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 4.1 | `StockTransferService` dispatch/receive unlocked | ✅ | Transfer row and product rows now `lockForUpdate()`; status re-checked inside the transaction |
+| 4.2 | Receipt number claimed outside the transaction | ✅ | **Already fixed** — verified, no change needed |
+| 4.3 | Purchase order number from `count() + 1` | ✅ | `SequenceNumberGenerator`, seeded from existing rows |
+| 4.4 | Coupon code from `count() + 1` | ✅ | Same generator; also fixes a cross-business collision |
+| 4.5 | `SaleReturnService` over-return check unlocked | ✅ | **Already fixed** — verified, no change needed |
+| 4.6 | `ExpenseController` update/destroy not transactional | ✅ | store/update/destroy all transactional |
+| 4.7 | `CashFlowController` not transactional | ✅ | store/update transactional |
+| 4.8 | Missing transactions in ~8 controllers | ⚠️ | 2 of 8 fixed — see below |
+| 4.9 | `resolveDestinationProduct()` can create duplicates | ✅ | Match queries lock; insert recovers from a unique violation |
+| 4.10 | Cash flow rows hard-deletable | ⚠️ | Method removed rather than soft-deleted — see below |
 
-| # | Item | Status |
-|---|------|--------|
-| 4.1 | `StockTransferService` dispatch/receive have no `lockForUpdate()` — concurrent transfers lose updates | ⬜ |
-| 4.2 | Receipt number claimed before the transaction opens | ⬜ |
-| 4.3 | Purchase order number from `count() + 1` | ⬜ |
-| 4.4 | Coupon code from `count() + 1` | ⬜ |
-| 4.5 | `SaleReturnService` over-return check is unlocked | ⬜ |
-| 4.6 | `ExpenseController` update/destroy not transactional | ⬜ |
-| 4.7 | `CashFlowController` store/update/destroy not transactional | ⬜ |
-| 4.8 | Same in ~8 other controllers | ⬜ |
-| 4.9 | `resolveDestinationProduct()` can create duplicate products | ⬜ |
-| 4.10 | Cash flow rows are hard-deletable | ⬜ |
+### 4.1 / 4.9 — the transfer race
+`dispatch()` and `receive()` checked status *outside* the transaction, so two requests
+racing on the same draft both saw `draft` and both moved stock — the second decrementing
+from a quantity the first had already invalidated. Each now re-reads the transfer under
+`lockForUpdate()` and re-checks inside. Product rows take `lockForUpdate()` too, since
+read-then-decrement is a read-modify-write.
 
-**How**: Follow the pattern already in `PosService::checkout()` — `DB::transaction()`
-with `lockForUpdate()` on the rows being mutated. For sequential numbers use a Postgres
-sequence rather than `count() + 1`. For 4.10, financial records should be immutable with
-correcting entries, or at minimum soft-deleted.
+`resolveDestinationProduct()` matched on sku/barcode/name and created a row on no match,
+with nothing to stop two concurrent transfers of the same product both finding nothing
+and both inserting. That is the reported duplicate-product-on-transfer bug. The match
+queries lock, and the insert catches a unique violation and re-reads the winner's row, so
+stock lands on one product instead of splitting across two.
+
+### 4.3 / 4.4 — count-then-insert
+Both were wrong twice over: concurrent requests read the same count and the loser was
+rejected by the UNIQUE index (failing a purchase order already sent to a supplier), and
+because the count ran through the tenant scope while the columns are global, two
+businesses sharing a four-character name prefix both started at `001` — so the second
+insert always lost, which reads as a constraint bug rather than a numbering one.
+
+`SequenceNumberGenerator` mirrors `ReceiptNumberGenerator`, which was already converted
+for the same reasons. The migration seeds each sequence from the highest serial already in
+use so an existing database does not restart at 1.
+
+### 4.8 — only 2 of the 8 were real
+Every model involved carries `LogsActivity`, so every write emits a second
+`activity_log` row — which made all eight look multi-record. But for `PromotionController`,
+`BusinessDebitController`, `CurrencyRateController` and `PaymentGatewayController` that
+row is written by an observer from the same statement, so there is no window for a
+partial write. Wrapping them would be churn, not a fix.
+
+The two that were genuinely broken:
+- `SalaryController::update()` wrote the same row twice — `forceFill()->save()` then
+  `update()`. A failure between them left a salary that had silently stopped applying to
+  one branch while still showing the old amount. Collapsed to one write.
+- `ReportExportController::store()` — the case that matters most. An export moves data
+  outside the tenant scope, so an export row with no `ActivityLog` beside it is data that
+  left the tenant with nobody recorded as having asked for it.
+
+### 4.10 — removed, not soft-deleted
+`CashFlowController::destroy()` existed but no DELETE route was ever registered for it, so
+it was unreachable. Adding soft deletes would have made a hard-delete-on-a-financial-ledger
+row look deliberate and sanctioned. The method is gone; corrections go through an
+adjusting entry, and `setDirection()` already covers the one correction this product needs.
+
+### Two items were already correct
+**4.2** — `ReceiptNumberGenerator` already allocates from a Postgres sequence, and
+`PosService::checkout()` calls it outside the transaction deliberately so an abandoned
+cart does not consume a number.
+**4.5** — `SaleReturnService` already takes `lockForUpdate()` on the `SaleItem` at
+`SaleReturnService.php:46`, *before* summing prior returns. That is the correct order.
 
 ---
 
