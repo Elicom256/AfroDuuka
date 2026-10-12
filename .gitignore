@@ -1,3 +1,9 @@
 
+# Environment files (contain secrets)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
 # Render env reference snapshot (contains live secrets)
 renderenv.md
