@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\CoreSettings\CustomersSettings;
 use App\Models\Customer;
 use App\Services\CustomerService;
+use App\Support\ListLimit;
 
 class CustomerController extends Controller
 {
@@ -23,9 +24,17 @@ class CustomerController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Customer::class);
-        $customers = Customer::with('user')->where('status', 'active')->get();
+        $customers = ListLimit::apply(
+            Customer::with('user')->where('status', 'active')->orderByDesc('created_at'),
+            request(),
+            ListLimit::RECORDS
+        );
 
-        return response()->json(['message' => 'Fetched all customers', 'customers' => $customers], 200);
+        return response()->json([
+            'message' => 'Fetched all customers',
+            'customers' => $customers,
+            ...ListLimit::truncationNotice(),
+        ], 200);
     }
 
     /**

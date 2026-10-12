@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReportRequest;
 use App\Http\Requests\UpdateReportRequest;
 use App\Models\Report;
+use App\Support\ListLimit;
 
 class ReportController extends Controller
 {
@@ -18,9 +19,17 @@ class ReportController extends Controller
     {
         $this->authorize('viewAny', Report::class);
 
-        $reports = Report::orderByDesc('created_at')->get();
+        $reports = ListLimit::apply(
+            Report::orderByDesc('created_at'),
+            request(),
+            ListLimit::RECORDS
+        );
 
-        return response()->json(['message' => 'All reports fetched', 'reports' => $reports]);
+        return response()->json([
+            'message' => 'All reports fetched',
+            'reports' => $reports,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

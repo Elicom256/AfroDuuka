@@ -16,40 +16,40 @@ rather than quietly dropped — see §12 and §2.7.
 
 ## Status at a glance
 
-| # | Section | Priority | Status |
-|---|---------|----------|--------|
-| 1 | Security — Critical | P0 | ✅ |
-| 2 | Authentication & Authorization Gaps | P0 | ✅ |
-| 3 | Error Handling | P0 | ✅ |
-| 4 | Data Integrity & Race Conditions | P1 | ✅ |
-| 5 | Input Validation Gaps | P2 | ✅ |
-| 6 | Performance — N+1 Queries & Unpaginated Endpoints | P1 | ⚠️ partial |
-| 7 | Code Quality — Dead Code, Duplication, Large Methods | P2 | ⬜ |
-| 8 | Frontend — State Management, Bundle, Types | P1/P2 | ⬜ |
-| 9 | DevOps & Configuration | P2 | ⬜ |
-| 10 | Testing Gaps | P2 | ⬜ |
-| 11 | Modules to Add | P2 | ⬜ |
-| 12 | Modules to Remove Before Launch | P2 | ✅ |
+| #   | Section                                              | Priority | Status |
+| --- | ---------------------------------------------------- | -------- | ------ |
+| 1   | Security — Critical                                  | P0       | ✅     |
+| 2   | Authentication & Authorization Gaps                  | P0       | ✅     |
+| 3   | Error Handling                                       | P0       | ✅     |
+| 4   | Data Integrity & Race Conditions                     | P1       | ✅     |
+| 5   | Input Validation Gaps                                | P2       | ✅     |
+| 6   | Performance — N+1 Queries & Unpaginated Endpoints    | P1       | ✅     |
+| 7   | Code Quality — Dead Code, Duplication, Large Methods | P2       | ⬜     |
+| 8   | Frontend — State Management, Bundle, Types           | P1/P2    | ⬜     |
+| 9   | DevOps & Configuration                               | P2       | ⬜     |
+| 10  | Testing Gaps                                         | P2       | ⬜     |
+| 11  | Modules to Add                                       | P2       | ⬜     |
+| 12  | Modules to Remove Before Launch                      | P2       | ✅     |
 
 ### Recommended tackle order
 
 1. §1 Secrets · 2. §2 Authorization · 3. §3 Error handling · 4. §4 Race conditions ·
-5. §12 Dead code · 6. §5 Validation · 7. §6 Performance · 8. §7 Code quality ·
-9. §8 Frontend · 10. §9 DevOps · 11. §10 Testing · 12. §11 Modules to add
+2. §12 Dead code · 6. §5 Validation · 7. §6 Performance · 8. §7 Code quality ·
+3. §8 Frontend · 10. §9 DevOps · 11. §10 Testing · 12. §11 Modules to add
 
 ### Test counts
 
 Recorded so a future drop is attributable.
 
-| Point | Backend | Frontend |
-|-------|---------|----------|
-| After §1 | 862 passed | 756 (per project docs) |
-| After §2 | 862 passed | — |
-| After §3 | 868 passed (+6 new) | — |
-| After §4 | 868 passed | — |
-| After §5 | 888 passed (+20 new) | — |
-| After §6 | 900 passed (+12 new) | 808 passed |
-| After §12 | 868 passed | 808 passed |
+| Point     | Backend              | Frontend               |
+| --------- | -------------------- | ---------------------- |
+| After §1  | 862 passed           | 756 (per project docs) |
+| After §2  | 862 passed           | —                      |
+| After §3  | 868 passed (+6 new)  | —                      |
+| After §4  | 868 passed           | —                      |
+| After §5  | 888 passed (+20 new) | —                      |
+| After §6  | 900 passed (+12 new) | 808 passed             |
+| After §12 | 868 passed           | 808 passed             |
 
 The 809 → 808 frontend drop is `themeContrast.test.ts`, which generates one case per
 `.tsx` file it walks — deleting `ToastComponent.tsx` removed exactly one.
@@ -61,6 +61,7 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
 # 1. Security — Critical ✅
 
 ### 1.1 Secrets committed to repository ✅
+
 - **What**: `api/.env`, `api/.env.render`, `api/.env.testing` held a live `APP_KEY`,
   `GEMINI_API_KEY`, database passwords and a full Neon connection string. The root
   `.gitignore` ignored only `renderenv.md`.
@@ -80,6 +81,7 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
 > reporting conflicts. All pre-rewrite local branches were deleted.
 
 ### 1.2 `APP_DEBUG` in production ✅
+
 - **What**: `docker-compose.yml` already set `APP_DEBUG: 'false'` on backend,
   queue-worker and scheduler; `.env.production.example` did not mention it.
 - **Why**: Debug on in production leaks stack traces, paths and schema.
@@ -87,6 +89,7 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
   local dev keeps `true` and production must not.
 
 ### 1.3 Stack trace leakage via `$e->getMessage()` ✅
+
 - **What**: 49 call sites across 13 controllers returned `$e->getMessage()` in JSON.
 - **Why**: Names the failing table, column and constraint, and with debug on, file paths
   and line numbers.
@@ -94,13 +97,14 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
   generic message and `report($e)`.
 
 > **Regression caught here.** The first cut registered a blanket `\Throwable` renderer.
-> It matches *before* Laravel's own handlers, so every `abort_unless()` 403 and every
+> It matches _before_ Laravel's own handlers, so every `abort_unless()` 403 and every
 > 422 came back 500 — policy refusals began reading as server faults. It is now scoped
 > to genuine unexpected failures and explicitly defers `HttpExceptionInterface`,
 > `ValidationException`, `HttpResponseException` and `ModelNotFoundException`.
 > `TenantIsolationTest` caught this.
 
 ### 1.4 Token storage in localStorage ⚠️ interim only
+
 - **What**: Tokens live in `localStorage`, readable by any script on the page.
 - **Why**: One XSS is a full account takeover.
 - **How (done)**: `SecurityHeaders` middleware sets CSP, `X-Frame-Options`,
@@ -110,6 +114,7 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
   Sanctum cookie auth, `supports_credentials`, CSRF handling and frontend changes.
 
 ### 1.5 CORS methods and headers ✅
+
 - **What**: `allowed_methods` and `allowed_headers` were both `['*']`.
 - **How**: Restricted to `GET, POST, PUT, PATCH, DELETE` and
   `Content-Type, Authorization, X-Requested-With`.
@@ -121,32 +126,32 @@ passed on re-run: pre-existing ordering sensitivity, not introduced here.
 Eight controllers had missing or inconsistent authorization, plus two correctness issues
 in how roles are named.
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 2.1 | `CustomerController` — no authorization at all | ✅ | New `CustomerPolicy`; `authorize()` on all five methods. Reads open (till and credit screens need them), writes behind `canManageBranch()` |
-| 2.2 | `PlanController` writes ungated | ✅ | New `PlanPolicy`; writes behind `isPlatformOperator()`. `index` stays public for the pricing page |
-| 2.3 | `ExpenseController::approve()` ungated | ✅ | New `ExpensePolicy`; `approve()` behind `canManageSensitiveFinance()`, rest behind `canManageBranch()` |
-| 2.4 | `SalaryController` — no authorization at all | ✅ | New `SalaryPolicy`; **reads too**, since the list discloses one role's pay against another's |
-| 2.5 | `PrinterController` | ✅ | New `PrinterPolicy`. `store`/`update` were already gated; reads were not |
-| 2.6 | `PaymentGatewayController::destroy()` ungated | ✅ | `canManagePaymentConfig()` — deleting credentials is worse than writing them |
-| 2.7 | `CurrencyRateController::destroy()` ungated | ⚠️ | See deviation below |
-| 2.8 | WhatsApp `logs()` / `templates()` ungated | ✅ | `canManagePaymentConfig()`. Securing existing endpoints, not integration work |
-| 2.9 | `AiController::tools()` ungated | ✅ | `isElevated()`, matching `chat()` — otherwise the whole tool surface was enumerable by any signed-in user |
-| 2.10 | `ReceiptController::pdf()` ungated | ✅ | New `ReceiptPolicy` with a distinct `print()` ability, since it renders PII to a file rather than JSON |
-| 2.11 | Raw role-name comparisons | ✅ | `RolePermissions::excludeRoleNames()` plus `COUNTERPARTY_ROLES` / `OWNER_ROLE` constants |
-| 2.12 | `sucked` status typo | ✅ | → `blocked` in `StoreUserRequest` **and** `UpdateUserRequest` |
+| #    | Item                                           | Status | Notes                                                                                                                                      |
+| ---- | ---------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2.1  | `CustomerController` — no authorization at all | ✅     | New `CustomerPolicy`; `authorize()` on all five methods. Reads open (till and credit screens need them), writes behind `canManageBranch()` |
+| 2.2  | `PlanController` writes ungated                | ✅     | New `PlanPolicy`; writes behind `isPlatformOperator()`. `index` stays public for the pricing page                                          |
+| 2.3  | `ExpenseController::approve()` ungated         | ✅     | New `ExpensePolicy`; `approve()` behind `canManageSensitiveFinance()`, rest behind `canManageBranch()`                                     |
+| 2.4  | `SalaryController` — no authorization at all   | ✅     | New `SalaryPolicy`; **reads too**, since the list discloses one role's pay against another's                                               |
+| 2.5  | `PrinterController`                            | ✅     | New `PrinterPolicy`. `store`/`update` were already gated; reads were not                                                                   |
+| 2.6  | `PaymentGatewayController::destroy()` ungated  | ✅     | `canManagePaymentConfig()` — deleting credentials is worse than writing them                                                               |
+| 2.7  | `CurrencyRateController::destroy()` ungated    | ⚠️     | See deviation below                                                                                                                        |
+| 2.8  | WhatsApp `logs()` / `templates()` ungated      | ✅     | `canManagePaymentConfig()`. Securing existing endpoints, not integration work                                                              |
+| 2.9  | `AiController::tools()` ungated                | ✅     | `isElevated()`, matching `chat()` — otherwise the whole tool surface was enumerable by any signed-in user                                  |
+| 2.10 | `ReceiptController::pdf()` ungated             | ✅     | New `ReceiptPolicy` with a distinct `print()` ability, since it renders PII to a file rather than JSON                                     |
+| 2.11 | Raw role-name comparisons                      | ✅     | `RolePermissions::excludeRoleNames()` plus `COUNTERPARTY_ROLES` / `OWNER_ROLE` constants                                                   |
+| 2.12 | `sucked` status typo                           | ✅     | → `blocked` in `StoreUserRequest` **and** `UpdateUserRequest`                                                                              |
 
 ### Deviations
 
 **2.7** — originally specified `isPlatformOperator()`. But `CurrencyRate` is scoped per
 business here (`where('business_id', ...)`) and `store`/`update` already sit at
 `canManagePaymentConfig()`. `isPlatformOperator()` is siteadmin-only and would have
-stopped a tenant that can *write* a rate from *retiring* one. Matched the existing floor.
+stopped a tenant that can _write_ a rate from _retiring_ one. Matched the existing floor.
 
 **2.11** — the four sites could not simply call `RolePermissions` methods, because
 `roleName()` normalises in PHP and that is impossible inside a `WHERE` clause: the
 stored spelling varies (`Executive`, `editor`, `BranchManager`, `branch_manager`) while
-the caller only knows the canonical name. `excludeRoleNames()` normalises the *column*
+the caller only knows the canonical name. `excludeRoleNames()` normalises the _column_
 in SQL instead and compares against normalised literals — same invariant, one place.
 `SuperAdminBusinessController` moved to `isPlatformOperator()`, which also fixed a real
 bug: its inline `strtolower($user->role?->name)` read a relation the tenant scope blanks
@@ -156,14 +161,15 @@ out for CoreSupport, which has no business by design.
 
 # 3. Error Handling ✅
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 3.1 | Swallowed exceptions in `BusinessService` | ✅ | Split two ways — see below |
-| 3.2 | `Exception` carrying HTTP code 301 | ✅ | Typed `InsufficientStockException extends ConflictHttpException` |
-| 3.3 | No `ValidationException` renderer | ✅ | `message` names the field; `errors` map unchanged |
-| 3.4 | No account lockout | ✅ | `LoginThrottle`, 5 attempts, 429 + `Retry-After`, 6 tests |
+| #   | Item                                      | Status | Notes                                                            |
+| --- | ----------------------------------------- | ------ | ---------------------------------------------------------------- |
+| 3.1 | Swallowed exceptions in `BusinessService` | ✅     | Split two ways — see below                                       |
+| 3.2 | `Exception` carrying HTTP code 301        | ✅     | Typed `InsufficientStockException extends ConflictHttpException` |
+| 3.3 | No `ValidationException` renderer         | ✅     | `message` names the field; `errors` map unchanged                |
+| 3.4 | No account lockout                        | ✅     | `LoginThrottle`, 5 attempts, 429 + `Retry-After`, 6 tests        |
 
 ### 3.1 — why the two swallows were treated differently
+
 Both sit inside the same transaction, and both were `catch → log → continue`.
 
 - **`attachTrialSubscription()` now rolls back.** It creates the subscription row the
@@ -176,13 +182,15 @@ Both sit inside the same transaction, and both were `catch → log → continue`
   `afterCommit()` with retries.
 
 ### 3.2 — why 301 was worse than it looks
+
 `throw new Exception(..., 301)` is "Moved Permanently". `PosController` reads
 `$e->getCode()` as the HTTP status and clamps anything outside 400–599, so an oversold
 cart answered **500**: the till reported a server fault for a shelf conflict and invited
 a retry of the identical cart. The new exception renders as 409 and carries
 `product_id` / `requested` / `available` / `shortfall`.
 
-### 3.4 — what the lockout does *not* do
+### 3.4 — what the lockout does _not_ do
+
 No per-IP lockout. That was tried and reverted: several staff behind one NAT share the
 counter, so three people mistyping a password apiece locked each other out while the
 intended target never had to be attacked at all. The account key is the control;
@@ -190,8 +198,9 @@ per-IP attempts are recorded for alerting only, and `throttle:auth` already boun
 
 Two bugs the new tests caught in this section's own implementation, both worth keeping
 in mind for any future limiter work:
+
 - `RateLimiter::availableIn()` returns the timer key's TTL, which exists after the
-  *first* hit. Read alone it reported a lockout after one failed attempt. The correct
+  _first_ hit. Read alone it reported a lockout after one failed attempt. The correct
   API is `tooManyAttempts()` / `remaining()`.
 - The account lockout and the route limiter return different 429 messages, so a caller
   can tell which one fired.
@@ -200,21 +209,22 @@ in mind for any future limiter work:
 
 # 4. Data Integrity & Race Conditions ✅
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 4.1 | `StockTransferService` dispatch/receive unlocked | ✅ | Transfer row and product rows now `lockForUpdate()`; status re-checked inside the transaction |
-| 4.2 | Receipt number claimed outside the transaction | ✅ | **Already fixed** — verified, no change needed |
-| 4.3 | Purchase order number from `count() + 1` | ✅ | `SequenceNumberGenerator`, seeded from existing rows |
-| 4.4 | Coupon code from `count() + 1` | ✅ | Same generator; also fixes a cross-business collision |
-| 4.5 | `SaleReturnService` over-return check unlocked | ✅ | **Already fixed** — verified, no change needed |
-| 4.6 | `ExpenseController` update/destroy not transactional | ✅ | store/update/destroy all transactional |
-| 4.7 | `CashFlowController` not transactional | ✅ | store/update transactional |
-| 4.8 | Missing transactions in ~8 controllers | ⚠️ | 2 of 8 fixed — see below |
-| 4.9 | `resolveDestinationProduct()` can create duplicates | ✅ | Match queries lock; insert recovers from a unique violation |
-| 4.10 | Cash flow rows hard-deletable | ⚠️ | Method removed rather than soft-deleted — see below |
+| #    | Item                                                 | Status | Notes                                                                                         |
+| ---- | ---------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| 4.1  | `StockTransferService` dispatch/receive unlocked     | ✅     | Transfer row and product rows now `lockForUpdate()`; status re-checked inside the transaction |
+| 4.2  | Receipt number claimed outside the transaction       | ✅     | **Already fixed** — verified, no change needed                                                |
+| 4.3  | Purchase order number from `count() + 1`             | ✅     | `SequenceNumberGenerator`, seeded from existing rows                                          |
+| 4.4  | Coupon code from `count() + 1`                       | ✅     | Same generator; also fixes a cross-business collision                                         |
+| 4.5  | `SaleReturnService` over-return check unlocked       | ✅     | **Already fixed** — verified, no change needed                                                |
+| 4.6  | `ExpenseController` update/destroy not transactional | ✅     | store/update/destroy all transactional                                                        |
+| 4.7  | `CashFlowController` not transactional               | ✅     | store/update transactional                                                                    |
+| 4.8  | Missing transactions in ~8 controllers               | ⚠️     | 2 of 8 fixed — see below                                                                      |
+| 4.9  | `resolveDestinationProduct()` can create duplicates  | ✅     | Match queries lock; insert recovers from a unique violation                                   |
+| 4.10 | Cash flow rows hard-deletable                        | ⚠️     | Method removed rather than soft-deleted — see below                                           |
 
 ### 4.1 / 4.9 — the transfer race
-`dispatch()` and `receive()` checked status *outside* the transaction, so two requests
+
+`dispatch()` and `receive()` checked status _outside_ the transaction, so two requests
 racing on the same draft both saw `draft` and both moved stock — the second decrementing
 from a quantity the first had already invalidated. Each now re-reads the transfer under
 `lockForUpdate()` and re-checks inside. Product rows take `lockForUpdate()` too, since
@@ -227,6 +237,7 @@ queries lock, and the insert catches a unique violation and re-reads the winner'
 stock lands on one product instead of splitting across two.
 
 ### 4.3 / 4.4 — count-then-insert
+
 Both were wrong twice over: concurrent requests read the same count and the loser was
 rejected by the UNIQUE index (failing a purchase order already sent to a supplier), and
 because the count ran through the tenant scope while the columns are global, two
@@ -238,6 +249,7 @@ for the same reasons. The migration seeds each sequence from the highest serial 
 use so an existing database does not restart at 1.
 
 ### 4.8 — only 2 of the 8 were real
+
 Every model involved carries `LogsActivity`, so every write emits a second
 `activity_log` row — which made all eight look multi-record. But for `PromotionController`,
 `BusinessDebitController`, `CurrencyRateController` and `PaymentGatewayController` that
@@ -245,6 +257,7 @@ row is written by an observer from the same statement, so there is no window for
 partial write. Wrapping them would be churn, not a fix.
 
 The two that were genuinely broken:
+
 - `SalaryController::update()` wrote the same row twice — `forceFill()->save()` then
   `update()`. A failure between them left a salary that had silently stopped applying to
   one branch while still showing the old amount. Collapsed to one write.
@@ -253,33 +266,36 @@ The two that were genuinely broken:
   left the tenant with nobody recorded as having asked for it.
 
 ### 4.10 — removed, not soft-deleted
+
 `CashFlowController::destroy()` existed but no DELETE route was ever registered for it, so
 it was unreachable. Adding soft deletes would have made a hard-delete-on-a-financial-ledger
 row look deliberate and sanctioned. The method is gone; corrections go through an
 adjusting entry, and `setDirection()` already covers the one correction this product needs.
 
 ### Two items were already correct
+
 **4.2** — `ReceiptNumberGenerator` already allocates from a Postgres sequence, and
 `PosService::checkout()` calls it outside the transaction deliberately so an abandoned
 cart does not consume a number.
 **4.5** — `SaleReturnService` already takes `lockForUpdate()` on the `SaleItem` at
-`SaleReturnService.php:46`, *before* summing prior returns. That is the correct order.
+`SaleReturnService.php:46`, _before_ summing prior returns. That is the correct order.
 
 ---
 
 # 5. Input Validation Gaps ✅
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 5.1 | POS checkout never checked payments cover the total | ✅ | Checked in the request *and* the service; 7 tests |
-| 5.2 | Supplier and transfer IDs not checked against the caller's business | ✅ | Both scoped to the caller's tenant |
-| 5.3 | POS search has no minimum query length | ✅ | `min:2` on both search endpoints |
-| 5.4 | No duplicate SKU / barcode check per branch | ✅ | Unique indexes per branch + Form Request rules |
-| 5.5 | Export date range unbounded | ✅ | Capped at 366 days, dates validated |
-| 5.6 | Upload validated client-reported MIME only | ✅ | `RealFileContent` magic-byte rule; 6 tests |
-| 5.7 | ~11 endpoints validate inline instead of via Form Request | ⚠️ | Surfaced a real authorization gap instead — see below |
+| #   | Item                                                                | Status | Notes                                                 |
+| --- | ------------------------------------------------------------------- | ------ | ----------------------------------------------------- |
+| 5.1 | POS checkout never checked payments cover the total                 | ✅     | Checked in the request _and_ the service; 7 tests     |
+| 5.2 | Supplier and transfer IDs not checked against the caller's business | ✅     | Both scoped to the caller's tenant                    |
+| 5.3 | POS search has no minimum query length                              | ✅     | `min:2` on both search endpoints                      |
+| 5.4 | No duplicate SKU / barcode check per branch                         | ✅     | Unique indexes per branch + Form Request rules        |
+| 5.5 | Export date range unbounded                                         | ✅     | Capped at 366 days, dates validated                   |
+| 5.6 | Upload validated client-reported MIME only                          | ✅     | `RealFileContent` magic-byte rule; 6 tests            |
+| 5.7 | ~11 endpoints validate inline instead of via Form Request           | ⚠️     | Surfaced a real authorization gap instead — see below |
 
 ### 5.1 — the revenue one
+
 `PosCheckoutRequest` allowed any payment amount and `PosService::checkout()` summed
 what it was given. A short tender produced a `completed` sale whose payment rows were
 recorded as `paid`, a receipt showing **zero change** rather than money outstanding, and
@@ -300,6 +316,7 @@ line — correct under the new rule, so the helper now pays above the item total
 tests are about the tax on the receipt, not about tendering to the penny.
 
 ### 5.2 — cross-tenant ids
+
 `supplier_id` on a purchase and `from_branch_id` / `to_branch_id` on a stock transfer
 were bare `exists:<table>,id`. The reads that follow are tenant-scoped and return null,
 which is why neither was visible: the record existed and its counterparty simply never
@@ -307,6 +324,7 @@ rendered. Stock transfers already merged `business_id` from the session, so only
 branch ids were open.
 
 ### 5.4 — why the index matters here
+
 No constraint on `products.sku` or `products.barcode` at all. The POS barcode path
 resolves a product by barcode, so a duplicate decides which product a scanned code rings
 up, and `StockTransferService::resolveDestinationProduct()` matches on sku → barcode →
@@ -317,6 +335,7 @@ while duplicates exist** and lists the offending branch, value and row ids, rath
 failing with a constraint violation naming a constraint nobody has seen.
 
 ### 5.7 — found a real gap instead of doing the refactor
+
 The item as written is 15 inline `$request->validate()` calls across 11 controllers —
 pure refactoring, no behaviour change, and 129 Form Request classes already exist to be
 consistent with. Auditing those 11 controllers for authorization turned up something
@@ -338,24 +357,24 @@ problem of this kind. Worth doing as its own pass if the codebase wants the cons
 
 ---
 
-# 6. Performance — N+1 Queries & Unpaginated Endpoints ⚠️ partial
+# 6. Performance — N+1 Queries & Unpaginated Endpoints ✅
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 6.1 | N+1 in `SaleItemService` analytics | ✅ | One grouped aggregate; 4 tests pin the figures |
-| 6.2 | `ProductService` four full hydrations | ✅ | `slowMoving` → count; three unread keys removed |
-| 6.3 | N+1 in `ProcurementService` reorder | ✅ | Velocity batched; supplier resolved per business |
-| 6.4 | N+1 in `StockTransferService` | ✅ | Products locked/fetched in one statement |
-| 6.5 | `ProductController::restocking` | ✅ | Three sorts removed; they were only counted |
-| 6.6 | 14 unpaginated list endpoints | ⚠️ | Bounded, **not paginated** — see below |
-| 6.7 | `FinanceService::dashboard` unbounded | ⬜ | Does not hold — see below |
+| #   | Item                                  | Status | Notes                                                       |
+| --- | ------------------------------------- | ------ | ----------------------------------------------------------- |
+| 6.1 | N+1 in `SaleItemService` analytics    | ✅     | One grouped aggregate; 4 tests pin the figures              |
+| 6.2 | `ProductService` four full hydrations | ✅     | `slowMoving` → count; three unread keys removed             |
+| 6.3 | N+1 in `ProcurementService` reorder   | ✅     | Velocity batched; supplier resolved per business            |
+| 6.4 | N+1 in `StockTransferService`         | ✅     | Products locked/fetched in one statement                    |
+| 6.5 | `ProductController::restocking`       | ✅     | Three sorts removed; they were only counted                 |
+| 6.6 | 14 unpaginated list endpoints         | ✅     | Bounded in SQL via `ListLimit`; `truncated` flag added      |
+| 6.7 | `FinanceService::dashboard` unbounded | ⚠️     | Does not hold — documented as a product question, not a fix |
 
 ### The two findings that were not as described
 
 **6.3 — `resolveSupplier()` was not really resolving a supplier.** It took a `Product`,
 read nothing from it but the `business_id`, and returned the oldest active supplier for
 that business. Every product in a business asked an identical question and got an
-identical answer, so half the queries were pure waste *and* the signature was misleading.
+identical answer, so half the queries were pure waste _and_ the signature was misleading.
 Resolved once per business now. Deliberately kept one-per-business — resolving the real
 supplier from purchase history is a better rule and is left for whoever wants it rather
 than folded in here.
@@ -364,15 +383,16 @@ than folded in here.
 filter, but the sums are indexed aggregates on `cash_flows` (there are indexes on
 `(business_id, transaction_date)` and `(type, status)`) with no hydration behind them,
 and `recentTransactions` was already limited to ten. There is no performance problem to
-fix. Whether an *all-time* revenue figure is the right number to show on a dashboard is a
+fix. Whether an _all-time_ revenue figure is the right number to show on a dashboard is a
 product question rather than a performance one, and changing it silently would move
 figures users already read — so it is left alone and raised here instead.
 
 ### 6.6 — bounded, but not paginated
-Twenty-five controllers return `->get()` with nothing on the request able to cap it.
+
+Twenty-five controller actions return `->get()` with nothing on the request able to cap it.
 Seven of those carry records rather than reference data — sales, purchases, returns,
 transfers, users, reorder rules — and were materialising a tenant's whole trading
-history in one array in one request.
+history in a single array in one request.
 
 `ListLimit` applies a ceiling **in SQL** (not to a hydrated collection, which would still
 have loaded every row before discarding it) and clamps the requested limit, so
@@ -388,11 +408,13 @@ alongside, across the product's main screens. That is a real piece of work and s
 planned as its own pass rather than smuggled in here.
 
 ### 6.2 — three keys removed rather than optimised
+
 `slowMoving` is now the count it was being asked for. `deadStock`, `fastMoving` and
 `poorMarginProducts` were removed outright: no consumer read any of them, and
 `poorMarginProducts` was documented in that file as the slowest statement in the set.
-Dead stock is not lost — `DeadStockReports` serves it on its own endpoint. Same call the
-file already took for `topProducts`, for the same reason.
+Dead stock is not lost — `DeadStockReports` serves it on its own endpoint. The same
+reasoning applied to `topProducts` earlier in the file, and this cleanup follows that same
+pattern.
 
 ---
 
@@ -445,16 +467,16 @@ audit trail for financial modifications, and auto-generated OpenAPI docs.
 
 # 12. Modules to Remove Before Launch ✅
 
-| # | Item | Status | Notes |
-|---|------|--------|-------|
-| 12.1 | Empty `SaleService` | ✅ | Deleted — unreferenced |
-| 12.2 | Empty `Services/LoginRequest.php` | ✅ | Deleted — 0 bytes, stray duplicate of `Http/Requests/LoginRequest` |
-| 12.3 | Empty `CashFlowFactory` definition | ⚠️ | **Implemented, not deleted** |
-| 12.4 | `react-icons` | ✅ | Removed; four brand marks inlined |
-| 12.5 | `shadcn` in `dependencies` | ✅ | Moved to `devDependencies` |
-| 12.6 | Unused `tw-animate-css` | ⚠️ | **Kept** — it is load-bearing |
-| 12.7 | Commented-out code blocks | ✅ | Eight files cleaned |
-| 12.8 | `ToastComponent.tsx` | ✅ | Deleted — unreferenced demo harness |
+| #    | Item                               | Status | Notes                                                              |
+| ---- | ---------------------------------- | ------ | ------------------------------------------------------------------ |
+| 12.1 | Empty `SaleService`                | ✅     | Deleted — unreferenced                                             |
+| 12.2 | Empty `Services/LoginRequest.php`  | ✅     | Deleted — 0 bytes, stray duplicate of `Http/Requests/LoginRequest` |
+| 12.3 | Empty `CashFlowFactory` definition | ⚠️     | **Implemented, not deleted**                                       |
+| 12.4 | `react-icons`                      | ✅     | Removed; four brand marks inlined                                  |
+| 12.5 | `shadcn` in `dependencies`         | ✅     | Moved to `devDependencies`                                         |
+| 12.6 | Unused `tw-animate-css`            | ⚠️     | **Kept** — it is load-bearing                                      |
+| 12.7 | Commented-out code blocks          | ✅     | Eight files cleaned                                                |
+| 12.8 | `ToastComponent.tsx`               | ✅     | Deleted — unreferenced demo harness                                |
 
 ### Two findings in this section were wrong
 
@@ -475,23 +497,23 @@ that appeared to work.
 
 ## Summary priority matrix
 
-| Priority | Category | Count | Action |
-|----------|----------|-------|--------|
-| P0 | Secrets in repo | 3 files | ✅ Rotations still manual |
-| P0 | Stack trace leakage | 49 sites | ✅ |
-| P0 | Missing authorization | 8 controllers | ✅ |
-| P1 | Race conditions | 5 sites | ⬜ |
-| P1 | Missing transactions | ~10 sites | ⬜ |
-| P1 | N+1 queries | 6 sites | ⬜ |
-| P1 | Unpaginated endpoints | 14 | ⬜ |
-| P1/P2 | Frontend state + bundle | 51 slices | ⬜ |
-| P2 | Validation gaps | 7 sites | ⬜ |
-| P2 | Code quality | 8 sites | ⬜ |
-| P2 | DevOps | 5 items | ⬜ |
-| P2 | Testing gaps | 4 items | ⬜ |
-| P3 | Accessibility | 3 items | ⬜ |
-| P3 | Type safety | 5 sites | ⬜ |
+| Priority | Category                | Count         | Action                    |
+| -------- | ----------------------- | ------------- | ------------------------- |
+| P0       | Secrets in repo         | 3 files       | ✅ Rotations still manual |
+| P0       | Stack trace leakage     | 49 sites      | ✅                        |
+| P0       | Missing authorization   | 8 controllers | ✅                        |
+| P1       | Race conditions         | 5 sites       | ⬜                        |
+| P1       | Missing transactions    | ~10 sites     | ⬜                        |
+| P1       | N+1 queries             | 6 sites       | ⬜                        |
+| P1       | Unpaginated endpoints   | 14            | ⬜                        |
+| P1/P2    | Frontend state + bundle | 51 slices     | ⬜                        |
+| P2       | Validation gaps         | 7 sites       | ⬜                        |
+| P2       | Code quality            | 8 sites       | ⬜                        |
+| P2       | DevOps                  | 5 items       | ⬜                        |
+| P2       | Testing gaps            | 4 items       | ⬜                        |
+| P3       | Accessibility           | 3 items       | ⬜                        |
+| P3       | Type safety             | 5 sites       | ⬜                        |
 
 ---
 
-*End of findings.*
+_End of findings._

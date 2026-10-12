@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Worker;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessBranchController extends Controller
@@ -20,9 +21,19 @@ class BusinessBranchController extends Controller
     public function index()
     {
         $businessId = Auth::user()->business_id;
-        $branches = BusinessBranch::with('business.country')->where('business_id', $businessId)->orderBy('id')->get();
+        $branches = ListLimit::apply(
+            BusinessBranch::with('business.country')
+                ->where('business_id', $businessId)
+                ->orderBy('id'),
+            request(),
+            ListLimit::REFERENCE
+        );
 
-        return response()->json(['message' => 'Fetched all business branches', 'branches' => $branches]);
+        return response()->json([
+            'message' => 'Fetched all business branches',
+            'branches' => $branches,
+            ...ListLimit::truncationNotice(),
+        ]);
     }
 
     /**

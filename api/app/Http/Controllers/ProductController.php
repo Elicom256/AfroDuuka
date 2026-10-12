@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Services\InventoryService;
 use App\Services\ProductService;
 use App\Support\Auth\RolePermissions;
+use App\Support\ListLimit;
 use App\Support\Tenant\EffectiveBranchScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -27,15 +28,22 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(['productCategory', 'taxCategory', 'attachments'])
-            ->when(
-                request()->filled('business_branch_id'),
-                fn ($query) => $query->where('business_branch_id', request('business_branch_id'))
-            )
-            ->orderBy('id', 'asc')
-            ->get();
+        $products = ListLimit::apply(
+            Product::with(['productCategory', 'taxCategory', 'attachments'])
+                ->when(
+                    request()->filled('business_branch_id'),
+                    fn ($query) => $query->where('business_branch_id', request('business_branch_id'))
+                )
+                ->orderBy('id', 'asc'),
+            request(),
+            ListLimit::RECORDS
+        );
 
-        return response()->json(['message' => 'Products fetched', 'products' => $products], 200);
+        return response()->json([
+            'message' => 'Products fetched',
+            'products' => $products,
+            ...ListLimit::truncationNotice(),
+        ], 200);
     }
 
     public function store(StoreProductRequest $request)

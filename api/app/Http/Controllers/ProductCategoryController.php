@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductCategoryRequest;
 use App\Http\Requests\UpdateProductCategoryRequest;
 use App\Models\ProductCategory;
+use App\Support\ListLimit;
 use Illuminate\Support\Facades\Auth;
 
 class ProductCategoryController extends Controller
@@ -12,9 +13,17 @@ class ProductCategoryController extends Controller
     public function index()
     {
         $business_id = Auth::user()->business_id;
-        $categories = ProductCategory::where('business_id', $business_id)->orderBy('id', 'asc')->get();
+        $categories = ListLimit::apply(
+            ProductCategory::where('business_id', $business_id)->orderBy('id', 'asc'),
+            request(),
+            ListLimit::REFERENCE
+        );
 
-        return response()->json(['message' => 'Product categories fetched!', 'categories' => $categories], 200);
+        return response()->json([
+            'message' => 'Product categories fetched!',
+            'categories' => $categories,
+            ...ListLimit::truncationNotice(),
+        ], 200);
     }
 
     public function store(StoreProductCategoryRequest $request)
