@@ -22,6 +22,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Customer::class);
         $customers = Customer::with('user')->where('status', 'active')->get();
 
         return response()->json(['message' => 'Fetched all customers', 'customers' => $customers], 200);
@@ -32,6 +33,7 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
+        $this->authorize('create', Customer::class);
         $allowed = CustomersSettings::value('status');
         abort_if($allowed !== 'enabled', 403, 'Customer creation is disabled.');
         $validated = $request->validated();
@@ -45,6 +47,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        $this->authorize('view', $customer);
         $customer = $customer->load('user');
 
         return response()->json(['message' => 'Fetched a customer', 'customer' => $customer], 200);
@@ -55,6 +58,7 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
+        $this->authorize('update', $customer);
         $validated = $request->validated();
         $data = $this->customerService->updateCustomer($customer, $validated);
 
@@ -67,6 +71,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        $this->authorize('delete', $customer);
         $customer->delete();
 
         return response()->json(['message' => 'Deleted a customer'], 201);
