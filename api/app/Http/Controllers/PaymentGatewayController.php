@@ -55,6 +55,13 @@ class PaymentGatewayController extends Controller
 
     public function destroy(PaymentGateway $paymentGateway)
     {
+        // Deleting the row is strictly more dangerous than writing it: it removes the
+        // credentials every live mobile-money payment and webhook check routes
+        // through. store/update already hold canManagePaymentConfig(); delete
+        // answered authentication only, so any signed-in account could pull the
+        // plumbing out from under live transactions.
+        abort_unless(RolePermissions::canManagePaymentConfig(request()->user()), 403, 'You cannot manage payment gateway credentials.');
+
         $paymentGateway->delete();
 
         return response()->json(['message' => 'Payment gateway deleted']);

@@ -55,6 +55,11 @@ class CurrencyRateController extends Controller
 
     public function destroy(CurrencyRate $currencyRate)
     {
+        // Rates are scoped per business here (see index()), so this holds to the same
+        // canManagePaymentConfig() floor as store/update rather than to
+        // isPlatformOperator(): a tenant that may write a rate may retire one.
+        abort_unless(RolePermissions::canManagePaymentConfig(request()->user()), 403, 'You cannot manage currency rates.');
+
         $currencyRate->delete();
 
         return response()->json(['message' => 'Currency rate deleted']);
