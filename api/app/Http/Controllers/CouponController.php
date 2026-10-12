@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Coupon;
 use App\Support\Auth\RolePermissions;
+use App\Support\SequenceNumberGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CouponController extends Controller
 {
+    public function __construct(private readonly SequenceNumberGenerator $sequenceNumbers) {}
+
     public function index(): JsonResponse
     {
         $coupons = Coupon::orderByDesc('created_at')
@@ -36,9 +39,14 @@ class CouponController extends Controller
         ]);
 
         $businessName = $user->business->name ?? 'BUSI';
-        $prefix = strtoupper(substr($businessName, 0, 4));
-        $couponCount = Coupon::where('business_id', $user->business_id)->count();
-        $code = $prefix.str_pad($couponCount + 1, 3, '0', STR_PAD_LEFT);
+        $prefix = substr($businessName, 0, 4);
+
+        // Allocated from a sequence rather than count() + 1. That count was
+        // tenant-scoped while coupons.code is globally unique, so two businesses
+        // sharing a four-character name prefix both started at 001 and the second
+        // insert always lost — and two requests in the same business could produce
+        // the same code, since nothing held the count and the insert together.
+        $code = $this->sequenceNumbers->couponCode($prefix);
 
         $coupon = Coupon::create([
             'code' => $code,

@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\SaleItem;
 use App\Models\Supplier;
+use App\Support\SequenceNumberGenerator;
 use App\Support\Tenant\EffectiveBranchScope;
 use Carbon\Carbon;
 use Exception;
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\DB;
 class ProcurementService
 {
     public function __construct(
-        protected InventoryService $inventoryService
+        protected InventoryService $inventoryService,
+        protected SequenceNumberGenerator $sequenceNumbers,
     ) {}
 
     public function reorderSuggestions(?string $branchId = null): array
@@ -129,8 +131,12 @@ class ProcurementService
         }
 
         return DB::transaction(function () use ($data, $branchId, $user) {
-            $orderCount = PurchaseOrder::where('business_id', $user->business_id)->count();
-            $orderNumber = 'PO-'.str_pad($orderCount + 1, 6, '0', STR_PAD_LEFT);
+            // Allocated from a sequence rather than count() + 1: the count was read in
+            // one statement and the insert happened in a later one, so two executives
+            // creating a purchase order at the same moment produced the same number and
+            // the UNIQUE index rejected the loser — failing an order they had already
+            // sent to a supplier.
+            $orderNumber = $this->sequenceNumbers->purchaseOrderNumber();
 
             $totalAmount = collect($data['items'])->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
 
