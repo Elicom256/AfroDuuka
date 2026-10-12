@@ -477,8 +477,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
 
 > Partial code cleanup completed: the repeated middleware resolver logic has been
 > extracted into a shared `ResolvesCurrentUser` trait, with no behavior change in the
-> auth guards. The section itself remains open because this is only one code-quality
-> slice, not the full refactor pass.
+> auth guards. A second slice has also been made in `CouponController`, where the
+> validation rules and coupon-code generation were split into private helpers without
+> altering the endpoint contract. The section itself remains open because these are
+> still incremental code-quality chunks, not the full refactor pass.
 
 ### 7.6 The remaining work is mostly maintenance debt, not release-blocking logic
 

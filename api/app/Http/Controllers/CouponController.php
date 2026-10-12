@@ -25,28 +25,14 @@ class CouponController extends Controller
     {
         abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot create coupons.');
 
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'description' => 'nullable|string',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'min_order_amount' => 'sometimes|numeric|min:0',
-            'valid_from' => 'required|date',
-            'valid_until' => 'required|date|after_or_equal:valid_from',
-            'max_uses' => 'nullable|integer|min:1',
-            'status' => 'sometimes|in:active,inactive,expired',
-        ]);
-
-        $businessName = $user->business->name ?? 'BUSI';
-        $prefix = substr($businessName, 0, 4);
+        $validated = $request->validate($this->couponRules());
 
         // Allocated from a sequence rather than count() + 1. That count was
         // tenant-scoped while coupons.code is globally unique, so two businesses
         // sharing a four-character name prefix both started at 001 and the second
         // insert always lost — and two requests in the same business could produce
         // the same code, since nothing held the count and the insert together.
-        $code = $this->sequenceNumbers->couponCode($prefix);
+        $code = $this->generateCouponCode();
 
         $coupon = Coupon::create([
             'code' => $code,
@@ -65,20 +51,35 @@ class CouponController extends Controller
     {
         abort_unless(RolePermissions::canManageDiscounts(Auth::user()), 403, 'You cannot edit coupons.');
 
-        $validated = $request->validate([
-            'description' => 'nullable|string',
-            'discount_type' => 'sometimes|in:percentage,fixed',
-            'discount_value' => 'sometimes|numeric|min:0',
-            'min_order_amount' => 'sometimes|numeric|min:0',
-            'valid_from' => 'sometimes|date',
-            'valid_until' => 'sometimes|date|after_or_equal:valid_from',
-            'max_uses' => 'nullable|integer|min:1',
-            'status' => 'sometimes|in:active,inactive,expired',
-        ]);
+        $validated = $request->validate($this->couponRules(isUpdate: true));
 
         $coupon->update($validated);
 
         return response()->json(['message' => 'Coupon updated', 'data' => $coupon]);
+    }
+
+    /**
+     * Shared validation rules for create/update paths.
+     */
+    private function couponRules(bool $isUpdate = false): array
+    {
+        return [
+            'description' => 'nullable|string',
+            'discount_type' => $isUpdate ? 'sometimes|in:percentage,fixed' : 'required|in:percentage,fixed',
+            'discount_value' => $isUpdate ? 'sometimes|numeric|min:0' : 'required|numeric|min:0',
+            'min_order_amount' => 'sometimes|numeric|min:0',
+            'valid_from' => $isUpdate ? 'sometimes|date' : 'required|date',
+            'valid_until' => $isUpdate ? 'sometimes|date|after_or_equal:valid_from' : 'required|date|after_or_equal:valid_from',
+            'max_uses' => 'nullable|integer|min:1',
+            'status' => 'sometimes|in:active,inactive,expired',
+        ];
+    }
+
+    private function generateCouponCode(): string
+    {
+        $businessName = Auth::user()?->business?->name ?? 'BUSI';
+
+        return $this->sequenceNumbers->couponCode(substr($businessName, 0, 4));
     }
 
     public function destroy(Coupon $coupon): JsonResponse
