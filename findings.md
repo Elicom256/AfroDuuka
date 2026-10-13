@@ -743,7 +743,7 @@ No stack context, model class, SQLSTATE, or blank toast ever reaches the screen.
 
 - No API failure can return a body lacking a human `message` or `request_id`.
 - `App\Models`, `SQLSTATE`, file paths, `Exception` never appear in any `message`
-  (enforced by a denylist test).
+  (enforced by `ErrorMessageDenylistTest` — 15 cases, 390 assertions).
 - A duplicate/constraint refusal shows a sentence, not a 500, on every audited path.
 - `403` and `429` each render specific copy, never silence.
 - Support can take a `request_id` from the screen and find the request.
