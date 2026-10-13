@@ -1,12 +1,15 @@
 import { Outlet } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const HomeLayout = () => {
   const isHome = useLocation().pathname === '/';
 
   return (
     <div className={isHome ? 'marketing-home flex-1 px-4' : 'container mx-auto px-4 py-10 sm:py-14'}>
-      <Outlet />
+      <RouteErrorBoundary>
+        <Outlet />
+      </RouteErrorBoundary>
     </div>
   );
 };

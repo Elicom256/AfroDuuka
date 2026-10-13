@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
@@ -6,6 +6,7 @@ import { getToken } from '@/lib/session';
 import { isDashboardPath } from '@/lib/routes';
 import { dashboardTreeForRole, normaliseRoleName } from '@/lib/roles';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 // Route-level code splitting. Every page and role tree is loaded on demand so a
 // visitor to the marketing site never downloads a dashboard, and one role never
@@ -66,6 +67,14 @@ const isAuthFailure = (error: unknown): boolean => {
   const status = httpStatusOf(error);
   return status === 401 || status === 403;
 };
+
+/**
+ * Gives a standalone route element its own recovery boundary, so a render throw
+ * on one public page cannot take down the navbar/footer that frame every page
+ * (findings §8.2). Layout routes already wrap their own `<Outlet/>`; this covers
+ * the pages that are not under a layout.
+ */
+const bounded = (node: ReactNode) => <RouteErrorBoundary>{node}</RouteErrorBoundary>;
 
 export const AppRoutes = () => {
   const hasToken = Boolean(getToken());
@@ -160,18 +169,18 @@ export const AppRoutes = () => {
           <Route index element={<Home />} />
           <Route path='pricing' element={<PricingPage />} />
         </Route>
-        <Route path='login' element={<Login />} />
-        <Route path='signup' element={<SignUp />} />
-        <Route path='onboarding' element={<Onboarding />} />
-        <Route path='about' element={<About />} />
-        <Route path='documentation' element={<Documentation />} />
-        <Route path='terms' element={<TermsOfService />} />
-        <Route path='privacy' element={<PrivacyPolicy />} />
+        <Route path='login' element={bounded(<Login />)} />
+        <Route path='signup' element={bounded(<SignUp />)} />
+        <Route path='onboarding' element={bounded(<Onboarding />)} />
+        <Route path='about' element={bounded(<About />)} />
+        <Route path='documentation' element={bounded(<Documentation />)} />
+        <Route path='terms' element={bounded(<TermsOfService />)} />
+        <Route path='privacy' element={bounded(<PrivacyPolicy />)} />
 
         {/* Role-based protected routes, all mounted at /dashboard/* so that the
             hardcoded '/dashboard/...' links throughout the app resolve. The tree
             is chosen from the role, so the URL does not need to repeat it. */}
-        {RoleTree && <Route path='dashboard/*' element={<RoleTree />} />}
+        {RoleTree && <Route path='dashboard/*' element={bounded(<RoleTree />)} />}
 
         {/* Signed in, but holding a role this build has no dashboard for — the seeded
             `editor`, `supplier` and `customer` roles all land here. Without this they
@@ -181,12 +190,12 @@ export const AppRoutes = () => {
         {hasToken && !RoleTree && (
           <Route
             path='dashboard/*'
-            element={<NoDashboardAccess role={normaliseRoleName(role) || null} />}
+            element={bounded(<NoDashboardAccess role={normaliseRoleName(role) || null} />)}
           />
         )}
 
         {/* Fallback */}
-        <Route path='*' element={<NotFound />} />
+        <Route path='*' element={bounded(<NotFound />)} />
       </Routes>
     </Suspense>
   );

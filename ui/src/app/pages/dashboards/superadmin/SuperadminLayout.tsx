@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { SuperadminSidebar } from './SuperadminSidebar';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const SuperadminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +43,9 @@ export const SuperadminLayout = () => {
 
         <main className='flex min-h-screen flex-col p-6'>
           <div className='mt-6'>
-            <Outlet />
+            <RouteErrorBoundary>
+              <Outlet />
+            </RouteErrorBoundary>
           </div>
         </main>
       </div>
