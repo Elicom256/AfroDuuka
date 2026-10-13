@@ -41,6 +41,26 @@ beforeEach(() => {
     Element.prototype.scrollIntoView = () => {};
   }
 
+  // jsdom implements neither matchMedia (sonner's Toaster reads
+  // prefers-color-scheme on mount) nor window.scrollTo (App resets scroll on
+  // route change). Rendering the app shell otherwise throws or logs
+  // "Not implemented" for both.
+  if (!window.matchMedia) {
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+  }
+  // jsdom defines window.scrollTo but only to throw "Not implemented", so this
+  // cannot be guarded on existence like the others.
+  window.scrollTo = (() => {}) as typeof window.scrollTo;
+
   Object.defineProperty(window, 'location', {
     configurable: true,
     writable: true,

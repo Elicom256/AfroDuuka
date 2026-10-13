@@ -28,6 +28,11 @@ export const AiChat = () => {
   const [sendMessage, { isLoading }] = useSendAiMessageMutation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // The conversation is a visual-only stream for assistive tech: nothing here
+  // announced a new reply or that a request was in flight. This is the single
+  // text a screen reader is told whenever the transcript changes.
+  const latestAssistant = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -86,6 +91,9 @@ export const AiChat = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className='flex-1 space-y-4 overflow-y-auto p-5 scrollbar-thin'>
+        <div className='sr-only' role='status' aria-live='polite'>
+          {isLoading ? 'Assistant is thinking…' : latestAssistant}
+        </div>
         {messages.map((msg, i) => (
           <div key={i} className={cn('flex gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             {msg.role === 'assistant' && (
@@ -136,10 +144,11 @@ export const AiChat = () => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder='Ask about inventory, sales, stock...'
+            aria-label='Message to the AI assistant'
             disabled={isLoading}
             className='flex-1 bg-background'
           />
-          <Button type='submit' size='icon' disabled={!input.trim() || isLoading} className='shrink-0 shadow-sm'>
+          <Button type='submit' size='icon' disabled={!input.trim() || isLoading} aria-label={isLoading ? 'Sending message' : 'Send message'} className='shrink-0 shadow-sm'>
             {isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Send className='h-4 w-4' />}
           </Button>
         </form>
