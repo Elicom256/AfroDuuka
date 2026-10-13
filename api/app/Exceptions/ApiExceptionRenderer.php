@@ -271,10 +271,12 @@ final class ApiExceptionRenderer
         array $extra = [],
         array $headers = [],
     ): JsonResponse {
+        $id = RequestId::for($request);
+
         return response()->json(array_merge([
             'message' => $message,
             'code' => $code,
-            'request_id' => RequestId::for($request),
-        ], $extra), $status, $headers);
+            'request_id' => $id,
+        ], $extra), $status, array_merge([RequestId::HEADER => $id], $headers));
     }
 }

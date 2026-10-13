@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiExceptionRenderer;
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\BlockRestrictedRoleActions;
 use App\Http\Middleware\RecoverFromAbortedTransaction;
 use App\Http\Middleware\RequireBusiness;
@@ -54,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // controller: an inherited aborted transaction (SQLSTATE 25P02) rolls
         // back, reconnects and replays the request exactly once.
         $middleware->api(prepend: [
+            AssignRequestId::class,
             RecoverFromAbortedTransaction::class,
         ]);
 

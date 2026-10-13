@@ -39,6 +39,7 @@ class TooManyLoginAttemptsException extends HttpException
             'retry_after' => $this->getSecondsRemaining(),
         ], 429, [
             'Retry-After' => $this->getSecondsRemaining(),
+            RequestId::HEADER => RequestId::for($request),
         ]);
     }
 }
