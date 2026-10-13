@@ -576,8 +576,9 @@ environment.
 # 10. Testing Gaps ⚠️
 
 Backend unit tests run in CI (47 passing). Frontend tests now run in CI (830 passing).
-Flaky `BranchPerformanceReportsTest`; no integration test proving tenant isolation
-through the API; no concurrency tests for POS checkout or stock transfer.
+Flaky `BranchPerformanceReportsTest` **fixed** (clock frozen in setUp/tearDown);
+no integration test proving tenant isolation through the API; no concurrency tests
+for POS checkout or stock transfer.
 
 ---
 
