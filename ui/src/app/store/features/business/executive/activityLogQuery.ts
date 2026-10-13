@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
 export interface ActivityLog {
   id: number;
@@ -55,22 +55,10 @@ export interface ActivityLogFilters {
   per_page?: number;
 }
 
-export const activityLogQuery = createApi({
-  reducerPath: 'activityLogPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/activity-logs`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ActivityLogAPI'],
+export const activityLogQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getActivityLogs: builder.query<Paginated<ActivityLog>, ActivityLogFilters>({
-      query: (params) => ({ url: '/', method: 'GET', params }),
+      query: (params) => ({ url: '/dashboard/activity-logs/', method: 'GET', params }),
       transformResponse: (response: Paginated<ActivityLog>) => ({
         data: response?.data ?? [],
         links: response?.links ?? { first: null, last: null, prev: null, next: null },
@@ -93,18 +81,18 @@ export const activityLogQuery = createApi({
     }),
 
     getActivityLogCategories: builder.query<{ data: string[] }, void>({
-      query: () => ({ url: '/categories', method: 'GET' }),
+      query: () => ({ url: '/dashboard/activity-logs/categories', method: 'GET' }),
       transformResponse: (response: { data?: string[] }) => ({ data: response?.data ?? [] }),
       providesTags: ['ActivityLogAPI'],
     }),
 
     getActivityLog: builder.query<{ data: ActivityLog }, number>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/dashboard/activity-logs/${id}`, method: 'GET' }),
       providesTags: (_result, _error, id) => [{ type: 'ActivityLogAPI', id }],
     }),
 
     deleteActivityLog: builder.mutation<void, number>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      query: (id) => ({ url: `/dashboard/activity-logs/${id}`, method: 'DELETE' }),
       invalidatesTags: ['ActivityLogAPI'],
     }),
   }),

@@ -1,26 +1,13 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { getToken } from '@/lib/session';
+import { baseApi } from '@/app/store/baseApi';
 
-export const aiQuery = createApi({
-  reducerPath: 'aiPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/ai`,
-    prepareHeaders: (headers) => {
-      const token = getToken();
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['AiAPI'],
+export const aiQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     sendAiMessage: builder.mutation<any, { message: string }>({
-      query: (body) => ({ url: '/chat', method: 'POST', body }),
+      query: (body) => ({ url: '/ai/chat', method: 'POST', body }),
       invalidatesTags: ['AiAPI'],
     }),
     getAiTools: builder.query<any, void>({
-      query: () => ({ url: '/tools', method: 'GET' }),
+      query: () => ({ url: '/ai/tools', method: 'GET' }),
       providesTags: ['AiAPI'],
     }),
   }),

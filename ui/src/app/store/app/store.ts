@@ -2,160 +2,19 @@ import { configureStore } from '@reduxjs/toolkit';
 import { authListenerMiddleware } from './authListener';
 import { apiErrorMiddleware } from '../apiErrorMiddleware';
 import { baseApi } from '../baseApi';
-import { authQuery } from '../features/auth/authQuery';
-import { workersQuery } from '../features/business/workers/workersQuery';
-import { productCategoriesQuery } from '../features/business/products/productsQuery';
-import { customersQuery } from '../features/business/customers/customersQuery';
-import { businessQuery } from '../features/business/setup/businessQuery';
-import { onboardingQuery } from '../features/business/setup/onboardingQuery';
-import { rolesQuery } from '../features/business/roles/rolesQuery';
-import { supplierQuery } from '../features/business/suppliers/supplierQuery';
-import { branchWorkersQuery } from '../features/branch/workers/branchWorkersQuery';
-import { branchCustomersQuery } from '../features/branch/customers/branchCustomersQuery';
-import { branchSuppliersQuery } from '../features/branch/suppliers/branchSuppliersQuery';
-import { notificationsApi } from '../features/branch/notifications/notificationsQuery';
-import { branchPromotionsQuery } from '../features/branch/promotions/promotionsQuery';
-import { branchAttendanceQuery } from '../features/branch/attendance/attendanceQuery';
-import { attachmentsQuery } from '../features/branch/attachments/attachmentsQuery';
-import { attendanceSettingsQuery } from '../features/business/settings/attendance';
-import { customerSettingsQuery } from '../features/business/settings/customer';
-import { paymentSettingsQuery } from '../features/business/settings/payment';
-import { promotionsSettingsQuery } from '../features/business/settings/promotions';
-import { reportsSettingsQuery } from '../features/business/settings/reports';
-import { supplierSettingsQuery } from '../features/business/settings/supplier';
-import { executiveAttendanceQuery } from '../features/business/executive/attendanceQuery';
-import { executiveEmployeeRemunerationQuery } from '../features/business/executive/employeeRemunerationQuery';
-import { currencyRatesQuery } from '../features/business/executive/currencyRatesQuery';
-import { paymentGatewaysQuery } from '../features/business/executive/paymentGatewaysQuery';
-import { whatsappQuery } from '../features/business/executive/whatsappQuery';
-import { printersQuery } from '../features/business/executive/printersQuery';
-import { reorderRulesQuery } from '../features/business/executive/reorderRulesQuery';
-import { countriesQuery } from '../features/countries/countriesQuery';
-import { aiQuery } from '../features/ai/aiQuery';
-import { todoQuery } from '../features/todos/todoQuery';
-import { plansQuery } from '../features/plans/plansQuery';
-import { executivePlansQuery } from '../features/plans/executivePlansQuery';
-import { subscriptionsQuery } from '../features/subscriptions/subscriptionsQuery';
-import { subscriptionPaymentsQuery } from '../features/subscriptions/subscriptionPaymentsQuery';
-import { superAdminBusinessesQuery } from '../features/business/superAdminBusinessesQuery';
-import { expenseCategoriesQuery } from '../features/business/executive/expenseCategoriesQuery';
-import { activityLogQuery } from '../features/business/executive/activityLogQuery';
-import { reportExportsQuery } from '../features/business/executive/reportExportsQuery';
-import { receiptsQuery } from '../features/branch/receipts/receiptsQuery';
-import { posQuery } from '../features/branch/pos/posQuery';
-import { ordersQuery } from '../features/orders/ordersQuery';
-import { purchaseOrdersQuery } from '../features/orders/purchaseOrdersQuery';
-import { quotationsQuery } from '../features/orders/quotationsQuery';
-import { couponsQuery } from '../features/coupons/couponsQuery';
-import { taxCategoriesQuery, taxPaymentsQuery, taxRatesQuery } from '../features/business/tax/taxQuery';
-import { procurementApi } from '../features/procurement/procurementQuery';
 
 export const store = configureStore({
   reducer: {
     [baseApi.reducerPath]: baseApi.reducer,
-    [authQuery.reducerPath]: authQuery.reducer,
-    [workersQuery.reducerPath]: workersQuery.reducer,
-    [productCategoriesQuery.reducerPath]: productCategoriesQuery.reducer,
-    [customersQuery.reducerPath]: customersQuery.reducer,
-    [businessQuery.reducerPath]: businessQuery.reducer,
-    [rolesQuery.reducerPath]: rolesQuery.reducer,
-    [supplierQuery.reducerPath]: supplierQuery.reducer,
-    [branchWorkersQuery.reducerPath]: branchWorkersQuery.reducer,
-    [branchCustomersQuery.reducerPath]: branchCustomersQuery.reducer,
-    [branchSuppliersQuery.reducerPath]: branchSuppliersQuery.reducer,
-    [branchPromotionsQuery.reducerPath]: branchPromotionsQuery.reducer,
-    [branchAttendanceQuery.reducerPath]: branchAttendanceQuery.reducer,
-    [attachmentsQuery.reducerPath]: attachmentsQuery.reducer,
-    [executiveAttendanceQuery.reducerPath]: executiveAttendanceQuery.reducer,
-    [executiveEmployeeRemunerationQuery.reducerPath]: executiveEmployeeRemunerationQuery.reducer,
-    [currencyRatesQuery.reducerPath]: currencyRatesQuery.reducer,
-    [paymentGatewaysQuery.reducerPath]: paymentGatewaysQuery.reducer,
-    [whatsappQuery.reducerPath]: whatsappQuery.reducer,
-    [printersQuery.reducerPath]: printersQuery.reducer,
-    [reorderRulesQuery.reducerPath]: reorderRulesQuery.reducer,
-    [attendanceSettingsQuery.reducerPath]: attendanceSettingsQuery.reducer,
-    [customerSettingsQuery.reducerPath]: customerSettingsQuery.reducer,
-    [paymentSettingsQuery.reducerPath]: paymentSettingsQuery.reducer,
-    [promotionsSettingsQuery.reducerPath]: promotionsSettingsQuery.reducer,
-    [reportsSettingsQuery.reducerPath]: reportsSettingsQuery.reducer,
-    [supplierSettingsQuery.reducerPath]: supplierSettingsQuery.reducer,
-    [notificationsApi.reducerPath]: notificationsApi.reducer,
-    [countriesQuery.reducerPath]: countriesQuery.reducer,
-    [aiQuery.reducerPath]: aiQuery.reducer,
-    [todoQuery.reducerPath]: todoQuery.reducer,
-    [plansQuery.reducerPath]: plansQuery.reducer,
-    [executivePlansQuery.reducerPath]: executivePlansQuery.reducer,
-    [subscriptionsQuery.reducerPath]: subscriptionsQuery.reducer,
-    [subscriptionPaymentsQuery.reducerPath]: subscriptionPaymentsQuery.reducer,
-    [superAdminBusinessesQuery.reducerPath]: superAdminBusinessesQuery.reducer,
-    [expenseCategoriesQuery.reducerPath]: expenseCategoriesQuery.reducer,
-    [activityLogQuery.reducerPath]: activityLogQuery.reducer,
-    [reportExportsQuery.reducerPath]: reportExportsQuery.reducer,
-    [receiptsQuery.reducerPath]: receiptsQuery.reducer,
-    [posQuery.reducerPath]: posQuery.reducer,
-    [ordersQuery.reducerPath]: ordersQuery.reducer,
-    [purchaseOrdersQuery.reducerPath]: purchaseOrdersQuery.reducer,
-    [quotationsQuery.reducerPath]: quotationsQuery.reducer,
-    [couponsQuery.reducerPath]: couponsQuery.reducer,
-    [taxCategoriesQuery.reducerPath]: taxCategoriesQuery.reducer,
-    [taxRatesQuery.reducerPath]: taxRatesQuery.reducer,
-    [taxPaymentsQuery.reducerPath]: taxPaymentsQuery.reducer,
-    [procurementApi.reducerPath]: procurementApi.reducer,
-    [onboardingQuery.reducerPath]: onboardingQuery.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
+      // One middleware for every feature slice: all endpoints are injected into
+      // baseApi, so a single reducer and a single middleware now serve the whole
+      // app. Individual feature files are imported by the components that use
+      // them, which is when their endpoints are registered.
       baseApi.middleware,
-      authQuery.middleware,
-      workersQuery.middleware,
-      productCategoriesQuery.middleware,
-      customersQuery.middleware,
-      businessQuery.middleware,
-      rolesQuery.middleware,
-      supplierQuery.middleware,
-      branchWorkersQuery.middleware,
-      branchCustomersQuery.middleware,
-      branchSuppliersQuery.middleware,
-      branchPromotionsQuery.middleware,
-      branchAttendanceQuery.middleware,
-      attachmentsQuery.middleware,
-      executiveAttendanceQuery.middleware,
-      executiveEmployeeRemunerationQuery.middleware,
-      currencyRatesQuery.middleware,
-      paymentGatewaysQuery.middleware,
-      whatsappQuery.middleware,
-      printersQuery.middleware,
-      reorderRulesQuery.middleware,
-      attendanceSettingsQuery.middleware,
-      customerSettingsQuery.middleware,
-      paymentSettingsQuery.middleware,
-      promotionsSettingsQuery.middleware,
-      reportsSettingsQuery.middleware,
-      supplierSettingsQuery.middleware,
-      notificationsApi.middleware,
-      countriesQuery.middleware,
-      aiQuery.middleware,
-      todoQuery.middleware,
-      plansQuery.middleware,
-      executivePlansQuery.middleware,
-      subscriptionsQuery.middleware,
-      subscriptionPaymentsQuery.middleware,
-      superAdminBusinessesQuery.middleware,
-      expenseCategoriesQuery.middleware,
-      activityLogQuery.middleware,
-      reportExportsQuery.middleware,
-      receiptsQuery.middleware,
-      posQuery.middleware,
-      ordersQuery.middleware,
-      purchaseOrdersQuery.middleware,
-      couponsQuery.middleware,
-      taxCategoriesQuery.middleware,
-      taxRatesQuery.middleware,
-      taxPaymentsQuery.middleware,
-      procurementApi.middleware,
-      quotationsQuery.middleware,
-      onboardingQuery.middleware,
       // Must come last so it sees the rejection actions dispatched by every slice
       // above. This middleware was written but never added to this chain, which is
       // why nothing ever cleared a dead token: see authListener.ts.

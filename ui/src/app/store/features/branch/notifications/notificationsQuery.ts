@@ -1,29 +1,16 @@
 // app/store/features/notifications/notificationsQuery.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
 export interface NotificationsFilter {
   type?: string;
   is_read?: boolean;
 }
 
-export const notificationsApi = createApi({
-  reducerPath: 'notificationsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/users/notifications`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-        // console.log('Available token==>', token);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['Notifications'],
+export const notificationsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getNotification: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/users/notifications/${id}`,
         method: 'GET',
       }),
       providesTags: ['Notifications'],
@@ -36,7 +23,7 @@ export const notificationsApi = createApi({
         if (filters?.is_read !== undefined) params.set('is_read', String(filters.is_read));
         const qs = params.toString();
         return {
-          url: qs ? `/?${qs}` : '/',
+          url: qs ? `/users/notifications/?${qs}` : '/users/notifications/',
           method: 'GET',
         };
       },
@@ -45,7 +32,7 @@ export const notificationsApi = createApi({
 
     getUnreadCount: builder.query<any, void>({
       query: () => ({
-        url: '/unread-count',
+        url: '/users/notifications/unread-count',
         method: 'GET',
       }),
       providesTags: ['Notifications'],
@@ -53,7 +40,7 @@ export const notificationsApi = createApi({
 
     markAsRead: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/${id}/read`,
+        url: `/users/notifications/${id}/read`,
         method: 'POST',
       }),
       invalidatesTags: ['Notifications'],
@@ -61,7 +48,7 @@ export const notificationsApi = createApi({
 
     markAllAsRead: builder.mutation<any, void>({
       query: () => ({
-        url: '/mark-all-read',
+        url: '/users/notifications/mark-all-read',
         method: 'POST',
       }),
       invalidatesTags: ['Notifications'],
@@ -69,7 +56,7 @@ export const notificationsApi = createApi({
 
     deleteNotification: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/users/notifications/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Notifications'],
@@ -77,7 +64,7 @@ export const notificationsApi = createApi({
 
     clearAll: builder.mutation<any, void>({
       query: () => ({
-        url: '/clear-all',
+        url: '/users/notifications/clear-all',
         method: 'POST',
       }),
       invalidatesTags: ['Notifications'],

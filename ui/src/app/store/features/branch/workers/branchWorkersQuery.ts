@@ -1,36 +1,24 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const branchWorkersQuery = createApi({
-  reducerPath: 'branchWorkersPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/users/workers`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['BranchWorkersAPI'],
+export const branchWorkersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     branchWorkers: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/users/workers/',
         method: 'GET',
       }),
       providesTags: ['BranchWorkersAPI'],
     }),
     branchWorker: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/users/workers/${id}`,
         method: 'GET',
       }),
       providesTags: ['BranchWorkersAPI'],
     }),
     addBranchWorker: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/',
+        url: '/users/workers/',
         method: 'POST',
         body,
       }),
@@ -38,7 +26,7 @@ export const branchWorkersQuery = createApi({
     }),
     updateBranchWorker: builder.mutation<any, { body: any; id: number | string }>({
       query: ({ body, id }) => ({
-        url: `/${id}`,
+        url: `/users/workers/${id}`,
         method: 'PUT',
         body,
       }),
@@ -46,7 +34,7 @@ export const branchWorkersQuery = createApi({
     }),
     deleteBranchWorker: builder.mutation<any, number | string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/users/workers/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['BranchWorkersAPI'],

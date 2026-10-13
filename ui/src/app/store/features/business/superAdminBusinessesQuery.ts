@@ -1,30 +1,18 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const superAdminBusinessesQuery = createApi({
-  reducerPath: 'superExecutiveBusinessesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/super-admin`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['SuperAdminBusinessesAPI'],
+export const superAdminBusinessesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSuperAdminBusinesses: builder.query<any, void>({
-      query: () => '/businesses',
+      query: () => '/super-admin/businesses',
       providesTags: ['SuperAdminBusinessesAPI'],
     }),
     getSuperAdminBusiness: builder.query<any, number>({
-      query: (id) => `/businesses/${id}`,
+      query: (id) => `/super-admin/businesses/${id}`,
       providesTags: ['SuperAdminBusinessesAPI'],
     }),
     updateBusinessStatus: builder.mutation<any, { id: number; status: string }>({
       query: ({ id, status }) => ({
-        url: `/businesses/${id}/status`,
+        url: `/super-admin/businesses/${id}/status`,
         method: 'PATCH',
         body: { status },
       }),

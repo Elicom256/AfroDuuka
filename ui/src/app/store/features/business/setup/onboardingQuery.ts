@@ -1,5 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { getToken } from '@/lib/session';
+import { baseApi } from '@/app/store/baseApi';
 
 /**
  * Self-serve signup onboarding.
@@ -39,19 +38,7 @@ export interface CreateBusinessArgs {
   branches?: CreateBusinessBranch[];
 }
 
-export const onboardingQuery = createApi({
-  reducerPath: 'onboardingPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}`,
-    prepareHeaders: (headers) => {
-      const token = getToken();
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['OnboardingApi'],
+export const onboardingQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Public: safe to call before signup, which is what the form's dropdown needs.
     // The controller returns the collection bare — not wrapped in a `data` key — so

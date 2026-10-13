@@ -1,37 +1,25 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const subscriptionsQuery = createApi({
-  reducerPath: 'subscriptionsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/subscriptions/business-subscriptions`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['SubscriptionsAPI'],
+export const subscriptionsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSubscriptions: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/subscriptions/business-subscriptions/', method: 'GET' }),
       providesTags: ['SubscriptionsAPI'],
     }),
     createSubscription: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/subscriptions/business-subscriptions/', method: 'POST', body }),
       invalidatesTags: ['SubscriptionsAPI'],
     }),
     updateSubscription: builder.mutation<any, { id: number; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/subscriptions/business-subscriptions/${id}`, method: 'PUT', body }),
       invalidatesTags: ['SubscriptionsAPI'],
     }),
     deleteSubscription: builder.mutation<any, number>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      query: (id) => ({ url: `/subscriptions/business-subscriptions/${id}`, method: 'DELETE' }),
       invalidatesTags: ['SubscriptionsAPI'],
     }),
     getSubscription: builder.query<any, number>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/subscriptions/business-subscriptions/${id}`, method: 'GET' }),
       providesTags: ['SubscriptionsAPI'],
     }),
   }),

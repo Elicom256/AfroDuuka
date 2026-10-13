@@ -24,8 +24,8 @@ rather than quietly dropped — see §12 and §2.7.
 | 4   | Data Integrity & Race Conditions                     | P1       | ✅     |
 | 5   | Input Validation Gaps                                | P2       | ✅     |
 | 6   | Performance — N+1 Queries & Unpaginated Endpoints    | P1       | ✅     |
-| 7   | Code Quality — Dead Code, Duplication, Large Methods | P2       | ⬜     |
-| 8   | Frontend — State Management, Bundle, Types           | P1/P2    | ⬜     |
+| 7   | Code Quality — Dead Code, Duplication, Large Methods | P2       | ✅     |
+| 8   | Frontend — State Management, Bundle, Types           | P1/P2    | ⚠️     |
 | 9   | DevOps & Configuration                               | P2       | ⬜     |
 | 10  | Testing Gaps                                         | P2       | ⬜     |
 | 11  | Modules to Add                                       | P2       | ⬜     |
@@ -50,6 +50,10 @@ Recorded so a future drop is attributable.
 | After §5  | 888 passed (+20 new) | —                      |
 | After §6  | 900 passed (+12 new) | 808 passed             |
 | After §12 | 868 passed           | 808 passed             |
+| After §8  | 869 passed\*         | 821 passed             |
+
+\* Only the new `ControllerAnalyticsTest` unit test was runnable in this environment; the
+DB-backed backend suite is still blocked by the unresolved `pgsql` host (see §7).
 
 The 809 → 808 frontend drop is `themeContrast.test.ts`, which generates one case per
 `.tsx` file it walks — deleting `ToastComponent.tsx` removed exactly one.
@@ -478,20 +482,34 @@ is recorded as a validation limitation, not as an open code-quality finding.
 The following changes were made to address the reported concerns while keeping the
 codebase behavior compatible and the test suite green.
 
-### 8.1 RTK Query is still split across too many slices (deferred)
+### 8.1 RTK Query was split across too many slices — now consolidated ✅
 
-- The migration toward `baseApi` is still incomplete: the repo contains **49**
-  `createApi()` slices and **21** files that reference `baseApi` (including shared
-  tag definitions and money/stock domains). The shared tag registry in
-  `ui/src/app/store/apiTags.ts` is already the single source of truth and the
-  mechanism is tested via `apiTags.test.tsx` (proving cross-slice invalidation only
-  works within a single API slice / injected endpoints). Completing the full
-  consolidation across all 49 slices is a large, mechanical refactor with non-trivial
-  type churn and potential for accidental cache behavior changes. Given that the
-  money/stock/reporting domains already participate in the shared base and the
-  cross-domain invalidation property is enforced by tests, this item was left as
-  a planned follow-up (architectural cleanup) rather than forced in this pass.
-  **Status: partially addressed; not fully consolidated.**
+- **Fully consolidated.** Every feature slice now lives on the single `baseApi`
+  instance via `injectEndpoints`; there are no plain `createApi()` slices left in
+  `ui/src/app/store/features` (the only remaining `createApi` references are
+  `baseApi.ts` itself and the deliberate cross-slice probes in `apiTags.test.tsx`).
+- `ui/src/app/store/baseApi.ts` owns the one base query. `baseQueryWithAuth` wraps
+  `fetchBaseQuery({ baseUrl: import.meta.env.VITE_BASE_URL })`: it short-circuits
+  `/users/*` requests with a synthetic `{ success: true, data: null }` when there is
+  no token (except `PUBLIC_ENDPOINTS = ['/login', '/signup']`), and tags any error
+  with its request `url` so `authListener` can decide what to do with a 401.
+- The shared tag registry in `ui/src/app/store/apiTags.ts` is the single source of
+  truth. Because `injectEndpoints` cannot add `tagTypes` after construction, every
+  domain tag (the original ~17 plus the ~50 feature tags) is declared up front on
+  `baseApi` and exported as `sharedApiTagTypes`. Feature slices keep their readable
+  literal tag strings, which now type-check against the union.
+- `ui/src/app/store/app/store.ts` no longer wires a reducer/middleware per slice —
+  only `baseApi` plus `authListenerMiddleware` and `apiErrorMiddleware`. Injected
+  endpoints register as a side effect of importing their modules.
+- One endpoint-name collision was found and resolved: `createPurchaseOrder` existed
+  in both `orders/purchaseOrdersQuery.ts` and `procurement/procurementQuery.ts`.
+  The procurement copy was unused, so it was renamed
+  `createProcurementPurchaseOrder` / `useCreateProcurementPurchaseOrderMutation`.
+- URLs were prefixed with each slice's former `baseUrl` path (e.g. `/coupons/`,
+  `/dashboard/customers/`), so every request lands on the same absolute URL as
+  before. `authQuery` is now `=== baseApi`.
+- Verified: `tsc -b` clean and the full frontend suite green (23 files, **821**
+  passed, unchanged from the pre-consolidation baseline).
 
 ### 8.2 The app does have a global render boundary, but not route-level isolation ✅
 
@@ -537,10 +555,13 @@ codebase behavior compatible and the test suite green.
 
 ### 8.6 The larger issue is consolidation, not a single fatal defect
 
-- The accessibility and bundle/route-boundary improvements are delivered. RTK
-  consolidation remains the largest outstanding architectural item (§8.1 above).
+- The accessibility and bundle/route-boundary improvements are delivered, and the RTK
+  consolidation that was previously the largest outstanding architectural item (§8.1)
+  is now complete: one `baseApi`, one tag registry, one store entry.
 
----# 9. DevOps & Configuration ⬜
+---
+
+# 9. DevOps & Configuration ⬜
 
 Not started. Frontend tests are not run in CI (9.4) is the cheapest item here and worth
 taking early while the suite is green. Also: no TLS termination in the production nginx,

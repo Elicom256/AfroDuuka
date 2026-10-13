@@ -1,25 +1,13 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const attendanceSettingsQuery = createApi({
-  reducerPath: 'attendanceSettingsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/attendance-settings`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['AttendanceSettingsAPI'],
+export const attendanceSettingsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAttendanceSettings: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/settings/attendance-settings/', method: 'GET' }),
       providesTags: ['AttendanceSettingsAPI'],
     }),
     updateAttendanceSettings: builder.mutation<any, { id: string; body: { status: string } }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/settings/attendance-settings/${id}`, method: 'PUT', body }),
       invalidatesTags: ['AttendanceSettingsAPI'],
     }),
   }),

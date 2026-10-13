@@ -1,5 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { getToken } from '@/lib/session';
+import { baseApi } from '@/app/store/baseApi';
 import type { BusinessCategory } from './onboardingQuery';
 
 export interface Business {
@@ -19,33 +18,23 @@ interface BusinessResponse {
   data: Business;
 }
 
-export const businessQuery = createApi({
-  reducerPath: 'businessPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard`,
-    prepareHeaders: (headers) => {
-      const token = getToken();
-      if (token) headers.set('authorization', `Bearer ${token}`);
-      return headers;
-    },
-  }),
-  tagTypes: ['BusinessApi'],
+export const businessQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getBusiness: builder.query<BusinessResponse, void>({
-      query: () => '/business',
+      query: () => '/dashboard/business',
       providesTags: ['BusinessApi'],
     }),
     registerBusiness: builder.mutation<any, any>({
-      query: (body) => ({ url: '/business', method: 'POST', body }),
+      query: (body) => ({ url: '/dashboard/business', method: 'POST', body }),
       invalidatesTags: ['BusinessApi'],
     }),
     updateBusiness: builder.mutation<any, any>({
-      query: (body) => ({ url: '/business', method: 'PATCH', body }),
+      query: (body) => ({ url: '/dashboard/business', method: 'PATCH', body }),
       invalidatesTags: ['BusinessApi'],
     }),
     // Bare array, like the public route this mirrors — see onboardingQuery.
     getBusinessCategories: builder.query<BusinessCategory[], void>({
-      query: () => '/business-categories',
+      query: () => '/dashboard/business-categories',
       providesTags: ['BusinessApi'],
     }),
   }),

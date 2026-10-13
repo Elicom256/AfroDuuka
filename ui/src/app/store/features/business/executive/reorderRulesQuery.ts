@@ -1,35 +1,25 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const reorderRulesQuery = createApi({
-  reducerPath: 'reorderRulesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/reorder-rules`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) headers.set('authorization', `Bearer ${token}`);
-      return headers;
-    },
-  }),
-  tagTypes: ['ReorderRulesAPI'],
+export const reorderRulesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     reorderRules: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/reorder-rules/', method: 'GET' }),
       providesTags: ['ReorderRulesAPI'],
     }),
     reorderRule: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/reorder-rules/${id}`, method: 'GET' }),
       providesTags: ['ReorderRulesAPI'],
     }),
     createReorderRule: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/reorder-rules/', method: 'POST', body }),
       invalidatesTags: ['ReorderRulesAPI'],
     }),
     updateReorderRule: builder.mutation<any, any>({
-      query: ({ id, ...body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, ...body }) => ({ url: `/reorder-rules/${id}`, method: 'PUT', body }),
       invalidatesTags: ['ReorderRulesAPI'],
     }),
     deleteReorderRule: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      query: (id) => ({ url: `/reorder-rules/${id}`, method: 'DELETE' }),
       invalidatesTags: ['ReorderRulesAPI'],
     }),
   }),

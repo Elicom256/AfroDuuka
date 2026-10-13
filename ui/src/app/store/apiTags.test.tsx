@@ -51,26 +51,14 @@ beforeEach(() => {
 });
 
 describe('shared RTK tags registry', () => {
-  it('declares every tag the base API slice uses', () => {
-    expect(sharedApiTagTypes).toEqual([
-      apiTags.products,
-      apiTags.inventory,
-      apiTags.stockTransfers,
-      apiTags.productAudit,
-      apiTags.priceHistory,
-      apiTags.sales,
-      apiTags.purchases,
-      apiTags.saleReturns,
-      apiTags.purchaseReturns,
-      apiTags.finance,
-      apiTags.cashflow,
-      apiTags.expenses,
-      apiTags.salary,
-      apiTags.financialAudit,
-      apiTags.reports,
-      apiTags.branches,
-      apiTags.dashboard,
-    ]);
+  it('declares every tag the base API slice uses, with no duplicates', () => {
+    // The registry is the source of truth: every tag is declared, and none is
+    // declared twice (a duplicate would still warn-free but signal a copy/paste
+    // mistake in the list rather than a working tag).
+    expect(sharedApiTagTypes).toEqual(Object.values(apiTags));
+    expect(new Set(sharedApiTagTypes).size).toBe(sharedApiTagTypes.length);
+    expect(sharedApiTagTypes).toContain(apiTags.products);
+    expect(sharedApiTagTypes).toContain(apiTags.dashboard);
     expect(apiTags.dashboard).toBe('DashboardAPI');
     expect(withDashboard(apiTags.products)).toEqual([apiTags.products, apiTags.dashboard]);
     expect(withDashboard(apiTags.products, apiTags.dashboard)).toEqual([apiTags.products, apiTags.dashboard]);

@@ -1,29 +1,17 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const couponsQuery = createApi({
-  reducerPath: 'couponsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/coupons`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['CouponsAPI'],
+export const couponsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     coupons: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/coupons/', method: 'GET' }),
       providesTags: ['CouponsAPI'],
     }),
     createCoupon: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/coupons/', method: 'POST', body }),
       invalidatesTags: ['CouponsAPI'],
     }),
     deleteCoupon: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      query: (id) => ({ url: `/coupons/${id}`, method: 'DELETE' }),
       invalidatesTags: ['CouponsAPI'],
     }),
   }),

@@ -1,49 +1,37 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const posQuery = createApi({
-  reducerPath: 'posPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/pos`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['PosAPI', 'HeldSales'],
+export const posQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     searchProducts: builder.query<any, string>({
       query: (q) => ({
-        url: `/products/search`,
+        url: `/pos/products/search`,
         method: 'GET',
         params: { q },
       }),
     }),
     searchProductByBarcode: builder.query<any, string>({
       query: (code) => ({
-        url: `/products/by-barcode/${encodeURIComponent(code.trim())}`,
+        url: `/pos/products/by-barcode/${encodeURIComponent(code.trim())}`,
         method: 'GET',
       }),
     }),
     searchCustomers: builder.query<any, string>({
       query: (q) => ({
-        url: `/customers/search`,
+        url: `/pos/customers/search`,
         method: 'GET',
         params: { q },
       }),
     }),
     validateCart: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/cart/validate',
+        url: '/pos/cart/validate',
         method: 'POST',
         body,
       }),
     }),
     checkout: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/checkout',
+        url: '/pos/checkout',
         method: 'POST',
         body,
       }),
@@ -51,7 +39,7 @@ export const posQuery = createApi({
     }),
     holdSale: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/sales/hold',
+        url: '/pos/sales/hold',
         method: 'POST',
         body,
       }),
@@ -59,21 +47,21 @@ export const posQuery = createApi({
     }),
     getHeldSales: builder.query<any, void>({
       query: () => ({
-        url: '/sales/held',
+        url: '/pos/sales/held',
         method: 'GET',
       }),
       providesTags: ['HeldSales'],
     }),
     resumeHeldSale: builder.query<any, number>({
       query: (id) => ({
-        url: `/sales/held/${id}`,
+        url: `/pos/sales/held/${id}`,
         method: 'GET',
       }),
       providesTags: ['HeldSales'],
     }),
     deleteHeldSale: builder.mutation<any, number>({
       query: (id) => ({
-        url: `/sales/held/${id}`,
+        url: `/pos/sales/held/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['HeldSales'],

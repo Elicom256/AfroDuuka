@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
 export interface Country {
   id: number;
@@ -13,16 +13,11 @@ interface CountriesResponse {
   data: Country[];
 }
 
-export const countriesQuery = createApi({
-  reducerPath: 'countriesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/countries`,
-  }),
-  tagTypes: ['Countries'],
+export const countriesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     countries: builder.query<CountriesResponse, void>({
       query: () => ({
-        url: '/',
+        url: '/countries/',
         method: 'GET',
       }),
       providesTags: ['Countries'],

@@ -1,4 +1,15 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
+
+export const plansQuery = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getPlans: builder.query<PlansResponse, void>({
+      query: () => ({ url: '/plans', method: 'GET' }),
+      providesTags: ['PlansAPI'],
+    }),
+  }),
+});
+
+export const { useGetPlansQuery } = plansQuery;
 
 interface Limits {
   maxProducts?: number;
@@ -27,26 +38,3 @@ interface Plan {
 interface PlansResponse {
   plans: Plan[];
 }
-
-export const plansQuery = createApi({
-  reducerPath: 'plansPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/plans`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['PlansAPI'],
-  endpoints: (builder) => ({
-    getPlans: builder.query<PlansResponse, void>({
-      query: () => ({ url: '', method: 'GET' }),
-      providesTags: ['PlansAPI'],
-    }),
-  }),
-});
-
-export const { useGetPlansQuery } = plansQuery;
