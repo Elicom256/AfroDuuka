@@ -203,41 +203,8 @@ class PosService
             }
 
             $paymentTotals = $this->recordSalePayments($sale, $validated['payments'], (float) $totalAmount);
-            $totalPaid = $paymentTotals['total_paid'];
-            $creditAmount = $paymentTotals['credit_amount'];
 
-            $netTotal = $totalAmount;
-            $changeGiven = $paymentTotals['change_given'];
-
-            if ($creditAmount > 0) {
-                $this->customerCreditService->recordCharge($user, $sale, $creditAmount);
-            }
-
-            $customer = isset($validated['customer_id'])
-                ? Customer::with('user')->find($validated['customer_id'])?->user
-                : null;
-            $customerName = $customer ? trim($customer->firstname.' '.$customer->lastname) : 'Walk-in Customer';
-
-            // Resolve the FK from this business's own payment_methods row for
-            // the sale's first payment method. The old hard-coded id 1 pointed
-            // at whichever business happened to own the first seeded row.
-            $firstPayment = reset($validated['payments']);
-            $firstMethod = is_array($firstPayment) ? ($firstPayment['method'] ?? 'cash') : 'cash';
-            $paymentStatusId = PaymentMethod::where('method', $firstMethod)->value('id')
-                ?: PaymentMethod::where('method', 'cash')->value('id');
-
-            $this->cashFlowService->createCashFlowForSale($sale, $netTotal, [
-                'transaction_code' => 'CF-POS-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
-                'currency' => $validated['currency'] ?? 'UGX',
-                'payment_status_id' => $paymentStatusId,
-                'reference' => null,
-            ]);
-
-            $this->notificationService->newSaleRecorded($user, number_format($netTotal), $customerName, $sale->id);
-
-            $this->createPosReceipt($sale, $validated, $totalPaid, $changeGiven, $receiptNumber);
-
-            return $sale->load(['saleItems.product', 'receipt.items']);
+            return $this->finalizeSale($sale, $validated, $user, $paymentTotals, (float) $totalAmount, $receiptNumber);
         });
     }
 
@@ -395,6 +362,54 @@ class PosService
             'credit_amount' => $creditAmount,
             'change_given' => max(0, $totalPaid - $totalAmount),
         ];
+    }
+
+    private function finalizeSale(
+        Sale $sale,
+        array $validated,
+        User $user,
+        array $paymentTotals,
+        float $totalAmount,
+        string $receiptNumber,
+    ): Sale {
+        if ($paymentTotals['credit_amount'] > 0) {
+            $this->customerCreditService->recordCharge($user, $sale, $paymentTotals['credit_amount']);
+        }
+
+        $customer = isset($validated['customer_id'])
+            ? Customer::with('user')->find($validated['customer_id'])?->user
+            : null;
+        $customerName = $customer ? trim($customer->firstname.' '.$customer->lastname) : 'Walk-in Customer';
+
+        // Resolve the FK from this business's own payment_methods row for the sale's first method.
+        $firstPayment = reset($validated['payments']);
+        $firstMethod = is_array($firstPayment) ? ($firstPayment['method'] ?? 'cash') : 'cash';
+        $paymentStatusId = PaymentMethod::where('method', $firstMethod)->value('id')
+            ?: PaymentMethod::where('method', 'cash')->value('id');
+
+        $this->cashFlowService->createCashFlowForSale($sale, $totalAmount, [
+            'transaction_code' => 'CF-POS-'.str_pad($sale->id, 6, '0', STR_PAD_LEFT),
+            'currency' => $validated['currency'] ?? 'UGX',
+            'payment_status_id' => $paymentStatusId,
+            'reference' => null,
+        ]);
+
+        $this->notificationService->newSaleRecorded(
+            $user,
+            number_format($totalAmount),
+            $customerName,
+            $sale->id
+        );
+
+        $this->createPosReceipt(
+            $sale,
+            $validated,
+            $paymentTotals['total_paid'],
+            $paymentTotals['change_given'],
+            $receiptNumber
+        );
+
+        return $sale->load(['saleItems.product', 'receipt.items']);
     }
 
     protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
