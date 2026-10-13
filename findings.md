@@ -565,16 +565,17 @@ codebase behavior compatible and the test suite green.
 # 9. DevOps & Configuration ⚠️
 
 OpenAPI generation check added to CI (`scramble:export` + `git diff --exit-code`).
+Frontend tests now run in CI (`npm test` in frontend job).
 
-Not started: frontend tests in CI (9.4), no TLS termination in production nginx,
-no resource limits in compose, no monitoring, no dependency audit in CI,
-outdated database dump, no staging environment.
+Not started: no TLS termination in production nginx, no resource limits in compose,
+no monitoring, no dependency audit in CI, outdated database dump, no staging
+environment.
 
 ---
 
 # 10. Testing Gaps ⚠️
 
-Backend unit tests run in CI (47 passing). Frontend tests not yet in CI.
+Backend unit tests run in CI (47 passing). Frontend tests now run in CI (830 passing).
 Flaky `BranchPerformanceReportsTest`; no integration test proving tenant isolation
 through the API; no concurrency tests for POS checkout or stock transfer.
 
