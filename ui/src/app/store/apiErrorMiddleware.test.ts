@@ -18,9 +18,9 @@ import { apiErrorMiddleware } from './apiErrorMiddleware';
  */
 
 /** The shape RTK Query dispatches for a request that failed with a status. */
-const rejected = (status: number) => ({
+const rejected = (status: number, data: unknown = null) => ({
   type: 'probeApi/executeQuery/rejected',
-  payload: { status, data: null },
+  payload: { status, data },
   error: { message: 'Request failed' },
   meta: {
     // All three are required, and guessing any of them makes the action silently never
@@ -80,11 +80,26 @@ describe('apiErrorMiddleware', () => {
     }
   });
 
-  it('does not talk over a 401 or 403, which session and permission handling own', () => {
+  it('speaks up on a 403 so a refusal is not rendered as nothing', () => {
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => '');
+
+    store().dispatch(rejected(403) as never);
+
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('permission'));
+  });
+
+  it('prefers the human message the API sent over the status copy', () => {
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => '');
+
+    store().dispatch(rejected(409, { message: 'That product code is already in use.', code: 'duplicate' }) as never);
+
+    expect(error).toHaveBeenCalledWith('That product code is already in use.');
+  });
+
+  it('does not talk over a 401, which session handling owns', () => {
     const error = vi.spyOn(toast, 'error').mockImplementation(() => '');
 
     store().dispatch(rejected(401) as never);
-    store().dispatch(rejected(403) as never);
 
     expect(error).not.toHaveBeenCalled();
   });

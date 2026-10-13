@@ -2,6 +2,8 @@ import type { Middleware } from '@reduxjs/toolkit';
 import { isRejectedWithValue } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 
+import { describeApiError } from '@/app/utils/errorMessage';
+
 /**
  * Surfaces request failures that nothing handled.
  *
@@ -20,17 +22,21 @@ import { toast } from 'sonner';
  * backstop for the components that say nothing, at the cost of one extra toast on the
  * ones that already spoke. Narrowing that needs the error surfaced on the action itself,
  * which RTK Query does not provide.
+ *
+ * When the API sent a human `message` (the whole point of the error contract), that is
+ * preferred over the status-based copy; the status copy only fills in for a transport
+ * failure where there is no body to read. A 403 is no longer swallowed: a policy refusal
+ * now says so instead of rendering nothing.
  */
-export const apiErrorMiddleware: Middleware = (api) => (next) => (action) => {
+export const apiErrorMiddleware: Middleware = () => (next) => (action) => {
   if (isRejectedWithValue(action)) {
-    const payload = action.payload as { status?: number | string; data?: unknown } | undefined;
+    const payload = action.payload as { status?: number | string } | undefined;
     const status = payload?.status;
 
-    // A 401 or 403 is a session or permission problem, which authListener and the
-    // component's own handling deal with. Toasting "request failed" on top of a login
-    // redirect is noise.
-    if (status !== 401 && status !== 403) {
-      toast.error(requestFailureMessage(status));
+    // A 401 is a dead session, which authListener turns into a sign-out — a toast on top
+    // of the redirect is noise. Every other status gets a message.
+    if (status !== 401) {
+      toast.error(describeApiError(payload, requestFailureMessage(status)).message);
     }
   }
 
@@ -43,7 +49,7 @@ export const apiErrorMiddleware: Middleware = (api) => (next) => (action) => {
  * an endpoint that does not match what failed would be worse than saying nothing.
  */
 const requestFailureMessage = (status: number | string | undefined): string => {
-
+  if (status === 403) return "You don't have permission to do that.";
   if (status === 404) return `Not found. The record may have been removed.`;
   if (status === 422) return 'The server rejected that request. Check the values and try again.';
   if (status === 429) return 'Too many requests. Wait a moment and try again.';
