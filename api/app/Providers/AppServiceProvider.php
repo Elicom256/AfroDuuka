@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Product;
 use App\Observers\PriceHistoryObserver;
+use App\Support\Activity\SafeActivityLogger;
 use App\Support\Tenant\BusinessContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Activitylog\ActivityLogger;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Resolved lazily by the LogsActivity trait on every save, so rebinding here
+        // (after Spatie's own provider registered) is what makes every model's audit
+        // write failure-tolerant. See SafeActivityLogger.
+        $this->app->bind(ActivityLogger::class, SafeActivityLogger::class);
+
         Product::observe(PriceHistoryObserver::class);
 
         $this->clearBusinessContextBetweenJobs();
