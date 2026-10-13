@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Support\Api\RequestId;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -33,6 +34,8 @@ class TooManyLoginAttemptsException extends HttpException
     {
         return response()->json([
             'message' => $this->getMessage(),
+            'code' => 'too_many_requests',
+            'request_id' => RequestId::for($request),
             'retry_after' => $this->getSecondsRemaining(),
         ], 429, [
             'Retry-After' => $this->getSecondsRemaining(),

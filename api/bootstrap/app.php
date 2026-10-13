@@ -1,18 +1,14 @@
 <?php
 
+use App\Exceptions\ApiExceptionRenderer;
 use App\Http\Middleware\BlockRestrictedRoleActions;
 use App\Http\Middleware\RecoverFromAbortedTransaction;
 use App\Http\Middleware\RequireBusiness;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\SecurityHeaders;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     /**
@@ -97,80 +93,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (
-            AuthenticationException $e,
-            $request
-        ) {
-
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Unauthenticated.',
-                ], 401);
-            }
-
-        });
-
-        $exceptions->render(function (
-            ValidationException $e,
-            $request
-        ) {
-
-            if (! $request->is('api/*')) {
-                return null;
-            }
-
-            // Keeps Laravel's field-keyed `errors` map, which is the shape the SPA
-            // already reads (see firstFieldError() in Onboarding.tsx) — only `message`
-            // changes. Laravel's default is "The given data was invalid.", which tells
-            // an operator nothing and, on the surfaces that show `message` and drop
-            // `errors`, reads as an unexplained failure. Leading with the first real
-            // message names the offending field without changing the contract.
-            $first = collect($e->errors())->flatten()->first();
-
-            return response()->json([
-                'message' => $first !== null
-                    ? $first
-                    : $e->getMessage(),
-                'errors' => $e->errors(),
-            ], $e->status);
-        });
-
-        /**
-         * Last-resort renderer for API routes, and deliberately narrow.
+        /*
+         * One renderer for the whole API taxonomy.
          *
-         * Anything that already knows how to describe itself is left alone:
-         * HttpExceptionInterface carries the 4xx/5xx status and the prepared message
-         * for abort() and abort_unless(), ValidationException renders the field-keyed
-         * errors, AuthenticationException is handled above, and ModelNotFoundException
-         * becomes a 404. Only a genuine unexpected failure lands here — and it reports
-         * nothing the caller did not already know, because with APP_DEBUG=false a raw
-         * $e->getMessage() still names the table and column that failed.
-         *
-         * The narrow conditions matter as much as the message: a blanket \Throwable
-         * renderer registered alongside these is matched first and silently downgrades
-         * every 403 and 422 in the API into a 500, which is how a policy refusal starts
-         * reading as a server fault.
+         * See App\Exceptions\ApiExceptionRenderer for the contract (human `message`, a
+         * stable `code`, an always-present `request_id`) and for why this is a single
+         * Throwable renderer rather than the stack of type-hinted closures it replaces:
+         * a catch-all registered alongside narrower renderers matched first and turned
+         * every 403 and 422 into a 500. Ordering is now explicit and tested.
          */
-        $exceptions->render(function (
-            Throwable $e,
-            $request
-        ) {
-
-            if (! $request->is('api/*')) {
-                return null;
-            }
-
-            if ($e instanceof HttpResponseException
-                || $e instanceof HttpExceptionInterface
-                || $e instanceof ValidationException
-                || $e instanceof ModelNotFoundException) {
-                return null;
-            }
-
-            report($e);
-
-            return response()->json([
-                'message' => 'An unexpected error occurred.',
-            ], 500);
+        $exceptions->render(function (Throwable $e, $request) {
+            return ApiExceptionRenderer::render($e, $request);
         });
     })->create();
