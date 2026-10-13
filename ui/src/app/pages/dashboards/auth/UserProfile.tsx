@@ -1,4 +1,4 @@
-import { SquarePen, UserRound } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { useLogoutMutation } from '@/app/store/features/auth/authQuery';
 import { clearToken } from '@/lib/session';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingState } from '@/utils/LoadingState';
 
@@ -93,13 +92,7 @@ export const UserProfile = ({ data, compact = false }: { data: ProfileData; comp
         </div>
 
         <DialogFooter className='flex items-center'>
-          <Link
-            to='/signup'
-            className='inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary hover:bg-primary/10'
-          >
-            <span>Edit</span>
-            <SquarePen className='h-4 w-4' />
-          </Link>
+
           {/* <DialogClose asChild> */}
           <Button variant='outline' onClick={handleLogout}>
             {isLoading ? <LoadingState /> : 'Log out'}
