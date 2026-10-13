@@ -1,7 +1,7 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "InvetoryTracker",
+        "title": "AfroDuuka",
         "version": "1.0.0",
         "description": "AfroDuuka business API. Every response \u2014 including every error \u2014 carries a human `message`, a stable `code`, and a `request_id` a customer can quote to support."
     },
