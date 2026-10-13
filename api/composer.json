@@ -20,6 +20,7 @@
         "spatie/laravel-activitylog": "^4.12"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.47",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",

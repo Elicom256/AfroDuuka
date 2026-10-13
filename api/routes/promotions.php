@@ -3,7 +3,7 @@
 use App\Http\Controllers\PromotionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'feature:promotions'])->group(function () {
     Route::get('/', [PromotionController::class, 'index']);
     Route::post('/', [PromotionController::class, 'store']);
     Route::get('/{promotion}', [PromotionController::class, 'show']);

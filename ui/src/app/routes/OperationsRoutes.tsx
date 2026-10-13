@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { RequireFeature } from './RequireFeature';
 
 const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })));
 const OperationsLayout = lazy(() => import('../pages/dashboards/Operations/OperationsLayout').then((m) => ({ default: m.OperationsLayout })));
@@ -67,9 +68,9 @@ export const OperationsRoutes = () => {
             <Route path='analytics' element={<OperationsAnalyticsPage />} />
             <Route path='workers' element={<OperationsWorkersPage />} />
             <Route path='workers/:id' element={<Worker />} />
-            <Route path='customers' element={<OperationsCustomersPage />} />
-            <Route path='suppliers' element={<OperationsSuppliersPage />} />
-            <Route path='reports' element={<OperationsReportsPage />} />
+            <Route path='customers' element={<RequireFeature feature='customers'><OperationsCustomersPage /></RequireFeature>} />
+            <Route path='suppliers' element={<RequireFeature feature='suppliers'><OperationsSuppliersPage /></RequireFeature>} />
+            <Route path='reports' element={<RequireFeature feature='reports'><OperationsReportsPage /></RequireFeature>} />
             <Route path='finances' element={<OperationsFinancesPage />} />
             <Route path='finance' element={<OperationsFinancesPage />} />
             <Route path='notifications' element={<OperationsNotificationsPage />} />
@@ -77,8 +78,8 @@ export const OperationsRoutes = () => {
             <Route path='messages' element={<OperationsMessagesPage />} />
             <Route path='orders' element={<OperationsOrdersPage />} />
             <Route path='quotations' element={<QuotationsPage />} />
-            <Route path='promotions' element={<OperationsPromotionsPage />} />
-            <Route path='attendance' element={<OperationsAttendancePage />} />
+            <Route path='promotions' element={<RequireFeature feature='promotions'><OperationsPromotionsPage /></RequireFeature>} />
+            <Route path='attendance' element={<RequireFeature feature='attendance'><OperationsAttendancePage /></RequireFeature>} />
             <Route path='activity-log' element={<ActivityLogPage />} />
             {/*
               Todos are per-user and the api authorises them for any signed-in user

@@ -77,6 +77,16 @@ final class ApiExceptionRenderer
             return self::throttled($e, $request);
         }
 
+        if ($e instanceof FeatureDisabledException) {
+            return self::json(
+                $request,
+                403,
+                $e->getMessage(),
+                'feature_disabled',
+                ['feature' => $e->feature],
+            );
+        }
+
         if ($e instanceof NotFoundHttpException) {
             return self::json($request, 404, self::notFoundMessage($e), 'not_found');
         }

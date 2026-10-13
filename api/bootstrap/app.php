@@ -92,6 +92,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => RequireRole::class,
+            'feature' => RequireFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
