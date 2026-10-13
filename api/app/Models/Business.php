@@ -14,6 +14,7 @@ class Business extends Model
 
     protected $fillable = [
         'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', 'timezone', 'status', 'subscription_balance', 'logo',
+        'email_verified_at', 'email_verification_token',
     ];
 
     public function users(): HasMany
@@ -29,5 +30,20 @@ class Business extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function scopeEmailVerified($query)
+    {
+        return $query->whereNotNull('email_verified_at');
+    }
+
+    public function scopePendingVerification($query)
+    {
+        return $query->where('status', 'pending_verification');
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return ! is_null($this->email_verified_at);
     }
 }

@@ -65,6 +65,13 @@ Route::post('webhooks/ses', SesWebhookController::class)
 // table with no tenant column, so this leaks nothing about any business.
 Route::get('business-categories', [BusinessCategoryController::class, 'index']);
 
+// Email verification (public, no auth required)
+Route::get('verify-email', [\App\Http\Controllers\EmailVerificationController::class, 'verify'])
+    ->name('verification.verify');
+Route::post('verify-email/resend', [\App\Http\Controllers\EmailVerificationController::class, 'resend'])
+    ->middleware('auth:sanctum')
+    ->name('verification.resend');
+
 Route::middleware('throttle:api')->group(function () {
     Route::prefix('users')->group(function () {
         require __DIR__.'/users.php';
