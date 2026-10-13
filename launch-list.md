@@ -4,75 +4,105 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 ---
 
-## 1. Mobile Money Payment Gateway (MTN MoMo + Airtel Money)
+## 1. Payment Aggregator — Flutterwave (Primary Gateway)
 
-**What:** Real-time mobile money collection for POS sales, subscription auto-renewal, and customer payments. Supports **MTN MoMo** and **Airtel Money** (covers ~95% of Uganda mobile money market).
+**What:** Card payments (Visa/Mastercard), mobile money collections (MTN MoMo, Airtel Money, M-Pesa), bank transfers, and alternative payment methods for online subscriptions and high-value POS transactions. Covers **Uganda, Kenya, Tanzania, Rwanda, Nigeria, Ghana, South Africa** and 30+ African countries.
 
-**Why:** ~90% of Ugandan retail transactions are mobile money. Cash-only POS cannot be sold as production SaaS. Enables subscription auto-collection (SaaS revenue), POS checkout, and customer debt collection.
+**Why:** Single integration for **pan-African payments** — no need for separate MTN/Airtel contracts per country. Flutterwave handles mobile money collections via their aggregator model (3% fee). Enables subscription auto-pay via card, B2B/foreign cards, and cross-border expansion without new integrations. `api/README.md` lists Flutterwave.
 
 **How:**
-- Provider: **MTN MoMo API** (via MTN Developer Portal) + **Airtel Money API** (via Airtel Developer Portal)
-- Integration: `payment_gateways` table already exists (provider: `mtn_momo`, `airtel_money`), `PaymentGatewayController` CRUD with role gates
-- Flow: Initiate payment → redirect to provider USSD/app → webhook confirms → update sale/subscription
-- Webhook: `POST /api/webhooks/mtn-momo`, `POST /api/webhooks/airtel-money` (need implementation)
-- Queue jobs for idempotent retries, dedupe on `transaction_id`
+- Provider: **Flutterwave** (recommended for East Africa + continental coverage)
+- `payment_gateways` table supports `flutterwave` provider
+- Flow: Redirect to provider hosted checkout → webhook confirms → activate subscription/record sale
+- Webhook: Verify signature, idempotent on `tx_ref`
+- Mobile money: Customer enters phone → receives USSD push → enters PIN → instant confirmation
+- **No direct MTN/Airtel contracts needed** — Flutterwave manages aggregator relationships
 
-**When:** **Pre-launch (P0)** — largest commercial gap per `checked.md` line 48. Cannot sell SaaS without it.
+**When:** **Pre-launch (P0)** — single integration unblocks payments across all target markets.
 
 **Cost:**
-- MTN MoMo: **Transaction fee ~1.5–2.5%** per successful payment (negotiated per volume). No monthly fee for sandbox; production requires business registration.
-- Airtel Money: **Transaction fee ~1.5–2.5%** per successful payment. Similar model.
-- Estimated: **UGX 500k–2M/month** at 1,000–5,000 transactions (scales with volume).
+- Flutterwave Uganda: **3.2%** per local card transaction; **4.8%** for international cards; **3.0%** for mobile money collections
+- Kenya/TZ/RW/NG: Similar card rates; mobile money ~2.5–3.5%
+- Bank payouts: **UGX 5,000** per transfer; Mobile money payouts: **UGX 1,000** (≤125k) or **1.2%** (>125k)
+- Estimated: **$50–300/month** depending on card/mobile money volume.
+- **No monthly minimums**, no setup fees.
 
 ---
 
-## 2. WhatsApp Business API (Meta Cloud API)
+## 2. Email Delivery — Resend (Free Tier → SES Migration)
 
-**What:** Transactional WhatsApp notifications for subscription events, inventory alerts, order confirmations, monthly report nudges, and receipt delivery.
+**What:** Document-shaped communication: PDF receipts, monthly reports, subscription invoices, password resets, login alerts, compliance records.
 
-**Why:** Product promise advertises WhatsApp features; high read rate (~95%); required for subscription expiry reminders, low-stock alerts, order notifications, monthly report nudges. Meta **24-hour service window** forces template-only messages.
+**Why:** **Must work before WhatsApp** — email is the fallback for all notification types, carries attachments/tables (PDF receipts, reports), handles password resets (Laravel default), and provides audit trail. Resend free tier (3,000 emails/month) covers MVP; migrate to Amazon SES at scale for cost optimization.
 
 **How:**
-- Provider: **Meta Cloud API** (WhatsApp Business Platform) — recommended over 360dialog/WATI for direct control
+- Provider: **Resend** (start) → **Amazon SES** (scale)
+- Resend: `composer require resend/resend-php`, `ResendMailChannel`, Blade Mailables, `LogMailChannel` for dev
+- SES migration: Swap mail driver, same Mailable classes, `SesMailChannel`
+- Channel strategy: Email for documents/summaries/attachments; WhatsApp for urgent nudges only
+- `notification_preferences` table for opt-in/opt-out, unsubscribe token
+
+**When:** **Pre-launch (P0)** — receipts, reports, password resets, compliance, fallback for WhatsApp.
+
+**Cost:**
+- **Resend Free Tier**: 3,000 emails/month, 1,000 contacts — **$0/month**
+- **Resend Pro**: $20/month for 50,000 emails, then $0.10/1,000
+- **Amazon SES** (migration target): **$0.10 per 1,000 emails** + $0.12/GB attachment bandwidth
+- Estimated at scale (SES): **$5–20/month** for 50k–200k emails/month.
+- No monthly minimum on either; pay-per-use.
+
+---
+
+## 3. Offline-First Sync (Service Worker + IndexedDB)
+
+**What:** Continue selling during internet outage; sync when online. Queue POS sales, inventory updates, customer creates locally; background sync on reconnect.
+
+**Why:** **Critical for African businesses** — internet reliability is inconsistent across Uganda/East Africa. `future.md` §5: "If internet dies: continue selling, sync later." `checked.md` line 67: "POS is not offline-capable. Retrofitting sync after data exists is far costlier." Build **early**, not as retrofit.
+
+**How:**
+- Frontend: Service Worker + IndexedDB (Workbox), queue mutations, background sync on `online` event
+- Backend: Idempotent endpoints, conflict resolution (last-write-wins with server authority), sync status endpoint
+- Queue: `sync_pending` table, `SyncPendingJob` on reconnect
+- Prioritize: Sales → Inventory → Customers (revenue-critical first)
+
+**When:** **Pre-launch (P0)** — architectural foundation, not a feature. Ship with MVP.
+
+**Cost:**
+- Dev effort: **3–6 weeks** for robust implementation
+- No external subscription cost
+
+---
+
+## 4. WhatsApp Business API (Meta Cloud API)
+
+**What:** Transactional WhatsApp notifications for subscription events, inventory alerts, order confirmations, monthly report nudges, receipt delivery nudges.
+
+**Why:** High read rate (~95%); product promise for subscription expiry reminders, low-stock alerts, order notifications. **Email handles documents; WhatsApp handles nudges.** Meta 24-hour service window forces template-only outbound.
+
+**How:**
+- Provider: **Meta Cloud API** (WhatsApp Business Platform) — direct control, no BSP markup if self-hosted
 - Already: `WhatsAppProviderInterface`, `MetaWhatsAppProvider` (stub), `WhatsAppConfig`, `WhatsAppTemplate`, `WhatsAppMessageLog`, `ProcessWhatsAppNotificationJob`, `DemoWhatsAppProvider`
 - Need: Complete `MetaWhatsAppProvider` HTTP client, webhook `POST /api/webhooks/whatsapp` for delivery status, template approval flow, dedupe on `dedupe_key` (unique index)
-- Channel strategy: WhatsApp for urgent/state-change (≤4 lines); Email for documents/summaries (see `email_whatsappp_notifications.md` §2)
+- Channel strategy: WhatsApp for urgent/state-change (≤4 lines); Email for documents/summaries
 - Template categories: `UTILITY` (subscription, inventory, orders); Monthly report nudge as `UTILITY` not `MARKETING`
 
 **When:** **Pre-launch (P0)** — product promise, subscription expiry reminders, inventory alerts.
 
 **Cost:**
-- **Per-conversation pricing** (Meta bills per 24h session started by template):
-  - `UTILITY`: ~$0.005–0.01/conversation (first 1,000 free/month)
-  - `MARKETING`: ~$0.03–0.05/conversation (avoid in MVP)
-  - `AUTHENTICATION`: ~$0.01/conversation
-- Estimated: **$20–100/month** for 2,000–10,000 conversations at scale (mostly `UTILITY`).
+- **Per-message pricing** (since July 2025; Meta charges per delivered template message, not per 24h conversation):
+  - `SERVICE` (customer-initiated 24h window): **Free** (unlimited since Nov 2024)
+  - `UTILITY` templates within open service window: **Free**
+  - `UTILITY` templates outside service window: **~$0.004/message** (US rate; Uganda rate varies)
+  - `MARKETING`: **~$0.025/message** (US rate; no volume discounts)
+  - `AUTHENTICATION` (OTP): **~$0.004/message** (US rate)
+- **Free entry points**: Click-to-WhatsApp ads open 72h free window for all categories
+- Estimated: **$10–50/month** for 2,000–10,000 utility messages at scale (mostly within service windows).
 - **One-time**: Template approval in Meta Business Manager (1–3 days per template).
+- **Note**: BSP markup typically adds $0.003–$0.01/message if using a BSP; self-hosted Cloud API avoids this.
 
 ---
 
-## 3. Email Delivery (Amazon SES)
-
-**What:** Document-shaped communication: PDF receipts, monthly reports, subscription invoices, password resets, login alerts.
-
-**Why:** WhatsApp cannot carry attachments/tables; email is ~$0.10/1k emails (SES); required for PDF receipts, monthly reports, compliance records, password resets (Laravel ships this).
-
-**How:**
-- Provider: **Amazon SES** (recommended for cost/deliverability) or Mailgun/Postmark
-- Need: `composer require aws/aws-sdk-php`, `SesMailChannel`, `SendEmailNotificationJob`, Blade Mailables for receipts/reports, `LogMailChannel` for dev
-- Channel split: Email for documents/summaries; WhatsApp nudge only ("your report is ready")
-- `notification_preferences` table for opt-in/opt-out, unsubscribe token
-
-**When:** **Pre-launch (P0)** — PDF receipts, monthly reports, password resets, compliance.
-
-**Cost:**
-- **Amazon SES**: **$0.10 per 1,000 emails** + $0.12/GB attachment bandwidth
-- Estimated: **$5–20/month** for 50k–200k emails/month at scale.
-- No monthly minimum; pay-per-use.
-
----
-
-## 4. URA EFRIS (e-Invoicing / Fiscalisation)
+## 5. URA EFRIS (e-Invoicing / Fiscalisation)
 
 **What:** Real-time fiscalisation of sales receipts to Uganda Revenue Authority (e-invoicing compliance). Every completed sale must be fiscalised; duplicate fiscalisation number = compliance event.
 
@@ -85,7 +115,7 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 - Duplicate handling: Idempotency key = `sale_id`; URA returns existing fiscalisation if re-sent
 - Testing: URA sandbox environment (separate cert/credentials)
 
-**When:** **Pre-launch (P0 for Uganda)** — legal compliance, cannot operate without it.
+**When:** **Pre-launch (P0 for Uganda)** — legal compliance, cannot operate without it in Uganda.
 
 **Cost:**
 - **No per-transaction fee** (government service)
@@ -94,35 +124,14 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 ---
 
-## 5. Payment Aggregator (Flutterwave / Pesapal)
-
-**What:** Card payments (Visa/Mastercard), bank transfers, and alternative payment methods for online subscriptions and high-value POS transactions.
-
-**Why:** Mobile money covers retail POS; card/online needed for B2B, foreign cards, subscription auto-pay via card. `api/README.md` lists Flutterwave and Pesapal.
-
-**How:**
-- Provider: **Flutterwave** (recommended for Uganda/Kenya/NG) or **Pesapal**
-- `payment_gateways` table supports `flutterwave`, `pesapal` providers
-- Flow: Redirect to provider hosted checkout → webhook confirms → activate subscription/record sale
-- Webhook: Verify signature, idempotent on `tx_ref`
-
-**When:** **Post-launch (P1)** — mobile money covers 95% of retail; card is for B2B/online.
-
-**Cost:**
-- Flutterwave: **~1.4% + UGX 500** per local card transaction; **3.8%** for international cards
-- Pesapal: **~2.5–3%** per transaction
-- Estimated: **$50–200/month** depending on card volume.
-
----
-
-## 6. SMS Gateway (Twilio / Africa's Talking / Infobip)
+## 6. SMS Gateway (Africa's Talking / Twilio / Infobip)
 
 **What:** Fallback for WhatsApp delivery failures, OTP for login, critical alerts when WhatsApp is down.
 
 **Why:** WhatsApp quality-score collapse risk; business-level failover for SMS/email if WhatsApp down (per `future.md` line 149). OTP for 2FA/login alerts.
 
 **How:**
-- Provider: **Africa's Talking** (best Uganda coverage), **Twilio**, or **Infobip**
+- Provider: **Africa's Talking** (best Uganda/East Africa coverage), **Twilio**, or **Infobip**
 - Channel: `sms` in `notification_preferences`, fallback logic in `NotificationDispatcher`
 - Use case: OTP, WhatsApp failover, critical alerts only (not marketing)
 
@@ -135,41 +144,26 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 ---
 
-## 7. Thermal Printer / Barcode Scanner Integration
+## 7. Direct Mobile Money (MTN MoMo + Airtel Money) — Post-Launch
 
-**What:** Local hardware integration for POS receipt printing and barcode scanning.
+**What:** Direct real-time mobile money collection via **MTN MoMo API** + **Airtel Money API** (bypassing Flutterwave aggregator). Covers ~95% of Uganda mobile money market.
 
-**Why:** Retail POS requires physical receipt printing and barcode scanning. `api/README.md` lists as critical.
-
-**How:**
-- **Thermal Printer**: ESC/POS over Bluetooth/USB/Network (e.g., Epson TM-m30, Star TSP100). Driver: `mike42/escpos-php` or direct ESC/POS bytes.
-- **Barcode Scanner**: HID keyboard wedge (acts as keyboard input) — no driver needed; or USB/Bluetooth serial.
-- Integration: POS component detects scanner input, prints via `escpos-php` to paired printer.
-
-**When:** **Pre-launch (P0)** for physical retail pilot.
-
-**Cost:**
-- Hardware: **UGX 500k–2M** per terminal (printer + scanner)
-- Software: Open-source libraries, no subscription
-
----
-
-## 8. Offline-First Sync (Service Worker + IndexedDB)
-
-**What:** Continue selling during internet outage; sync when online.
-
-**Why:** `future.md` §5: "If internet dies: continue selling, sync later." `checked.md` line 67: "POS is not offline-capable. Retrofitting sync after data exists is far costlier."
+**Why:** **Lower per-transaction cost** (~1.5–2.5% vs Flutterwave's 3% mobile money fee) at scale. But requires **heavy paperwork**: business registration, separate contracts per provider, KYC, URA compliance, 3–6 month onboarding per provider. **Not viable pre-launch.**
 
 **How:**
-- Frontend: Service Worker + IndexedDB (Workbox), queue mutations, background sync on `online` event
-- Backend: Idempotent endpoints, conflict resolution (last-write-wins with server authority), sync status endpoint
-- Queue: `sync_pending` table, `SyncPendingJob` on reconnect
+- Provider: **MTN MoMo API** (via MTN Developer Portal) + **Airtel Money API** (via Airtel Developer Portal)
+- Integration: `payment_gateways` table supports `mtn_momo`, `airtel_money` providers, `PaymentGatewayController` CRUD with role gates
+- Flow: Initiate payment → redirect to provider USSD/app → webhook confirms → update sale/subscription
+- Webhook: `POST /api/webhooks/mtn-momo`, `POST /api/webhooks/airtel-money` (need implementation)
+- Queue jobs for idempotent retries, dedupe on `transaction_id`
 
-**When:** **Post-launch (P1)** — critical for retail reliability, but complex retrofit.
+**When:** **Post-launch (~1 year, P2)** — after Flutterwave is live and generating revenue, when volume justifies direct contracts.
 
 **Cost:**
-- Dev effort: **3–6 weeks** for robust implementation
-- No external subscription cost
+- MTN MoMo: **Transaction fee ~1.5–2.5%** per successful payment (negotiated per volume). No monthly fee for sandbox; production requires business registration.
+- Airtel Money: **Transaction fee ~1.5–2.5%** per successful payment. Similar model.
+- Estimated savings at scale: **~UGX 500k–2M/month** vs Flutterwave aggregator fee at 1,000–5,000 transactions.
+- **Hidden cost**: 3–6 months per provider for contract negotiation + compliance.
 
 ---
 
@@ -177,25 +171,25 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 | # | Integration | Criticality | When | Est. Monthly Cost |
 |---|-------------|-------------|------|-------------------|
-| 1 | **MTN MoMo + Airtel Money** | P0 — Launch blocker | Pre-launch | UGX 500k–2M / $150–600 |
-| 2 | **WhatsApp (Meta Cloud API)** | P0 — Product promise | Pre-launch | $20–100 |
-| 3 | **Email (Amazon SES)** | P0 — Receipts, resets | Pre-launch | $5–20 |
-| 4 | **URA EFRIS** | P0 — Legal compliance | Pre-launch | Dev effort only |
-| 5 | **Flutterwave / Pesapal** | P1 — Card/B2B | Post-launch | $50–200 |
+| 1 | **Flutterwave (Pan-African Payments)** | P0 — Single integration for all markets | Pre-launch | $50–300 |
+| 2 | **Email (Resend → SES)** | P0 — Receipts, resets, fallback | Pre-launch | $0–20 |
+| 3 | **Offline-First Sync** | P0 — Architecture, not feature | Pre-launch | Dev effort only |
+| 4 | **WhatsApp (Meta Cloud API)** | P0 — Product promise, nudges | Pre-launch | $10–50 |
+| 5 | **URA EFRIS** | P0 — Legal compliance (Uganda) | Pre-launch | Dev effort only |
 | 6 | **SMS Gateway** | P1 — Failover/OTP | Post-launch | $10–50 |
-| 7 | **Printer/Scanner** | P0 — Hardware pilot | Pre-launch | Hardware only |
-| 8 | **Offline Sync** | P1 — Reliability | Post-launch | Dev effort only |
+| 7 | **Direct MTN/Airtel MoMo** | P2 — Cost optimization at scale | ~1 year post-launch | 1.5–2.5% (vs 3%) |
 
 ---
 
 ## Implementation Notes
 
-1. **Start with MTN MoMo + Airtel Money** — largest revenue enabler, longest provider onboarding.
-2. **Parallel**: WhatsApp + Email (shared notification architecture — see `email_whatsappp_notifications.md` §4 target architecture).
-3. **URA EFRIS** can run in parallel (different team) — sandbox testing first.
-4. **Flutterwave/Pesapal** only after mobile money is live and generating revenue.
+1. **Start with Flutterwave** — single integration unblocks payments across Uganda, Kenya, Tanzania, Rwanda, Nigeria, Ghana, SA. No per-country contracts.
+2. **Parallel**: Email (Resend) + Offline Sync (architectural) — both P0, different teams.
+3. **WhatsApp** after Email is working — Email is the fallback; WhatsApp is the nudge layer.
+4. **URA EFRIS** can run in parallel (different team) — sandbox testing first, Uganda-only.
 5. **SMS** only as WhatsApp failover — not a primary channel.
-6. **Offline sync** is architectural — plan early, build late (retrofitting is expensive per `checked.md`).
+6. **Direct MTN/Airtel** only after ~1 year when volume justifies contract overhead — Flutterwave aggregator fee (3%) is the cost of speed-to-market.
+7. **Offline sync** is architectural — plan early, build early (retrofitting is expensive per `checked.md`).
 
 ---
 
@@ -203,13 +197,14 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 | Provider | Account Needed | Docs | Sandbox | Prod Go-Live |
 |----------|----------------|------|---------|--------------|
-| MTN MoMo | Business registration, MoMo Developer Portal | developer.mtn.com | Yes | Business cert + KYC |
-| Airtel Money | Business registration, Airtel Developer Portal | developers.airtel.africa | Yes | Business cert + KYC |
-| Meta WhatsApp | Meta Business Manager, WhatsApp Business Account | developers.facebook.com/docs/whatsapp | Yes (test numbers) | Template approval (1–3 days) |
-| Amazon SES | AWS Account | docs.aws.amazon.com/ses | Yes (sandbox) | Production access request |
-| URA EFRIS | Taxpayer registration, EFRIS cert | URA portal | Yes (test env) | Live cert from URA |
 | Flutterwave | Business registration | developer.flutterwave.com | Yes | KYC + settlement account |
+| Resend | GitHub/Email signup | resend.com/docs | Free tier (3k/mo) | Auto |
+| Meta WhatsApp | Meta Business Manager, WhatsApp Business Account | developers.facebook.com/docs/whatsapp | Yes (test numbers) | Template approval (1–3 days) |
+| URA EFRIS | Taxpayer registration, EFRIS cert | URA portal | Yes (test env) | Live cert from URA |
 | Africa's Talking | Account | developers.africastalking.com | Yes | Auto |
+| Amazon SES | AWS Account | docs.aws.amazon.com/ses | Yes (sandbox) | Production access request |
+| MTN MoMo (later) | Business registration, MoMo Developer Portal | developer.mtn.com | Yes | Business cert + KYC |
+| Airtel Money (later) | Business registration, Airtel Developer Portal | developers.airtel.africa | Yes | Business cert + KYC |
 
 ---
 

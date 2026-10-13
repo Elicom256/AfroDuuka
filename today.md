@@ -1,9 +1,6 @@
-# Front end Notification:id routing
-## Issue
-Notificationhttp routing is tight, but but assuming a user is on ://localhost/dashboard/notifications/14 and he tries to access/open the related
-module, forexample if the notification is about sales, on http://localhost/dashboard/notifications/14, the user tries to access the related sale,
-he hits the 404 page yet he should be routed to the related sale:id properly
-This error cuts across all notification:id whether related to sales, purchases, etc
-## Task
-Find out why the user is taken to the 404 page and fix it
-
+# Registration
+When a user registers a business, he should be sent an email for verification, then we mark the business as active. In fact, there should a Mail 
+directory under App to handle that, then each template directed to its own service where business logic lives
+Templates to include are BusinessVerification, LowStockAlertMail, SubscriptionExpiryMail, MonthlyPerformanceMail, etc
+This structure keeps the working directory clean and readable at scale
+This also works well with the current system design
