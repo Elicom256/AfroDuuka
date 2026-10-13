@@ -21,8 +21,14 @@ function App() {
 
   return (
     <div className='flex min-h-screen flex-col bg-background text-foreground'>
+      <a
+        href='#main-content'
+        className='sr-only z-50 rounded-md bg-background px-4 py-2 text-foreground shadow focus:not-sr-only focus:fixed focus:left-4 focus:top-4'
+      >
+        Skip to main content
+      </a>
       {!isDashboard && <NavBar />}
-      <main className='flex-1'>
+      <main id='main-content' tabIndex={-1} className='flex-1'>
         <AppRoutes />
       </main>
       {!isDashboard && <Footer />}
