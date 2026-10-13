@@ -13,6 +13,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SalePayment;
 use App\Models\StockMovement;
+use App\Models\User;
 use App\Support\Tenant\EffectiveBranchScope;
 use Exception;
 use Illuminate\Support\Collection;
@@ -200,9 +201,6 @@ class PosService
 
             $totalAmount = 0;
             $totalDiscount = 0;
-            $totalSubtotal = 0;
-            $totalTaxAmount = 0;
-            $lineCalculations = [];
 
             if (isset($validated['sale_id'])) {
                 $sale = Sale::where('id', $validated['sale_id'])
@@ -217,71 +215,9 @@ class PosService
                     ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
                     ->value('total');
             } else {
-                $calculation = $this->calculateNewSaleLines($validated['items'], $products);
-                $lineCalculations = $calculation['lines'];
-                $totalAmount = $calculation['total_amount'];
-                $totalSubtotal = $calculation['subtotal'];
-                $totalTaxAmount = $calculation['tax_amount'];
-
-                $sale = Sale::create([
-                    'business_branch_id' => $branchId,
-                    'customer_id' => $validated['customer_id'] ?? null,
-                    'subtotal' => $totalSubtotal,
-                    'tax_amount' => $totalTaxAmount,
-                    'total_amount' => $totalAmount,
-                    'note' => $validated['note'] ?? null,
-                    'status' => 'completed',
-                ]);
-
-                foreach ($lineCalculations as $lineCalculation) {
-                    $item = $lineCalculation['item'];
-                    $product = $products->get($item['product_id']);
-                    $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
-                    $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
-                    $tax = $lineCalculation['tax'];
-
-                    SaleItem::create([
-                        'sale_id' => $sale->id,
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'discount' => $item['discount'] ?? 0,
-                        'tax_rate' => $tax['rate'],
-                        'is_tax_inclusive' => $tax['is_tax_inclusive'],
-                        'taxable_amount' => $tax['taxable_amount'],
-                        'tax_amount' => $tax['tax_amount'],
-                        'subtotal' => $subtotal,
-                    ]);
-
-                    $product->decrement('quantity', $item['quantity']);
-                    $product->update(['last_sold_at' => now()]);
-
-                    StockMovement::updateOrCreate(
-                        [
-                            'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
-                        ],
-                        [
-                            'business_id' => $user->business_id,
-                            'business_branch_id' => $branchId,
-                            'product_id' => $item['product_id'],
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'reference_type' => Sale::class,
-                            'reference_id' => $sale->id,
-                            'notes' => 'POS sale',
-                        ]
-                    );
-
-                    if ($product->quantity <= $product->reorder_level) {
-                        $this->notificationService->lowStockAlert(
-                            $user,
-                            $product->name ?? $product->id,
-                            $product->quantity,
-                            $product->reorder_level,
-                            $product->id
-                        );
-                    }
-                }
+                $createdSale = $this->createSaleFromCart($validated, $products, $user, $branchId);
+                $sale = $createdSale['sale'];
+                $totalAmount = $createdSale['total_amount'];
             }
 
             $totalPaid = 0;
@@ -354,6 +290,72 @@ class PosService
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
+    }
+
+    private function createSaleFromCart(array $validated, Collection $products, User $user, int|string|null $branchId): array
+    {
+        $calculation = $this->calculateNewSaleLines($validated['items'], $products);
+        $sale = Sale::create([
+            'business_branch_id' => $branchId,
+            'customer_id' => $validated['customer_id'] ?? null,
+            'subtotal' => $calculation['subtotal'],
+            'tax_amount' => $calculation['tax_amount'],
+            'total_amount' => $calculation['total_amount'],
+            'note' => $validated['note'] ?? null,
+            'status' => 'completed',
+        ]);
+
+        foreach ($calculation['lines'] as $lineCalculation) {
+            $item = $lineCalculation['item'];
+            $product = $products->get($item['product_id']);
+            $lineDiscount = ($item['discount'] ?? 0) * $item['quantity'];
+            $subtotal = ($item['quantity'] * $item['unit_price']) - $lineDiscount;
+            $tax = $lineCalculation['tax'];
+
+            SaleItem::create([
+                'sale_id' => $sale->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'discount' => $item['discount'] ?? 0,
+                'tax_rate' => $tax['rate'],
+                'is_tax_inclusive' => $tax['is_tax_inclusive'],
+                'taxable_amount' => $tax['taxable_amount'],
+                'tax_amount' => $tax['tax_amount'],
+                'subtotal' => $subtotal,
+            ]);
+
+            $product->decrement('quantity', $item['quantity']);
+            $product->update(['last_sold_at' => now()]);
+
+            StockMovement::updateOrCreate(
+                [
+                    'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
+                ],
+                [
+                    'business_id' => $user->business_id,
+                    'business_branch_id' => $branchId,
+                    'product_id' => $item['product_id'],
+                    'type' => 'out',
+                    'quantity' => $item['quantity'],
+                    'reference_type' => Sale::class,
+                    'reference_id' => $sale->id,
+                    'notes' => 'POS sale',
+                ]
+            );
+
+            if ($product->quantity <= $product->reorder_level) {
+                $this->notificationService->lowStockAlert(
+                    $user,
+                    $product->name ?? $product->id,
+                    $product->quantity,
+                    $product->reorder_level,
+                    $product->id
+                );
+            }
+        }
+
+        return ['sale' => $sale, 'total_amount' => $calculation['total_amount']];
     }
 
     private function calculateNewSaleLines(array $items, Collection $products): array
