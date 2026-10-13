@@ -438,8 +438,10 @@ validation paths, and duplicated request-scoping logic that is easy to drift.
   syntax validation passed. New-sale creation, line persistence, inventory movements,
   and low-stock notifications now run through `createSaleFromCart()`, leaving held-sale
   resumption in its separate path. Tender coverage, payment persistence, credit totals,
-  and change calculation now share `recordSalePayments()`. The checkout feature suite is
-  blocked during database setup because `pgsql` does not resolve. Section 7 remains open.
+  and change calculation now share `recordSalePayments()`. Branch-scope, cart, and
+  credit-customer preconditions now share `validateCheckoutRequest()`. The checkout
+  feature suite is blocked during database setup because `pgsql` does not resolve.
+  Section 7 remains open.
 
 ### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
 

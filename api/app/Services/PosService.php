@@ -149,25 +149,7 @@ class PosService
     public function checkout(array $validated): Sale
     {
         $user = Auth::user();
-        $branchId = $validated['business_branch_id'] ?? $user->business_branch_id;
-
-        $resolved = $user ? EffectiveBranchScope::branchesFor($user) : null;
-        if ($branchId && $resolved !== null) {
-            [, $branchIds] = $resolved;
-            if (! in_array($branchId, $branchIds, true)) {
-                throw new Exception('Branch is not within your allowed scope', 403);
-            }
-        }
-
-        $cartErrors = $this->validateCart($validated['items']);
-        if (! empty($cartErrors)) {
-            throw new Exception(implode('; ', $cartErrors), 422);
-        }
-
-        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
-            && empty($validated['customer_id'])) {
-            throw new Exception('A customer is required when using credit payment.', 422);
-        }
+        $branchId = $this->validateCheckoutRequest($validated, $user);
 
         // Claimed before the sale transaction opens purely so the number is not
         // consumed by a checkout that turns out to have nothing to sell. nextval()
@@ -257,6 +239,31 @@ class PosService
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
+    }
+
+    private function validateCheckoutRequest(array $validated, User $user): int|string|null
+    {
+        $branchId = $validated['business_branch_id'] ?? $user->business_branch_id;
+        $resolved = EffectiveBranchScope::branchesFor($user);
+
+        if ($branchId && $resolved !== null) {
+            [, $branchIds] = $resolved;
+            if (! in_array($branchId, $branchIds, true)) {
+                throw new Exception('Branch is not within your allowed scope', 403);
+            }
+        }
+
+        $cartErrors = $this->validateCart($validated['items']);
+        if (! empty($cartErrors)) {
+            throw new Exception(implode('; ', $cartErrors), 422);
+        }
+
+        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
+            && empty($validated['customer_id'])) {
+            throw new Exception('A customer is required when using credit payment.', 422);
+        }
+
+        return $branchId;
     }
 
     private function createSaleFromCart(array $validated, Collection $products, User $user, int|string|null $branchId): array
