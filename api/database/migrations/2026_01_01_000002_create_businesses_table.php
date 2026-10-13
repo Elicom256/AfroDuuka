@@ -29,9 +29,11 @@ return new class extends Migration
             $table->string('email')->nullable()->index();
             $table->string('phone')->nullable()->index();
             $table->string('address')->nullable()->index();
-            $table->enum('status', ['active', 'deactivated', 'banned'])->default('active');
+            $table->enum('status', ['pending_verification', 'active', 'deactivated', 'banned'])->default('pending_verification');
             $table->string('logo')->nullable();
             $table->decimal('subscription_balance')->default(0);
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('email_verification_token')->nullable()->unique();
             $table->timestamps();
         });
     }
