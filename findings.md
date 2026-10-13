@@ -638,4 +638,79 @@ that appeared to work.
 
 ---
 
+# §11 Execution Plan — Modules to Add
+
+**Guiding principle:** every failure a user can trigger renders one sentence a
+non-technical operator can act on, plus a reference id they can quote to support.
+No stack context, model class, SQLSTATE, or blank toast ever reaches the screen.
+
+## Decisions (locked)
+
+- **OpenAPI:** `dedoc/scramble` — auto-generated from code, no annotations.
+- **Feature flags:** DB-backed per-business with config defaults (plan-aware).
+- **403 copy:** friendly generic by default, per-policy message when set.
+- **Soft deletes:** every financial record gets the column. The essential ones
+  (sale, sale return, cash flow, expense, salary, tax payment, financial audit)
+  become **void/cancel-only** — their delete control is unreachable in the UI, and
+  the API refuses hard deletes with a friendly `409`/`405`.
+
+## Current-state gaps (from the audit)
+
+1. `ModelNotFoundException` has no renderer → Laravel's default leaks the FQCN
+   (`No query results for model [App\Models\Product] 5`).
+2. `QueryException` constraint violations only handled ad hoc
+   (`StoreBusinessRequest.php:75`, `StockTransferService.php:256`); elsewhere a
+   unique/FK violation is a 500.
+3. Throttle `429` and generic `403` still use framework copy.
+4. `403` is suppressed by `apiErrorMiddleware` and `authListener` only handles
+   `401`, so a policy refusal can render nothing.
+5. Status→copy duplicated in `apiErrorMiddleware.ts:45`, `SignUp.tsx:174`,
+   `Onboarding.tsx:33`.
+6. `serverMessage()` ignores the `errors` map.
+7. No correlation id anywhere.
+8. `ErrorBoundary` dumps `error.message` to a `<pre>`.
+
+## Error contract
+
+```json
+{
+  "message": "You can't receive more than 3 units of Sugar (only 1 in stock).",
+  "errors": { "items.0.quantity": ["…"] },
+  "code": "insufficient_stock",
+  "request_id": "01J9…"
+}
+```
+
+`message` always human; `code` stable slug; `errors` unchanged; `request_id` always.
+
+## Chunks (each pushed to `oct` on completion)
+
+0. **This plan appended to findings.md.**
+1. **Backend error contract + exception taxonomy.** Dedicated renderer for
+   `ModelNotFoundException`, `QueryException` (SQLSTATE map), `403`/`404`/`405`/`419`,
+   `429`; `code` + `request_id` on every failure; unit tests (no DB needed).
+2. **`AssignRequestId` middleware.** ULID, `X-Request-Id` header + attribute, used
+   by the renderer; every request logged structured (id, method, path, status,
+   duration, user/business — never bodies or tokens).
+3. **Frontend error unification.** One `describeApiError()`; `apiErrorMiddleware`
+   stops suppressing `403`; `ErrorBoundary` drops the raw dump in prod; tests.
+4. **Soft deletes on all financial records** + UI hides the essential delete
+   controls and offers void/cancel instead; friendly refusal copy; tests.
+5. **Audit trail coverage** for financial mutations (spatie activitylog already
+   installed); best-effort so an audit failure never 500s the business action.
+6. **Feature-flag system** (DB-backed per-business + config defaults); disabled
+   feature → `403` `code: feature_disabled`, never a blank screen.
+7. **OpenAPI via scramble** documenting the error schema; CI generation check.
+
+## Acceptance criteria
+
+- No API failure can return a body lacking a human `message` or `request_id`.
+- `App\Models`, `SQLSTATE`, file paths, `Exception` never appear in any `message`
+  (enforced by a denylist test).
+- A duplicate/constraint refusal shows a sentence, not a 500, on every audited path.
+- `403` and `429` each render specific copy, never silence.
+- Support can take a `request_id` from the screen and find the request.
+
+---
+
 _End of findings._
