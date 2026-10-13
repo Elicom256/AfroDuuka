@@ -572,6 +572,20 @@ Dependency audits added to CI (composer audit + npm audit, non-blocking).
 Not started: TLS termination in production nginx, monitoring, outdated database dump,
 no staging environment.
 
+## Infrastructure Plan — §9 Remaining (simplest → hardest)
+
+| Order | Item | Effort | Notes |
+|-------|------|--------|-------|
+| 1 | **Fresh `pg_dump` of production DB** | ~1h | Run `pg_dump -Fc -h <prod-host> -U <user> inventory > infra/backups/$(date +%F).dump`; store in encrypted S3/GCS bucket; add cron for daily/weekly. |
+| 2 | **TLS termination in production nginx** | ~2–4h | Obtain cert (Let's Encrypt via certbot or provided cert); update nginx config `listen 443 ssl; ssl_certificate …; ssl_certificate_key …;`; redirect HTTP→HTTPS; test `curl -I https://api.afroduuka.com/health`. |
+| 3 | **Monitoring (Prometheus + Grafana)** | ~1–2 days | Add `prometheus/prometheus` and `grafana/grafana` to compose (or managed); scrape `backend:8000/metrics` (need Laravel prometheus exporter); add Node exporter for host; dashboards: request latency, error rate, queue depth, DB connections, cache hit rate; alerts: 5xx > 1%, p95 latency > 500ms, queue lag > 100. |
+| 4 | **Staging environment** | ~3–5 days | Provision separate VPC/project; mirror prod compose with `docker-compose.staging.yml`; CI deploys `oct` branch here on push; anonymize prod data (or seed synthetic); run full test suite against staging; smoke tests on deploy. |
+
+**Dependencies:**
+- TLS cert needed before monitoring can scrape HTTPS endpoints.
+- Staging should use the same compose stack (with resource limits) so monitoring config is portable.
+- pg_dump bucket should be accessible from staging for test data refreshes.
+
 ---
 
 # 10. Testing Gaps ⚠️
