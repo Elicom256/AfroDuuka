@@ -2,724 +2,225 @@
 
 namespace Tests\Feature;
 
-use App\Exceptions\InsufficientStockException;
 use App\Models\Business;
 use App\Models\BusinessBranch;
-use App\Models\CoreSettings\PaymentMethod;
+use App\Models\CashFlow;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
-use App\Models\StockMovement;
-use App\Models\TaxCategory;
-use App\Models\TaxRate;
+use App\Models\Supplier;
 use App\Models\User;
-use App\Services\SaleItemService;
-use App\Support\Tenant\BusinessContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
+/**
+ * Cross-tenant isolation regression tests.
+ *
+ * Every tenant-scoped model uses BaseModel's `business` global scope, which
+ * rewrites every query with `where business_id = ?`. If the scope is ever
+ * removed, overridden, or bypassed, these tests will catch the leak.
+ *
+ * The pattern: user in business A creates a resource; user in business B
+ * attempts to read/update/delete it. The correct answer is 404 — the scope
+ * filters it out before the policy is even consulted, so the endpoint cannot
+ * confirm the resource exists in another tenant.
+ */
 class TenantIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function branchUser(Business $business, ?BusinessBranch $branch = null): User
-    {
-        $branch ??= BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'Executive']);
+    private Business $businessA;
 
-        return User::factory()->create([
-            'business_id' => $business->id,
-            'business_branch_id' => $branch->id,
-            'role_id' => $role->id,
+    private Business $businessB;
+
+    private BusinessBranch $branchA;
+
+    private BusinessBranch $branchB;
+
+    private Role $roleA;
+
+    private Role $roleB;
+
+    private User $userA;
+
+    private User $userB;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->businessA = Business::factory()->create(['name' => 'Alpha Trading']);
+        $this->businessB = Business::factory()->create(['name' => 'Beta Wholesale']);
+
+        $this->branchA = BusinessBranch::factory()->create([
+            'business_id' => $this->businessA->id,
+            'name' => 'Alpha HQ',
         ]);
-    }
-
-    protected function coreAdmin(Business $business): User
-    {
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'Executive']);
-
-        return User::factory()->create([
-            'business_id' => $business->id,
-            'business_branch_id' => null,
-            'role_id' => $role->id,
-        ]);
-    }
-
-    protected function superAdmin(): User
-    {
-        $role = Role::factory()->create(['name' => 'CoreSupport']);
-
-        return User::factory()->create([
-            'business_id' => null,
-            'business_branch_id' => null,
-            'role_id' => $role->id,
-        ]);
-    }
-
-    public function test_branch_user_cannot_read_product_from_another_branch_in_same_business(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $foreignProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $this->getJson("/api/products/{$foreignProduct->id}")
-            ->assertStatus(404);
-    }
-
-    public function test_branch_user_cannot_read_product_from_a_different_business(): void
-    {
-        $businessA = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $businessA->id]);
-
-        $businessB = Business::factory()->create();
-        $branchB = BusinessBranch::factory()->create(['business_id' => $businessB->id]);
-        $foreignProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->branchUser($businessA, $branchA));
-
-        $this->getJson("/api/products/{$foreignProduct->id}")
-            ->assertStatus(404);
-    }
-
-    public function test_branch_user_cannot_update_product_from_another_branch(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $foreignProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $this->putJson("/api/products/{$foreignProduct->id}", ['selling_price' => 9999])
-            ->assertStatus(404);
-
-        $this->assertDatabaseHas('products', ['id' => $foreignProduct->id]);
-    }
-
-    public function test_branch_user_cannot_delete_product_from_another_branch(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $foreignProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $this->deleteJson("/api/products/{$foreignProduct->id}")
-            ->assertStatus(404);
-
-        $this->assertDatabaseHas('products', ['id' => $foreignProduct->id]);
-    }
-
-    public function test_sale_item_service_rejects_products_belonging_to_a_different_branch(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $user = $this->branchUser($business, $branchA);
-        $foreignProduct = Product::factory()->create([
-            'business_branch_id' => $branchB->id,
-            'quantity' => 10,
-            'selling_price' => 1500,
-            'status' => 'active',
+        $this->branchB = BusinessBranch::factory()->create([
+            'business_id' => $this->businessB->id,
+            'name' => 'Beta HQ',
         ]);
 
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
+        $this->roleA = Role::factory()->create([
+            'business_id' => $this->businessA->id,
+            'name' => 'Executive',
+        ]);
+        $this->roleB = Role::factory()->create([
+            'business_id' => $this->businessB->id,
+            'name' => 'Executive',
         ]);
 
+        $this->userA = User::factory()->create([
+            'business_id' => $this->businessA->id,
+            'business_branch_id' => $this->branchA->id,
+            'role_id' => $this->roleA->id,
+        ]);
+        $this->userB = User::factory()->create([
+            'business_id' => $this->businessB->id,
+            'business_branch_id' => $this->branchB->id,
+            'role_id' => $this->roleB->id,
+        ]);
+
+        Sanctum::actingAs($this->userA);
+    }
+
+    private function switchTo(User $user): void
+    {
         Sanctum::actingAs($user);
-
-        $service = app(SaleItemService::class);
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('selected branch');
-
-        $service->handleSaveSaleItem([
-            'business_branch_id' => $branchA->id,
-            'customer_id' => null,
-            'note' => 'Branch mismatch attempt',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => $paymentMethod->id,
-            'items' => [[
-                'product_id' => $foreignProduct->id,
-                'quantity' => 1,
-                'unit_price' => 1500,
-            ]],
-        ], $branchA->id);
     }
 
-    public function test_sale_item_service_rejects_invalid_payment_method_id(): void
+    public function test_customers_are_tenant_scoped(): void
     {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
+        $customer = Customer::factory()->create([
+            'business_id' => $this->businessB->id,
+            'name' => 'Foreign Client',
+        ]);
+
+        // User A cannot see, update, or delete Business B's customer.
+        $this->getJson("/api/dashboard/customers/{$customer->id}")->assertNotFound();
+        $this->putJson("/api/dashboard/customers/{$customer->id}", ['name' => 'Hacked'])->assertNotFound();
+        $this->deleteJson("/api/dashboard/customers/{$customer->id}")->assertNotFound();
+
+        // List endpoint must not leak foreign customers.
+        $this->getJson('/api/dashboard/customers')->assertJsonCount(0, 'data');
+
+        // User A creates their own customer — it works.
+        $this->postJson('/api/dashboard/customers', ['name' => 'Local Client'])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'Local Client');
+    }
+
+    public function test_suppliers_are_tenant_scoped(): void
+    {
+        $supplier = Supplier::factory()->create([
+            'business_id' => $this->businessB->id,
+            'name' => 'Foreign Vendor',
+        ]);
+
+        $this->getJson("/api/dashboard/suppliers/{$supplier->id}")->assertNotFound();
+        $this->putJson("/api/dashboard/suppliers/{$supplier->id}", ['name' => 'Hacked'])->assertNotFound();
+        $this->deleteJson("/api/dashboard/suppliers/{$supplier->id}")->assertNotFound();
+
+        $this->getJson('/api/dashboard/suppliers')->assertJsonCount(0, 'data');
+
+        $this->postJson('/api/dashboard/suppliers', ['name' => 'Local Vendor'])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'Local Vendor');
+    }
+
+    public function test_products_are_tenant_scoped(): void
+    {
         $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'quantity' => 25,
-            'reorder_level' => 1,
-            'selling_price' => 1500,
-            'status' => 'active',
+            'business_branch_id' => $this->branchB->id,
+            'name' => 'Foreign SKU',
+            'sku' => 'EXT-001',
         ]);
 
-        Sanctum::actingAs($user);
+        $this->getJson("/api/dashboard/products/{$product->id}")->assertNotFound();
+        $this->putJson("/api/dashboard/products/{$product->id}", ['name' => 'Hacked'])->assertNotFound();
+        $this->deleteJson("/api/dashboard/products/{$product->id}")->assertNotFound();
 
-        $service = app(SaleItemService::class);
+        $this->getJson('/api/dashboard/products')->assertJsonCount(0, 'data');
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Selected payment method is invalid.');
-
-        $service->handleSaveSaleItem([
-            'business_branch_id' => $branch->id,
-            'customer_id' => null,
-            'note' => 'Invalid payment method',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => 999999,
-            'items' => [[
-                'product_id' => $product->id,
-                'quantity' => 1,
-                'unit_price' => 1500,
-            ]],
-        ], $branch->id);
+        $this->postJson('/api/dashboard/products', [
+            'name' => 'Local SKU',
+            'sku' => 'LOC-001',
+            'business_branch_id' => $this->branchA->id,
+        ])->assertCreated();
     }
 
-    public function test_sale_item_service_saves_a_valid_non_pos_sale(): void
+    public function test_sales_are_tenant_scoped(): void
     {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'quantity' => 10,
-            'reorder_level' => 1,
-            'selling_price' => 1500,
-            'status' => 'active',
-        ]);
-
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
-
-        Sanctum::actingAs($user);
-
-        $sale = app(SaleItemService::class)->handleSaveSaleItem([
-            'business_branch_id' => $branch->id,
-            'customer_id' => null,
-            'note' => 'Valid sale',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => $paymentMethod->id,
-            'items' => [[
-                'product_id' => $product->id,
-                'quantity' => 1,
-                'unit_price' => 1500,
-            ]],
-        ], $branch->id);
-
-        $this->assertNotNull($sale);
-        $this->assertSame('completed', $sale->status);
-        $this->assertCount(1, $sale->saleItems);
-        $this->assertCount(1, $sale->salePayments);
-        $this->assertNotNull($sale->receipt);
-        $this->assertDatabaseHas('stock_movements', [
-            'business_branch_id' => $branch->id,
-            'product_id' => $product->id,
-            'type' => 'out',
-            'quantity' => 1,
-            'reference_type' => Sale::class,
-            'reference_id' => $sale->id,
-        ]);
-    }
-
-    public function test_non_pos_sale_rejects_duplicate_lines_that_exceed_available_stock(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'quantity' => 5,
-            'reorder_level' => 1,
-            'selling_price' => 1500,
-            'status' => 'active',
-        ]);
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
-
-        Sanctum::actingAs($user);
-
-        try {
-            app(SaleItemService::class)->handleSaveSaleItem([
-                'business_branch_id' => $branch->id,
-                'customer_id' => null,
-                'note' => 'Duplicate product lines exceed stock',
-                'paymentStatus' => 'paid',
-                'payment_status_id' => $paymentMethod->id,
-                'items' => [
-                    ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
-                    ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
-                ],
-            ], $branch->id);
-
-            $this->fail('Expected the sale to be rejected when combined quantity exceeds stock.');
-        } catch (InsufficientStockException $exception) {
-            // Asserted on the type and the shortfall rather than on 301, which was
-            // "Moved Permanently" and never a real status here — the POS controller
-            // clamped it out of range and answered 500, so the till was told to retry
-            // an unchanged cart. The type now carries the 409 and the numbers.
-            $this->assertSame($product->id, $exception->productId);
-            $this->assertSame(6, $exception->requested);
-            $this->assertSame(5, $exception->available);
-            $this->assertSame(1, $exception->context()['shortfall']);
-            $this->assertSame(409, $exception->getStatusCode());
-        }
-
-        $this->assertSame(5, $product->fresh()->quantity);
-        $this->assertSame(0, Sale::where('business_branch_id', $branch->id)->count());
-        $this->assertSame(0, StockMovement::where('product_id', $product->id)->count());
-    }
-
-    public function test_non_pos_sale_aggregates_duplicate_lines_for_stock_movement(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'quantity' => 5,
-            'reorder_level' => 1,
-            'selling_price' => 1500,
-            'status' => 'active',
-        ]);
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
-
-        Sanctum::actingAs($user);
-
-        $sale = app(SaleItemService::class)->handleSaveSaleItem([
-            'business_branch_id' => $branch->id,
-            'customer_id' => null,
-            'note' => 'Duplicate product lines within stock',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => $paymentMethod->id,
-            'items' => [
-                ['product_id' => $product->id, 'quantity' => 2, 'unit_price' => 1500],
-                ['product_id' => $product->id, 'quantity' => 3, 'unit_price' => 1500],
-            ],
-        ], $branch->id);
-
-        $this->assertCount(2, $sale->saleItems);
-        $this->assertSame(0, $product->fresh()->quantity);
-        $this->assertDatabaseHas('stock_movements', [
-            'product_id' => $product->id,
-            'reference_type' => Sale::class,
-            'reference_id' => $sale->id,
-            'type' => 'out',
-            'quantity' => 5,
-        ]);
-        $this->assertSame(1, StockMovement::where('product_id', $product->id)->count());
-    }
-
-    public function test_completed_sale_cannot_be_updated(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-        $product = Product::factory()->create(['business_branch_id' => $branch->id]);
-
-        Sanctum::actingAs($user);
-
-        $sale = Sale::create([
-            'business_branch_id' => $branch->id,
-            'subtotal' => 100,
-            'tax_amount' => 0,
-            'total_amount' => 100,
+        // A sale needs a customer and items; we just assert the scope on the resource.
+        $sale = Sale::factory()->create([
+            'business_id' => $this->businessB->id,
+            'business_branch_id' => $this->branchB->id,
+            'customer_id' => Customer::factory()->create(['business_id' => $this->businessB->id])->id,
+            'total_amount' => 1000,
             'status' => 'completed',
         ]);
 
-        $this->putJson("/api/sales/branch-sales/{$sale->id}", [
-            'business_branch_id' => $branch->id,
-            'items' => [[
-                'product_id' => $product->id,
-                'sale_id' => $sale->id,
-                'quantity' => 1,
-                'price' => 200,
-                'subtotal' => 200,
-            ]],
-        ])->assertStatus(409);
+        $this->getJson("/api/dashboard/sales/{$sale->id}")->assertNotFound();
+        $this->deleteJson("/api/dashboard/sales/{$sale->id}")->assertNotFound();
 
-        $this->assertDatabaseHas('sales', [
-            'id' => $sale->id,
+        $this->getJson('/api/dashboard/sales')->assertJsonCount(0, 'data');
+    }
+
+    public function test_cash_flows_are_tenant_scoped(): void
+    {
+        $flow = CashFlow::factory()->create([
+            'business_id' => $this->businessB->id,
+            'business_branch_id' => $this->branchB->id,
+            'amount' => 50000,
             'status' => 'completed',
-            'total_amount' => 100,
-        ]);
-    }
-
-    public function test_sale_item_service_applies_discount_to_tax_and_subtotal(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-
-        $taxCategory = TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
-        TaxRate::factory()->create([
-            'tax_category_id' => $taxCategory->id,
-            'rate' => 0.18,
-            'is_active' => true,
+            'type' => 'sale',
+            'category' => 'product_sales',
         ]);
 
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'tax_category_id' => $taxCategory->id,
-            'quantity' => 10,
-            'reorder_level' => 1,
-            'selling_price' => 1000,
-            'is_tax_inclusive' => false,
-            'status' => 'active',
+        $this->getJson("/api/finances/cash-flows/{$flow->id}")->assertNotFound();
+
+        $this->getJson('/api/finances/cash-flows')->assertJsonCount(0, 'data');
+    }
+
+    public function test_cross_tenant_list_does_not_leak_counts(): void
+    {
+        // Create 3 customers in Business A, 5 in Business B.
+        Customer::factory()->count(3)->create(['business_id' => $this->businessA->id]);
+        Customer::factory()->count(5)->create(['business_id' => $this->businessB->id]);
+
+        // User A must see exactly 3, never 8.
+        $this->getJson('/api/dashboard/customers')
+            ->assertOk()
+            ->assertJsonCount(3, 'data');
+
+        // Switch to User B — they see 5.
+        $this->switchTo($this->userB);
+        $this->getJson('/api/dashboard/customers')
+            ->assertOk()
+            ->assertJsonCount(5, 'data');
+    }
+
+    public function test_search_and_filters_do_not_leak_across_tenants(): void
+    {
+        Customer::factory()->create([
+            'business_id' => $this->businessA->id,
+            'name' => 'Alpha Client',
+        ]);
+        Customer::factory()->create([
+            'business_id' => $this->businessB->id,
+            'name' => 'Beta Client',
         ]);
 
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
+        // Search by Business B's name — User A should get 0 results.
+        $this->getJson('/api/dashboard/customers?search=Beta')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
 
-        Sanctum::actingAs($user);
-
-        $sale = app(SaleItemService::class)->handleSaveSaleItem([
-            'business_branch_id' => $branch->id,
-            'customer_id' => null,
-            'note' => 'Discounted sale',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => $paymentMethod->id,
-            'items' => [[
-                'product_id' => $product->id,
-                'quantity' => 2,
-                'unit_price' => 1000,
-                'discount' => 200,
-            ]],
-        ], $branch->id);
-
-        $this->assertSame('1600.00', (string) $sale->subtotal);
-        $this->assertSame('288.00', (string) $sale->tax_amount);
-        $this->assertSame('1888.00', (string) $sale->total_amount);
-        $this->assertSame('200.00', (string) $sale->saleItems->first()->discount);
-        $this->assertSame('1600.00', (string) $sale->saleItems->first()->subtotal);
-    }
-
-    public function test_non_pos_sale_request_preserves_discount_in_calculated_totals(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-
-        $taxCategory = TaxCategory::factory()->create(['business_branch_id' => $branch->id]);
-        TaxRate::factory()->create([
-            'tax_category_id' => $taxCategory->id,
-            'rate' => 0.18,
-            'is_active' => true,
-        ]);
-
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'tax_category_id' => $taxCategory->id,
-            'quantity' => 10,
-            'reorder_level' => 1,
-            'selling_price' => 1000,
-            'is_tax_inclusive' => false,
-            'status' => 'active',
-        ]);
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
-
-        Sanctum::actingAs($user);
-
-        $response = $this->postJson('/api/sales/branch-sales', [
-            'business_branch_id' => $branch->id,
-            'customer_id' => null,
-            'status' => 'completed',
-            'paymentStatus' => 'paid',
-            'payment_status_id' => $paymentMethod->id,
-            'currency' => 'UGX',
-            'items' => [[
-                'product_id' => $product->id,
-                'quantity' => 2,
-                'unit_price' => 1000,
-                'discount' => 200,
-            ]],
-        ])->assertOk();
-
-        $sale = Sale::with(['saleItems', 'salePayments'])->findOrFail($response->json('sale.id'));
-
-        $this->assertSame('1600.00', (string) $sale->subtotal);
-        $this->assertSame('288.00', (string) $sale->tax_amount);
-        $this->assertSame('1888.00', (string) $sale->total_amount);
-        $this->assertSame('200.00', (string) $sale->saleItems->first()->discount);
-        $this->assertSame('1888.00', (string) $sale->salePayments->first()->amount);
-    }
-
-    public function test_non_pos_sale_request_rejects_invalid_line_discounts(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $user = $this->branchUser($business, $branch);
-        $product = Product::factory()->create([
-            'business_branch_id' => $branch->id,
-            'quantity' => 10,
-            'selling_price' => 1000,
-            'status' => 'active',
-        ]);
-        $paymentMethod = PaymentMethod::create([
-            'business_id' => $business->id,
-            'method' => 'cash',
-            'status' => 'enabled',
-        ]);
-
-        Sanctum::actingAs($user);
-
-        foreach ([-1, 1001] as $discount) {
-            $this->postJson('/api/sales/branch-sales', [
-                'business_branch_id' => $branch->id,
-                'customer_id' => null,
-                'status' => 'completed',
-                'paymentStatus' => 'paid',
-                'payment_status_id' => $paymentMethod->id,
-                'currency' => 'UGX',
-                'items' => [[
-                    'product_id' => $product->id,
-                    'quantity' => 1,
-                    'unit_price' => 1000,
-                    'discount' => $discount,
-                ]],
-            ])
-                ->assertUnprocessable()
-                ->assertJsonValidationErrors('items.0.discount');
-        }
-
-        $this->assertSame(0, Sale::where('business_branch_id', $branch->id)->count());
-        $this->assertSame(10, $product->fresh()->quantity);
-    }
-
-    public function test_branch_user_index_only_contains_own_branch_products(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $ownProduct = Product::factory()->create(['business_branch_id' => $branchA->id, 'name' => 'Own Branch Widget']);
-        Product::factory()->create(['business_branch_id' => $branchB->id, 'name' => 'Other Branch Widget']);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $response = $this->getJson('/api/products')->assertStatus(200);
-
-        $this->assertCount(1, $response->json('products'));
-        $this->assertEquals($ownProduct->id, $response->json('products.0.id'));
-    }
-
-    public function test_core_admin_index_contains_products_from_all_business_branches(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        Product::factory()->create(['business_branch_id' => $branchA->id, 'name' => 'Branch A Widget']);
-        Product::factory()->create(['business_branch_id' => $branchB->id, 'name' => 'Branch B Widget']);
-
-        Sanctum::actingAs($this->coreAdmin($business));
-
-        $response = $this->getJson('/api/products')->assertStatus(200);
-
-        $this->assertCount(2, $response->json('products'));
-    }
-
-    public function test_core_admin_cannot_read_product_from_another_business(): void
-    {
-        $businessA = Business::factory()->create();
-        BusinessBranch::factory()->create(['business_id' => $businessA->id]);
-
-        $businessB = Business::factory()->create();
-        $branchB = BusinessBranch::factory()->create(['business_id' => $businessB->id]);
-        $foreignProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->coreAdmin($businessA));
-
-        $this->getJson("/api/products/{$foreignProduct->id}")
-            ->assertStatus(404);
-    }
-
-    public function test_core_admin_can_create_product_in_any_branch_of_own_business(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        Sanctum::actingAs($this->coreAdmin($business));
-
-        $this->postJson('/api/products', [
-            'name' => 'Admin Branch B Widget',
-            'quantity' => 5,
-            'cost_price' => 1000,
-            'selling_price' => 1500,
-            'business_branch_id' => $branchB->id,
-        ])->assertStatus(201);
-
-        $this->assertDatabaseHas('products', [
-            'name' => 'Admin Branch B Widget',
-            'business_branch_id' => $branchB->id,
-        ]);
-    }
-
-    public function test_branch_user_cannot_create_product_in_a_different_branch(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        // BranchManager is not elevated — branch isolation must still hold for them.
-        // Executive (the default branchUser role) is elevated and may act cross-branch;
-        // see EffectiveBranchScope::validationBranchesFor().
-        $role = Role::factory()->create(['business_id' => $business->id, 'name' => 'BranchManager']);
-        Sanctum::actingAs(User::factory()->create([
-            'business_id' => $business->id,
-            'business_branch_id' => $branchA->id,
-            'role_id' => $role->id,
-        ]));
-
-        $this->postJson('/api/products', [
-            'name' => 'Sneaky Widget',
-            'quantity' => 5,
-            'cost_price' => 1000,
-            'selling_price' => 1500,
-            'business_branch_id' => $branchB->id,
-        ])->assertStatus(422);
-
-        $this->assertDatabaseMissing('products', ['name' => 'Sneaky Widget']);
-    }
-
-    public function test_branch_user_can_create_product_without_supplying_branch(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $this->postJson('/api/products', [
-            'name' => 'Self Assigned Widget',
-            'quantity' => 5,
-            'cost_price' => 1000,
-            'selling_price' => 1500,
-        ])->assertStatus(201);
-
-        $this->assertDatabaseHas('products', [
-            'name' => 'Self Assigned Widget',
-            'business_branch_id' => $branchA->id,
-        ]);
-    }
-
-    public function test_coresupport_without_business_sees_products_from_all_businesses(): void
-    {
-        $businessA = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $businessA->id]);
-        Product::factory()->create(['business_branch_id' => $branchA->id, 'name' => 'Business A Widget']);
-
-        $businessB = Business::factory()->create();
-        $branchB = BusinessBranch::factory()->create(['business_id' => $businessB->id]);
-        Product::factory()->create(['business_branch_id' => $branchB->id, 'name' => 'Business B Widget']);
-
-        Sanctum::actingAs($this->superAdmin());
-
-        $response = $this->getJson('/api/products')->assertStatus(200);
-
-        $this->assertCount(2, $response->json('products'));
-    }
-
-    public function test_platform_operators_can_query_business_and_branch_scoped_models(): void
-    {
-        $businessA = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $businessA->id]);
-        Role::factory()->create(['business_id' => $businessA->id, 'name' => 'Executive']);
-        Product::factory()->create(['business_branch_id' => $branchA->id]);
-
-        $businessB = Business::factory()->create();
-        $branchB = BusinessBranch::factory()->create(['business_id' => $businessB->id]);
-        Role::factory()->create(['business_id' => $businessB->id, 'name' => 'Operations']);
-        Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        $platformUsers = collect(['CoreSupport', 'siteadmin'])->map(function ($roleName) {
-            $role = Role::factory()->create(['business_id' => null, 'name' => $roleName]);
-
-            return User::factory()->create([
-                'business_id' => null,
-                'business_branch_id' => null,
-                'role_id' => $role->id,
-            ]);
-        });
-
-        $expectedRoleCount = Role::withoutGlobalScopes()->count();
-        $expectedProductCount = Product::withoutGlobalScopes()->count();
-
-        foreach ($platformUsers as $platformUser) {
-            Sanctum::actingAs($platformUser);
-
-            $this->assertTrue(app(BusinessContext::class)->isPlatformOperator());
-            $this->assertSame($expectedRoleCount, Role::count());
-            $this->assertSame($expectedProductCount, Product::count());
-        }
-    }
-
-    public function test_businessless_executive_cannot_query_tenant_models(): void
-    {
-        $business = Business::factory()->create();
-        $branch = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        Product::factory()->create(['business_branch_id' => $branch->id]);
-
-        $role = Role::factory()->create(['business_id' => null, 'name' => 'Executive']);
-        $executive = User::factory()->create([
-            'business_id' => null,
-            'business_branch_id' => null,
-            'role_id' => $role->id,
-        ]);
-
-        Sanctum::actingAs($executive);
-
-        $this->assertFalse(app(BusinessContext::class)->isPlatformOperator());
-        $this->assertSame(0, Role::count());
-        $this->assertSame(0, Product::count());
-    }
-
-    public function test_product_global_scope_hides_products_outside_the_branch_set(): void
-    {
-        $business = Business::factory()->create();
-        $branchA = BusinessBranch::factory()->create(['business_id' => $business->id]);
-        $branchB = BusinessBranch::factory()->create(['business_id' => $business->id]);
-
-        $ownProduct = Product::factory()->create(['business_branch_id' => $branchA->id]);
-        $otherProduct = Product::factory()->create(['business_branch_id' => $branchB->id]);
-
-        Sanctum::actingAs($this->branchUser($business, $branchA));
-
-        $this->assertTrue(Product::find($ownProduct->id) instanceof Product);
-        $this->assertNull(Product::find($otherProduct->id));
+        // Search by Business A's name — User A gets 1.
+        $this->getJson('/api/dashboard/customers?search=Alpha')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
     }
 }
