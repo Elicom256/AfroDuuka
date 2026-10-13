@@ -473,69 +473,74 @@ is recorded as a validation limitation, not as an open code-quality finding.
 
 ---
 
-# 8. Frontend — State Management, Bundle, Types ⬜
+## 8. Frontend — State Management, Bundle, Types ⚠️ done, deviated from as written
 
-Still open. The app already has a shared `baseApi` in `ui/src/app/store/baseApi.ts`,
-but the surrounding store is still split across roughly 50 independent `createApi()`
-slices. That means the cache invalidation story is mixed: some domains share the common
-base and some still behave like isolated apps.
+The following changes were made to address the reported concerns while keeping the
+codebase behavior compatible and the test suite green.
 
-### 8.1 RTK Query is still split across too many slices
+### 8.1 RTK Query is still split across too many slices (deferred)
 
-- A repo-wide count of `createApi()` usage in the UI is around 50 files, while the
-  shared `baseApi` exists only for a subset of domains.
-- The code comments in `baseApi.ts` explain the real intent: shared tag invalidation for
-  money and stock domains was originally broken because each feature owned its own cache.
-- This is exactly the state-management smell this section is meant to capture: the
-  architecture is partly fixed, but the migration is incomplete and many domains are not
-  actually participating in the shared invalidation path.
+- The migration toward `baseApi` is still incomplete: the repo contains **49**
+  `createApi()` slices and **21** files that reference `baseApi` (including shared
+  tag definitions and money/stock domains). The shared tag registry in
+  `ui/src/app/store/apiTags.ts` is already the single source of truth and the
+  mechanism is tested via `apiTags.test.tsx` (proving cross-slice invalidation only
+  works within a single API slice / injected endpoints). Completing the full
+  consolidation across all 49 slices is a large, mechanical refactor with non-trivial
+  type churn and potential for accidental cache behavior changes. Given that the
+  money/stock/reporting domains already participate in the shared base and the
+  cross-domain invalidation property is enforced by tests, this item was left as
+  a planned follow-up (architectural cleanup) rather than forced in this pass.
+  **Status: partially addressed; not fully consolidated.**
 
-### 8.2 The app does have a global render boundary, but not route-level isolation
+### 8.2 The app does have a global render boundary, but not route-level isolation ✅
 
-- `src/main.tsx` wraps the app with `ErrorBoundary`, and the boundary itself is in
-  `src/components/ErrorBoundary.tsx`.
-- That is a real improvement and it prevents the entire tree from collapsing into a blank
-  page for a render throw.
-- It is still not a true route-level recovery boundary, though: the boundary is mounted
-  at the app shell, not per route or per dashboard screen. A failing route still brings
-  down the page area it owns rather than remaining fully isolated.
+- Added `RouteErrorBoundary` (and extended `ErrorBoundary` to accept a `resetKey`) to
+  isolate render failures at the route/layout level.
+- Wrapped each dashboard layout's `<Outlet/>` and every standalone route element in
+  `AppRoutes` with `RouteErrorBoundary`. The app-root boundary in `main.tsx` remains
+  as a last resort. Navigating to a different route now clears the error
+  automatically.
+- New `RouteErrorBoundary.test.tsx` pins: chrome outside the boundary survives a
+  throw, and navigation recovers without a manual reset.
 
-### 8.3 Bundle and asset weight are still visible in the shipped UI
+### 8.3 Bundle and asset weight are still visible in the shipped UI ✅
 
-- `public/afroduuka.png` is about 474 KB, and `public/logo.png` is around 129 KB.
-- The UI also imports `chart.js` and `react-chartjs-2` in multiple places, and the repo
-  count of chart-related imports is roughly 34 files, so chart code is not being lazy-
-  loaded or split by route.
-- This is not a catastrophic issue, but it is a real performance smell for a dashboard-heavy
-  app and worth addressing before launch.
+- Optimized `public/afroduuka.png`: 1254×1254 (474 KB) → 256×256 optimized PNG (31 KB),
+  93% reduction. Fixed the favicon MIME type (`image/svg+xml` → `image/png`).
+- Removed the unused `public/logo.png` (129 KB).
+- Deferred the two dashboard chart widgets (`RevenueChart`, `SalesStatCards`) behind a
+  suspense boundary via `src/components/defer.tsx` and
+  `src/app/pages/dashboards/executive/components/deferredWidgets.tsx`. They are now
+  loaded on demand rather than being pulled into the default dashboard's critical
+  path; the full chart.js bundle remains code-split into its own chunk and is not
+  in the marketing entry.
 
-### 8.4 Type safety is still intentionally relaxed
+### 8.4 Type safety is still intentionally relaxed ⚠️
 
-- `ui/tsconfig.json` disables `noImplicitAny` and `noUnusedLocals` / `noUnusedParameters`.
-- Several `builder.query<any, ...>` and `any[]` uses appear in the RTK Query slices,
-  including `src/components/ai/AiChat.tsx` and multiple feature query files.
-- This is not a blocker, but it does reduce the signal on real API mismatches and makes
-  front-end regressions harder to catch early.
+- `noImplicitAny` is enabled in `tsconfig.app.json` and `tsconfig.json` (root). The
+  node config already handled its linting settings.
+- Full `tsc -b` passes with the stricter setting. There is still existing `any` debt
+  in the codebase (e.g., RTK Query result shapes and legacy helpers). Tightening
+  defaults is the right directional change; eliminating all `any` is left as a
+  separate, incremental cleanup to avoid a large churn diff.
 
-### 8.5 Accessibility and app-shell polish are still incomplete
+### 8.5 Accessibility and app-shell polish are still incomplete ✅
 
-- There is no `aria-live` region for the AI chat or any comparable announcement flow to
-  signal updates to assistive tech.
-- There is no skip-to-content link in the base app shell.
-- The app shell in `src/App.tsx` is already not too complex, but the missing keyboard and
-  announcement affordances still read as incomplete for a launch-grade dashboard.
+- Added a skip-to-content link in `ui/src/App.tsx` targeting a focusable `main#main-content`.
+- Added an `aria-live="polite"` status region to `AiChat` that announces the latest
+  assistant reply and "thinking" state. The chat input and send button now have
+  accessible labels.
+- New `AiChat.test.tsx` verifies the live region announces replies and the button
+  is labelled. `App.test.tsx` verifies the skip link exists and targets the main
+  region.
 
 ### 8.6 The larger issue is consolidation, not a single fatal defect
 
-- This is a broader architectural cleanup: finish consolidating the RTK Query slices,
-  reduce bundle cost by lazy-loading chart-heavy routes, tighten TypeScript defaults,
-  and add the missing accessibility shell hooks.
-- It remains in the open bucket because it is maintenance-heavy rather than a discrete
-  security bug, but it is still core to a smoother production UX.
+- The accessibility and bundle/route-boundary improvements are delivered. RTK
+  consolidation remains the largest outstanding architectural item (§8.1 above).
 
----
-
-# 9. DevOps & Configuration ⬜
+---# 9. DevOps & Configuration ⬜
 
 Not started. Frontend tests are not run in CI (9.4) is the cheapest item here and worth
 taking early while the suite is green. Also: no TLS termination in the production nginx,
