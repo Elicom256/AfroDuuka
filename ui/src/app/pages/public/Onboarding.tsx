@@ -19,6 +19,7 @@ import { BranchSetup } from './onboarding/BranchSetup';
 import { Preview } from './onboarding/Preview';
 import { clearDraft, readDraft, writeDraft } from './onboarding/draft';
 import { validateStep, type OnboardingDraft, type StepErrors } from './onboarding/types';
+import { describeApiError, firstFieldError } from '@/app/utils/errorMessage';
 
 const STEPS: StepperStep[] = [
   { label: 'Account' },
@@ -28,17 +29,6 @@ const STEPS: StepperStep[] = [
 ];
 
 type StepKey = 'account' | 'business' | 'branches';
-
-/** Read the first field error the API returned, in the shape both error shapes take. */
-const firstFieldError = (error: unknown): string | undefined => {
-  const errors = (error as { data?: { errors?: Record<string, string[] | string> } })?.data?.errors;
-
-  if (!errors) return undefined;
-
-  const first = Object.values(errors)[0];
-
-  return Array.isArray(first) ? first[0] : (first as string | undefined);
-};
 
 export const Onboarding: React.FC = () => {
   const [draft, setDraft] = useState<OnboardingDraft>(readDraft);
@@ -200,13 +190,15 @@ export const Onboarding: React.FC = () => {
       // letting the owner press Save again into a duplicate-email 422.
       if (draft.accountCreated) {
         toast.error(
-          (error as { data?: { message?: string } })?.data?.message ??
-            'Your account was created but the business could not be saved. Press Save to try again.'
+          describeApiError(
+            error,
+            'Your account was created but the business could not be saved. Press Save to try again.',
+          ).message
         );
         return;
       }
 
-      toast.error((error as { data?: { message?: string } })?.data?.message || 'Something went wrong');
+      toast.error(describeApiError(error).message);
     }
   };
 

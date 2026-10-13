@@ -61,9 +61,11 @@ export class ErrorBoundary extends Component<Props, State> {
             The rest of the app is still usable. Try again, and if it keeps happening the details are in the
             browser console.
           </p>
-          <pre className='max-h-32 overflow-auto rounded-md bg-muted p-3 text-left text-xs text-muted-foreground'>
-            {error.message}
-          </pre>
+          {import.meta.env.DEV && (
+            <pre className='max-h-32 overflow-auto rounded-md bg-muted p-3 text-left text-xs text-muted-foreground'>
+              {error.message}
+            </pre>
+          )}
           <Button onClick={this.reset}>
             <RefreshCw className='mr-2 h-4 w-4' />
             Try again

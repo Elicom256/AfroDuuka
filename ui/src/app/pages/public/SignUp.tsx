@@ -24,6 +24,7 @@ import {
   useGetPublicBusinessCategoriesQuery,
 } from '@/app/store/features/business/setup/onboardingQuery';
 import { LoadingState } from '@/utils/LoadingState';
+import { describeApiError, firstFieldError } from '@/app/utils/errorMessage';
 
 export const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -170,14 +171,8 @@ export const SignUp: React.FC = () => {
       // is no dashboard to route to yet. Sign in, which resolves a role and lands in
       // the app.
       return navigate('/login');
-    } catch (err: any) {
-      const fieldErrors = err?.data?.errors;
-      if (fieldErrors) {
-        const first = Object.values(fieldErrors)[0] as string[];
-        toast.error(first?.[0] || 'Please check the form and try again.');
-        return;
-      }
-      toast.error(err?.data?.message || 'Something went wrong');
+    } catch (err: unknown) {
+      toast.error(firstFieldError(err) ?? describeApiError(err).message);
     }
   };
 
