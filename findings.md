@@ -717,6 +717,12 @@ No stack context, model class, SQLSTATE, or blank toast ever reaches the screen.
   seeder passing `status` inside the `firstOrCreate` search array (created duplicate
   rows instead of updating). Unit tests for the catalogue/exception; feature test for
   the middleware + renderer (CI).
+- [x] 7. **OpenAPI via scramble.** `dedoc/scramble` auto-generates OpenAPI 3.1 from
+  routes; `config/scramble.php` pins server URL and names the `bearerAuth` scheme so
+  the committed `storage/api-docs/api-docs.json` is byte-identical in CI and local.
+  CI step: `php artisan migrate --force && php artisan scramble:export` then
+  `git diff --exit-code` to catch drift. Spec documents the error contract
+  (`code`, `request_id`) and all 219 routes including the feature-gated ones.
 
 ## Acceptance criteria
 
