@@ -52,6 +52,7 @@ class BusinessService
                 'address' => $data['address'] ?? null,
                 'business_category_id' => $data['business_category_id'],
                 'country_id' => $data['country_id'],
+                'status' => 'pending_verification',
             ]);
 
             // Dispatch business registration event

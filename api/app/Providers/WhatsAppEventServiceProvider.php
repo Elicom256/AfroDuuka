@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\WhatsAppNotificationEvents;
+use App\Listeners\SendBusinessVerificationEmailListener;
 use App\Listeners\WhatsApp\BusinessRegisteredListener;
 use App\Listeners\WhatsApp\FreeTrialExpiredListener;
 use App\Listeners\WhatsApp\LowStockAlertListener;
@@ -20,6 +21,7 @@ class WhatsAppEventServiceProvider extends ServiceProvider
     protected $listen = [
         WhatsAppNotificationEvents\BusinessRegistered::class => [
             BusinessRegisteredListener::class,
+            SendBusinessVerificationEmailListener::class,
         ],
         WhatsAppNotificationEvents\SubscriptionCreated::class => [
             SubscriptionCreatedListener::class,
