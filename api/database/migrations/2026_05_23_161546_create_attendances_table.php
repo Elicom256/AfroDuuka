@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attendances', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('worker_id')->constrained()->cascadeOnDelete();

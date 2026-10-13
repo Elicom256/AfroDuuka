@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('quotations', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
@@ -29,6 +30,7 @@ return new class extends Migration
         });
 
         Schema::create('quotation_items', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('quotation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();

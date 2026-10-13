@@ -5,7 +5,6 @@ import { Tags } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import {
   useGetExpensesQuery,
-  useDeleteExpenseMutation,
   useGetMonthlyExpenseSummaryQuery,
   useGetExpenseTotalsByCategoryQuery,
 } from '@/app/store/features/business/executive/expenseQuery';
@@ -47,7 +46,6 @@ export const ExecutiveExpensesPage = () => {
   const { data: branchesData } = useBranchesQuery();
   const { data: monthlyData } = useGetMonthlyExpenseSummaryQuery({});
   const { data: categoryTotalsData } = useGetExpenseTotalsByCategoryQuery({});
-  const [deleteExpense] = useDeleteExpenseMutation();
 
   const expenses = data?.expenses?.data ?? [];
   const currentPage = data?.expenses?.current_page ?? 1;
@@ -79,15 +77,6 @@ export const ExecutiveExpensesPage = () => {
   const handleApprove = (item: any) => {
     setSelected(item);
     setApproveOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure?')) return;
-    try {
-      await deleteExpense(id).unwrap();
-    } catch {
-      /* handled by RTK */
-    }
   };
 
   if (isLoading) return <PageLoadingState />;
@@ -147,7 +136,6 @@ export const ExecutiveExpensesPage = () => {
         onPageChange={setPage}
         onApprove={handleApprove}
         onEdit={handleEdit}
-        onDelete={handleDelete}
       />
 
       <ExpenseCharts monthlySummary={monthlySummary} totalsByCategory={totalsByCategory} />

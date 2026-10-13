@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { CheckCircle, XCircle, BarChart3 } from 'lucide-react';
+import { CheckCircle, BarChart3 } from 'lucide-react';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 type ExpenseTableProps = {
@@ -13,7 +13,6 @@ type ExpenseTableProps = {
   onPageChange: (page: number) => void;
   onApprove: (item: any) => void;
   onEdit: (item: any) => void;
-  onDelete: (id: number) => void;
 };
 
 const statusVariant = (status: string) => {
@@ -22,7 +21,7 @@ const statusVariant = (status: string) => {
   return 'secondary';
 };
 
-export const ExpenseTable = ({ expenses, currentPage, totalPages, onPageChange, onApprove, onEdit, onDelete }: ExpenseTableProps) => {
+export const ExpenseTable = ({ expenses, currentPage, totalPages, onPageChange, onApprove, onEdit }: ExpenseTableProps) => {
   const { currency } = useCurrency();
 
   return (
@@ -76,9 +75,6 @@ export const ExpenseTable = ({ expenses, currentPage, totalPages, onPageChange, 
                       )}
                       <Button variant='ghost' size='icon' onClick={() => onEdit(exp)} title='Edit'>
                         <BarChart3 className='h-4 w-4' />
-                      </Button>
-                      <Button variant='ghost' size='icon' onClick={() => onDelete(exp.id)} title='Delete'>
-                        <XCircle className='h-4 w-4 text-red-500' />
                       </Button>
                     </div>
                   </TableCell>

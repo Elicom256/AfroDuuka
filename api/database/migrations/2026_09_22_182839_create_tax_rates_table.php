@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tax_rates', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('tax_category_id')->constrained('tax_categories')->cascadeOnDelete();
             $table->string('name');

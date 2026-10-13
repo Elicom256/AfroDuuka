@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovement extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'business_id',

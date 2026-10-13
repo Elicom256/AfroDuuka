@@ -124,18 +124,6 @@ class SalaryController extends Controller
     {
         $this->authorize('delete', $salary);
 
-        DB::transaction(function () use ($salary) {
-            $salary->delete();
-
-            $this->activity_log->activity(
-                'Deleted Salary',
-                "Salary record ID {$salary->id} deleted",
-                subject: $salary,
-            );
-        });
-
-        return response()->json([
-            'message' => 'Salary deleted successfully',
-        ]);
+        abort(405, 'Salaries cannot be deleted once recorded. Record a reversing adjustment instead.');
     }
 }

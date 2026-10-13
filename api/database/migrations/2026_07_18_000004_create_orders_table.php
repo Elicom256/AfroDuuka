@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sale_orders', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
@@ -22,6 +23,7 @@ return new class extends Migration
         });
 
         Schema::create('sale_order_items', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('sale_order_id')->constrained('sale_orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();

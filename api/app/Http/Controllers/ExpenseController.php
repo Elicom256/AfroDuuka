@@ -144,28 +144,7 @@ class ExpenseController extends Controller
     {
         $this->authorize('delete', $expense);
 
-        // Ledger first, then the expense — and both together. A failure between them
-        // used to leave a deleted expense whose cash flow was already gone, or the
-        // reverse, and neither state is distinguishable from a spend that never
-        // happened without reading the activity log.
-        DB::transaction(function () use ($expense) {
-            $cashFlow = $expense->cashFlow;
-            if ($cashFlow) {
-                $cashFlow->delete();
-            }
-
-            $expense->delete();
-        });
-
-        $this->activity_log->activity(
-            'deleted_expense',
-            "Deleted expense ID {$expense->id}",
-            subject: $expense,
-        );
-
-        return response()->json([
-            'message' => 'Expense deleted successfully',
-        ]);
+        abort(405, 'Expenses cannot be deleted once recorded. Record a reversing entry instead.');
     }
 
     public function approve(Expense $expense): JsonResponse

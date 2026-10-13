@@ -6,10 +6,11 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Worker extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id',

@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('workers', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
 
             // core identity

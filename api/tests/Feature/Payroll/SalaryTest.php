@@ -199,14 +199,16 @@ class SalaryTest extends TestCase
         ]);
     }
 
-    public function test_a_salary_is_soft_deleted(): void
+    public function test_a_salary_is_not_deletable_once_recorded(): void
     {
         $salary = $this->salary();
 
-        $this->deleteJson("/api/dashboard/salaries/{$salary->id}")->assertOk();
+        $this->deleteJson("/api/dashboard/salaries/{$salary->id}")
+            ->assertStatus(405)
+            ->assertJsonPath('message', 'Salaries cannot be deleted once recorded. Record a reversing adjustment instead.');
 
-        $this->assertSoftDeleted('salaries', ['id' => $salary->id]);
-        $this->getJson('/api/dashboard/salaries')->assertOk()->assertJsonCount(0, 'salaries.data');
+        $this->assertDatabaseHas('salaries', ['id' => $salary->id, 'deleted_at' => null]);
+        $this->getJson('/api/dashboard/salaries')->assertOk()->assertJsonCount(1, 'salaries.data');
     }
 
     public function test_a_role_is_required_and_the_period_is_constrained(): void

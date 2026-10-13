@@ -67,11 +67,7 @@ class TaxPaymentController extends Controller
 
     public function destroy(TaxPayment $taxPayment): JsonResponse
     {
-        $taxPayment->delete();
-
-        return response()->json([
-            'message' => "Tax payment with id {$taxPayment->id} deleted successfully!",
-        ], 200);
+        abort(405, 'Tax payments cannot be deleted. Record a correcting payment instead.');
     }
 
     public function analytics(TaxPaymentAnalyticsRequest $request): JsonResponse

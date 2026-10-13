@@ -6,11 +6,12 @@ use App\Traits\LogsActivity;
 use Database\Factories\EmployeeRemunerationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EmployeeRemuneration extends BaseModel
 {
     /** @use HasFactory<EmployeeRemunerationFactory> */
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'worker_id',

@@ -128,17 +128,23 @@ class ActivityLoggingOnMutationTest extends TestCase
     }
 
     /**
-     * destroy() has no $request parameter, so the broken call also read an undefined
-     * variable. Both faults sat on the same line and both fired after the delete.
+     * An expense is a financial record: it is no longer deletable, so a spend that
+     * happened cannot be made to look like it never did. destroy() used to soft-delete
+     * it and log `deleted_expense`; now it refuses and writes nothing.
      */
-    public function test_deleting_an_expense_answers_200(): void
+    public function test_deleting_an_expense_is_refused_instead_of_hiding_the_spend(): void
     {
         $expense = $this->expense();
 
-        $this->deleteJson("/api/expenses/branch-expenses/{$expense->id}")->assertOk();
+        $this->deleteJson("/api/expenses/branch-expenses/{$expense->id}")
+            ->assertStatus(405)
+            ->assertJsonPath('message', 'Expenses cannot be deleted once recorded. Record a reversing entry instead.');
 
-        $this->assertSoftDeleted('expenses', ['id' => $expense->id]);
-        $this->assertLogged('deleted_expense');
+        $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'deleted_at' => null]);
+        $this->assertFalse(
+            ActivityLog::withoutGlobalScopes()->where('log_name', 'deleted_expense')->exists(),
+            'A refused delete must not be logged as a deletion.'
+        );
     }
 
     public function test_updating_an_expense_category_answers_200(): void

@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sale_returns', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
@@ -22,6 +23,7 @@ return new class extends Migration
         });
 
         Schema::create('sale_return_items', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('sale_return_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sale_item_id')->constrained('sale_items')->cascadeOnDelete();

@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('receipt_items', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('receipt_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained();

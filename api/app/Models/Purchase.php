@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Purchase extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = ['business_branch_id', 'supplier_id', 'total_amount', 'status', 'received_at', 'received_by', 'note'];
 
