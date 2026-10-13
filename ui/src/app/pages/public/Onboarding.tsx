@@ -62,12 +62,18 @@ export const Onboarding: React.FC = () => {
   }, [draft]);
 
   const countries = useMemo(() => countriesData?.data ?? [], [countriesData]);
+  const categoriesList = useMemo(() => {
+    if (Array.isArray(categories)) return categories;
+    const wrapped = categories as { data?: unknown } | undefined;
+    if (Array.isArray(wrapped?.data)) return wrapped.data as any;
+    return [];
+  }, [categories]);
   const names = useMemo(
     () => ({
       country: countries.find((c) => String(c.id) === draft.business.country_id)?.name ?? '',
-      category: categories?.find((c) => String(c.id) === draft.business.business_category_id)?.name ?? '',
+      category: categoriesList.find((c: any) => String(c.id) === draft.business.business_category_id)?.name ?? '',
     }),
-    [countries, categories, draft.business.country_id, draft.business.business_category_id]
+    [countries, categoriesList, draft.business.country_id, draft.business.business_category_id]
   );
 
   const isSaving = isRegistering || isLoggingIn || isCreating;

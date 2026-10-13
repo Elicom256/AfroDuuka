@@ -30,7 +30,6 @@ export const PUBLIC_PATHS: readonly string[] = [
   '/',
   '/pricing',
   '/login',
-  '/signup',
   '/onboarding',
   '/about',
   '/documentation',

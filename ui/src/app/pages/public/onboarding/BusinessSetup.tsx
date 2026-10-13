@@ -2,6 +2,12 @@ import { Building2, Globe, Mail, MapPin, Phone } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
@@ -12,7 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
+import { cn } from '@/lib/utils';
 import { useGetPublicBusinessCategoriesQuery } from '@/app/store/features/business/setup/onboardingQuery';
+import type { BusinessCategory } from '@/app/store/features/business/setup/onboardingQuery';
 import type { BusinessData, StepErrors } from './types';
 
 interface BusinessSetupProps {
@@ -35,9 +43,17 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
   const { data: countriesData, isLoading: isLoadingCountries } = useCountriesQuery();
   const { data: categoryData, isLoading: isLoadingCategories } = useGetPublicBusinessCategoriesQuery();
   const [countryQuery, setCountryQuery] = useState('');
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
 
   const countries = useMemo(() => countriesData?.data ?? [], [countriesData]);
-  const categories = useMemo(() => categoryData ?? [], [categoryData]);
+  const selectedCountry = useMemo(() => countries.find((c) => String(c.id) === data.country_id), [countries, data.country_id]);
+  const categories = useMemo(() => {
+    if (Array.isArray(categoryData)) return categoryData;
+    const wrapped = categoryData as { data?: unknown; categories?: unknown } | undefined;
+    if (Array.isArray(wrapped?.data)) return (wrapped.data as BusinessCategory[]) ?? [];
+    if (Array.isArray(wrapped?.categories)) return (wrapped.categories as BusinessCategory[]) ?? [];
+    return [];
+  }, [categoryData]);
 
   // ~250 countries behind a dropdown nobody can scroll usefully through. Filtering as
   // they type is the difference between finding Uganda and giving up.
@@ -93,7 +109,7 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
               <SelectValue placeholder={isLoadingCategories ? 'Loading categories…' : 'Select your business category'} />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
+              {categories.map((category: BusinessCategory) => (
                 <SelectItem key={category.id} value={String(category.id)}>
                   {category.name}
                 </SelectItem>
@@ -108,34 +124,78 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
             <Globe className='h-4 w-4 text-muted-foreground' aria-hidden />
             Country
           </FieldLabel>
-          <Input id='type-to-filter-countries'
-            type='text'
-            value={countryQuery}
-            onChange={(e) => setCountryQuery(e.target.value)}
-            placeholder='Type to filter countries'
-            aria-label='Filter countries'
-          />
-          <Select value={data.country_id} onValueChange={(value) => set('country_id', value)}>
-            <SelectTrigger id='business_country' className='w-full' aria-invalid={Boolean(errors.country_id)}>
-              <SelectValue placeholder={isLoadingCountries ? 'Loading countries…' : 'Select your country'} />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredCountries.length === 0 ? (
-                <SelectItem value='none' disabled>
-                  No country matches “{countryQuery}”
-                </SelectItem>
-              ) : (
-                filteredCountries.map((country) => (
-                  <SelectItem key={country.id} value={String(country.id)}>
-                    <span className='flex items-center gap-2'>
-                      <span aria-hidden>{country.flag_emoji}</span>
-                      <span>{country.name}</span>
-                    </span>
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Popover open={isCountryOpen} onOpenChange={setIsCountryOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type='button'
+                id='business_country'
+                aria-invalid={Boolean(errors.country_id)}
+                className={cn(
+                  'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50',
+                  'dark:bg-input/30'
+                )}
+              >
+                {selectedCountry ? (
+                  <span className='flex items-center gap-2 truncate'>
+                    <span aria-hidden>{selectedCountry.flag_emoji}</span>
+                    <span className='truncate'>{selectedCountry.name}</span>
+                    {selectedCountry.currency_code && (
+                      <span className='text-xs text-muted-foreground'>{selectedCountry.currency_code}</span>
+                    )}
+                  </span>
+                ) : (
+                  <span className='text-muted-foreground'>
+                    {isLoadingCountries ? 'Loading countries…' : 'Select your country'}
+                  </span>
+                )}
+                <ChevronsUpDown className='size-4 shrink-0 text-muted-foreground' />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
+              <div className='border-b p-2'>
+                <Input
+                  value={countryQuery}
+                  onChange={(e) => setCountryQuery(e.target.value)}
+                  placeholder='Search country, ISO code or currency…'
+                  className='h-8'
+                  autoFocus
+                />
+              </div>
+              <div className='max-h-60 overflow-y-auto p-1'>
+                {filteredCountries.length === 0 ? (
+                  <div className='px-3 py-6 text-center text-sm text-muted-foreground'>
+                    No country matches “{countryQuery}”
+                  </div>
+                ) : (
+                  filteredCountries.map((country) => {
+                    const selected = String(country.id) === data.country_id;
+                    return (
+                      <button
+                        key={country.id}
+                        type='button'
+                        onClick={() => {
+                          set('country_id', String(country.id));
+                          setIsCountryOpen(false);
+                          setCountryQuery('');
+                        }}
+                        className={cn(
+                          'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+                          selected && 'bg-accent text-accent-foreground'
+                        )}
+                      >
+                        <span aria-hidden>{country.flag_emoji}</span>
+                        <span className='flex-1 truncate'>{country.name}</span>
+                        {country.currency_code && (
+                          <span className='text-xs text-muted-foreground'>{country.currency_code}</span>
+                        )}
+                        {selected && <Check className='size-4' />}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
           {errors.country_id ? (
             <FieldError>{errors.country_id}</FieldError>
           ) : (

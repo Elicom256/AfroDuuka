@@ -7,7 +7,9 @@ use App\Http\Requests\UpdateBusinessRequest;
 use App\Models\Business;
 use App\Services\BusinessService;
 use App\Services\CoreBusinessSettings;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BusinessController extends Controller
 {
@@ -33,15 +35,33 @@ class BusinessController extends Controller
     {
         $user = $request->user();
 
-        $business = $this->businessService->create($request->validated(), $user);
-        $businessId = $business->id;
-        $settings = $this->coreBusinessSettings->coreSettings($businessId);
+        try {
+            $business = $this->businessService->create($request->validated(), $user);
+            $businessId = $business->id;
+            $settings = $this->coreBusinessSettings->coreSettings($businessId);
 
-        return response()->json([
-            'message' => 'Business created successfully',
-            'business' => $business,
-            'core_settings' => $settings,
-        ], 201);
+            return response()->json([
+                'message' => 'Business created successfully',
+                'business' => $business,
+                'core_settings' => $settings,
+            ], 201);
+        } catch (QueryException $e) {
+            // Log the full SQL error for debugging check constraint violations (SQLSTATE 23514)
+            $sqlState = $e->errorInfo[0] ?? $e->getCode();
+            $sqlMessage = $e->getMessage();
+
+            Log::error('Business creation failed with database error', [
+                'sql_state' => $sqlState,
+                'sql_message' => $sqlMessage,
+                'query' => $e->getSql(),
+                'bindings' => $e->getBindings(),
+                'user_id' => $user->id,
+                'validated_data' => $request->validated(),
+            ]);
+
+            // Re-throw to let ApiExceptionRenderer handle it, but with more context in logs
+            throw $e;
+        }
     }
 
     /**

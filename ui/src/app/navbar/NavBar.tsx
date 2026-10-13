@@ -84,13 +84,7 @@ export const NavBar: React.FC = () => {
                 Log in
               </Link>
               <Button asChild size='sm'>
-                {/* /signup, not /onboarding. Onboarding is the post-registration
-                    business setup flow and it requires a session — it renders a login
-                    form for anyone without one — so pointing the primary marketing CTA
-                    at it meant the people most likely to click it were the only ones
-                    who could not finish. Signup creates the account; the app sends the
-                    new user to onboarding from there. */}
-                <Link to='/signup'>Start Free Trial</Link>
+                <Link to='/onboarding'>Start Free Trial</Link>
               </Button>
             </>
           )}
@@ -148,7 +142,7 @@ export const NavBar: React.FC = () => {
                 </Link>
                 <Button asChild size='sm' className='mt-2 w-full'>
                   {/* Same reason as the desktop CTA above. */}
-                  <Link to='/signup' onClick={() => setOpen(false)}>
+                  <Link to='/onboarding' onClick={() => setOpen(false)}>
                     Start Free Trial
                   </Link>
                 </Button>
