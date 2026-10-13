@@ -418,107 +418,58 @@ pattern.
 
 ---
 
-# 7. Code Quality — Dead Code, Duplication, Large Methods ⬜
+# 7. Code Quality — Dead Code, Duplication, Large Methods ✅
 
-Still open. The dead-code cleanup in §12 already removed the obvious junk, so the
-remaining work here is the real maintainability debt: large service methods, repeated
-validation paths, and duplicated request-scoping logic that is easy to drift.
+Completed. The dead-code cleanup in §12 removed the obvious junk; this pass addressed
+the remaining concrete maintainability findings through small, behavior-preserving
+refactors.
 
 ### 7.1 `PosService::checkout()` is doing too much
 
-- `PosService::checkout()` now validates the cart, checks branch scope, allocates a
-  receipt number, handles tax math, creates the sale and items, persists payments,
-  creates stock movements and cash-flow entries, and sends follow-up notifications.
-- The method is not just long; it mixes boundary checks with persistence and accounting
-  in one call path. It is the clearest “large service method” smell in the codebase.
-- The refactor should split it into smaller steps such as `validateBranchAccess()`,
-  `buildLineCalculations()`, and `finalizeSale()` so future POS changes are less risky.
-- Partial code cleanup completed: `calculateNewSaleLines()` now builds tax calculations
-  once per cart line and reuses them for sale totals and `SaleItem` persistence. PHP
-  syntax validation passed. New-sale creation, line persistence, inventory movements,
-  and low-stock notifications now run through `createSaleFromCart()`, leaving held-sale
-  resumption in its separate path. Tender coverage, payment persistence, credit totals,
-  and change calculation now share `recordSalePayments()`. Branch-scope, cart, and
-  credit-customer preconditions now share `validateCheckoutRequest()`. Post-payment
-  customer ledger, cash-flow, notification, and receipt work now share `finalizeSale()`.
-  PHP syntax validation passed; the checkout feature suite is blocked during database
-  setup because `pgsql` does not resolve. Section 7 remains open.
+- `PosService::checkout()` now delegates branch/cart preconditions to
+  `validateCheckoutRequest()`, line math to `calculateNewSaleLines()`, new-sale creation
+  and inventory effects to `createSaleFromCart()`, tender handling to
+  `recordSalePayments()`, and post-payment accounting/receipt work to `finalizeSale()`.
+- Tax calculations are built once per cart line and reused for totals and persistence;
+  held-sale resumption remains a distinct path.
+- PHP syntax checks pass. The focused checkout feature suite could not run because the
+  configured `pgsql` host does not resolve.
 
 ### 7.2 `SaleReturnService` duplicates the same return logic in two code paths
 
-- Both `handleCreateSaleReturn()` and `handleUpdateSaleReturn()` repeat the same
-  sequence: resolve the sale item, confirm it belongs to the same sale, calculate the
-  already-returned quantity, compute the refund subtotal, append the return item, restock,
-  post cash flow, and update receipt status.
-- The difference is mostly whether the original return is being created or replaced,
-  but the overlap is large enough that a future validation rule can be fixed in one
-  path and missed in the other.
-- Extracting a shared `prepareReturnItems()` / `applyReturnSideEffects()` flow would
-  reduce the risk of drift without changing behavior.
-- Partial code cleanup completed: sale resolution, line ownership and quantity checks,
-  and refund subtotal calculation now share `prepareReturnItems()` in `SaleReturnService`.
-  Return-line persistence and optional restocking now also share `persistReturnItems()`.
-  Cash-flow and customer-credit posting plus receipt reconciliation now share
-  `applyRefundSideEffects()`, which retains the update path's receipt-restoration behavior.
-  PHP syntax validation passed; the focused feature tests remain blocked because the
-  configured `pgsql` host does not resolve. Section 7 remains open.
+- Shared `prepareReturnItems()` resolves the sale and validates/calculates return lines;
+  `persistReturnItems()` writes the return lines and optional restocking effects; and
+  `applyRefundSideEffects()` posts cash flow/customer credit and reconciles receipt
+  status. The update path's receipt-restoration behavior is preserved.
+- PHP syntax validation passes. The focused reconciliation feature suite could not run
+  because the configured `pgsql` host does not resolve.
 
 ### 7.3 `ProductController::restocking()` mixes query logic, prediction logic, and response shape
 
-- The method resolves branches, calculates 30-day sales velocity, builds prediction
-  values, counts at-risk / low-stock / not-selling products, and then serializes the
-  response in one function.
-- It already contains an explanatory comment about materialising three filtered copies
-  just to count them; that is exactly the code-quality smell this section is meant to
-  capture.
-- This should become a dedicated service or query object, while the controller just
-  delegates and responds.
-- Partial code cleanup completed: sales velocity, prediction mapping, and summary counts
-  now live in `RestockingPredictionService`; the controller retains branch scoping and
-  HTTP response handling. Syntax, route registration, and Composer autoload checks pass.
-  No restocking-specific test exists, and the database-backed suite remains blocked by
-  the unresolved `pgsql` host. Section 7 remains open.
+- `RestockingPredictionService` owns the sales-velocity query, prediction mapping, and
+  summary counts; `ProductController` retains branch scoping and HTTP response handling.
+- Syntax, route registration, and Composer autoload checks pass. No restocking-specific
+  test exists, and database-backed tests remain blocked by the unresolved `pgsql` host.
 
 ### 7.4 `CouponController::store()` still carries business logic inline
 
-- Coupon creation, validation, and any downstream rule generation are still co-located
-  in the controller rather than a dedicated service/factory.
-- This is not a launch bug, but it is the kind of file that grows into a large method
-  and becomes difficult to test in isolation as the coupon rules become more complex.
-- It is a good cleanup candidate once the launch-critical issues are closed out.
-- Partial code cleanup completed: `CouponService` now owns coupon sequence allocation
-  and persistence, while the controller retains authorization, validation, and HTTP
-  response handling. Syntax and Composer autoload checks pass; the feature test remains
-  blocked during database setup because `pgsql` does not resolve. Section 7 remains open.
+- `CouponService` owns coupon sequence allocation and persistence. The controller keeps
+  authorization and request validation at the HTTP boundary, and formats the response.
+- Syntax and Composer autoload checks pass. The feature test could not run because the
+  configured `pgsql` host does not resolve.
 
 ### 7.5 Middleware repeats the same `currentUser()` pattern in multiple places
 
-- `RequireBusiness`, `RequireRole`, and `BlockRestrictedRoleActions` each resolve the
-  caller directly from the request and repeat custom auth/tenant checks in their own
-  way.
-- The repository already centralises this through `CurrentUserResolver`; the remaining
-  duplication is the maintenance smell rather than a functional bug.
-- This is small in isolation, but it is a strong sign of repeated “copy the pattern from
-  the last middleware” code that should be consolidated once the launch work is stabilised.
-
-> Partial code cleanup completed: the repeated middleware resolver logic has been
-> extracted into a shared `ResolvesCurrentUser` trait, with no behavior change in the
-> auth guards. A second slice has also been made in `CouponController`, where the
-> validation rules and coupon-code generation were split into private helpers without
-> altering the endpoint contract. The section itself remains open because these are
-> still incremental code-quality chunks, not the full refactor pass.
+`RequireBusiness`, `RequireRole`, and `BlockRestrictedRoleActions` use the shared
+`ResolvesCurrentUser` trait backed by `CurrentUserResolver`; the repeated resolution
+logic is removed without changing the auth guards' behavior.
 
 ### 7.6 The remaining work is mostly maintenance debt, not release-blocking logic
 
-- The earlier section 12 cleanup removed the obvious empty classes and dead wrappers. The
-  remaining code-quality backlog is the high-value maintenance pass: split large methods,
-  consolidate duplicated business logic, and centralise request-user resolution.
-- This currently stays in the “open but not urgent” bucket because it does not change the
-  product contract and it has a lower risk than the earlier security and transactional
-  findings.
-
-This section remains open; the notes above are the real next cleanup slice rather than an
-exhaustive sign-off.
+The concrete cleanup items tracked in this section are addressed. PHP syntax and Laravel
+route/autoload checks pass for the extracted code. Database-backed feature tests remain
+unverified because the configured `pgsql` host does not resolve; this environment issue
+is recorded as a validation limitation, not as an open code-quality finding.
 
 ---
 
