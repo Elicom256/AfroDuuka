@@ -19,6 +19,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('price_histories', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('changed_by')->constrained('users')->cascadeOnDelete();

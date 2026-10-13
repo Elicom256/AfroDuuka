@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { useSalariesQuery, useDeleteSalaryMutation } from '@/app/store/features/business/executive/salaryQuery';
+import { useSalariesQuery } from '@/app/store/features/business/executive/salaryQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { SalaryPanel } from '../components/salary/SalaryPanel';
 import { SalaryForm } from '../components/salary/SalaryForm';
 
 export const ExecutiveSalariesPage = () => {
   const { data, isLoading } = useSalariesQuery();
-  const [deleteSalary] = useDeleteSalaryMutation();
   const [editItem, setEditItem] = useState<any>(null);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -27,18 +25,6 @@ export const ExecutiveSalariesPage = () => {
     if (!open) setEditItem(null);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await toast.promise(deleteSalary(id).unwrap(), {
-        loading: 'Deleting salary...',
-        success: 'Salary deleted successfully.',
-        error: 'Failed to delete salary.',
-      });
-    } catch (error) {
-      console.error('Salary delete failed', error);
-    }
-  };
-
   return (
     <div className='space-y-6'>
       <div>
@@ -51,7 +37,6 @@ export const ExecutiveSalariesPage = () => {
         monthlyPayroll={monthlyPayroll}
         activeCount={activeCount}
         onEditRow={handleEdit}
-        onDeleteRow={handleDelete}
       />
 
       {/* Keyed on the row so switching which salary is being edited remounts the form

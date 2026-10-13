@@ -6,11 +6,12 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // receipt / invoice like
 class Sale extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = ['business_branch_id', 'user_id', 'customer_id', 'subtotal', 'tax_amount', 'total_amount', 'status', 'note'];
 

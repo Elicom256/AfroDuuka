@@ -3,17 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SalaryForm } from './SalaryForm';
-import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 type SalaryPanelProps = {
   salaries: any[];
   monthlyPayroll: number;
   activeCount: number;
   onEditRow?: (item: any) => void;
-  onDeleteRow?: (id: number) => void;
 };
 
-export const SalaryPanel = ({ salaries, monthlyPayroll, activeCount, onEditRow, onDeleteRow }: SalaryPanelProps) => {
+export const SalaryPanel = ({ salaries, monthlyPayroll, activeCount, onEditRow }: SalaryPanelProps) => {
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-2'>
@@ -87,16 +85,6 @@ export const SalaryPanel = ({ salaries, monthlyPayroll, activeCount, onEditRow, 
                         <Button variant='outline' size='sm' onClick={() => onEditRow?.(item)}>
                           Edit
                         </Button>
-                        <ConfirmDeleteButton
-                          onConfirm={() => onDeleteRow?.(item.id)}
-                          title='Delete this salary?'
-                          description='The salary record is removed. This cannot be undone.'
-                          trigger={
-                            <Button variant='destructive' size='sm'>
-                              Delete
-                            </Button>
-                          }
-                        />
                       </div>
                     </TableCell>
                   </TableRow>

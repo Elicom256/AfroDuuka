@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('subscription_payments', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
             $table->foreignId('payment_method_id')->constrained('payment_methods')->cascadeOnDelete();

@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   useGetFinancialAuditsQuery,
-  useDeleteFinancialAuditMutation,
   useCancelFinancialAuditMutation,
 } from '@/app/store/features/audit/financialAuditQuery';
 import { useBranchesQuery } from '@/app/store/features/business/branches/branchesQuery';
@@ -34,7 +33,6 @@ export const ExecutiveFinancialAuditsPage = () => {
 
   const { data, isLoading } = useGetFinancialAuditsQuery(queryParams);
   const { data: branchesData } = useBranchesQuery();
-  const [deleteAudit] = useDeleteFinancialAuditMutation();
   const [cancelAudit] = useCancelFinancialAuditMutation();
 
   const audits = data?.audits?.data ?? [];
@@ -61,16 +59,6 @@ export const ExecutiveFinancialAuditsPage = () => {
   const handleApprove = (item: any) => {
     setSelected(item);
     setApproveOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure?')) return;
-    try {
-      await deleteAudit(id).unwrap();
-      toast.success('Financial audit deleted');
-    } catch {
-      toast.error('Failed to delete');
-    }
   };
 
   const handleCancel = async (id: number) => {
@@ -113,7 +101,6 @@ export const ExecutiveFinancialAuditsPage = () => {
         onPageChange={setPage}
         onApprove={handleApprove}
         onEdit={handleEdit}
-        onDelete={handleDelete}
         onCancel={handleCancel}
       />
 

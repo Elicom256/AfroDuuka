@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sale_payments', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
             $table->enum('method', ['cash', 'mobile_money', 'card', 'credit']);

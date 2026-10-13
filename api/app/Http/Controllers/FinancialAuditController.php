@@ -124,15 +124,7 @@ class FinancialAuditController extends Controller
 
     public function destroy(FinancialAudit $financialAudit): JsonResponse
     {
-        if (! in_array($financialAudit->status, ['draft', 'cancelled'])) {
-            return response()->json(['message' => 'Only draft or cancelled audits can be deleted'], 422);
-        }
-
-        $financialAudit->delete();
-
-        return response()->json([
-            'message' => 'Financial audit deleted successfully',
-        ]);
+        abort(405, 'Financial audits cannot be deleted. Cancel the audit instead.');
     }
 
     public function approve(FinancialAudit $financialAudit): JsonResponse

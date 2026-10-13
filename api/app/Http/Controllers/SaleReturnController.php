@@ -69,9 +69,8 @@ class SaleReturnController extends Controller
     {
         abort_unless(RolePermissions::canModifyStock(request()->user()), 403, 'You cannot process sale returns.');
 
-        $saleReturn = SaleReturn::findOrFail($saleReturn);
-        $this->saleReturnService->handleDeleteSaleReturn($saleReturn);
+        SaleReturn::findOrFail($saleReturn);
 
-        return response()->json(['message' => 'Sale return deleted successfully!']);
+        abort(405, 'Sale returns cannot be deleted. Update the return to correct it instead.');
     }
 }

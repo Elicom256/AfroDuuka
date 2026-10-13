@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('business_debit_payments', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('business_debit_id')->constrained('business_debits')->cascadeOnDelete();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();

@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             // Link customer to a user account
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();

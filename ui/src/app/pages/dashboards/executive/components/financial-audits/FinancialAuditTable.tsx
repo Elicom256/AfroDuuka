@@ -2,12 +2,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, FileText, ThumbsUp, XCircle, Edit, Trash2 } from 'lucide-react';
+import { Eye, FileText, ThumbsUp, XCircle, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { format } from 'date-fns';
 import { useCurrency } from '@/app/hooks/useCurrency';
-import { useRolePermissions } from '@/lib/useRolePermissions';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -24,16 +23,14 @@ type Props = {
   onPageChange: (page: number) => void;
   onApprove: (item: any) => void;
   onEdit: (item: any) => void;
-  onDelete: (id: number) => void;
   onCancel: (id: number) => void;
 };
 
 export const FinancialAuditTable = ({
   audits, currentPage, totalPages, onPageChange,
-  onApprove, onEdit, onDelete, onCancel,
+  onApprove, onEdit, onCancel,
 }: Props) => {
   const { currencySymbol } = useCurrency();
-  const { canDelete } = useRolePermissions();
   return (
     <Card className='rounded-3xl border border-border/70 bg-card/80 shadow-sm'>
       <CardContent className='p-0'>
@@ -90,12 +87,7 @@ export const FinancialAuditTable = ({
                       )}
                       {(audit.status === 'draft' || audit.status === 'in_progress' || audit.status === 'completed') && (
                         <Button variant='ghost' size='icon' onClick={() => onCancel(audit.id)}>
-                          <XCircle className='h-4 w-4 text-orange-500' />
-                        </Button>
-                      )}
-                      {(audit.status === 'draft' || audit.status === 'cancelled') && canDelete && (
-                        <Button variant='ghost' size='icon' onClick={() => onDelete(audit.id)}>
-                          <Trash2 className='h-4 w-4 text-red-500' />
+                          <XCircle className='h-4 w-4 text-red-500' />
                         </Button>
                       )}
                       {(audit.status === 'approved' || audit.status === 'completed') && (

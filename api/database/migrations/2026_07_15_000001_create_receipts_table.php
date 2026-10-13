@@ -26,6 +26,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('receipts', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->string('receipt_number')->unique();
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();

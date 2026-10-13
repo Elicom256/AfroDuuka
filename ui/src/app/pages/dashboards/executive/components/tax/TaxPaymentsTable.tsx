@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2 } from 'lucide-react';
 import {
-  useDeleteTaxPaymentMutation,
   useTaxCategoriesQuery,
   useTaxPaymentsQuery,
 } from '@/app/store/features/business/tax/taxQuery';
@@ -15,12 +11,10 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { AddTaxPayment } from './AddTaxPayment';
 import { EditTaxPayment } from './EditTaxPayment';
-import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 export const TaxPaymentsTable = () => {
   const { currencySymbol } = useCurrency();
   const { data: categoriesData } = useTaxCategoriesQuery();
-  const [deletePayment] = useDeleteTaxPaymentMutation();
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -32,15 +26,6 @@ export const TaxPaymentsTable = () => {
 
   const { data, isLoading, isFetching } = useTaxPaymentsQuery(params);
   const categories = categoriesData?.categories ?? [];
-
-  const handleDelete = async (id: number) => {
-    try {
-      const res = await deletePayment(id).unwrap();
-      toast.success(res?.message || 'Tax payment deleted');
-    } catch {
-      toast.error('Failed to delete tax payment');
-    }
-  };
 
   if (isLoading) return <PageLoadingState />;
   const payments = data?.payments ?? [];
@@ -100,20 +85,8 @@ export const TaxPaymentsTable = () => {
                       {(payment.tax_period_start || '—')}{payment.tax_period_start && payment.tax_period_end ? ` → ${payment.tax_period_end}` : ''}
                     </TableCell>
                     <TableCell className='text-muted-foreground'>{payment.notes || '—'}</TableCell>
-                    <TableCell>
-                      <div className='flex gap-2'>
-                        <EditTaxPayment payment={payment} />
-                        <ConfirmDeleteButton
-                          onConfirm={() => handleDelete(payment.id)}
-                          title='Delete this payment record?'
-                          description='The record of tax paid is removed. This cannot be undone.'
-                          trigger={
-                            <Button variant='ghost' size='icon'>
-                                                      <Trash2 className='h-4 w-4' />
-                                                    </Button>
-                          }
-                        />
-                      </div>
+                    <TableCell className='w-24'>
+                      <EditTaxPayment payment={payment} />
                     </TableCell>
                   </TableRow>
                 );

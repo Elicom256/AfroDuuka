@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Receipt extends BaseModel
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'receipt_number',
         'customer_id',

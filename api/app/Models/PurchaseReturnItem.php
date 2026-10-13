@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseReturnItem extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'purchase_return_id',
         'purchase_item_id',
