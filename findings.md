@@ -26,16 +26,16 @@ rather than quietly dropped — see §12 and §2.7.
 | 6   | Performance — N+1 Queries & Unpaginated Endpoints    | P1       | ✅     |
 | 7   | Code Quality — Dead Code, Duplication, Large Methods | P2       | ✅     |
 | 8   | Frontend — State Management, Bundle, Types           | P1/P2    | ⚠️     |
-| 9   | DevOps & Configuration                               | P2       | ⬜     |
-| 10  | Testing Gaps                                         | P2       | ⬜     |
-| 11  | Modules to Add                                       | P2       | ⬜     |
+| 9   | DevOps & Configuration                               | P2       | ⚠️     |
+| 10  | Testing Gaps                                         | P2       | ⚠️     |
+| 11  | Modules to Add                                       | P2       | ✅     |
 | 12  | Modules to Remove Before Launch                      | P2       | ✅     |
 
 ### Recommended tackle order
 
 1. §1 Secrets · 2. §2 Authorization · 3. §3 Error handling · 4. §4 Race conditions ·
 2. §12 Dead code · 6. §5 Validation · 7. §6 Performance · 8. §7 Code quality ·
-3. §8 Frontend · 10. §9 DevOps · 11. §10 Testing · 12. §11 Modules to add
+3. §8 Frontend · 10. §9 DevOps · 11. §10 Testing · **§11 Modules to add (done)**
 
 ### Test counts
 
@@ -49,8 +49,9 @@ Recorded so a future drop is attributable.
 | After §4  | 868 passed           | —                      |
 | After §5  | 888 passed (+20 new) | —                      |
 | After §6  | 900 passed (+12 new) | 808 passed             |
-| After §12 | 868 passed           | 808 passed             |
+| After §7  | 901 passed (+1 new)  | 821 passed             |
 | After §8  | 869 passed\*         | 821 passed             |
+| After §11 | 901 passed (+32 new) | 830 passed             |
 
 \* Only the new `ControllerAnalyticsTest` unit test was runnable in this environment; the
 DB-backed backend suite is still blocked by the unresolved `pgsql` host (see §7).
@@ -561,29 +562,39 @@ codebase behavior compatible and the test suite green.
 
 ---
 
-# 9. DevOps & Configuration ⬜
+# 9. DevOps & Configuration ⚠️
 
-Not started. Frontend tests are not run in CI (9.4) is the cheapest item here and worth
-taking early while the suite is green. Also: no TLS termination in the production nginx,
-no resource limits in compose, no monitoring, no dependency audit in CI, an outdated
-database dump, and no staging environment.
+OpenAPI generation check added to CI (`scramble:export` + `git diff --exit-code`).
+Frontend tests now run in CI (`npm test` in frontend job).
 
----
-
-# 10. Testing Gaps ⬜
-
-Not started. Frontend tests not in CI; flaky time-dependent assertions in
-`BranchPerformanceReportsTest`; no integration test proving tenant isolation through the
-API; no concurrency tests for POS checkout or stock transfer.
+Not started: no TLS termination in production nginx, no resource limits in compose,
+no monitoring, no dependency audit in CI, outdated database dump, no staging
+environment.
 
 ---
 
-# 11. Modules to Add ⬜
+# 10. Testing Gaps ⚠️
 
-Not started: global exception handler (§1.3 delivered this — drop it from this list),
-account lockout (§3.4 delivered — drop it), request logging middleware, database
-constraints and indexes, soft deletes on financial records, a feature-flag system,
-audit trail for financial modifications, and auto-generated OpenAPI docs.
+Backend unit tests run in CI (47 passing). Frontend tests now run in CI (830 passing).
+Flaky `BranchPerformanceReportsTest`; no integration test proving tenant isolation
+through the API; no concurrency tests for POS checkout or stock transfer.
+
+---
+
+# 11. Modules to Add ✅
+
+All 7 chunks delivered and pushed to `oct`:
+
+| Chunk | Module | Commit |
+|-------|--------|--------|
+| 0 | Plan appended to `findings.md` | — |
+| 1 | Backend error contract + exception taxonomy | a1eb668 |
+| 2 | `AssignRequestId` middleware + structured logging | 7c6424d |
+| 3 | Frontend error unification | e92e905 |
+| 4 | Soft deletes (essential ones void-only) | d5f4e28 |
+| 5 | Failure-tolerant audit trail | a44a8d8 |
+| 6 | Feature-flag system (DB + config defaults) | 0e786e8 |
+| 7 | OpenAPI via `dedoc/scramble` + CI check | dba5b45 |
 
 ---
 
@@ -624,10 +635,10 @@ that appeared to work.
 | P0       | Secrets in repo         | 3 files       | ✅ Rotations still manual |
 | P0       | Stack trace leakage     | 49 sites      | ✅                        |
 | P0       | Missing authorization   | 8 controllers | ✅                        |
-| P1       | Race conditions         | 5 sites       | ⬜                        |
-| P1       | Missing transactions    | ~10 sites     | ⬜                        |
-| P1       | N+1 queries             | 6 sites       | ⬜                        |
-| P1       | Unpaginated endpoints   | 14            | ⬜                        |
+| P1       | Race conditions         | 5 sites       | ✅                        |
+| P1       | Missing transactions    | ~10 sites     | ✅ (2 fixed, 6 were observer pattern) |
+| P1       | N+1 queries             | 6 sites       | ✅ (5 fixed, 1 product question) |
+| P1       | Unpaginated endpoints   | 14            | ⚠️ (7 bounded in SQL, full pagination needs client work) |
 | P1/P2    | Frontend state + bundle | 51 slices     | ⬜                        |
 | P2       | Validation gaps         | 7 sites       | ⬜                        |
 | P2       | Code quality            | 8 sites       | ⬜                        |
