@@ -27,7 +27,7 @@ rather than quietly dropped — see §12 and §2.7.
 | 7   | Code Quality — Dead Code, Duplication, Large Methods | P2       | ✅     |
 | 8   | Frontend — State Management, Bundle, Types           | P1/P2    | ⚠️     |
 | 9   | DevOps & Configuration                               | P2       | ⚠️     |
-| 10  | Testing Gaps                                         | P2       | ⚠️     |
+| 10  | Testing Gaps                                         | P2       | ✅     |
 | 11  | Modules to Add                                       | P2       | ✅     |
 | 12  | Modules to Remove Before Launch                      | P2       | ✅     |
 
@@ -588,7 +588,7 @@ no staging environment.
 
 ---
 
-# 10. Testing Gaps ⚠️
+# 10. Testing Gaps ✅
 
 Backend unit tests run in CI (47 passing). Frontend tests now run in CI (830 passing).
 Flaky `BranchPerformanceReportsTest` **fixed** (clock frozen in setUp/tearDown).
