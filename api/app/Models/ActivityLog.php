@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Api\RequestId;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -71,6 +72,8 @@ class ActivityLog extends Activity
             $activity->ip_address ??= Request::ip();
             $activity->user_agent ??= Request::userAgent();
 
+            $activity->stampRequestId();
+
             $user = Auth::user();
 
             if ($user) {
@@ -80,6 +83,30 @@ class ActivityLog extends Activity
                 $activity->business_branch_id ??= $user->business_branch_id;
             }
         });
+    }
+
+    /**
+     * Copies the request's correlation id into the entry so a support ticket that
+     * quotes the id on screen resolves to the exact audit rows it produced.
+     *
+     * Only stamped when the request already carries one (i.e. it passed through the
+     * api middleware); CLI and queue contexts have no correlation id to share and are
+     * left alone rather than each row inventing its own.
+     */
+    protected function stampRequestId(): void
+    {
+        $requestId = Request::instance()->attributes->get(RequestId::ATTRIBUTE);
+
+        if (! is_string($requestId) || $requestId === '') {
+            return;
+        }
+
+        $properties = $this->properties;
+        $properties = $properties instanceof Collection ? $properties->all() : (array) $properties;
+
+        $properties[RequestId::ATTRIBUTE] = $requestId;
+
+        $this->properties = $properties;
     }
 
     public function scopeForBusiness(Builder $query, ?int $businessId): Builder

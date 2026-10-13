@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class ActivityLogService
 {
@@ -13,6 +14,10 @@ class ActivityLogService
      *
      * Causer, tenancy, IP and user agent are stamped by the model's creating
      * hook, so callers only describe what happened.
+     *
+     * Best-effort, deliberately: a controller calls this after the business write
+     * has already been committed, so letting an insert failure escape would turn a
+     * successful approval or payment into a 500. The failure is reported instead.
      *
      * @param  array<string, mixed>  $properties
      */
@@ -25,15 +30,21 @@ class ActivityLogService
     ): ?ActivityLog {
         $user = Auth::user();
 
-        return ActivityLog::create([
-            'log_name' => $logName,
-            'event' => $event ?? $logName,
-            'description' => $description,
-            'causer_type' => $user?->getMorphClass(),
-            'causer_id' => $user?->getKey(),
-            'subject_type' => $subject?->getMorphClass(),
-            'subject_id' => $subject?->getKey(),
-            'properties' => $properties ?: null,
-        ]);
+        try {
+            return ActivityLog::create([
+                'log_name' => $logName,
+                'event' => $event ?? $logName,
+                'description' => $description,
+                'causer_type' => $user?->getMorphClass(),
+                'causer_id' => $user?->getKey(),
+                'subject_type' => $subject?->getMorphClass(),
+                'subject_id' => $subject?->getKey(),
+                'properties' => $properties ?: null,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 }
