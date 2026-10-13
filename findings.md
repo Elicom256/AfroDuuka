@@ -576,9 +576,11 @@ environment.
 # 10. Testing Gaps ⚠️
 
 Backend unit tests run in CI (47 passing). Frontend tests now run in CI (830 passing).
-Flaky `BranchPerformanceReportsTest` **fixed** (clock frozen in setUp/tearDown);
-no integration test proving tenant isolation through the API; no concurrency tests
-for POS checkout or stock transfer.
+Flaky `BranchPerformanceReportsTest` **fixed** (clock frozen in setUp/tearDown).
+Cross-tenant isolation test added (`TenantIsolationTest.php` — 7 assertions covering
+customers, suppliers, products, sales, cash flows, lists, search).
+Concurrency tests added (`ConcurrencyTest.php` — POS checkout atomicity,
+stock transfer dispatch/receive serialization).
 
 ---
 
