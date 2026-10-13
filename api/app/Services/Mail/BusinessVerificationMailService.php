@@ -12,7 +12,8 @@ class BusinessVerificationMailService
     public function __construct(
         private readonly string $verificationBaseUrl = '',
     ) {
-        $this->verificationBaseUrl = $verificationBaseUrl ?: config('app.url') . '/api/verify-email';
+        // Default to frontend URL, not API URL. The frontend will call the API.
+        $this->verificationBaseUrl = $verificationBaseUrl ?: config('app.frontend_url', config('app.url')) . '/verify-email';
     }
 
     public function send(Business $business): void
