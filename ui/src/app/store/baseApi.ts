@@ -1,37 +1,83 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { sharedApiTagTypes } from './apiTags';
 import { getToken } from '@/lib/session';
 
 /**
- * The single RTK Query slice for every feature that must share tag
- * invalidation: the money domain (sales, purchases, returns, finance, cash
- * flow, expenses, salaries) and the stock domain (products, inventory, stock
- * transfers, audits, price history) feed the read-models (reports and the
- * dashboard / cash flow analytics) that all surface on the executive pages.
+ * The single RTK Query slice for the whole application.
  *
- * With one slice, a mutation that records a sale can invalidate tags the
- * product analytics, inventory, finance and report queries provide, and RTK
- * Query refetches all of them automatically. That is exactly what never
- * happened while each feature owned its own `createApi` slice: a shared tag
- * string in two separate slices is inert, because each slice keeps its own
- * cache.
+ * RTK Query's automatic tag invalidation only works within one API slice, so a
+ * shared tag *string* declared in two separate `createApi` slices is inert —
+ * each slice keeps its own cache and no refetch ever crosses the boundary. That
+ * is why the money domain (sales, purchases, returns, finance, cash flow,
+ * expenses, salaries) and the stock domain (products, inventory, stock
+ * transfers, audits, price history) were each migrated to this slice first: a
+ * mutation that records a sale has to invalidate the tags that the product,
+ * inventory, finance and report queries provide.
  *
- * Feature files keep their current folder structure and add their endpoints
+ * Every feature file keeps its current folder structure and adds its endpoints
  * with `baseApi.injectEndpoints(...)`, re-exporting the generated hooks
  * unchanged — so page-level imports are untouched.
  */
+
+/** Endpoints a caller can reach before they have a token. */
+const PUBLIC_ENDPOINTS = ['/login', '/signup'];
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: import.meta.env.VITE_BASE_URL,
+  prepareHeaders: (headers) => {
+    const token = getToken();
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+/**
+ * A `FetchBaseQueryError` plus the path that produced it.
+ *
+ * `authListener`'s exempt-list matches on the requested path. RTK Query's
+ * rejected payload carries only `{ status, data }`; the url lives inside the
+ * queryFn's return value and never reaches the action. Attaching it here is what
+ * lets a wrong password (`/users/login` → 401) be told apart from a dead session
+ * (`/users/me` → 401), instead of both clearing the token.
+ */
+type AuthBaseQueryError = FetchBaseQueryError & { url?: string };
+
+/**
+ * Answers "no session" locally for `/users/*` when there is no token to send.
+ *
+ * Thirty components read the logged-in user, including the public navbar. Every
+ * one of them would otherwise fire a request that can only ever 401, and on the
+ * marketing site that 401 was what made a logged-out visitor look signed-out in
+ * a broken way. A synthetic success is the honest answer here: there is no
+ * session, so `data.data` is null and callers see exactly what they saw before a
+ * token existed.
+ */
+const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const url = typeof args === 'string' ? args : (args?.url ?? '');
+
+  if (url.startsWith('/users') && !getToken() && !PUBLIC_ENDPOINTS.some((path) => url.includes(path))) {
+    return { data: { success: true, data: null } };
+  }
+
+  const result = await rawBaseQuery(args, api, extraOptions);
+
+  if (result.error) {
+    return { error: { ...result.error, url } };
+  }
+
+  return result;
+};
+
 export const baseApi = createApi({
   reducerPath: 'baseApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_BASE_URL,
-    prepareHeaders: (headers) => {
-      const token = getToken();
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   tagTypes: sharedApiTagTypes,
   endpoints: () => ({}),
 });

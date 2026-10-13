@@ -1,22 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 // here the admin manages business workers
-export const workersQuery = createApi({
-  reducerPath: 'workerPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/workers`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['WorkersAPI'],
+export const workersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getWorkersInfo: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/dashboard/workers/',
         method: 'GET',
       }),
       providesTags: ['WorkersAPI'],
@@ -24,7 +12,7 @@ export const workersQuery = createApi({
 
     getWorkerInfo: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/workers/${id}`,
         method: 'GET',
       }),
       providesTags: ['WorkersAPI'],
@@ -32,7 +20,7 @@ export const workersQuery = createApi({
     // register worker
     registerWorker: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/',
+        url: '/dashboard/workers/',
         method: 'POST',
         body,
       }),
@@ -41,7 +29,7 @@ export const workersQuery = createApi({
     // update worker
     updateWorker: builder.mutation<any, { body: any; id: string }>({
       query: ({ body, id }) => ({
-        url: `/${id}`,
+        url: `/dashboard/workers/${id}`,
         method: 'PUT',
         body,
       }),
@@ -50,7 +38,7 @@ export const workersQuery = createApi({
     // delete worker
     deleteWorker: builder.mutation<any, { userData: any; id: number }>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/workers/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['WorkersAPI'],

@@ -1,20 +1,23 @@
 /**
- * Central registry of every RTK Query tag that must be shared across the base
- * API slice.
+ * Central registry of every RTK Query tag used in the app.
  *
  * RTK Query automatic tag invalidation only works within a single API slice
- * (see https://redux.js.org/toolkit/rtk-query/api/createApi). This app used to
- * define one slice per feature (~66 createApi calls); a shared tag *string*
- * declared in two different slices never invalidated across them, which is why
- * dashboards and analytics stayed stale after a sale or purchase. All the slices
- * that read and write the same money/stock/reporting read-models are now
- * injected into `baseApi` (see ./baseApi.ts) so these tags actually work.
+ * (see https://redux.js.org/toolkit/rtk-query/api/createApi). Every feature slice
+ * is injected into `baseApi` (see ./baseApi.ts) so these tags actually work:
+ * invalidating a tag one endpoint provides refetches every endpoint that
+ * provides it, across feature boundaries.
+ *
+ * `tagTypes` has to be declared up front on the slice — `injectEndpoints` cannot
+ * add new tag types — so every tag any feature uses is listed here. A tag used
+ * in `providesTags` / `invalidatesTags` but missing from this registry is a type
+ * error, which is why the list is kept in one place.
  *
  * Grouping:
  *  - stock domain ... products, inventory, stockTransfers, productAudit, priceHistory
  *  - money domain .. sales, purchases, saleReturns, purchaseReturns, finance, cashflow, expenses, salary
  *  - audits ......... financialAudit
  *  - read model .... reports, branches (dashboard / cashflow analytics), dashboard (umbrella)
+ *  - features ...... every remaining feature slice's own tag
  */
 export const apiTags = {
   // stock domain
@@ -38,6 +41,57 @@ export const apiTags = {
   reports: 'Reports',
   branches: 'BranchesAPI',
   dashboard: 'DashboardAPI',
+  // feature tags
+  coupons: 'CouponsAPI',
+  ai: 'AiAPI',
+  orders: 'OrdersAPI',
+  quotations: 'QuotationsAPI',
+  purchaseOrders: 'PurchaseOrdersAPI',
+  users: 'UsersAPI',
+  plans: 'PlansAPI',
+  executivePlans: 'ExecutivePlansAPI',
+  todos: 'TodosAPI',
+  branchWorkers: 'BranchWorkersAPI',
+  procurement: 'Procurement',
+  whatsapp: 'WhatsApp',
+  customers: 'CustomersAPI',
+  executiveAttendance: 'ExecutiveAttendanceAPI',
+  printers: 'PrintersAPI',
+  suppliers: 'SuppliersAPI',
+  executiveRemuneration: 'ExecutiveRemunerationAPI',
+  paymentGateways: 'PaymentGatewaysAPI',
+  productCategories: 'ProductCategoriesAPI',
+  activityLog: 'ActivityLogAPI',
+  expenseCategories: 'ExpenseCategoriesAPI',
+  currencyRates: 'CurrencyRatesAPI',
+  reportExports: 'ReportExportsAPI',
+  taxCategories: 'TaxCategoriesAPI',
+  taxRates: 'TaxRatesAPI',
+  taxPayments: 'TaxPaymentsAPI',
+  reorderRules: 'ReorderRulesAPI',
+  superAdminBusinesses: 'SuperAdminBusinessesAPI',
+  reportsSettings: 'ReportsSettingsAPI',
+  workers: 'WorkersAPI',
+  supplierSettings: 'SupplierSettingsAPI',
+  attendanceSettings: 'AttendanceSettingsAPI',
+  customerSettings: 'CustomerSettingsAPI',
+  promotionsSettings: 'PromotionsSettingsAPI',
+  paymentSettings: 'PaymentSettingsAPI',
+  pos: 'PosAPI',
+  heldSales: 'HeldSales',
+  onboarding: 'OnboardingApi',
+  business: 'BusinessApi',
+  branchPromotions: 'BranchPromotionsAPI',
+  roles: 'RolesAPI',
+  countries: 'Countries',
+  receipts: 'ReceiptsAPI',
+  subscriptions: 'SubscriptionsAPI',
+  subscriptionPayments: 'SubscriptionPaymentsAPI',
+  branchSuppliers: 'BranchSuppliersAPI',
+  notifications: 'Notifications',
+  branchCustomers: 'BranchCustomersAPI',
+  branchAttendance: 'BranchAttendanceAPI',
+  productAttachments: 'ProductAttachments',
 } as const;
 
 /**
@@ -45,25 +99,7 @@ export const apiTags = {
  * target is ever unregistered — invalidating a tag that is not in `tagTypes`
  * would warn and do nothing.
  */
-export const sharedApiTagTypes = [
-  apiTags.products,
-  apiTags.inventory,
-  apiTags.stockTransfers,
-  apiTags.productAudit,
-  apiTags.priceHistory,
-  apiTags.sales,
-  apiTags.purchases,
-  apiTags.saleReturns,
-  apiTags.purchaseReturns,
-  apiTags.finance,
-  apiTags.cashflow,
-  apiTags.expenses,
-  apiTags.salary,
-  apiTags.financialAudit,
-  apiTags.reports,
-  apiTags.branches,
-  apiTags.dashboard,
-] as const;
+export const sharedApiTagTypes = Object.values(apiTags);
 
 /** The read-model umbrella: anything that backs a dashboard or analytic query. */
 export const dashboardTags = [apiTags.dashboard] as const;

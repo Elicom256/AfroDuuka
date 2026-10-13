@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
 export interface PurchaseOrderItem {
   id: number;
@@ -72,26 +72,14 @@ export interface ProcurementOverview {
   reorder_suggestions: ReorderSuggestion[];
 }
 
-export const procurementApi = createApi({
-  reducerPath: 'procurementApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/procurement`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['Procurement'],
+export const procurementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getOverview: builder.query<ProcurementOverview, string | void>({
-      query: (branchId) => branchId ? `/?branch_id=${branchId}` : '/',
+      query: (branchId) => branchId ? `/procurement/?branch_id=${branchId}` : '/procurement/',
       providesTags: ['Procurement'],
     }),
     getReorderSuggestions: builder.query<{ suggestions: ReorderSuggestion[]; total_suggestions: number; total_estimated_value: number }, string | void>({
-      query: (branchId) => branchId ? `/reorder-suggestions?branch_id=${branchId}` : '/reorder-suggestions',
+      query: (branchId) => branchId ? `/procurement/reorder-suggestions?branch_id=${branchId}` : '/procurement/reorder-suggestions',
       providesTags: ['Procurement'],
     }),
     getPurchaseOrders: builder.query<{ data: PurchaseOrder[] }, { status?: string; branch_id?: string } | void>({
@@ -100,17 +88,19 @@ export const procurementApi = createApi({
         if (params?.status) searchParams.set('status', params.status);
         if (params?.branch_id) searchParams.set('branch_id', params.branch_id);
         const qs = searchParams.toString();
-        return qs ? `/purchase-orders?${qs}` : '/purchase-orders';
+        return qs ? `/procurement/purchase-orders?${qs}` : '/procurement/purchase-orders';
       },
       providesTags: ['Procurement'],
     }),
     getPurchaseOrder: builder.query<PurchaseOrder, number>({
-      query: (id) => `/purchase-orders/${id}`,
+      query: (id) => `/procurement/purchase-orders/${id}`,
       providesTags: ['Procurement'],
     }),
-    createPurchaseOrder: builder.mutation<PurchaseOrder, any>({
+    // Named `createProcurementPurchaseOrder` because `createPurchaseOrder` already
+    // exists on the orders slice; endpoint names are global within one API slice.
+    createProcurementPurchaseOrder: builder.mutation<PurchaseOrder, any>({
       query: (body) => ({
-        url: '/purchase-orders',
+        url: '/procurement/purchase-orders',
         method: 'POST',
         body,
       }),
@@ -118,21 +108,21 @@ export const procurementApi = createApi({
     }),
     approvePurchaseOrder: builder.mutation<PurchaseOrder, number>({
       query: (id) => ({
-        url: `/purchase-orders/${id}/approve`,
+        url: `/procurement/purchase-orders/${id}/approve`,
         method: 'POST',
       }),
       invalidatesTags: ['Procurement'],
     }),
     orderPurchaseOrder: builder.mutation<PurchaseOrder, number>({
       query: (id) => ({
-        url: `/purchase-orders/${id}/order`,
+        url: `/procurement/purchase-orders/${id}/order`,
         method: 'POST',
       }),
       invalidatesTags: ['Procurement'],
     }),
     receivePurchaseOrder: builder.mutation<PurchaseOrder, { id: number; items: Array<{ id: number; received_quantity: number }> }>({
       query: ({ id, items }) => ({
-        url: `/purchase-orders/${id}/receive`,
+        url: `/procurement/purchase-orders/${id}/receive`,
         method: 'POST',
         body: { items },
       }),
@@ -140,7 +130,7 @@ export const procurementApi = createApi({
     }),
     cancelPurchaseOrder: builder.mutation<PurchaseOrder, number>({
       query: (id) => ({
-        url: `/purchase-orders/${id}/cancel`,
+        url: `/procurement/purchase-orders/${id}/cancel`,
         method: 'POST',
       }),
       invalidatesTags: ['Procurement'],
@@ -153,7 +143,7 @@ export const {
   useGetReorderSuggestionsQuery,
   useGetPurchaseOrdersQuery,
   useGetPurchaseOrderQuery,
-  useCreatePurchaseOrderMutation,
+  useCreateProcurementPurchaseOrderMutation,
   useApprovePurchaseOrderMutation,
   useOrderPurchaseOrderMutation,
   useReceivePurchaseOrderMutation,

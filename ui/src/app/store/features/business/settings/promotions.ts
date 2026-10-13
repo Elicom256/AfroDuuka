@@ -1,25 +1,13 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const promotionsSettingsQuery = createApi({
-  reducerPath: 'promotionsSettingsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/promotions-settings`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['PromotionsSettingsAPI'],
+export const promotionsSettingsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPromotionsSettings: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/settings/promotions-settings/', method: 'GET' }),
       providesTags: ['PromotionsSettingsAPI'],
     }),
     updatePromotionsSettings: builder.mutation<any, { id: string; body: { status: string } }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/settings/promotions-settings/${id}`, method: 'PUT', body }),
       invalidatesTags: ['PromotionsSettingsAPI'],
     }),
   }),

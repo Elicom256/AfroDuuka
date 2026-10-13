@@ -1,22 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const branchPromotionsQuery = createApi({
-  reducerPath: 'branchPromotionsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/promotions`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['BranchPromotionsAPI'],
+export const branchPromotionsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     branchPromotions: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/promotions/',
         method: 'GET',
       }),
       providesTags: ['BranchPromotionsAPI'],

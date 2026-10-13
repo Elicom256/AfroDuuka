@@ -1,31 +1,19 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const executiveEmployeeRemunerationQuery = createApi({
-  reducerPath: 'executiveEmployeeRemunerationPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/employee-remuneration`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ExecutiveRemunerationAPI'],
+export const executiveEmployeeRemunerationQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getExecutiveEmployeeRemuneration: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/dashboard/employee-remuneration/', method: 'GET' }),
       providesTags: ['ExecutiveRemunerationAPI'],
     }),
 
     storeExecutiveEmployeeRemuneration: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/dashboard/employee-remuneration/', method: 'POST', body }),
       invalidatesTags: ['ExecutiveRemunerationAPI'],
     }),
 
     updateExecutiveEmployeeRemuneration: builder.mutation<any, { id: string | number; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/dashboard/employee-remuneration/${id}`, method: 'PUT', body }),
       invalidatesTags: ['ExecutiveRemunerationAPI'],
     }),
   }),

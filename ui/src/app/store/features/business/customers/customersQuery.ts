@@ -1,22 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const customersQuery = createApi({
-  reducerPath: 'customersPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/customers`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['CustomersAPI'],
+export const customersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     customers: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/dashboard/customers/',
         method: 'GET',
       }),
       providesTags: ['CustomersAPI'],
@@ -24,7 +12,7 @@ export const customersQuery = createApi({
     // customer
     customer: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/customers/${id}`,
         method: 'GET',
       }),
       providesTags: ['CustomersAPI'],
@@ -32,7 +20,7 @@ export const customersQuery = createApi({
     // store
     addCustomer: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/',
+        url: '/dashboard/customers/',
         method: 'POST',
         body,
       }),
@@ -42,7 +30,7 @@ export const customersQuery = createApi({
     // put
     updateCustomer: builder.mutation<any, { body: any; id: string }>({
       query: ({ body, id }) => ({
-        url: `/${id}`,
+        url: `/dashboard/customers/${id}`,
         method: 'PATCH',
         body,
       }),
@@ -52,7 +40,7 @@ export const customersQuery = createApi({
     // store
     deleteCustomer: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/customers/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['CustomersAPI'],

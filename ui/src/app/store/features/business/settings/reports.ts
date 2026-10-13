@@ -1,25 +1,13 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const reportsSettingsQuery = createApi({
-  reducerPath: 'reportsSettingsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/settings/reports-settings`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ReportsSettingsAPI'],
+export const reportsSettingsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getReportsSettings: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/settings/reports-settings/', method: 'GET' }),
       providesTags: ['ReportsSettingsAPI'],
     }),
     updateReportsSettings: builder.mutation<any, { id: string; body: { status: string } }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/settings/reports-settings/${id}`, method: 'PUT', body }),
       invalidatesTags: ['ReportsSettingsAPI'],
     }),
   }),

@@ -1,37 +1,25 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const ordersQuery = createApi({
-  reducerPath: 'ordersPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/sale-orders`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['OrdersAPI'],
+export const ordersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     orders: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/sale-orders/', method: 'GET' }),
       providesTags: ['OrdersAPI'],
     }),
     order: builder.query<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/sale-orders/${id}`, method: 'GET' }),
       providesTags: ['OrdersAPI'],
     }),
     createOrder: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/sale-orders/', method: 'POST', body }),
       invalidatesTags: ['OrdersAPI'],
     }),
     updateOrder: builder.mutation<any, { id: string; body: any }>({
-      query: ({ id, body }) => ({ url: `/${id}`, method: 'PUT', body }),
+      query: ({ id, body }) => ({ url: `/sale-orders/${id}`, method: 'PUT', body }),
       invalidatesTags: ['OrdersAPI'],
     }),
     deleteOrder: builder.mutation<any, string>({
-      query: (id) => ({ url: `/${id}`, method: 'DELETE' }),
+      query: (id) => ({ url: `/sale-orders/${id}`, method: 'DELETE' }),
       invalidatesTags: ['OrdersAPI'],
     }),
   }),

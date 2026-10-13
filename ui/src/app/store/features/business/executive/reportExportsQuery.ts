@@ -1,21 +1,9 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const reportExportsQuery = createApi({
-  reducerPath: 'reportExportsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/report-exports`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ReportExportsAPI'],
+export const reportExportsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getReportExports: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/report-exports/', method: 'GET' }),
       providesTags: ['ReportExportsAPI'],
     }),
   }),

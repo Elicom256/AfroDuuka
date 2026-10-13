@@ -1,31 +1,19 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const executiveAttendanceQuery = createApi({
-  reducerPath: 'executiveAttendancePath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/attendances`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ExecutiveAttendanceAPI'],
+export const executiveAttendanceQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     employeeAttendances: builder.query<any, void>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/dashboard/attendances/', method: 'GET' }),
       providesTags: ['ExecutiveAttendanceAPI'],
     }),
 
     employeeAttendance: builder.query<any, string>({
-      query: () => ({ url: '/', method: 'GET' }),
+      query: () => ({ url: '/dashboard/attendances/', method: 'GET' }),
       providesTags: ['ExecutiveAttendanceAPI'],
     }),
 
     recordEmployeeattendance: builder.mutation<any, any>({
-      query: (body) => ({ url: '/', method: 'POST', body }),
+      query: (body) => ({ url: '/dashboard/attendances/', method: 'POST', body }),
       invalidatesTags: ['ExecutiveAttendanceAPI'],
     }),
   }),

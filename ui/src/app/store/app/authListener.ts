@@ -21,13 +21,14 @@ export const authListenerMiddleware = createListenerMiddleware();
  * Endpoints where a 401 is an expected answer rather than a dead session, so a
  * bad password must not sign the user out from under the login form.
  *
- * These are matched against the url the base query was given, which is relative to
- * this slice's `baseUrl` of `<VITE_BASE_URL>/users` — so the value is `/login`, not
- * `/users/login`. An earlier version listed the prefixed form and consequently never
- * matched anything: a wrong password and a revoked token were indistinguishable, and
- * since only the *removal* of the exempt-list's effect is harmful, nobody noticed
- * until the listener was actually registered and a mistyped password silently wiped a
- * valid session.
+ * These are matched against the url the base query was given. Every slice now shares
+ * one `baseApi` rooted at `<VITE_BASE_URL>`, so the auth endpoints carry the full
+ * `/users/login` path — `endpointPath` strips the `/users` segment before the
+ * comparison. An earlier version matched the raw segment-relative form and
+ * consequently never matched anything: a wrong password and a revoked token were
+ * indistinguishable, and since only the *removal* of the exempt-list's effect is
+ * harmful, nobody noticed until the listener was actually registered and a mistyped
+ * password silently wiped a valid session.
  *
  * /users/me is deliberately NOT exempt: a 401 from it is the clearest possible
  * statement that the stored token is dead, and the token has to be cleared. Same for
@@ -38,11 +39,13 @@ export const authListenerMiddleware = createListenerMiddleware();
  */
 const AUTH_EXEMPT_PATHS = ['/login', '/signup'];
 
-/** Normalises to the same shape the caller was asked for: no query/hash, and no
- * redundant /users prefix if a caller ever passes the fully-qualified path. */
+/** Normalises to the shape the exempt list compares against: no query/hash, and the
+ * `/users` segment stripped whether it leads the path (`/users/login`) or trails it
+ * (a caller passing the fully-qualified base path). */
 const endpointPath = (url: string): string =>
   url
     .split(/[?#]/)[0]
+    .replace(/^\/users(?=\/|$)/, '')
     .replace(/\/users$/, '')
     .replace(/\/{2,}/g, '/')
     .replace(/(.)\/$/, '$1');

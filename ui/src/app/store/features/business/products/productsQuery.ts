@@ -1,37 +1,25 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const productCategoriesQuery = createApi({
-  reducerPath: 'productCategoriesPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/products`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ProductCategoriesAPI'],
+export const productCategoriesQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // ============= PRODUCT CATEGORIES PART ==============
     productCategories: builder.query<any, void>({
       query: () => ({
-        url: '/categories',
+        url: '/products/categories',
         method: 'GET',
       }),
       providesTags: ['ProductCategoriesAPI'],
     }),
     productCategory: builder.query<any, string>({
       query: (id) => ({
-        url: `/categories/${id}`,
+        url: `/products/categories/${id}`,
         method: 'GET',
       }),
       providesTags: ['ProductCategoriesAPI'],
     }),
     addProductCategory: builder.mutation<any, any>({
       query: (body) => ({
-        url: '/categories',
+        url: '/products/categories',
         method: 'POST',
         body,
       }),
@@ -39,7 +27,7 @@ export const productCategoriesQuery = createApi({
     }),
     updateProductCategory: builder.mutation<any, { body: any; id: number }>({
       query: ({ body, id }) => ({
-        url: `/categories/${id}`,
+        url: `/products/categories/${id}`,
         method: 'PUT',
         body,
       }),
@@ -47,7 +35,7 @@ export const productCategoriesQuery = createApi({
     }),
     deleteProductCategory: builder.mutation<any, number>({
       query: (id) => ({
-        url: `/categories/${id}`,
+        url: `/products/categories/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['ProductCategoriesAPI'],

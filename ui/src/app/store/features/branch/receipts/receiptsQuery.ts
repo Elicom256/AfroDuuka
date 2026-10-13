@@ -1,22 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const receiptsQuery = createApi({
-  reducerPath: 'receiptsPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/receipts`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['ReceiptsAPI'],
+export const receiptsQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     receipts: builder.query<any, Record<string, any> >({
       query: (params) => ({
-        url: '/',
+        url: '/receipts/',
         method: 'GET',
         params,
       }),
@@ -24,7 +12,7 @@ export const receiptsQuery = createApi({
     }),
     receipt: builder.query<any, number | string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/receipts/${id}`,
         method: 'GET',
       }),
       providesTags: ['ReceiptsAPI'],

@@ -1,29 +1,17 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/app/store/baseApi';
 
-export const branchSuppliersQuery = createApi({
-  reducerPath: 'branchSuppliersPath',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BASE_URL}/dashboard/suppliers`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['BranchSuppliersAPI'],
+export const branchSuppliersQuery = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     branchSuppliers: builder.query<any, void>({
       query: () => ({
-        url: '/',
+        url: '/dashboard/suppliers/',
         method: 'GET',
       }),
       providesTags: ['BranchSuppliersAPI'],
     }),
     branchSupplier: builder.query<any, string>({
       query: (id) => ({
-        url: `/${id}`,
+        url: `/dashboard/suppliers/${id}`,
         method: 'GET',
       }),
       providesTags: ['BranchSuppliersAPI'],
