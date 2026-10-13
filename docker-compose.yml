@@ -35,6 +35,15 @@ services:
       timeout: 5s
       retries: 3
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
   # ============================ Backend ===============================
   backend:
     build:
@@ -60,6 +69,15 @@ services:
     restart: unless-stopped
     networks:
       - app
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   # ========================== Queue worker ============================
   # The dev stack has this and the production stack did not. Without it every
@@ -97,6 +115,15 @@ services:
     healthcheck:
       disable: true
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
   # ============================ Scheduler ============================
   # Keep the Laravel scheduler in its own container so the jobs declared in
   # `routes/console.php` actually run on a heartbeat rather than sleeping forever.
@@ -130,6 +157,15 @@ services:
     healthcheck:
       disable: true
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
   # ============================ Postgres ==============================
   pgsql:
     image: postgres:17-alpine
@@ -151,6 +187,15 @@ services:
       timeout: 5s
       retries: 5
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
   # ============================== Redis ===============================
   redis:
     image: redis:7-alpine
@@ -165,6 +210,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
 volumes:
   pgsql-data:

@@ -7,3 +7,6 @@
 
 # Render env reference snapshot (contains live secrets)
 renderenv.md
+
+# CI workflows (tracked in next phase)
+.github/workflows

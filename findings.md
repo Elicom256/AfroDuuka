@@ -566,10 +566,11 @@ codebase behavior compatible and the test suite green.
 
 OpenAPI generation check added to CI (`scramble:export` + `git diff --exit-code`).
 Frontend tests now run in CI (`npm test` in frontend job).
+Resource limits added to all services in `docker-compose.yml` (CPU/memory limits + reservations).
+Dependency audits added to CI (composer audit + npm audit, non-blocking).
 
-Not started: no TLS termination in production nginx, no resource limits in compose,
-no monitoring, no dependency audit in CI, outdated database dump, no staging
-environment.
+Not started: TLS termination in production nginx, monitoring, outdated database dump,
+no staging environment.
 
 ---
 
