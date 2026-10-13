@@ -702,6 +702,22 @@ No stack context, model class, SQLSTATE, or blank toast ever reaches the screen.
    feature → `403` `code: feature_disabled`, never a blank screen.
 7. **OpenAPI via scramble** documenting the error schema; CI generation check.
 
+## Progress
+
+- [x] 0–5. Plan, error contract + taxonomy, request id + structured logging, frontend
+  error unification, soft deletes (essential ones void-only), failure-tolerant audit
+  writes. Each pushed to `oct`.
+- [x] 6. **Feature-flag system.** `config/features.php` catalogue (label, default,
+  per-business model); `App\Support\Features\FeatureFlags` resolves explicit settings
+  row → populated plan `features` → config default; `RequireFeature` middleware
+  (`feature:<key>`) on the reports, promotions, customers, suppliers and attendance
+  routes; `FeatureDisabledException` → `403` `code: feature_disabled` with a human
+  message; frontend `RequireFeature` guard + `FeatureUnavailable` state wired into the
+  Executive, Operations and Branch Manager route trees. Fixed the `CoreBusinessSettings`
+  seeder passing `status` inside the `firstOrCreate` search array (created duplicate
+  rows instead of updating). Unit tests for the catalogue/exception; feature test for
+  the middleware + renderer (CI).
+
 ## Acceptance criteria
 
 - No API failure can return a body lacking a human `message` or `request_id`.

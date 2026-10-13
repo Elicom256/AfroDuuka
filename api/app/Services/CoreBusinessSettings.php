@@ -20,12 +20,12 @@ class CoreBusinessSettings
         // manager are meant to manage, so a new business gets them enabled and the
         // People sidebar entries visible. Everything below is opt-in and stays disabled.
         $settings[] = SuppliersSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'enabled']);
-        $settings[] = AttendanceSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = AttendanceSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'disabled']);
         $settings[] = CustomersSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'enabled']);
-        $settings[] = PromotionsSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
-        $settings[] = ReportsSettings::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
-        $settings[] = CreditSetting::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
-        $settings[] = DebitSetting::firstOrCreate(['business_id' => $businessId, 'status' => 'disabled']);
+        $settings[] = PromotionsSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'disabled']);
+        $settings[] = ReportsSettings::firstOrCreate(['business_id' => $businessId], ['status' => 'disabled']);
+        $settings[] = CreditSetting::firstOrCreate(['business_id' => $businessId], ['status' => 'disabled']);
+        $settings[] = DebitSetting::firstOrCreate(['business_id' => $businessId], ['status' => 'disabled']);
 
         $paymentMethods = ['mobile_money', 'card', 'cash', 'credit', 'cryptocurrency'];
 

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { ProtectedRoutes } from './ProtectedRoutes';
+import { RequireFeature } from './RequireFeature';
 import { useLoggedinUserQuery } from '../store/features/auth/authQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
@@ -94,8 +95,8 @@ export const ExecutiveRoutes = () => {
 
             <Route path='workers' element={<ExecutiveWorkersPage />} />
             <Route path='workers/:id' element={<Worker />} />
-            <Route path='suppliers' element={<ExecutiveSuppliersPage />} />
-            <Route path='suppliers/:id' element={<Supplier />} />
+            <Route path='suppliers' element={<RequireFeature feature='suppliers'><ExecutiveSuppliersPage /></RequireFeature>} />
+            <Route path='suppliers/:id' element={<RequireFeature feature='suppliers'><Supplier /></RequireFeature>} />
 
             <Route path='create-business' element={<AddBusinessForm />} />
             <Route path='products' element={<ExecutiveProductsPage />} />
@@ -111,23 +112,23 @@ export const ExecutiveRoutes = () => {
             <Route path='purchase-returns/:id' element={<PurchaseReturn />} />
             <Route path='orders' element={<ExecutiveOrdersPage />} />
             <Route path='quotations' element={<QuotationsPage />} />
-            <Route path='customers' element={<ExecutiveCustomersPage />} />
-            <Route path='customers/:id' element={<Customer />} />
+            <Route path='customers' element={<RequireFeature feature='customers'><ExecutiveCustomersPage /></RequireFeature>} />
+            <Route path='customers/:id' element={<RequireFeature feature='customers'><Customer /></RequireFeature>} />
 
             <Route path='analytics' element={<ExecutiveAnalyticsPage />} />
             <Route path='todos' element={<TodoList />} />
             <Route path='create-todo' element={<TodoForm />} />
-            <Route path='reports' element={<ExecutiveReportsPage />} />
+            <Route path='reports' element={<RequireFeature feature='reports'><ExecutiveReportsPage /></RequireFeature>} />
             <Route path='finance/transactions' element={<ExecutiveFinanceTransactionsPage />} />
             <Route path='finance/transactions/:id' element={<ExecutiveFinanceTransactionPage />} />
             <Route path='finance/reports' element={<ExecutiveFinanceReportsPage />} />
             <Route path='finance/cashflow' element={<ExecutiveFinanceCashFlowPage />} />
             <Route path='cashflow' element={<ExecutiveFinanceCashFlowPage />} />
-            <Route path='attendance' element={<ExecutiveAttendancePage />} />
-            <Route path='attendance/:id' element={<Attendance />} />
+            <Route path='attendance' element={<RequireFeature feature='attendance'><ExecutiveAttendancePage /></RequireFeature>} />
+            <Route path='attendance/:id' element={<RequireFeature feature='attendance'><Attendance /></RequireFeature>} />
             <Route path='salaries' element={<ExecutiveSalariesPage />} />
             <Route path='remuneration' element={<ExecutiveEmployeeRemunerationPage />} />
-            <Route path='promotions' element={<ExecutivePromotionsPage />} />
+            <Route path='promotions' element={<RequireFeature feature='promotions'><ExecutivePromotionsPage /></RequireFeature>} />
             <Route path='coupons' element={<ExecutiveCouponsPage />} />
             <Route path='messages' element={<ExecutiveMessagesPage />} />
             <Route path='notifications' element={<ExecutiveNotificationsPage />} />

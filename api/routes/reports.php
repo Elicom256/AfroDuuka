@@ -11,10 +11,7 @@ use App\Http\Controllers\Reports\StockMovementReports;
 use App\Http\Controllers\Reports\StockSummaryReports;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
-
-    // to register a middleware to check if repports are enabled
-
+Route::middleware(['auth:sanctum', 'feature:reports'])->group(function () {
     Route::get('/branch-performance', [BranchPerformanceReports::class, 'index']);
 
     // The same monthly document the notification email attaches, downloadable on demand.
