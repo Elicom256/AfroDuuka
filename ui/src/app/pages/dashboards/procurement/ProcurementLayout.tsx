@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { ProcurementSidebar } from './ProcurementSidebar';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const ProcurementLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,7 +42,9 @@ export const ProcurementLayout = () => {
 
         <main className='flex min-h-screen flex-col p-6'>
           <div className='mt-6'>
-            <Outlet />
+            <RouteErrorBoundary>
+              <Outlet />
+            </RouteErrorBoundary>
           </div>
         </main>
       </div>

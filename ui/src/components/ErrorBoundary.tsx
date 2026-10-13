@@ -12,7 +12,17 @@ import { RefreshCw } from 'lucide-react';
  *
  * `fallback` overrides the default screen for the rare case a section wants its own.
  */
-type Props = { children: ReactNode; fallback?: (reset: () => void, error: Error) => ReactNode };
+type Props = {
+  children: ReactNode;
+  fallback?: (reset: () => void, error: Error) => ReactNode;
+  /**
+   * When this value changes the boundary clears its error state by itself. A
+   * route-level boundary passes the current pathname: if the screen that threw
+   * is replaced by another route, the new screen must be allowed to render
+   * rather than inherit the previous screen's error forever.
+   */
+  resetKey?: unknown;
+};
 
 type State = { error: Error | null };
 
@@ -21,6 +31,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.error && prevProps.resetKey !== this.props.resetKey) {
+      this.reset();
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {

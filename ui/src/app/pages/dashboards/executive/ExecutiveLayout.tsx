@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ExecutiveSidebar } from './ExecutiveSidebar';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { DashboardTopBar } from '../shared/DashboardTopBar';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const ExecutiveLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,7 +28,9 @@ export const ExecutiveLayout = () => {
           </aside>
 
           <main className='min-h-[calc(100vh-4rem)] min-w-0 p-4 sm:p-6'>
-            <Outlet />
+            <RouteErrorBoundary>
+              <Outlet />
+            </RouteErrorBoundary>
           </main>
         </div>
       </div>
