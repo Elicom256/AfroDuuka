@@ -9,8 +9,10 @@ use Illuminate\Support\Str;
 
 class BusinessVerificationMailService
 {
+    private string $verificationBaseUrl;
+
     public function __construct(
-        private readonly string $verificationBaseUrl = '',
+        string $verificationBaseUrl = '',
     ) {
         // Default to frontend URL, not API URL. The frontend will call the API.
         $this->verificationBaseUrl = $verificationBaseUrl ?: config('app.frontend_url', config('app.url')) . '/verify-email';
