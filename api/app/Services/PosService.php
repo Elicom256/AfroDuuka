@@ -149,25 +149,7 @@ class PosService
     public function checkout(array $validated): Sale
     {
         $user = Auth::user();
-        $branchId = $validated['business_branch_id'] ?? $user->business_branch_id;
-
-        $resolved = $user ? EffectiveBranchScope::branchesFor($user) : null;
-        if ($branchId && $resolved !== null) {
-            [, $branchIds] = $resolved;
-            if (! in_array($branchId, $branchIds, true)) {
-                throw new Exception('Branch is not within your allowed scope', 403);
-            }
-        }
-
-        $cartErrors = $this->validateCart($validated['items']);
-        if (! empty($cartErrors)) {
-            throw new Exception(implode('; ', $cartErrors), 422);
-        }
-
-        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
-            && empty($validated['customer_id'])) {
-            throw new Exception('A customer is required when using credit payment.', 422);
-        }
+        $branchId = $this->validateCheckoutRequest($validated, $user);
 
         // Claimed before the sale transaction opens purely so the number is not
         // consumed by a checkout that turns out to have nothing to sell. nextval()
@@ -220,45 +202,12 @@ class PosService
                 $totalAmount = $createdSale['total_amount'];
             }
 
-            $totalPaid = 0;
-            $creditAmount = 0;
-
-            // PosCheckoutRequest compares the tender against the cart without tax,
-            // because tax is not in the payload. Now that the authoritative total is
-            // known — tax-inclusive, and read from the stored row when a held sale is
-            // being resumed — check it again before any of it is recorded.
-            //
-            // Without this, a tax-bearing cart, or a resumed held sale, still completed
-            // on a short tender: the receipt showed zero change, the cash-flow row
-            // recorded the full amount as received, and the difference was nobody's.
-            $totalPaid = array_sum(array_map(
-                static fn ($payment) => (float) ($payment['amount'] ?? 0),
-                $validated['payments']
-            ));
-
-            if (round($totalPaid, 2) < round($totalAmount, 2)) {
-                throw new Exception(sprintf(
-                    'Payments total %.2f but the sale is %.2f. Short by %.2f.',
-                    $totalPaid,
-                    $totalAmount,
-                    round($totalAmount - $totalPaid, 2)
-                ), 422);
-            }
-
-            foreach ($validated['payments'] as $payment) {
-                SalePayment::create([
-                    'sale_id' => $sale->id,
-                    'method' => $payment['method'],
-                    'amount' => $payment['amount'],
-                    'paymentStatus' => 'paid',
-                ]);
-                if ($payment['method'] === 'credit') {
-                    $creditAmount += $payment['amount'];
-                }
-            }
+            $paymentTotals = $this->recordSalePayments($sale, $validated['payments'], (float) $totalAmount);
+            $totalPaid = $paymentTotals['total_paid'];
+            $creditAmount = $paymentTotals['credit_amount'];
 
             $netTotal = $totalAmount;
-            $changeGiven = max(0, $totalPaid - $totalAmount);
+            $changeGiven = $paymentTotals['change_given'];
 
             if ($creditAmount > 0) {
                 $this->customerCreditService->recordCharge($user, $sale, $creditAmount);
@@ -290,6 +239,31 @@ class PosService
 
             return $sale->load(['saleItems.product', 'receipt.items']);
         });
+    }
+
+    private function validateCheckoutRequest(array $validated, User $user): int|string|null
+    {
+        $branchId = $validated['business_branch_id'] ?? $user->business_branch_id;
+        $resolved = EffectiveBranchScope::branchesFor($user);
+
+        if ($branchId && $resolved !== null) {
+            [, $branchIds] = $resolved;
+            if (! in_array($branchId, $branchIds, true)) {
+                throw new Exception('Branch is not within your allowed scope', 403);
+            }
+        }
+
+        $cartErrors = $this->validateCart($validated['items']);
+        if (! empty($cartErrors)) {
+            throw new Exception(implode('; ', $cartErrors), 422);
+        }
+
+        if (collect($validated['payments'])->contains(fn ($payment) => $payment['method'] === 'credit')
+            && empty($validated['customer_id'])) {
+            throw new Exception('A customer is required when using credit payment.', 422);
+        }
+
+        return $branchId;
     }
 
     private function createSaleFromCart(array $validated, Collection $products, User $user, int|string|null $branchId): array
@@ -383,6 +357,43 @@ class PosService
             'total_amount' => round($subtotal + $taxAmount, 2),
             'subtotal' => round($subtotal, 2),
             'tax_amount' => round($taxAmount, 2),
+        ];
+    }
+
+    private function recordSalePayments(Sale $sale, array $payments, float $totalAmount): array
+    {
+        $totalPaid = array_sum(array_map(
+            static fn ($payment) => (float) ($payment['amount'] ?? 0),
+            $payments
+        ));
+
+        if (round($totalPaid, 2) < round($totalAmount, 2)) {
+            throw new Exception(sprintf(
+                'Payments total %.2f but the sale is %.2f. Short by %.2f.',
+                $totalPaid,
+                $totalAmount,
+                round($totalAmount - $totalPaid, 2)
+            ), 422);
+        }
+
+        $creditAmount = 0;
+        foreach ($payments as $payment) {
+            SalePayment::create([
+                'sale_id' => $sale->id,
+                'method' => $payment['method'],
+                'amount' => $payment['amount'],
+                'paymentStatus' => 'paid',
+            ]);
+
+            if ($payment['method'] === 'credit') {
+                $creditAmount += $payment['amount'];
+            }
+        }
+
+        return [
+            'total_paid' => $totalPaid,
+            'credit_amount' => $creditAmount,
+            'change_given' => max(0, $totalPaid - $totalAmount),
         ];
     }
 
