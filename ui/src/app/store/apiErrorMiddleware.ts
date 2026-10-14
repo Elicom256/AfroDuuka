@@ -24,9 +24,17 @@ import { formatApiError } from '@/app/utils/errorMessage';
  * which RTK Query does not provide.
  *
  * When the API sent a human `message` (the whole point of the error contract), that is
- * preferred over the status-based copy; the status copy only fills in for a transport
- * failure where there is no body to read. A 403 is no longer swallowed: a policy refusal
+ * preferred over the status-based copy. A 403 is no longer swallowed: a policy refusal
  * now says so instead of rendering nothing.
+ *
+ * Transport-level failures — an aborted request, a DNS/CORS failure, a proxy hiccup, an
+ * unparseable body — reach RTK Query as the string codes `FETCH_ERROR`,
+ * `PARSING_ERROR` and `TIMEOUT_ERROR`, not as HTTP statuses. They used to fall through
+ * to the status copy and render as "check your connection", which is how an ordinary
+ * dashboard navigation (a page's queries being re-issued and one of them hiccuping)
+ * produced an error toast the user could not act on. Those are not actionable, and a
+ * genuine outage is already covered by the page's own loading and error states, so the
+ * middleware stays quiet for anything that is not a numeric HTTP status.
  */
 export const apiErrorMiddleware: Middleware = () => (next) => (action) => {
   if (isRejectedWithValue(action)) {
@@ -34,10 +42,18 @@ export const apiErrorMiddleware: Middleware = () => (next) => (action) => {
     const status = payload?.status;
 
     // A 401 is a dead session, which authListener turns into a sign-out — a toast on top
-    // of the redirect is noise. Every other status gets a message.
-    if (status !== 401) {
-      toast.error(formatApiError(payload, requestFailureMessage(status)));
+    // of the redirect is noise.
+    if (status === 401) {
+      return next(action);
     }
+
+    // Anything that is not a numeric HTTP status is a transport-level failure (see the
+    // note above). Stay quiet rather than blaming the user's connection.
+    if (typeof status !== 'number') {
+      return next(action);
+    }
+
+    toast.error(formatApiError(payload, requestFailureMessage(status)));
   }
 
   return next(action);
@@ -48,14 +64,13 @@ export const apiErrorMiddleware: Middleware = () => (next) => (action) => {
  * only the endpoint's own arguments, which are usually an id rather than a path. Naming
  * an endpoint that does not match what failed would be worse than saying nothing.
  */
-const requestFailureMessage = (status: number | string | undefined): string => {
+const requestFailureMessage = (status: number): string => {
+  if (status === 400) return 'That request could not be understood. Try again.';
   if (status === 403) return "You don't have permission to do that.";
   if (status === 404) return `Not found. The record may have been removed.`;
   if (status === 422) return 'The server rejected that request. Check the values and try again.';
   if (status === 429) return 'Too many requests. Wait a moment and try again.';
-  if (typeof status === 'number' && status >= 500) {
-    return 'The server could not complete that request. Try again in a moment.';
-  }
+  if (status >= 500) return 'The server could not complete that request. Try again in a moment.';
 
   return 'That request failed. Check your connection and try again.';
 };
