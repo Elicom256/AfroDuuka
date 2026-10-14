@@ -44,6 +44,11 @@ class BusinessController extends Controller
                 'message' => 'Business created successfully',
                 'business' => $business,
                 'core_settings' => $settings,
+                // The onboarding screen lands on /verify-email right after this call
+                // and needs to name the address the link went to. It is the business
+                // email, which BusinessService falls back to the owner's.
+                'email_verified' => false,
+                'verification_email' => $business->email,
             ], 201);
         } catch (QueryException $e) {
             // Log the full SQL error for debugging check constraint violations (SQLSTATE 23514)

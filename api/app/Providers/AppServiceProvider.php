@@ -58,6 +58,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('webhook', function (Request $request) {
             return Limit::perMinute(30)->by($request->ip());
         });
+
+        // Verification resends. Keyed by the authenticated user, not the IP, because
+        // this is one account mailing one address — an office behind a single NAT
+        // would otherwise share a budget and lock each other out. The per-business
+        // cooldown in BusinessVerificationMailService is the second, slower floor.
+        RateLimiter::for('verification', function (Request $request) {
+            return Limit::perHour(6)->by($request->user()?->id ?: $request->ip());
+        });
     }
 
     /**
