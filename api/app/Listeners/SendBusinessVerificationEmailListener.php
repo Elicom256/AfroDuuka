@@ -31,6 +31,13 @@ class SendBusinessVerificationEmailListener implements ShouldQueueAfterCommit
             return; // No email to send to
         }
 
-        $this->verificationService->send($business);
+        try {
+            $this->verificationService->send($business);
+        } catch (\Throwable $e) {
+            // Never let a delivery failure fail the job or, on a synchronous queue, the
+            // signup that triggered it — the tenant is committed by now, and the welcome
+            // mail is recoverable. Log it and move on.
+            report($e);
+        }
     }
 }
