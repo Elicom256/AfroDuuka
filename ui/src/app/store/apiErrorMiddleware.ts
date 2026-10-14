@@ -2,7 +2,7 @@ import type { Middleware } from '@reduxjs/toolkit';
 import { isRejectedWithValue } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 
-import { describeApiError } from '@/app/utils/errorMessage';
+import { formatApiError } from '@/app/utils/errorMessage';
 
 /**
  * Surfaces request failures that nothing handled.
@@ -36,7 +36,7 @@ export const apiErrorMiddleware: Middleware = () => (next) => (action) => {
     // A 401 is a dead session, which authListener turns into a sign-out — a toast on top
     // of the redirect is noise. Every other status gets a message.
     if (status !== 401) {
-      toast.error(describeApiError(payload, requestFailureMessage(status)).message);
+      toast.error(formatApiError(payload, requestFailureMessage(status)));
     }
   }
 

@@ -19,7 +19,7 @@ import { BranchSetup } from './onboarding/BranchSetup';
 import { Preview } from './onboarding/Preview';
 import { clearDraft, readDraft, writeDraft } from './onboarding/draft';
 import { validateStep, type OnboardingDraft, type StepErrors } from './onboarding/types';
-import { describeApiError, firstFieldError } from '@/app/utils/errorMessage';
+import { formatApiError, firstFieldError } from '@/app/utils/errorMessage';
 
 const STEPS: StepperStep[] = [
   { label: 'Account' },
@@ -196,15 +196,15 @@ export const Onboarding: React.FC = () => {
       // letting the owner press Save again into a duplicate-email 422.
       if (draft.accountCreated) {
         toast.error(
-          describeApiError(
+          formatApiError(
             error,
-            'Your account was created but the business could not be saved. Press Save to try again.',
-          ).message
+            'Your account was created but the business could not be saved. Press Save to try again.'
+          )
         );
         return;
       }
 
-      toast.error(describeApiError(error).message);
+      toast.error(formatApiError(error));
     }
   };
 

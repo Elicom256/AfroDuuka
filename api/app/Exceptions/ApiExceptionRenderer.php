@@ -118,6 +118,7 @@ final class ApiExceptionRenderer
             500,
             'Something went wrong on our side. Please try again.',
             'server_error',
+            self::debugContext($e),
         );
     }
 
@@ -146,6 +147,7 @@ final class ApiExceptionRenderer
                 500,
                 'Something went wrong on our side. Please try again.',
                 'server_error',
+                self::debugContext($e),
             );
         }
 
@@ -267,6 +269,32 @@ final class ApiExceptionRenderer
             429 => 'too_many_requests',
             default => $status >= 500 ? 'server_error' : 'http_error',
         };
+    }
+
+    /**
+     * The real exception, attached only when the app is in debug mode.
+     *
+     * "Something went wrong on our side" is the right thing to show a customer, but it
+     * is useless to whoever is trying to fix the request: the correlation id points at a
+     * log line, not at the cause. In debug the response therefore carries the exception
+     * class and message so the failure is visible in the network tab, while production
+     * keeps the sanitised payload — the previous behaviour hid a Resend transport error
+     * behind a generic 500 for both audiences.
+     *
+     * @return array<string,mixed>
+     */
+    private static function debugContext(Throwable $e): array
+    {
+        if (! config('app.debug')) {
+            return [];
+        }
+
+        return [
+            'debug' => [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ],
+        ];
     }
 
     /**

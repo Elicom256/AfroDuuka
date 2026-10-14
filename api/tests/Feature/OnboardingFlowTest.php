@@ -2,13 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Listeners\SendBusinessVerificationEmailListener;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\BusinessCategory;
 use App\Models\Country;
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -354,5 +358,39 @@ class OnboardingFlowTest extends TestCase
         ], $token)->assertStatus(200);
 
         $this->assertSame('https://cdn.example.com/amina.png', $this->createdBusiness()->logo);
+    }
+
+    /**
+     * A mail failure must never cost the owner their business.
+     *
+     * The verification email used to be sent inline inside create()'s transaction, so a
+     * Resend transport error (the account in testing mode rejects every recipient but its
+     * own) rolled the whole onboarding back and the owner saw the generic 500. The
+     * listener is queued after commit now, so the request never touches the mailer.
+     *
+     * Pinned at the class level as well as by behaviour: the queue assertions below only
+     * hold while the listener implements ShouldQueue — the moment it stops, it runs
+     * inline again and this test fails.
+     */
+    public function test_sending_the_verification_email_cannot_fail_business_creation(): void
+    {
+        Queue::fake();
+
+        $token = $this->onboardedUpToBusiness();
+
+        $this->api('post', '/api/dashboard/business', $this->businessPayload())->assertStatus(201, $token);
+
+        $this->assertNotNull($this->createdBusiness(), 'the tenant was written despite the mail path');
+
+        Queue::assertPushed(CallQueuedListener::class, function (CallQueuedListener $job) {
+            return $job->class === SendBusinessVerificationEmailListener::class;
+        });
+    }
+
+    public function test_the_verification_email_listener_runs_after_the_registration_commits(): void
+    {
+        // after-commit, not just queued: a worker that picks the job up before the
+        // transaction commits finds no business and drops the email.
+        $this->assertInstanceOf(ShouldQueueAfterCommit::class, app(SendBusinessVerificationEmailListener::class));
     }
 }

@@ -19,6 +19,12 @@ export type ApiErrorInfo = {
   fieldErrors: Record<string, string[]>;
   /** Correlation id a user can quote to support. */
   requestId?: string;
+  /**
+   * The real exception, when the API ran with APP_DEBUG. Absent in production, so a
+   * dev build can show the underlying cause (e.g. a mail transport failure) while
+   * customers keep the sanitised copy.
+   */
+  debug?: string;
 };
 
 const DEFAULT_FALLBACK = 'Something went wrong. Please try again.';
@@ -39,6 +45,31 @@ const normaliseFieldErrors = (value: unknown): Record<string, string[]> => {
       Array.isArray(messages) ? messages.map(String) : [String(messages)],
     ]),
   );
+};
+
+/**
+ * The API sends `debug` as an object (`{ exception, message }`) in debug mode. A
+ * plain string is also accepted so an older/newer shape never throws here.
+ */
+const readDebug = (value: unknown): string | undefined => {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  const record = asRecord(value);
+
+  if (!record) {
+    return undefined;
+  }
+
+  const message = typeof record.message === 'string' ? record.message : '';
+  const exception = typeof record.exception === 'string' ? record.exception : '';
+
+  if (message === '') {
+    return undefined;
+  }
+
+  return exception !== '' ? `[${exception}] ${message}` : message;
 };
 
 export const describeApiError = (error: unknown, fallback: string = DEFAULT_FALLBACK): ApiErrorInfo => {
@@ -63,7 +94,25 @@ export const describeApiError = (error: unknown, fallback: string = DEFAULT_FALL
     status: Number.isFinite(status) ? status : undefined,
     fieldErrors: normaliseFieldErrors(data?.errors),
     requestId,
+    debug: readDebug(data?.debug),
   };
+};
+
+/**
+ * The sentence to show a person for a failed request.
+ *
+ * Identical to `describeApiError(error).message` in production, but it also:
+ *  - prefers the real exception when the API exposed one (debug), and
+ *  - appends the correlation id so a user can quote it and support can find the log.
+ *
+ * This is what makes a 500 that only says "Something went wrong" traceable, instead of
+ * a dead end for everyone who reads it.
+ */
+export const formatApiError = (error: unknown, fallback: string = DEFAULT_FALLBACK): string => {
+  const info = describeApiError(error, fallback);
+  const sentence = info.debug ?? info.message;
+
+  return info.requestId ? `${sentence} (ref: ${info.requestId})` : sentence;
 };
 
 /**
