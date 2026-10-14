@@ -7,6 +7,7 @@ import {
   useRegisterMutation,
 } from '@/app/store/features/auth/authQuery';
 import {
+  normalizeBusinessCategories,
   useCreateBusinessMutation,
   useGetPublicBusinessCategoriesQuery,
 } from '@/app/store/features/business/setup/onboardingQuery';
@@ -62,12 +63,7 @@ export const Onboarding: React.FC = () => {
   }, [draft]);
 
   const countries = useMemo(() => countriesData?.data ?? [], [countriesData]);
-  const categoriesList = useMemo(() => {
-    if (Array.isArray(categories)) return categories;
-    const wrapped = categories as { data?: unknown } | undefined;
-    if (Array.isArray(wrapped?.data)) return wrapped.data as any;
-    return [];
-  }, [categories]);
+  const categoriesList = useMemo(() => normalizeBusinessCategories(categories), [categories]);
   const names = useMemo(
     () => ({
       country: countries.find((c) => String(c.id) === draft.business.country_id)?.name ?? '',

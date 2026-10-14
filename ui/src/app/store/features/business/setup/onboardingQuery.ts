@@ -16,6 +16,28 @@ export interface BusinessCategory {
   description?: string | null;
 }
 
+/**
+ * Reduce any category payload to a plain array.
+ *
+ * `BusinessCategoryController@index` answers with the collection bare — a JSON
+ * array, not `{ data: [...] }` like the country endpoint. The bug this guards was a
+ * consumer reading `.data` off that bare array, which is `undefined`: no error, just
+ * a silently empty dropdown. The controller returns the same shape for both the
+ * public `/business-categories` route and the dashboard one, so every consumer goes
+ * through here and no future reader has to guess the wrapping.
+ */
+export const normalizeBusinessCategories = (payload: unknown): BusinessCategory[] => {
+  if (Array.isArray(payload)) return payload as BusinessCategory[];
+
+  if (payload && typeof payload === 'object') {
+    const wrapped = payload as { data?: unknown; categories?: unknown };
+    if (Array.isArray(wrapped.data)) return wrapped.data as BusinessCategory[];
+    if (Array.isArray(wrapped.categories)) return wrapped.categories as BusinessCategory[];
+  }
+
+  return [];
+};
+
 export interface CreateBusinessBranch {
   name: string;
   address?: string;

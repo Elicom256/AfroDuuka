@@ -9,7 +9,7 @@
 renderenv.md
 
 # Laravel bootstrap cache (contains serialized env values). The API lives in a
-# subdirectory, so the pattern has to reach into it — a bare `bootstrap/cache/*.php`
+# subdirectory, so the pattern must reach into it — a bare `bootstrap/cache/*.php`
 # only matched the repository root and never ignored api/bootstrap/cache.
 **/bootstrap/cache/*.php
 
