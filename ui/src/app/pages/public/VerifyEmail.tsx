@@ -74,7 +74,7 @@ export const VerifyEmail: React.FC = () => {
 
   const stateEmail = (location.state as { email?: string } | null)?.email;
   const email =
-    stateEmail ?? readVerificationEmail() ?? session?.data?.business?.email ?? null;
+    stateEmail || readVerificationEmail() || session?.data?.business?.email || null;
 
   const handleResend = async () => {
     try {

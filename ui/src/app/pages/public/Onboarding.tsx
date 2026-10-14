@@ -21,6 +21,7 @@ import { Preview } from './onboarding/Preview';
 import { clearDraft, readDraft, writeDraft } from './onboarding/draft';
 import { validateStep, type OnboardingDraft, type StepErrors } from './onboarding/types';
 import { formatApiError, firstFieldError } from '@/app/utils/errorMessage';
+import { rememberVerificationEmail } from '@/lib/verification';
 
 const STEPS: StepperStep[] = [
   { label: 'Account' },
@@ -172,12 +173,27 @@ export const Onboarding: React.FC = () => {
       }).unwrap();
 
       clearDraft();
-      toast.success('Welcome to DuukaFlow! Your 30-day free trial has started.');
+
+      // The business email is optional on the form, so the verification link goes to
+      // the owner's address when they left it blank — the same fallback BusinessService
+      // applies. Remembering it here is what lets the next screen name the address
+      // before `me` answers. On the signed-in finish-onboarding path neither field is
+      // typed, so nothing is stored and /verify-email reads the address off `me`.
+      const verificationEmail = draft.business.email.trim() || draft.account.email.trim();
+      if (verificationEmail) rememberVerificationEmail(verificationEmail);
+
+      toast.success(
+        verificationEmail
+          ? `We sent a verification email to ${verificationEmail}.`
+          : 'Your business is ready. Check your email to verify your account.'
+      );
 
       // A full navigation, not a client-side one: the role tree is chosen from the
       // freshly-created tenant and every cached query in the store was fetched without
-      // it. This is the same reason logout reloads the page.
-      return (window.location.href = '/dashboard');
+      // it. The destination is the check-inbox screen, not the dashboard — the owner
+      // has to be told to open the email before the app pretends they are done. This
+      // is the same reason logout reloads the page.
+      return (window.location.href = '/verify-email');
     } catch (error) {
       submittedRef.current = false;
 
