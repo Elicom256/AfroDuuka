@@ -9,9 +9,9 @@ describe('isPublicPath', () => {
   });
 
   it('rejects protected paths', () => {
-    // /login, /signup and /onboarding are intentionally on the public list: each
-    // renders its own signed-out form, and a stale token must never be able to hide
-    // the login screen — that is the lockout this whole change set exists to remove.
+    // /login and /onboarding are intentionally on the public list: each renders its
+    // own signed-out form, and a stale token must never be able to hide the login
+    // screen — that is the lockout this whole change set exists to remove.
     expect(isPublicPath('/dashboard')).toBe(false);
     expect(isPublicPath('/dashboard/orders')).toBe(false);
     expect(isPublicPath('/settings')).toBe(false);
@@ -61,7 +61,7 @@ describe('isDashboardPath', () => {
     expect(isDashboardPath('/')).toBe(false);
     expect(isDashboardPath('/pricing')).toBe(false);
     expect(isDashboardPath('/login')).toBe(false);
-    expect(isDashboardPath('/signup')).toBe(false);
+    expect(isDashboardPath('/onboarding')).toBe(false);
   });
 });
 
@@ -81,9 +81,10 @@ describe('PUBLIC_NAV_LINKS', () => {
   });
 
   it('covers every public marketing page that exists', () => {
-    // /login and /signup are deliberately absent: they are actions, not places you
-    // navigate to read, and NavBar renders them as buttons. The rest of PUBLIC_PATHS
-    // is either a marketing page reachable from the nav or a route the nav must not
+    // /login is deliberately absent: it is an action, not a place you navigate to read,
+    // and NavBar renders it as a button. /onboarding is absent too because it is where
+    // the sign-up CTAs point rather than a marketing page. The rest of PUBLIC_PATHS is
+    // either a marketing page reachable from the nav or a route the nav must not
     // advertise (/terms, /privacy), which is why only a subset is asserted here.
     const targets = PUBLIC_NAV_LINKS.map((link) => link.to);
     expect(targets).toEqual(['/', '/pricing', '/about', '/documentation']);

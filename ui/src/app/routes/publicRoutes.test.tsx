@@ -51,9 +51,9 @@ const requestUrl = (input: RequestInfo | URL): string => {
 
 /**
  * `meStatus` controls only the /users/me response. Everything else gets a shape the
- * public pages can actually mount with: SignUp maps over `countries`, so a bare `{}`
- * there crashes the render and the test would fail for a reason that has nothing to do
- * with routing.
+ * public pages can actually mount with: the onboarding form maps over `countries`, so a
+ * bare `{}` there crashes the render and the test would fail for a reason that has
+ * nothing to do with routing.
  */
 const stubFetch = (meStatus: number) => {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
@@ -151,7 +151,7 @@ describe('public routes with no token', () => {
     // down, which is what put a loader on the marketing homepage.
     //
     // Asserted as "no /users/me" rather than "no requests at all": /pricing legitimately
-    // loads plans and /signup loads countries, and those must still work for a
+    // loads plans and /onboarding loads countries, and those must still work for a
     // signed-out visitor. What must never happen is the auth call.
     const fetchMock = stubFetch(200);
 
@@ -409,9 +409,9 @@ describe('isPublicPath', () => {
       expect(isPublicPath(path)).toBe(true);
     }
 
-    // /login, /signup and /onboarding are on the public list on purpose: each renders
-    // its own signed-out form rather than bouncing, and a dead token must not be able
-    // to hide the login screen — that is how someone got locked out before.
+    // /login and /onboarding are on the public list on purpose: each renders its own
+    // signed-out form rather than bouncing, and a dead token must not be able to hide
+    // the login screen — that is how someone got locked out before.
     expect(isPublicPath('/dashboard')).toBe(false);
     expect(isPublicPath('/dashboard/orders')).toBe(false);
     expect(isPublicPath('/settings')).toBe(false);
