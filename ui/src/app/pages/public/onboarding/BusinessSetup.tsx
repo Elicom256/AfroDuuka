@@ -27,7 +27,10 @@ import {
 } from '@/components/ui/select';
 import { useCountriesQuery } from '@/app/store/features/countries/countriesQuery';
 import { cn } from '@/lib/utils';
-import { useGetPublicBusinessCategoriesQuery } from '@/app/store/features/business/setup/onboardingQuery';
+import {
+  normalizeBusinessCategories,
+  useGetPublicBusinessCategoriesQuery,
+} from '@/app/store/features/business/setup/onboardingQuery';
 import type { BusinessCategory } from '@/app/store/features/business/setup/onboardingQuery';
 import type { BusinessData, StepErrors } from './types';
 
@@ -55,13 +58,7 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
 
   const countries = useMemo(() => countriesData?.data ?? [], [countriesData]);
   const selectedCountry = useMemo(() => countries.find((c) => String(c.id) === data.country_id), [countries, data.country_id]);
-  const categories = useMemo(() => {
-    if (Array.isArray(categoryData)) return categoryData;
-    const wrapped = categoryData as { data?: unknown; categories?: unknown } | undefined;
-    if (Array.isArray(wrapped?.data)) return (wrapped.data as BusinessCategory[]) ?? [];
-    if (Array.isArray(wrapped?.categories)) return (wrapped.categories as BusinessCategory[]) ?? [];
-    return [];
-  }, [categoryData]);
+  const categories = useMemo(() => normalizeBusinessCategories(categoryData), [categoryData]);
 
   // ~250 countries behind a dropdown nobody can scroll usefully through. Filtering as
   // they type is the difference between finding Uganda and giving up.

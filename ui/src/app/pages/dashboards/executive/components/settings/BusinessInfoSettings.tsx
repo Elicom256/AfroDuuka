@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetBusinessQuery, useUpdateBusinessMutation, useGetBusinessCategoriesQuery } from '@/app/store/features/business/setup/businessQuery';
+import { normalizeBusinessCategories } from '@/app/store/features/business/setup/onboardingQuery';
 import { toast } from 'sonner';
 import { Building2, Save } from 'lucide-react';
 
@@ -14,9 +15,10 @@ export const BusinessInfoSettings = () => {
   const { data: catsData } = useGetBusinessCategoriesQuery();
   const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
   const business = data?.data;
-  // GET /dashboard/business-categories returns the collection bare, not under a `data`
-  // key. Reading `.data` here yielded undefined and left the dropdown permanently empty.
-  const categories = catsData ?? [];
+  // /dashboard/business-categories is served by the same controller as the public
+  // route: the collection comes back bare, not under a `data` key. The shared
+  // normalizer tolerates either shape so reading the wrong one cannot empty the dropdown.
+  const categories = normalizeBusinessCategories(catsData);
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', logo: '', business_category_id: '' });
 
