@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
 use App\Mail\BusinessVerification;
 use App\Models\Business;
 use App\Models\BusinessCategory;
@@ -320,5 +321,23 @@ class EmailVerificationTest extends TestCase
                 'message',
                 'We could not send the verification email right now. Please try again in a moment.'
             );
+    }
+
+    public function test_a_mail_failure_never_fails_the_signup_listener(): void
+    {
+        // The welcome mail is queued after commit, so a delivery failure must not reach
+        // the worker as a failed job — or, on a synchronous queue, fail the signup that
+        // triggered it. The tenant is committed by then; the mail is recoverable.
+        $this->mock(BusinessVerificationMailService::class, function ($mock) {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andThrow(new TransportException('Request to the Resend API failed.'));
+        });
+
+        $business = $this->business();
+
+        event(new BusinessRegistered($business));
+
+        $this->assertDatabaseHas('businesses', ['id' => $business->id]);
     }
 }
