@@ -74,7 +74,20 @@ class EmailVerificationController extends Controller
         // cooldown lets a caller time when the last mail was sent, and there is nothing
         // to gain by telling a legitimate user "wait 40 seconds" that the client's own
         // countdown does not already cover.
-        $this->verificationService->resend($business);
+        //
+        // A mail problem must never surface as a 500 or a debug trace. The owner asked
+        // for a link and the link is recoverable, so a delivery failure — the transport
+        // refusing, a bad credential, a down SMTP — is logged and answered in plain words
+        // instead. The signup path relies on the same guarantee.
+        try {
+            $this->verificationService->resend($business);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'We could not send the verification email right now. Please try again in a moment.',
+            ], 502);
+        }
 
         return response()->json([
             'message' => 'Verification email sent',

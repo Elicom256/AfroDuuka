@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\WhatsAppNotificationEvents\BusinessRegistered;
 use App\Mail\BusinessVerification;
 use App\Models\Business;
 use App\Models\BusinessCategory;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\Sanctum;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Tests\TestCase;
 
 /**
@@ -294,5 +296,48 @@ class EmailVerificationTest extends TestCase
         }
 
         $this->postJson('/api/verify-email/resend')->assertStatus(429);
+    }
+
+    public function test_resend_returns_a_clean_error_when_the_mailer_fails(): void
+    {
+        $business = $this->business();
+        $user = $this->owner($business);
+        $this->clearResendLimiter($user);
+
+        // A transport refusal (Resend's testing mode, a bad credential, a down SMTP) is
+        // a delivery problem, not a broken request — the owner asked for a link and the
+        // link is recoverable, so it must fail in plain words, never as a 500 or a trace.
+        $this->mock(BusinessVerificationMailService::class, function ($mock) {
+            $mock->shouldReceive('resend')
+                ->once()
+                ->andThrow(new TransportException('Request to the Resend API failed.'));
+        });
+
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/verify-email/resend')
+            ->assertStatus(502)
+            ->assertJsonPath(
+                'message',
+                'We could not send the verification email right now. Please try again in a moment.'
+            );
+    }
+
+    public function test_a_mail_failure_never_fails_the_signup_listener(): void
+    {
+        // The welcome mail is queued after commit, so a delivery failure must not reach
+        // the worker as a failed job — or, on a synchronous queue, fail the signup that
+        // triggered it. The tenant is committed by then; the mail is recoverable.
+        $this->mock(BusinessVerificationMailService::class, function ($mock) {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andThrow(new TransportException('Request to the Resend API failed.'));
+        });
+
+        $business = $this->business();
+
+        event(new BusinessRegistered($business));
+
+        $this->assertDatabaseHas('businesses', ['id' => $business->id]);
     }
 }
