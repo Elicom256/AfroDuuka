@@ -1,4 +1,13 @@
-import { Building2, Globe, Mail, MapPin, Phone } from 'lucide-react';
+import {
+  Building2,
+  Check,
+  ChevronsUpDown,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
+  Search,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import {
@@ -109,6 +117,11 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
               <SelectValue placeholder={isLoadingCategories ? 'Loading categories…' : 'Select your business category'} />
             </SelectTrigger>
             <SelectContent>
+              {categories.length === 0 && !isLoadingCategories && (
+                <div className='px-2 py-3 text-center text-sm text-muted-foreground'>
+                  No categories available.
+                </div>
+              )}
               {categories.map((category: BusinessCategory) => (
                 <SelectItem key={category.id} value={String(category.id)}>
                   {category.name}
@@ -131,12 +144,11 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
                 id='business_country'
                 aria-invalid={Boolean(errors.country_id)}
                 className={cn(
-                  'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50',
-                  'dark:bg-input/30'
+                  'flex h-8 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-1 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:hover:bg-input/50'
                 )}
               >
                 {selectedCountry ? (
-                  <span className='flex items-center gap-2 truncate'>
+                  <span className='flex min-w-0 items-center gap-1.5 truncate'>
                     <span aria-hidden>{selectedCountry.flag_emoji}</span>
                     <span className='truncate'>{selectedCountry.name}</span>
                     {selectedCountry.currency_code && (
@@ -151,18 +163,24 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
                 <ChevronsUpDown className='size-4 shrink-0 text-muted-foreground' />
               </button>
             </PopoverTrigger>
-            <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
-              <div className='border-b p-2'>
-                <Input
+            <PopoverContent className='w-[var(--radix-popover-trigger-width)] overflow-hidden p-0' align='start'>
+              <div className='flex items-center gap-2 border-b px-2.5'>
+                <Search className='size-4 shrink-0 text-muted-foreground' aria-hidden />
+                <input
                   value={countryQuery}
                   onChange={(e) => setCountryQuery(e.target.value)}
-                  placeholder='Search country, ISO code or currency…'
-                  className='h-8'
+                  placeholder='Search by country, code or currency…'
+                  className='h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground'
+                  aria-label='Search countries'
                   autoFocus
                 />
               </div>
-              <div className='max-h-60 overflow-y-auto p-1'>
-                {filteredCountries.length === 0 ? (
+              <div className='max-h-64 overflow-y-auto p-1' role='listbox' aria-label='Countries'>
+                {isLoadingCountries ? (
+                  <div className='px-3 py-6 text-center text-sm text-muted-foreground'>
+                    Loading countries…
+                  </div>
+                ) : filteredCountries.length === 0 ? (
                   <div className='px-3 py-6 text-center text-sm text-muted-foreground'>
                     No country matches “{countryQuery}”
                   </div>
@@ -173,13 +191,15 @@ export const BusinessSetup: React.FC<BusinessSetupProps> = ({ data, errors, onCh
                       <button
                         key={country.id}
                         type='button'
+                        role='option'
+                        aria-selected={selected}
                         onClick={() => {
                           set('country_id', String(country.id));
                           setIsCountryOpen(false);
                           setCountryQuery('');
                         }}
                         className={cn(
-                          'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+                          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
                           selected && 'bg-accent text-accent-foreground'
                         )}
                       >
