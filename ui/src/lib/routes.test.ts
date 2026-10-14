@@ -38,6 +38,14 @@ describe('isPublicPath', () => {
     expect(isPublicPath('/pricing?plan=pro')).toBe(true);
     expect(isPublicPath('/documentation#install')).toBe(true);
   });
+
+  it('treats the token-driven verification page as public', () => {
+    // The emailed link is opened on whatever device has the inbox, often signed out, so
+    // this page cannot require a session — a dead or missing token must not bounce the
+    // visitor to /login before they can see why their link failed.
+    expect(isPublicPath('/verify-email')).toBe(true);
+    expect(PUBLIC_PATHS).toContain('/verify-email');
+  });
 });
 
 describe('isDashboardPath', () => {

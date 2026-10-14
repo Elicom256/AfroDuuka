@@ -5,5 +5,4 @@
 - Re-test the business category selector in the live UI; API returns seeded categories, but selector was still seen empty
 - Re-test the new country popover selector on narrow mobile screens and with a long search query
 - Confirm `/signup` no longer renders the old `SignUp.tsx` page and now lands on `/onboarding`
-- Implement and test the frontend `/verify-email` route used by the email verification link
 - Verify Resend email works beyond the free-tier test address after domain verification
