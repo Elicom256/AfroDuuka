@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { OperationsSidebar } from './OperationsSidebar';
+import { VerifyEmailBanner } from '@/app/components/VerifyEmailBanner';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const OperationsLayout = () => {
@@ -35,6 +36,8 @@ export const OperationsLayout = () => {
           </Sheet>
         </div>
       </div>
+
+      <VerifyEmailBanner />
 
       <div className='md:grid md:grid-cols-[280px_minmax(0,1fr)]'>
         <aside className='hidden border-r border-border/70 bg-muted/50 p-6 md:flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-hidden'>

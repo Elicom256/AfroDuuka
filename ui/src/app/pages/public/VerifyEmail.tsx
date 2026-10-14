@@ -14,15 +14,8 @@ import { getToken } from '@/lib/session';
 import {
   clearVerificationEmail,
   readVerificationEmail,
+  RESEND_COOLDOWN_SECONDS,
 } from '@/lib/verification';
-
-/**
- * How long the resend button stays disabled after a send.
- *
- * Matches the API's per-business cooldown, so the button and the server agree and a
- * double-click cannot produce a "sent" toast followed by a silently dropped mail.
- */
-const RESEND_COOLDOWN_SECONDS = 60;
 
 /**
  * The page the verification email links to, and the page onboarding hands off to.

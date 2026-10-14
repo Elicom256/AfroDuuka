@@ -10,6 +10,15 @@
  */
 const STORAGE_KEY = 'duukaflow:pending-verification-email';
 
+/**
+ * How long the resend affordance stays disabled after a send.
+ *
+ * Matches the API's per-business cooldown, so the UI and the server agree and a
+ * double-click cannot produce a "sent" toast followed by a silently dropped mail.
+ * Shared here so the check-inbox page and the dashboard banner cannot drift apart.
+ */
+export const RESEND_COOLDOWN_SECONDS = 60;
+
 export const rememberVerificationEmail = (email: string): void => {
   try {
     sessionStorage.setItem(STORAGE_KEY, email);

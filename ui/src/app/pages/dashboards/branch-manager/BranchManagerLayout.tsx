@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { BranchManagerSidebar } from './BranchManagerSidebar';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { DashboardTopBar } from '../shared/DashboardTopBar';
+import { VerifyEmailBanner } from '@/app/components/VerifyEmailBanner';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 
 export const BranchManagerLayout = () => {
@@ -15,6 +16,7 @@ export const BranchManagerLayout = () => {
     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <div className='min-h-screen bg-background text-foreground'>
         <DashboardTopBar role={role} userData={data} onMenuClick={() => setSidebarOpen(true)} />
+        <VerifyEmailBanner />
         <SheetContent side='left' className='max-w-xs p-0'>
           <SheetHeader className='sr-only'>
             <SheetTitle>Navigation</SheetTitle>
