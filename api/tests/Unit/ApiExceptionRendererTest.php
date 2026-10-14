@@ -163,4 +163,45 @@ class ApiExceptionRendererTest extends TestCase
         $this->assertSame('server_error', $body['code']);
         $this->assertSame('Something went wrong on our side. Please try again.', $body['message']);
     }
+
+    /**
+     * A generic 500 is useless to whoever has to fix it. The correlation id points at a
+     * log line, not at the cause — so in debug the payload carries the real exception
+     * while the customer-facing `message` stays sanitised.
+     */
+    public function test_debug_detail_is_attached_only_when_app_debug_is_on(): void
+    {
+        config()->set('app.debug', false);
+
+        $production = $this->body(ApiExceptionRenderer::render(
+            new RuntimeException('Resend transport failed'),
+            $this->apiRequest(),
+        ));
+
+        $this->assertArrayNotHasKey('debug', $production);
+        $this->assertSame('Something went wrong on our side. Please try again.', $production['message']);
+
+        config()->set('app.debug', true);
+
+        $debug = $this->body(ApiExceptionRenderer::render(
+            new RuntimeException('Resend transport failed'),
+            $this->apiRequest(),
+        ));
+
+        $this->assertSame(RuntimeException::class, $debug['debug']['exception']);
+        $this->assertSame('Resend transport failed', $debug['debug']['message']);
+        // Even in debug the human sentence is unchanged; the detail rides alongside it.
+        $this->assertSame('Something went wrong on our side. Please try again.', $debug['message']);
+    }
+
+    public function test_an_unrecognised_sqlstate_exposes_debug_detail_in_debug_mode_but_not_the_driver_text(): void
+    {
+        config()->set('app.debug', true);
+
+        $body = $this->body(ApiExceptionRenderer::render($this->queryException('42601'), $this->apiRequest()));
+
+        $this->assertSame(QueryException::class, $body['debug']['exception']);
+        $this->assertStringNotContainsString('driver detail', $body['message']);
+        $this->assertSame('Something went wrong on our side. Please try again.', $body['message']);
+    }
 }

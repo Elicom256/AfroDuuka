@@ -48,6 +48,14 @@ class RequireBusiness
         'api/users',
         'api/notifications/unread-count',
         'api/notifications',
+
+        // The onboarding form cannot render without these. They are global,
+        // read-only reference data (the country and business-category lists), so
+        // there is nothing tenant-scoped to protect, and withholding them is what
+        // left a signed-in, not-yet-onboarded user staring at two empty dropdowns
+        // with a 403 in the console.
+        'api/countries',
+        'api/business-categories',
     ];
 
     public function handle(Request $request, Closure $next): Response

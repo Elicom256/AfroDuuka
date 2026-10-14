@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeApiError, firstFieldError, serverMessage } from './errorMessage';
+import { describeApiError, firstFieldError, formatApiError, serverMessage } from './errorMessage';
 
 describe('describeApiError', () => {
   it('reads the envelope the API error contract sends', () => {
@@ -48,5 +48,51 @@ describe('describeApiError', () => {
     expect(firstFieldError(error)).toBe('first problem');
     expect(serverMessage(error, 'fallback')).toBe('Invalid.');
     expect(serverMessage({ error: 'boom' }, 'fallback')).toBe('fallback');
+  });
+
+  it('reads the debug exception the API attaches in debug mode', () => {
+    const info = describeApiError({
+      status: 500,
+      data: {
+        message: 'Something went wrong on our side. Please try again.',
+        code: 'server_error',
+        request_id: '01J8ZZZZZZZZZZZZZZZZZZZZZZ',
+        debug: {
+          exception: 'Symfony\\Component\\Mailer\\Exception\\TransportException',
+          message: 'Request to the Resend API failed.',
+        },
+      },
+    });
+
+    expect(info.debug).toBe(
+      '[Symfony\\Component\\Mailer\\Exception\\TransportException] Request to the Resend API failed.'
+    );
+  });
+
+  it('has no debug detail in a production-shaped payload', () => {
+    expect(describeApiError({ status: 500, data: { message: 'Oops.', code: 'server_error' } }).debug).toBeUndefined();
+  });
+});
+
+describe('formatApiError', () => {
+  it('prefers the real exception and appends the correlation id', () => {
+    expect(
+      formatApiError({
+        status: 500,
+        data: { message: 'Something went wrong.', request_id: 'abc', debug: { exception: 'X', message: 'boom' } },
+      })
+    ).toBe('[X] boom (ref: abc)');
+  });
+
+  it('keeps the human message and still appends the correlation id', () => {
+    expect(formatApiError({ status: 500, data: { message: 'Oops.', request_id: 'abc' } })).toBe(
+      'Oops. (ref: abc)'
+    );
+  });
+
+  it('uses the fallback when there is no body, without a dangling ref', () => {
+    expect(formatApiError({ status: 'FETCH_ERROR' }, 'Could not reach the server.')).toBe(
+      'Could not reach the server.'
+    );
   });
 });
