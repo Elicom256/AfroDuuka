@@ -31,7 +31,7 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 ## 2. Email Delivery — Resend (Free Tier → SES Migration)
 
-**What:** Document-shaped communication: PDF receipts, monthly reports, subscription invoices, password resets, login alerts, compliance records.
+**What:** Document-shaped communication: account verification emails, PDF receipts, monthly reports, subscription invoices, password resets, login alerts, and compliance records.
 
 **Why:** **Must work before WhatsApp** — email is the fallback for all notification types, carries attachments/tables (PDF receipts, reports), handles password resets (Laravel default), and provides audit trail. Resend free tier (3,000 emails/month) covers MVP; migrate to Amazon SES at scale for cost optimization.
 
@@ -41,6 +41,7 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 - SES migration: Swap mail driver, same Mailable classes, `SesMailChannel`
 - Channel strategy: Email for documents/summaries/attachments; WhatsApp for urgent nudges only
 - `notification_preferences` table for opt-in/opt-out, unsubscribe token
+- **Account verification** (signup → onboarding complete → verify): `BusinessRegistered` → `BusinessVerification` Mailable → `GET /api/verify-email` → business `active`. Full plan in `account.md`
 
 **When:** **Pre-launch (P0)** — receipts, reports, password resets, compliance, fallback for WhatsApp.
 
