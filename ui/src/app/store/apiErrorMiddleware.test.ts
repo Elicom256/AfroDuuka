@@ -17,8 +17,8 @@ import { apiErrorMiddleware } from './apiErrorMiddleware';
  * expose — so the trade-off is documented here rather than discovered in production.
  */
 
-/** The shape RTK Query dispatches for a request that failed with a status. */
-const rejected = (status: number, data: unknown = null) => ({
+/** The shape RTK Query dispatches for a request that failed with a status or a transport code. */
+const rejected = (status: number | string, data: unknown = null) => ({
   type: 'probeApi/executeQuery/rejected',
   payload: { status, data },
   error: { message: 'Request failed' },
@@ -65,6 +65,7 @@ describe('apiErrorMiddleware', () => {
 
   it('gives a plain-English reason for the common statuses', () => {
     const cases: [number, string][] = [
+      [400, 'could not be understood'],
       [404, 'Not found'],
       [422, 'rejected'],
       [429, 'Too many requests'],
@@ -102,6 +103,21 @@ describe('apiErrorMiddleware', () => {
     store().dispatch(rejected(401) as never);
 
     expect(error).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet on a transport failure, which is not actionable', () => {
+    // An aborted request, a proxy hiccup or an unparseable body all arrive as a string
+    // code rather than an HTTP status. None of them is something the user can act on,
+    // and they were what made a normal dashboard navigation flash "check your
+    // connection" — so each one is asserted rather than left to chance.
+    for (const code of ['FETCH_ERROR', 'PARSING_ERROR', 'TIMEOUT_ERROR']) {
+      const error = vi.spyOn(toast, 'error').mockImplementation(() => '');
+
+      store().dispatch(rejected(code) as never);
+
+      expect(error, code).not.toHaveBeenCalled();
+      error.mockRestore();
+    }
   });
 
   it('ignores ordinary actions', () => {
