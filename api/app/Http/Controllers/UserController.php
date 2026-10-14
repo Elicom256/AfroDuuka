@@ -78,6 +78,11 @@ class UserController extends Controller
             'data' => $user,
             'country' => $country ?? 'N/A',
             'onboarding' => $onboarding,
+            // The client shows a "verify your email" banner on every dashboard page
+            // until this flips. Null business (still onboarding) reports false so the
+            // banner cannot appear before there is anything to verify.
+            'email_verified' => (bool) $user->business?->isEmailVerified(),
+            'business_status' => $user->business?->status,
         ], 200);
     }
 

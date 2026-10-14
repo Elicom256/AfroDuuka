@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BusinessCategoryController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
@@ -66,10 +67,10 @@ Route::post('webhooks/ses', SesWebhookController::class)
 Route::get('business-categories', [BusinessCategoryController::class, 'index']);
 
 // Email verification (public, no auth required)
-Route::get('verify-email', [\App\Http\Controllers\EmailVerificationController::class, 'verify'])
+Route::get('verify-email', [EmailVerificationController::class, 'verify'])
     ->name('verification.verify');
-Route::post('verify-email/resend', [\App\Http\Controllers\EmailVerificationController::class, 'resend'])
-    ->middleware('auth:sanctum')
+Route::post('verify-email/resend', [EmailVerificationController::class, 'resend'])
+    ->middleware(['auth:sanctum', 'throttle:verification'])
     ->name('verification.resend');
 
 Route::middleware('throttle:api')->group(function () {

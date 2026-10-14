@@ -14,7 +14,13 @@ class Business extends Model
 
     protected $fillable = [
         'name', 'email', 'phone', 'address', 'business_category_id', 'country_id', 'timezone', 'status', 'subscription_balance', 'logo',
-        'email_verified_at', 'email_verification_token',
+        'email_verified_at', 'email_verification_token', 'email_verification_expires_at', 'email_verification_sent_at',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'email_verification_expires_at' => 'datetime',
+        'email_verification_sent_at' => 'datetime',
     ];
 
     public function users(): HasMany

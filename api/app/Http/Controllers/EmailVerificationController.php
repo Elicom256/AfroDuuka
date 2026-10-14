@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Services\Mail\BusinessVerificationMailService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class EmailVerificationController extends Controller
 {
@@ -40,9 +40,12 @@ class EmailVerificationController extends Controller
             ], 200);
         }
 
-        // Browser client: redirect to frontend onboarding/success page
+        // Browser client: redirect to the frontend verification page. It was
+        // /onboarding?verified=1, a screen that only exists once and is not where a
+        // person clicking a link from their inbox belongs — and the route the SPA
+        // actually renders for this is /verify-email.
         $frontendUrl = config('app.frontend_url', config('app.url'));
-        $redirectUrl = $frontendUrl . '/onboarding?verified=1';
+        $redirectUrl = $frontendUrl.'/verify-email?verified=1';
 
         return redirect($redirectUrl);
     }
@@ -66,6 +69,11 @@ class EmailVerificationController extends Controller
             ], 200);
         }
 
+        // resend() returns null when the per-business cooldown has not elapsed. The
+        // response is identical either way on purpose: a message that changes with the
+        // cooldown lets a caller time when the last mail was sent, and there is nothing
+        // to gain by telling a legitimate user "wait 40 seconds" that the client's own
+        // countdown does not already cover.
         $this->verificationService->resend($business);
 
         return response()->json([
@@ -80,6 +88,7 @@ class EmailVerificationController extends Controller
         }
 
         $frontendUrl = config('app.frontend_url', config('app.url'));
-        return redirect($frontendUrl . '/verify-email?error=' . urlencode($message));
+
+        return redirect($frontendUrl.'/verify-email?error='.urlencode($message));
     }
 }

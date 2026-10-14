@@ -26,6 +26,7 @@ const TermsOfService = named(() => import('../pages/public/TermsOfService'), 'Te
 const PrivacyPolicy = named(() => import('../pages/public/PrivacyPolicy'), 'PrivacyPolicy');
 const Login = named(() => import('../pages/public/Login'), 'Login');
 const Onboarding = named(() => import('../pages/public/Onboarding'), 'Onboarding');
+const VerifyEmail = named(() => import('../pages/public/VerifyEmail'), 'VerifyEmail');
 const ExecutiveRoutes = named(() => import('./ExecutiveRoutes'), 'ExecutiveRoutes');
 const OperationsRoutes = named(() => import('./OperationsRoutes'), 'OperationsRoutes');
 const BranchManagerRoutes = named(() => import('./BranchManagerRoutes'), 'BranchManagerRoutes');
@@ -170,6 +171,7 @@ export const AppRoutes = () => {
         </Route>
         <Route path='login' element={bounded(<Login />)} />
         <Route path='onboarding' element={bounded(<Onboarding />)} />
+        <Route path='verify-email' element={bounded(<VerifyEmail />)} />
         <Route path='about' element={bounded(<About />)} />
         <Route path='documentation' element={bounded(<Documentation />)} />
         <Route path='terms' element={bounded(<TermsOfService />)} />
