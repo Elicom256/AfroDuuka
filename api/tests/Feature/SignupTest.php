@@ -172,6 +172,48 @@ class SignupTest extends TestCase
             ->assertJsonPath('onboarding.complete', false);
     }
 
+    /**
+     * A signed-in, not-yet-onboarded user must be able to load the form's own dropdowns.
+     *
+     * RequireBusiness refuses every api route to an account with no business_id, and
+     * /api/countries and /api/business-categories were not on its allowlist. The same
+     * endpoints answer 200 anonymously, so the form looked fine before login and went
+     * empty the moment it had a token — a 403 the user could not see, because the
+     * client only renders the options.
+     */
+    public function test_signup_user_can_load_the_onboarding_reference_lists(): void
+    {
+        $this->postJson('/api/users/signup', $this->signupPayload())->assertStatus(201);
+
+        $token = $this->postJson('/api/users/login', [
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+        ])->json('data.token');
+
+        $category = BusinessCategory::factory()->create();
+        $country = Country::factory()->create();
+
+        $categories = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/business-categories')
+            ->assertStatus(200);
+
+        $this->assertContains(
+            $category->id,
+            array_column($categories->json(), 'id'),
+            'the onboarding category list is readable before the business exists',
+        );
+
+        $countries = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/countries')
+            ->assertStatus(200);
+
+        $this->assertContains(
+            $country->id,
+            array_column($countries->json('data'), 'id'),
+            'the onboarding country list is readable before the business exists',
+        );
+    }
+
     public function test_onboarding_completes_and_unlocks_the_tenant(): void
     {
         $this->postJson('/api/users/signup', $this->signupPayload())->assertStatus(201);
