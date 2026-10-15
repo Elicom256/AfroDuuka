@@ -141,7 +141,13 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+        // Render's dashboard and docker ENV copy values verbatim and do not expand
+        // `${APP_NAME}`, so a copied template can leave that literal placeholder as the
+        // From name. Treat an empty value or the raw placeholder as unset and fall back
+        // to the real application name.
+        'name' => in_array(trim((string) env('MAIL_FROM_NAME')), ['', '${APP_NAME}'], true)
+            ? (env('APP_NAME') ?: 'AfroDuuka')
+            : env('MAIL_FROM_NAME'),
     ],
 
 ];

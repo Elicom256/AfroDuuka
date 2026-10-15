@@ -230,7 +230,11 @@ return [
         // hand-maintained copy of that list drifted and the two disagreed.
 
         'from_address' => env('MAIL_FROM_ADDRESS', 'notifications@duukaflow.com'),
-        'from_name' => env('MAIL_FROM_NAME', config('app.name')),
+        // Same `${APP_NAME}` guard as config/mail.php: a host that does not expand
+        // variables can otherwise leak the raw placeholder into the From name.
+        'from_name' => in_array(trim((string) env('MAIL_FROM_NAME')), ['', '${APP_NAME}'], true)
+            ? config('app.name')
+            : env('MAIL_FROM_NAME'),
         'reply_to' => env('MAIL_REPLY_TO_ADDRESS'),
 
         // SES is in sandbox until production access is granted, and in sandbox it only
