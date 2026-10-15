@@ -14,6 +14,18 @@ class QuotationController extends Controller
 {
     public function __construct(protected QuotationService $quotations) {}
 
+    /**
+     * The service throws with an HTTP code, but a leaked database exception carries
+     * a string SQLSTATE (e.g. "23505") that is not a valid status and would turn a
+     * 4xx into a 500. Only accept a sane HTTP integer; otherwise use the fallback.
+     */
+    private function statusFrom(\Throwable $e, int $fallback): int
+    {
+        $code = $e->getCode();
+
+        return is_int($code) && $code >= 400 && $code < 600 ? $code : $fallback;
+    }
+
     public function index(): JsonResponse
     {
         $query = Quotation::with(['customer.user', 'items', 'acceptedOrder']);
@@ -64,7 +76,7 @@ class QuotationController extends Controller
         try {
             $quotation = $this->quotations->create($request->validated());
         } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 422);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $this->statusFrom($e, 422));
         }
 
         return response()->json([
@@ -90,7 +102,7 @@ class QuotationController extends Controller
         try {
             $updated = $this->quotations->update($quotation, $request->validated());
         } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $this->statusFrom($e, 409));
         }
 
         return response()->json([
@@ -120,7 +132,7 @@ class QuotationController extends Controller
         try {
             $sent = $this->quotations->send($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $this->statusFrom($e, 409));
         }
 
         return response()->json([
@@ -136,7 +148,7 @@ class QuotationController extends Controller
         try {
             $order = $this->quotations->accept($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $this->statusFrom($e, 409));
         }
 
         return response()->json([
@@ -153,7 +165,7 @@ class QuotationController extends Controller
         try {
             $cancelled = $this->quotations->cancel($quotation);
         } catch (Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], $e->getCode() ?: 409);
+            return response()->json(['message' => 'An error occurred. Please try again.'], $this->statusFrom($e, 409));
         }
 
         return response()->json([

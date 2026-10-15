@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\Product;
 use App\Models\Quotation;
+use App\Models\QuotationItem;
 use App\Models\Role;
 use App\Models\SaleOrder;
 use App\Models\TaxCategory;
@@ -243,7 +244,9 @@ class QuotationTest extends TestCase
             'subtotal' => '6000.00',
         ]);
 
-        $this->assertSame(1, DB::table('quotation_items')->where('quotation_id', $quotationId)->count());
+        // The superseded line is soft-deleted, so count through the model (which
+        // honours the scope) rather than the raw table.
+        $this->assertSame(1, QuotationItem::where('quotation_id', $quotationId)->count());
     }
 
     public function test_send_transitions_quote_to_sent(): void
@@ -409,8 +412,8 @@ class QuotationTest extends TestCase
         ]);
 
         $this->deleteJson("/api/quotations/{$quotationId}")->assertOk();
-        $this->assertDatabaseMissing('quotations', ['id' => $quotationId]);
-        $this->assertSame(0, DB::table('quotation_items')->count());
+        $this->assertSoftDeleted('quotations', ['id' => $quotationId]);
+        $this->assertSame(0, QuotationItem::where('quotation_id', $quotationId)->count());
 
         $acceptedId = $this->createQuote([
             ['product_id' => $this->product(10)->id, 'quantity' => 1, 'unit_price' => 1000],

@@ -41,7 +41,7 @@ class StockTransferService
     public function dispatch(StockTransfer $transfer): StockTransfer
     {
         if ($transfer->status !== 'draft') {
-            throw new \Exception('Only draft transfers can be dispatched.');
+            abort(422, 'Only draft transfers can be dispatched.');
         }
 
         return DB::transaction(function () use ($transfer) {
@@ -52,7 +52,7 @@ class StockTransferService
             $transfer = StockTransfer::whereKey($transfer->id)->lockForUpdate()->firstOrFail();
 
             if ($transfer->status !== 'draft') {
-                throw new \Exception('Only draft transfers can be dispatched.');
+                abort(422, 'Only draft transfers can be dispatched.');
             }
 
             $transfer->load('items');
@@ -73,11 +73,11 @@ class StockTransferService
                 $sourceProduct = $sourceProducts->get($item->product_id);
 
                 if ($sourceProduct === null) {
-                    throw new \Exception('One or more products are not available in the source branch.', 422);
+                    abort(422, 'One or more products are not available in the source branch.');
                 }
 
                 if ($sourceProduct->quantity < $item->quantity_expected) {
-                    throw new \Exception("Insufficient stock for product: {$sourceProduct->name}");
+                    abort(422, "Insufficient stock for product: {$sourceProduct->name}");
                 }
 
                 $destProduct = $this->resolveDestinationProduct($sourceProduct, $transfer->to_branch_id);
@@ -119,7 +119,7 @@ class StockTransferService
     public function receive(StockTransfer $transfer, array $receivedItems): StockTransfer
     {
         if ($transfer->status !== 'in_transit') {
-            throw new \Exception('Only in-transit transfers can be received.');
+            abort(422, 'Only in-transit transfers can be received.');
         }
 
         return DB::transaction(function () use ($transfer, $receivedItems) {
@@ -131,7 +131,7 @@ class StockTransferService
             $transfer = StockTransfer::whereKey($transfer->id)->lockForUpdate()->firstOrFail();
 
             if ($transfer->status !== 'in_transit') {
-                throw new \Exception('Only in-transit transfers can be received.');
+                abort(422, 'Only in-transit transfers can be received.');
             }
 
             $transfer->load('items.product');
@@ -143,7 +143,7 @@ class StockTransferService
                 $receivedQty = $receivedItems[$item->id] ?? $item->quantity_expected;
 
                 if ($item->product === null) {
-                    throw new \Exception('One or more products on this transfer no longer exist.', 422);
+                    abort(422, 'One or more products on this transfer no longer exist.');
                 }
 
                 $destProduct = $this->resolveDestinationProduct($item->product, $transfer->to_branch_id);
@@ -195,7 +195,7 @@ class StockTransferService
     public function cancel(StockTransfer $transfer): StockTransfer
     {
         if (! in_array($transfer->status, ['draft', 'in_transit'])) {
-            throw new \Exception('Only draft or in-transit transfers can be cancelled.');
+            abort(422, 'Only draft or in-transit transfers can be cancelled.');
         }
 
         $transfer->update(['status' => 'cancelled']);

@@ -209,7 +209,7 @@ class ActivityLoggingOnMutationTest extends TestCase
 
         $this->deleteJson("/api/dashboard/employee-remuneration/{$remuneration->id}")->assertOk();
 
-        $this->assertDatabaseMissing('employee_remunerations', ['id' => $remuneration->id]);
+        $this->assertSoftDeleted('employee_remunerations', ['id' => $remuneration->id]);
         $this->assertLogged('deleted_employee_remuneration');
     }
 

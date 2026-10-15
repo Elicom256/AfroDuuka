@@ -153,6 +153,6 @@ class TaxCategoryTest extends TestCase
 
         $this->deleteJson("/api/tax-categories/{$category->id}")->assertStatus(200);
 
-        $this->assertDatabaseMissing('tax_categories', ['id' => $category->id]);
+        $this->assertSoftDeleted('tax_categories', ['id' => $category->id]);
     }
 }

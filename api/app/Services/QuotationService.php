@@ -257,7 +257,11 @@ class QuotationService
 
     protected function generateQuotationNumber($user): string
     {
-        $last = Quotation::where('business_id', $user->business_id)
+        // withTrashed(): quotation_number is uniquely indexed across soft-deleted
+        // rows too, so counting only live rows would hand a re-issued number the
+        // unique index already holds and blow up the insert.
+        $last = Quotation::withTrashed()
+            ->where('business_id', $user->business_id)
             ->whereDate('created_at', today())
             ->count();
 
@@ -266,7 +270,8 @@ class QuotationService
 
     protected function generateOrderNumber($user): string
     {
-        $last = SaleOrder::where('business_id', $user->business_id)
+        $last = SaleOrder::withTrashed()
+            ->where('business_id', $user->business_id)
             ->whereDate('created_at', today())
             ->count();
 
