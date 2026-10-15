@@ -8,8 +8,9 @@
  * README does not actually claim.
  *
  * An entry whose `answer` is `null` marks a topic the chatbot knows is being asked about
- * but has no verified information for yet. The drafter turns those into an honest "I
- * don't have that yet" plus where to look, rather than inventing an answer.
+ * but has no verified local information for. When such an entry also names `liveSources`,
+ * the responder answers from a genuine TinyFish fetch of those public pages; otherwise it
+ * says so honestly and points at where to look rather than inventing an answer.
  */
 
 export type KnowledgeLink = {
@@ -29,9 +30,36 @@ export type KnowledgeEntry = {
    * Keep it to what the README supports — no invented features, prices or policies.
    */
   answer: string | null;
+  /**
+   * AfroDuuka pages a live TinyFish fetch should read when `answer` is null. The
+   * fetched content is quoted back to the visitor rather than paraphrased, so the
+   * chatbot never states anything a page does not. Only public afroduka.com URLs.
+   */
+  liveSources?: string[];
   /** Optional related links (public pages only). */
   links?: KnowledgeLink[];
 };
+
+/** AfroDuuka's public site — the one host the server-side fetch proxy will read. */
+export const AFRODUKA_SITE = 'https://afroduka.com';
+
+/** Public pages the chatbot may fetch, keyed by what they cover. */
+export const AFRODUKA_PAGES = {
+  home: `${AFRODUKA_SITE}/`,
+  pricing: `${AFRODUKA_SITE}/pricing`,
+} as const;
+
+/** The opening assistant message and the questions shown as chips before the first ask. */
+export const WELCOME_MESSAGE =
+  'Hello! I am the AfroDuuka assistant. Ask me about AfroDuuka, its features, pricing or how to get started.';
+
+export const SUGGESTED_QUESTIONS = [
+  'What is AfroDuuka?',
+  'What features does it offer?',
+  'Which subscription plans are available?',
+  'How can I get started?',
+  'Does AfroDuuka support WhatsApp notifications?',
+];
 
 export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
   {
@@ -114,7 +142,14 @@ export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
       'profit and loss',
       'profit-and-loss',
     ],
-    answer: null,
+    answer:
+      'AfroDuuka brings your day-to-day operations into one place:\n' +
+      '• Inventory and products — product records, quantities, costs, selling prices and reorder thresholds.\n' +
+      '• Sales and purchases — record the transactions that move stock.\n' +
+      '• Branches and business operations — organise records across locations.\n' +
+      '• Financial records and reporting — review cash movements, expenses, inventory value and performance.\n' +
+      '• Role-focused dashboards, plus notifications and an assistant as those integrations are enabled.\n' +
+      'Specific features depend on your plan and configuration.',
     links: [{ label: 'Get started', href: '/onboarding' }],
   },
   {
@@ -134,6 +169,7 @@ export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
       'pay',
     ],
     answer: null,
+    liveSources: [AFRODUKA_PAGES.pricing],
     links: [{ label: 'View pricing', href: '/pricing' }],
   },
   {
@@ -150,6 +186,8 @@ export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
       'message me',
     ],
     answer: null,
+    liveSources: [AFRODUKA_PAGES.home],
+    links: [{ label: 'Get started', href: '/onboarding' }],
   },
   {
     id: 'support',
@@ -171,15 +209,3 @@ export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     links: [{ label: 'Get started', href: '/onboarding' }],
   },
 ];
-
-/**
- * Topics the chatbot can be asked about that have no verified answer yet.
- *
- * Used to tell "I don't know, and here is where to look" apart from a question the
- * chatbot simply was not written for.
- */
-export const KNOWN_UNKNOWN_TOPICS = new Set([
-  'features',
-  'pricing',
-  'whatsapp',
-]);
