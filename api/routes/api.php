@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BusinessCategoryController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportController;
@@ -72,6 +73,16 @@ Route::get('verify-email', [EmailVerificationController::class, 'verify'])
 Route::post('verify-email/resend', [EmailVerificationController::class, 'resend'])
     ->middleware(['auth:sanctum', 'throttle:verification'])
     ->name('verification.resend');
+
+// Landing-chatbot web retrieval (public, read-only). The TinyFish key is server-side
+// only — these routes are its sole public face. throttled:api caps how hard a visitor
+// can push the proxy, because every call is a metered upstream request.
+Route::post('chatbot/search', [ChatbotController::class, 'search'])
+    ->middleware('throttle:api')
+    ->name('chatbot.search');
+Route::post('chatbot/fetch', [ChatbotController::class, 'fetch'])
+    ->middleware('throttle:api')
+    ->name('chatbot.fetch');
 
 Route::middleware('throttle:api')->group(function () {
     Route::prefix('users')->group(function () {

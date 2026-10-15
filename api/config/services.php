@@ -40,6 +40,12 @@ return [
         'api_key' => env('GEMINI_API_KEY'),
     ],
 
+    'tinyfish' => [
+        // The landing chatbot's web-retrieval key. Server-side only — it is never
+        // sent to the browser; the frontend talks to /api/chatbot/* instead.
+        'api_key' => env('TINYFISH_API_KEY'),
+    ],
+
     'whatsapp' => [
         'provider' => env('WHATSAPP_PROVIDER', 'demo'),
         'demo_mode' => filter_var(env('WHATSAPP_DEMO_MODE', true), FILTER_VALIDATE_BOOLEAN),
