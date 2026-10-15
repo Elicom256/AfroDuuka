@@ -14,6 +14,13 @@ use Tests\TestCase;
  * where the backend prefix was renamed (admin → dashboard) and the frontend
  * was never updated, and where a mutation sends the wrong verb (DELETE to an
  * update endpoint, etc.).
+ *
+ * The endpoints no longer carry a per-endpoint `baseUrl`; they were refactored onto a
+ * single shared base query, so the `url` already contains the full path (e.g.
+ * /dashboard/roles) and only needs the `api` prefix. Two shapes are recognised:
+ *
+ *   query: () => ({ url: '/dashboard/roles', method: 'GET' })
+ *   query: () => '/dashboard/business'        // bare string, implicitly GET
  */
 class FrontendApiPathsTest extends TestCase
 {
@@ -32,56 +39,47 @@ class FrontendApiPathsTest extends TestCase
         foreach ($files as $file) {
             $content = file_get_contents($file->getPathname());
 
-            preg_match_all(
-                '/baseUrl:\s*`\$\{import\.meta\.env\.VITE_BASE_URL\}([^`]+)`/',
-                $content,
-                $baseUrlMatches,
-                PREG_OFFSET_CAPTURE
-            );
+            $endpoints = [];
 
-            if (empty($baseUrlMatches[0])) {
-                continue;
+            // Object form: { url: '...', method: '...' }. The /s flag lets url and
+            // method sit on separate lines, which the multi-line endpoints do.
+            if (preg_match_all(
+                '/url:\s*([`\'"])([^`\'"]+)\1\s*,\s*method:\s*([`\'"])([A-Z]+)\3/s',
+                $content,
+                $matches,
+                PREG_SET_ORDER
+            )) {
+                foreach ($matches as $match) {
+                    $endpoints[] = ['url' => $match[2], 'method' => $match[4]];
+                }
             }
 
-            preg_match_all(
-                '/url:\s*[\'"`]([^\'"`]+)[\'"`],\s*method:\s*[\'"`]([A-Z]+)[\'"`]/',
+            // Bare form: query: () => '/path' — no method, so it is a GET.
+            if (preg_match_all(
+                '/query:\s*\([^)]*\)\s*=>\s*([`\'"])(\/[^`\'"]*)\1/s',
                 $content,
-                $endpointMatches,
-                PREG_OFFSET_CAPTURE
-            );
-
-            foreach ($endpointMatches[0] as $i => $endpointMatch) {
-                $url = $endpointMatches[1][$i][0];
-                $method = $endpointMatches[2][$i][0];
-                $endpointPos = $endpointMatch[1];
-
-                $baseUrl = null;
-                foreach ($baseUrlMatches[0] as $j => $baseUrlMatch) {
-                    if ($baseUrlMatch[1] < $endpointPos) {
-                        $baseUrl = $baseUrlMatches[1][$j][0];
-                    } else {
-                        break;
-                    }
+                $matches,
+                PREG_SET_ORDER
+            )) {
+                foreach ($matches as $match) {
+                    $endpoints[] = ['url' => $match[2], 'method' => 'GET'];
                 }
+            }
 
-                if ($baseUrl === null) {
-                    continue;
-                }
-
-                $url = preg_replace('/\$\{[^}]+\}/', '1', $url);
+            foreach ($endpoints as $endpoint) {
+                $url = preg_replace('/\$\{[^}]+\}/', '1', $endpoint['url']);
                 $url = parse_url($url, PHP_URL_PATH) ?: '/';
 
-                $fullPath = 'api'.rtrim($baseUrl, '/').$url;
+                $fullPath = 'api/'.ltrim($url, '/');
                 $fullPath = preg_replace('#/+#', '/', $fullPath);
                 $fullPath = rtrim($fullPath, '/');
 
-                if (! $this->routeExists($fullPath, $method)) {
+                if (! $this->routeExists($fullPath, $endpoint['method'])) {
                     $errors[] = sprintf(
-                        '  %s: %s %s%s → %s',
+                        '  %s: %s %s → %s',
                         $file->getFilename(),
-                        $method,
-                        $baseUrl,
-                        $url,
+                        $endpoint['method'],
+                        $endpoint['url'],
                         $fullPath
                     );
                 }
