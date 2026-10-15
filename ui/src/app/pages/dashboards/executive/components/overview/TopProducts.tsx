@@ -2,15 +2,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSalesByProductQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
+import { FeatureLockedCard } from '@/app/components/FeatureLockedCard';
 import { Award } from 'lucide-react';
 import { landingPeriodLabel, type LandingPeriod } from '../landingPeriods';
 import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const TopProducts = ({ period }: { period: LandingPeriod }) => {
   const { currency } = useCurrency();
-  const { data, isLoading, isFetching, isError, refetch } = useSalesByProductQuery(period);
+  const { reports, loading: reportsLoading } = useFeatureSettings();
+  // Sales-by-product is a reports endpoint: skip it entirely while the feature is off
+  // so the card never turns a deliberate 403 into an error state.
+  const { data, isLoading, isFetching, isError, refetch } = useSalesByProductQuery(period, {
+    skip: !reports,
+  });
 
   const topProducts: any[] = data?.data?.top_products ?? [];
+
+  if (reportsLoading) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <Skeleton className='h-5 w-32' />
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className='h-9 w-full' />
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!reports) {
+    return <FeatureLockedCard title='Top products' />;
+  }
 
   if (isLoading) {
     return (

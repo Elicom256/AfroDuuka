@@ -5,6 +5,7 @@ namespace Tests\Feature\Reports;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\CashFlow;
+use App\Models\CoreSettings\ReportsSettings;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
@@ -38,6 +39,10 @@ class MonthlyPerformanceReportTest extends TestCase
         parent::setUp();
 
         $this->business = Business::factory()->create(['name' => 'Nakatomi Trading']);
+        // The reports routes are behind the `reports` feature flag, off by default.
+        // These tests cover the document itself, so the feature is enabled for the
+        // reporting business as an admin would in Settings.
+        ReportsSettings::create(['business_id' => $this->business->id, 'status' => 'enabled']);
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
             'name' => 'Kampala Road',
@@ -120,6 +125,8 @@ class MonthlyPerformanceReportTest extends TestCase
         $this->cashFlow('sale', 100_000, '2026-08-04');
 
         $rival = Business::factory()->create();
+        // The rival is the actor here, so it needs the feature on to reach its own report.
+        ReportsSettings::create(['business_id' => $rival->id, 'status' => 'enabled']);
         $rivalBranch = BusinessBranch::factory()->create(['business_id' => $rival->id]);
         $rivalUser = User::factory()->create([
             'business_id' => $rival->id,

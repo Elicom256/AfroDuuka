@@ -5,6 +5,7 @@ namespace Tests\Feature\Reports;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\CashFlow;
+use App\Models\CoreSettings\ReportsSettings;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AnalyticsTrendHelper;
@@ -68,6 +69,10 @@ class BranchPerformanceReportsTest extends TestCase
         Carbon::setTestNow(self::NOW);
 
         $this->business = Business::factory()->create(['name' => 'Nakatomi Trading']);
+        // The reports routes sit behind the `reports` feature flag, which is off by
+        // default. These tests exercise the report itself, not the gate, so the
+        // feature is switched on here the way a business admin would in Settings.
+        ReportsSettings::create(['business_id' => $this->business->id, 'status' => 'enabled']);
         $this->kampala = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
             'name' => 'Kampala Road',

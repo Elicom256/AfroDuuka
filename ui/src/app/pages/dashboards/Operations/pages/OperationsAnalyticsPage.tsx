@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProductAnalyticsQuery, useProductRestockingQuery } from '@/app/store/features/branch/products/branchProductsQuery';
 import { useLowStockQuery, useOutOfStockQuery, useStockSummaryQuery, useInventoryValuationQuery } from '@/app/store/features/branch/reports/branchReportsQuery';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
+import { FeatureLockedCard } from '@/app/components/FeatureLockedCard';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -42,14 +44,20 @@ export const OperationsAnalyticsPage = () => {
   const { currency } = useCurrency();
   const period = '30';
 
+  // Four of the six sources here (low stock, out of stock, stock summary, valuation)
+  // are reports endpoints behind the `reports` feature. Product analytics and
+  // restocking are not, so the page still renders when reports is off — those four
+  // queries are skipped and their cards show a locked state instead of a zero.
+  const { reports, loading: reportsLoading } = useFeatureSettings();
+
   const { data: analytics, isLoading: analyticsLoading } = useProductAnalyticsQuery();
   const { data: restocking, isLoading: restockingLoading } = useProductRestockingQuery();
-  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery(period);
-  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery(period);
-  const { data: stockSummary, isLoading: stockLoading } = useStockSummaryQuery(period);
-  const { data: valuation, isLoading: valuationLoading } = useInventoryValuationQuery(period);
+  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery(period, { skip: !reports });
+  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery(period, { skip: !reports });
+  const { data: stockSummary, isLoading: stockLoading } = useStockSummaryQuery(period, { skip: !reports });
+  const { data: valuation, isLoading: valuationLoading } = useInventoryValuationQuery(period, { skip: !reports });
 
-  const isLoading = analyticsLoading || restockingLoading || lowLoading || outLoading || stockLoading || valuationLoading;
+  const isLoading = reportsLoading || analyticsLoading || restockingLoading || lowLoading || outLoading || stockLoading || valuationLoading;
 
   if (isLoading) return <PageLoadingState />;
 
@@ -120,7 +128,9 @@ export const OperationsAnalyticsPage = () => {
             </div>
             <div>
               <p className='text-sm text-muted-foreground'>Stock Value</p>
-              <p className='text-xl font-semibold'>{currency} {(valuationData.total_value ?? 0).toLocaleString()}</p>
+              <p className='text-xl font-semibold'>
+                {reports ? `${currency} ${(valuationData.total_value ?? 0).toLocaleString()}` : '—'}
+              </p>
             </div>
           </div>
         </Card>
@@ -164,20 +174,24 @@ export const OperationsAnalyticsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className='rounded-3xl border border-border/70 bg-card p-4'>
-          <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
-              <TrendingUp className='h-4 w-4' />
-              Stock Movement
-            </CardTitle>
-            <CardDescription>Stock in, out, and adjustments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className='h-64'>
-              <Bar data={stockMovementData} options={baseOptions} />
-            </div>
-          </CardContent>
-        </Card>
+        {reports ? (
+          <Card className='rounded-3xl border border-border/70 bg-card p-4'>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <TrendingUp className='h-4 w-4' />
+                Stock Movement
+              </CardTitle>
+              <CardDescription>Stock in, out, and adjustments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className='h-64'>
+                <Bar data={stockMovementData} options={baseOptions} />
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <FeatureLockedCard title='Stock movement' />
+        )}
       </div>
 
       <Card className='rounded-3xl border border-border/70 bg-card p-4'>
@@ -210,47 +224,55 @@ export const OperationsAnalyticsPage = () => {
       </Card>
 
       <div className='grid gap-6 lg:grid-cols-2'>
-        <Card className='rounded-3xl border border-border/70 bg-card p-4'>
-          <CardHeader>
-            <CardTitle>Low Stock Items</CardTitle>
-            <CardDescription>Products below reorder level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {lowItems.length === 0 ? (
-              <p className='text-sm text-muted-foreground'>No low stock items.</p>
-            ) : (
-              <div className='space-y-2'>
-                {lowItems.slice(0, 5).map((item: any) => (
-                  <div key={item.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'>
-                    <span>{item.name}</span>
-                    <span className='font-medium text-amber-500'>{item.quantity} left</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {reports ? (
+          <Card className='rounded-3xl border border-border/70 bg-card p-4'>
+            <CardHeader>
+              <CardTitle>Low Stock Items</CardTitle>
+              <CardDescription>Products below reorder level</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {lowItems.length === 0 ? (
+                <p className='text-sm text-muted-foreground'>No low stock items.</p>
+              ) : (
+                <div className='space-y-2'>
+                  {lowItems.slice(0, 5).map((item: any) => (
+                    <div key={item.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'>
+                      <span>{item.name}</span>
+                      <span className='font-medium text-amber-500'>{item.quantity} left</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <FeatureLockedCard title='Low stock items' />
+        )}
 
-        <Card className='rounded-3xl border border-border/70 bg-card p-4'>
-          <CardHeader>
-            <CardTitle>Out of Stock Items</CardTitle>
-            <CardDescription>Products with zero quantity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {outItems.length === 0 ? (
-              <p className='text-sm text-muted-foreground'>No out of stock items.</p>
-            ) : (
-              <div className='space-y-2'>
-                {outItems.slice(0, 5).map((item: any) => (
-                  <div key={item.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'>
-                    <span>{item.name}</span>
-                    <span className='font-medium text-red-500'>Out of stock</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {reports ? (
+          <Card className='rounded-3xl border border-border/70 bg-card p-4'>
+            <CardHeader>
+              <CardTitle>Out of Stock Items</CardTitle>
+              <CardDescription>Products with zero quantity</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {outItems.length === 0 ? (
+                <p className='text-sm text-muted-foreground'>No out of stock items.</p>
+              ) : (
+                <div className='space-y-2'>
+                  {outItems.slice(0, 5).map((item: any) => (
+                    <div key={item.id} className='flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-sm'>
+                      <span>{item.name}</span>
+                      <span className='font-medium text-red-500'>Out of stock</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <FeatureLockedCard title='Out of stock items' />
+        )}
       </div>
     </div>
   );

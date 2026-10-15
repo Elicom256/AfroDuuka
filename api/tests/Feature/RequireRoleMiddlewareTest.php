@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ActivityLog;
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\CoreSettings\ReportsSettings;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,6 +34,13 @@ class RequireRoleMiddlewareTest extends TestCase
         $this->business = Business::factory()->create();
         $this->branch = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
+        ]);
+
+        // Reports ship disabled by default but this suite treats the branch-scoped
+        // reports endpoint as an open floor route, so switch the feature on.
+        ReportsSettings::create([
+            'business_id' => $this->business->id,
+            'status' => 'enabled',
         ]);
     }
 

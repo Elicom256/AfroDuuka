@@ -411,6 +411,40 @@ The broader ambition is not merely to digitize existing processes, but to make m
 
 ---
 
+## 14. Landing-Page Assistant (TinyFish)
+
+The public site carries a floating assistant in the bottom-right corner that helps visitors understand AfroDuuka before they sign up. It is public and read-only: it can answer questions about the product, but it never reads customer records, tenant data or authenticated dashboards.
+
+### How it works
+
+- The widget lives in `ui/src/app/chatbot/` and is mounted once by `HomeLayout`, so it covers the public landing page and the pricing page without either page adding it twice.
+- `knowledge.ts` holds the curated, verified answers and the suggested questions. The assistant only states what this file (and this README) supports — it never invents features, prices, integrations or policies, and it says so and points to a public page when it does not know.
+- `responder.ts` routes a question to a topic, answers directly from the local knowledge when the answer is verified, and reads the relevant public page only when it is not.
+- `api.ts` calls the server-side proxy; the browser never talks to TinyFish directly.
+
+### The TinyFish calls
+
+Questions that need live information (such as current pricing) are served through a small Laravel proxy:
+
+- `POST /api/chatbot/fetch` → TinyFish Fetch (`https://api.fetch.tinyfish.ai`) to read public `afroduka.com` pages.
+- `POST /api/chatbot/search` → TinyFish Search (`https://api.search.tinyfish.ai`) as a fallback when a fetched page has nothing relevant.
+
+Both are implemented in `api/app/Http/Controllers/ChatbotController.php`, routed in `api/routes/api.php`, rate-limited, and restricted to the `afroduka.com` host. Live content is quoted back to the visitor with its source link shown, rather than paraphrased. Local answers are used first, so TinyFish is not called for questions the curated knowledge already covers.
+
+### Configuration
+
+The TinyFish key is server-side only and is never bundled into the frontend:
+
+- `TINYFISH_API_KEY` — required by the Laravel API, read through `config/services.php`. See `api/.env.example`.
+
+### Deploying on Render
+
+1. Set `TINYFISH_API_KEY` in the **backend** (Laravel) service environment. Do not set it on the frontend service.
+2. Deploy as usual — no new service, migration or database change is required.
+3. The frontend needs no new variable; it only calls the API it already talks to.
+
+---
+
 ## Enterprise onboarding
 
 Read `onboarding.md`.
