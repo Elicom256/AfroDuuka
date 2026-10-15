@@ -4,6 +4,7 @@ namespace App\Services\Mail;
 
 use App\Mail\BusinessVerification;
 use App\Models\Business;
+use App\Support\FrontendUrl;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -31,7 +32,7 @@ class BusinessVerificationMailService
         string $verificationBaseUrl = '',
     ) {
         // Default to frontend URL, not API URL. The frontend will call the API.
-        $this->verificationBaseUrl = $verificationBaseUrl ?: config('app.frontend_url', config('app.url')).'/verify-email';
+        $this->verificationBaseUrl = $verificationBaseUrl ?: FrontendUrl::path('verify-email');
     }
 
     /**

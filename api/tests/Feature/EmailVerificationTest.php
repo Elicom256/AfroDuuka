@@ -154,6 +154,35 @@ class EmailVerificationTest extends TestCase
             ->assertRedirect(config('app.frontend_url').'/verify-email?verified=1');
     }
 
+    /**
+     * A FRONTEND_URL with a trailing slash must not double the separator.
+     *
+     * The Render dashboard value carried one, so the emailed link was
+     * https://…//verify-email. nginx still served the SPA, but the browser kept the
+     * doubled slash and the SPA router never matched //verify-email against its
+     * /verify-email route, so the click landed on the catch-all 404. Both the emailed
+     * link and the browser redirect are checked here so the separator can only be
+     * produced in one place.
+     */
+    public function test_a_trailing_slash_frontend_url_does_not_produce_a_double_slash(): void
+    {
+        config(['app.frontend_url' => 'https://afroduuka-ui.onrender.com/']);
+
+        Mail::fake();
+
+        $business = $this->business();
+        $token = $this->issueToken($business);
+
+        Mail::assertSent(
+            BusinessVerification::class,
+            fn (BusinessVerification $mail) => $mail->verificationUrl
+                === 'https://afroduuka-ui.onrender.com/verify-email?token='.$token
+        );
+
+        $this->get('/api/verify-email?token='.$token)
+            ->assertRedirect('https://afroduuka-ui.onrender.com/verify-email?verified=1');
+    }
+
     public function test_creating_a_business_reports_it_as_unverified_with_the_address_it_mailed(): void
     {
         $this->postJson('/api/users/signup', [

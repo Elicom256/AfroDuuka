@@ -6,6 +6,24 @@ import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { collapseSlashes } from './lib/url';
+
+// A verification link from an inbox can carry a doubled leading slash: a FRONTEND_URL
+// that ended in "/" made the backend emit https://host//verify-email. nginx still
+// served the SPA (it merges slashes for the file lookup, then falls back to
+// index.html), but the browser kept the doubled slash and the router — matching on the
+// literal pathname — never matched //verify-email against its /verify-email route, so
+// the click landed on the catch-all 404. The backend no longer emits those links;
+// rewriting the address bar here rescues the ones already in people's inboxes before
+// the router reads the location.
+const normalizedPath = collapseSlashes(window.location.pathname);
+if (normalizedPath !== window.location.pathname) {
+  window.history.replaceState(
+    window.history.state,
+    '',
+    normalizedPath + window.location.search + window.location.hash
+  );
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

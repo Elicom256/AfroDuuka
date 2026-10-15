@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Services\Mail\BusinessVerificationMailService;
+use App\Support\FrontendUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,10 +45,7 @@ class EmailVerificationController extends Controller
         // /onboarding?verified=1, a screen that only exists once and is not where a
         // person clicking a link from their inbox belongs — and the route the SPA
         // actually renders for this is /verify-email.
-        $frontendUrl = config('app.frontend_url', config('app.url'));
-        $redirectUrl = $frontendUrl.'/verify-email?verified=1';
-
-        return redirect($redirectUrl);
+        return redirect(FrontendUrl::path('verify-email').'?verified=1');
     }
 
     /**
@@ -100,8 +98,8 @@ class EmailVerificationController extends Controller
             return response()->json(['message' => $message], $status);
         }
 
-        $frontendUrl = config('app.frontend_url', config('app.url'));
+        $frontendUrl = FrontendUrl::path('verify-email');
 
-        return redirect($frontendUrl.'/verify-email?error='.urlencode($message));
+        return redirect($frontendUrl.'?error='.urlencode($message));
     }
 }
