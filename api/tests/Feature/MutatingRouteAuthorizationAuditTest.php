@@ -66,6 +66,10 @@ class MutatingRouteAuthorizationAuditTest extends TestCase
         'PATCH api/users/update' => 'Scoped to the caller\'s own profile by the tenant scope on User.',
         'POST api/users/todos' => 'A personal list scoped to the caller by the tenant scope on Todo.',
 
+        'POST api/verify-email/resend' => 'Resends the caller\'s own verification email behind auth:sanctum and throttle:verification; there is no role to check.',
+        'POST api/chatbot/search' => 'Public landing-chatbot proxy, read-only upstream web search behind throttle:api. It holds no tenant data and the TinyFish key stays server-side.',
+        'POST api/chatbot/fetch' => 'Public landing-chatbot proxy, read-only upstream page fetch behind throttle:api. It holds no tenant data and the TinyFish key stays server-side.',
+
         'DELETE api/users/notifications/{notification}' => 'Central delete gate; the row is also scoped to the caller.',
         'POST api/users/notifications/{notification}/read' => 'Reads a caller-owned row to flip one boolean.',
         'POST api/users/notifications/mark-all-read' => 'Bulk version of the previous route, same caller-owned rows.',

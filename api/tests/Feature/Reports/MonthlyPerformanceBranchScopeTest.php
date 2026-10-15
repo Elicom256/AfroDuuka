@@ -5,6 +5,7 @@ namespace Tests\Feature\Reports;
 use App\Models\Business;
 use App\Models\BusinessBranch;
 use App\Models\CashFlow;
+use App\Models\CoreSettings\ReportsSettings;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +43,10 @@ class MonthlyPerformanceBranchScopeTest extends TestCase
         parent::setUp();
 
         $this->business = Business::factory()->create(['name' => 'Nakatomi Trading']);
+        // The reports routes are behind the `reports` feature flag, off by default.
+        // These tests cover the document's branch scoping, so the feature is enabled
+        // for the reporting business exactly as an admin would.
+        ReportsSettings::create(['business_id' => $this->business->id, 'status' => 'enabled']);
         $this->kampala = BusinessBranch::factory()->create([
             'business_id' => $this->business->id,
             'name' => 'Kampala Road',

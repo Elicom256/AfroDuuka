@@ -4,11 +4,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, PackageX, Clock } from 'lucide-react';
+import { FeatureLockedCard } from '@/app/components/FeatureLockedCard';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
 
 export const OperationsStockAlerts = () => {
-  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30');
-  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30');
-  const { data: expiring, isLoading: expiringLoading } = useProductExpiringQuery();
+  const { reports, loading: reportsLoading } = useFeatureSettings();
+  // Reports endpoints; skipped while the feature is off so the card reads as locked
+  // rather than as a failed fetch.
+  const { data: lowStock, isLoading: lowLoading } = useLowStockQuery('30', { skip: !reports });
+  const { data: outOfStock, isLoading: outLoading } = useOutOfStockQuery('30', { skip: !reports });
+  const { data: expiring, isLoading: expiringLoading } = useProductExpiringQuery(undefined, { skip: !reports });
+
+  if (reportsLoading) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <Skeleton className='h-5 w-32' />
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          <Skeleton className='h-4 w-full' />
+          <Skeleton className='h-4 w-3/4' />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!reports) {
+    return <FeatureLockedCard title='Stock alerts' />;
+  }
 
   const isLoading = lowLoading || outLoading || expiringLoading;
 

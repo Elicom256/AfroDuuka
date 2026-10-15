@@ -5,6 +5,7 @@ use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\BlockRestrictedRoleActions;
 use App\Http\Middleware\RecoverFromAbortedTransaction;
 use App\Http\Middleware\RequireBusiness;
+use App\Http\Middleware\RequireFeature;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;

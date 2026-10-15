@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, PackageSearch } from 'lucide-react';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { FeatureLockedCard } from '@/app/components/FeatureLockedCard';
+import { useFeatureSettings } from '@/app/hooks/useFeatureSettings';
 
 type StockWatchItem = {
   id: number | string;
@@ -14,27 +16,50 @@ type StockWatchItem = {
 };
 
 export const StockHealth = () => {
+  const { reports, loading: reportsLoading } = useFeatureSettings();
+  // Low-stock and out-of-stock are reports endpoints. While the feature is off the
+  // card is locked and none of the three queries fire, so the deliberate 403 never
+  // reaches the UI as an error.
   const {
     data: lowStock,
     isLoading: lowLoading,
     isFetching: lowFetching,
     isError: lowError,
     refetch: refetchLow,
-  } = useLowStockQuery('30');
+  } = useLowStockQuery('30', { skip: !reports });
   const {
     data: outOfStock,
     isLoading: outLoading,
     isFetching: outFetching,
     isError: outError,
     refetch: refetchOut,
-  } = useOutOfStockQuery('30');
+  } = useOutOfStockQuery('30', { skip: !reports });
   const {
     data: expiring,
     isLoading: expiringLoading,
     isFetching: expiringFetching,
     isError: expiringError,
     refetch: refetchExpiring,
-  } = useProductExpiringQuery();
+  } = useProductExpiringQuery(undefined, { skip: !reports });
+
+  if (reportsLoading) {
+    return (
+      <Card>
+        <CardHeader className='pb-3'>
+          <Skeleton className='h-5 w-32' />
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          <Skeleton className='h-4 w-full' />
+          <Skeleton className='h-4 w-3/4' />
+          <Skeleton className='h-4 w-5/6' />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!reports) {
+    return <FeatureLockedCard title='Stock to watch' />;
+  }
 
   const isLoading = lowLoading || outLoading || expiringLoading;
 

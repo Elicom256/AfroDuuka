@@ -7,6 +7,7 @@ use App\Models\BusinessBranch;
 use App\Models\BusinessDebit;
 use App\Models\CashDrawerSession;
 use App\Models\CoreSettings\PaymentMethod;
+use App\Models\CoreSettings\PromotionsSettings;
 use App\Models\Coupon;
 use App\Models\CurrencyRate;
 use App\Models\Customer;
@@ -83,6 +84,13 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
         $this->customer = Customer::factory()->create([
             'business_id' => $this->business->id,
+        ]);
+
+        // Promotions ship disabled by default; this suite exercises authorization on
+        // the promotion routes, so the feature has to be on for those to be reached.
+        PromotionsSettings::create([
+            'business_id' => $this->business->id,
+            'status' => 'enabled',
         ]);
     }
 
@@ -727,7 +735,7 @@ class MutatingEndpointAuthorizationTest extends TestCase
 
         $this->deleteJson("/api/coupons/{$coupon->id}")->assertOk();
 
-        $this->assertDatabaseMissing('coupons', ['id' => $coupon->id]);
+        $this->assertSoftDeleted('coupons', ['id' => $coupon->id]);
     }
 
     // ------------------------------------------------------- stock transfer edit
