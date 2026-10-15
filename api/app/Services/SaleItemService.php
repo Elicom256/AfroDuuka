@@ -450,6 +450,10 @@ class SaleItemService
     {
         return SaleReturn::query()
             ->join('sale_return_items', 'sale_return_items.sale_return_id', '=', 'sale_returns.id')
+            // The join is raw, so sale_return_items' SoftDeletes scope does not come
+            // along. Editing a return soft-deletes the superseded lines and writes new
+            // ones, so without this the totals keep counting lines the edit replaced.
+            ->whereNull('sale_return_items.deleted_at')
             ->where('sale_returns.status', 'completed');
     }
 

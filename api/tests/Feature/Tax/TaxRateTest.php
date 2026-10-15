@@ -147,6 +147,6 @@ class TaxRateTest extends TestCase
 
         $this->deleteJson("/api/tax-rates/{$rate->id}")->assertStatus(200);
 
-        $this->assertDatabaseMissing('tax_rates', ['id' => $rate->id]);
+        $this->assertSoftDeleted('tax_rates', ['id' => $rate->id]);
     }
 }

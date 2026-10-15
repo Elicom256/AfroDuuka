@@ -69,13 +69,9 @@ class StockTransferController extends Controller
     {
         abort_unless(RolePermissions::canModifyStock(Auth::user()), 403, 'You cannot dispatch stock transfers.');
 
-        try {
-            $transfer = $this->stockTransferService->dispatch($stockTransfer);
+        $transfer = $this->stockTransferService->dispatch($stockTransfer);
 
-            return response()->json(['message' => 'Stock transfer dispatched', 'data' => $transfer]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
-        }
+        return response()->json(['message' => 'Stock transfer dispatched', 'data' => $transfer]);
     }
 
     /**
@@ -93,13 +89,9 @@ class StockTransferController extends Controller
 
         $receivedItems = collect($request->items)->pluck('quantity_received', 'id')->toArray();
 
-        try {
-            $transfer = $this->stockTransferService->receive($stockTransfer, $receivedItems);
+        $transfer = $this->stockTransferService->receive($stockTransfer, $receivedItems);
 
-            return response()->json(['message' => 'Stock transfer received', 'data' => $transfer]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
-        }
+        return response()->json(['message' => 'Stock transfer received', 'data' => $transfer]);
     }
 
     /**
@@ -141,13 +133,9 @@ class StockTransferController extends Controller
     {
         abort_unless(RolePermissions::canModifyStock(Auth::user()), 403, 'You cannot cancel stock transfers.');
 
-        try {
-            $transfer = $this->stockTransferService->cancel($stockTransfer);
+        $transfer = $this->stockTransferService->cancel($stockTransfer);
 
-            return response()->json(['message' => 'Stock transfer cancelled', 'data' => $transfer]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred. Please try again.'], 422);
-        }
+        return response()->json(['message' => 'Stock transfer cancelled', 'data' => $transfer]);
     }
 
     public function destroy(StockTransfer $stockTransfer)

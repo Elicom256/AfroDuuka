@@ -143,6 +143,7 @@ class ConcurrencyTest extends TestCase
             'business_id' => $this->business->id,
             'from_branch_id' => $this->branchA->id,
             'to_branch_id' => $this->branchB->id,
+            'transferred_by' => $this->user->id,
             'status' => 'draft',
         ]);
         $transfer->items()->create([
@@ -188,10 +189,11 @@ class ConcurrencyTest extends TestCase
             'business_id' => $this->business->id,
             'from_branch_id' => $this->branchA->id,
             'to_branch_id' => $this->branchB->id,
+            'transferred_by' => $this->user->id,
             'status' => 'in_transit',
             'dispatched_at' => now(),
         ]);
-        $transfer->items()->create([
+        $item = $transfer->items()->create([
             'product_id' => $product->id,
             'quantity_expected' => 40,
             'status' => 'pending',
@@ -199,18 +201,19 @@ class ConcurrencyTest extends TestCase
 
         // First receive — succeeds
         $transfer->refresh();
-        $this->receive($transfer, [['product_id' => $product->id, 'quantity_received' => 40]])
+        $this->receive($transfer, [['id' => $item->id, 'quantity_received' => 40]])
             ->assertOk();
 
         $transfer->refresh();
-        $this->assertEquals('completed', $transfer->status);
+        $this->assertEquals('received', $transfer->status);
 
         // Second receive on same transfer — rejected
-        $response = $this->receive($transfer, [['product_id' => $product->id, 'quantity_received' => 40]]);
+        $response = $this->receive($transfer, [['id' => $item->id, 'quantity_received' => 40]]);
         $response->assertStatus(422);
 
         // Destination product quantity incremented only once
-        $destProduct = Product::where('business_branch_id', $this->branchB->id)
+        $destProduct = Product::withoutGlobalScope('branch')
+            ->where('business_branch_id', $this->branchB->id)
             ->where('name', $product->name)
             ->first();
         $this->assertEquals(40, $destProduct?->quantity);
