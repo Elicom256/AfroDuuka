@@ -39,7 +39,7 @@ return new class extends Migration
             }
 
             Schema::table($table, function (Blueprint $blueprint) {
-                $blueprint->string('sync_status')->default('synced')->index();
+                $blueprint->enum('sync_status', ['synced', 'pending', 'failed'])->default('synced')->index();
             });
         }
     }
