@@ -14,22 +14,15 @@ export {
   listOperations,
   getOperation,
   markSyncing,
+  markPending,
   markSynced,
   markFailed,
   retryOperation,
   removeOperation,
   countOperations,
 } from './outbox';
-export type {
-  EnqueueSaleInput,
-  ListOperationsFilter,
-  OperationCounts,
-} from './outbox';
-export {
-  ConnectivityMonitor,
-  connectivity,
-  resolveHealthUrl,
-} from './connectivity';
+export type { EnqueueSaleInput, ListOperationsFilter, OperationCounts } from './outbox';
+export { ConnectivityMonitor, connectivity, resolveHealthUrl } from './connectivity';
 export type { ConnectivityOptions, ConnectivitySnapshot } from './connectivity';
 export {
   SyncEngine,
@@ -45,6 +38,7 @@ export {
   RETRY_BASE_DELAY_MS,
   RETRY_MAX_DELAY_MS,
 } from './operationQueue';
+export { registerSyncHandlers } from './handlers';
 export type {
   FlushSummary,
   OperationHandler,

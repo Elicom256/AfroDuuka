@@ -9,10 +9,9 @@
  *
  * The contract this module deliberately keeps:
  *
- *  - **No fake success.** Nothing here marks an operation `synced`. Without a
- *    registered handler, {@link SyncEngine.flush} leaves every operation `pending` and
- *    reports it as skipped. The backend has no idempotency contract yet (see
- *    offline.md §7), so pretending a queued sale is confirmed would be a lie.
+ *  - **No fake success.** Only a server-confirmed `synced` or `duplicate` result can
+ *    mark an operation synced. Without a registered handler, {@link SyncEngine.flush}
+ *    leaves every operation pending and reports it as skipped.
  *  - **No silent loss.** A connection failure is a reason to persist locally, never a
  *    reason to drop the write (offline.md §3).
  *  - **The online path is untouched.** When the API is reachable the caller keeps
@@ -25,17 +24,12 @@ import {
   enqueueSale,
   listOperations,
   markFailed,
+  markPending,
   markSynced,
   markSyncing,
   type EnqueueSaleInput,
 } from './outbox';
-import type {
-  LocalSale,
-  OperationContext,
-  OperationType,
-  SaleOperationPayload,
-  SyncOperation,
-} from './types';
+import type { LocalSale, OperationContext, OperationType, SaleOperationPayload, SyncOperation } from './types';
 
 /** The result of locally persisting an operation. `queued` is always true on resolve. */
 export interface SubmitResult<TPayload = unknown> {
@@ -137,12 +131,21 @@ export async function submitSale(input: EnqueueSaleInput): Promise<SaleSubmitRes
 /**
  * A registered transport for one operation type.
  *
- * `send` is where a future backend contract lives. It must be idempotent on
- * `operation.operationId` for retries to be safe; that guarantee does not exist yet
- * and is the documented blocker on end-to-end offline sync (offline.md §7).
+ * `send` handles legacy one-at-a-time transports; `sendBatch` allows a registered
+ * handler to use the authenticated idempotent batch API for several operations.
  */
 export interface OperationHandler<TPayload = unknown> {
+  canHandle?(operation: SyncOperation<TPayload>): boolean;
   send(operation: SyncOperation<TPayload>): Promise<{ serverId?: number | null } | void>;
+  sendBatch?(operations: SyncOperation<TPayload>[]): Promise<BatchOperationResult[]>;
+}
+
+export interface BatchOperationResult {
+  operationId: string;
+  status: 'synced' | 'duplicate' | 'failed' | 'conflict' | 'deferred';
+  serverId?: number | null;
+  error?: string;
+  retryable?: boolean;
 }
 
 export interface FlushSummary {
@@ -183,13 +186,16 @@ export function backoffDelayMs(retryCount: number): number {
 }
 
 /**
- * Whether a `failed` operation is due to be re-attempted.
+ * Whether a failed operation or transport-deferred pending operation is due.
  *
- * A failed operation does not stay `pending`; it sits in `failed` until its backoff
- * window has elapsed. Anything other than `failed` is not due.
+ * Ordinary pending operations are immediately eligible; pending operations with
+ * `retryable: true` wait for transport backoff, while permanent failures never retry.
  */
 export function isRetryDue(operation: SyncOperation, now: number = Date.now()): boolean {
-  if (operation.status !== 'failed') return false;
+  if (operation.status === 'failed' && operation.retryable === false) return false;
+  if (operation.status !== 'failed' && !(operation.status === 'pending' && operation.retryable === true)) {
+    return false;
+  }
   const lastErrorAt = operation.lastErrorAt ?? operation.createdAt;
   return now - lastErrorAt >= backoffDelayMs(operation.retryCount);
 }
@@ -216,8 +222,8 @@ const INITIAL_SNAPSHOT: SyncEngineSnapshot = {
  * The sync engine.
  *
  * It owns the only transition from `pending` to `synced`. Its job is deliberately
- * narrow: run each pending operation through the handler registered for its type,
- * record the outcome, and never guess. With no handlers registered it is inert —
+ * narrow: run pending operations through registered handlers, record each result,
+ * and never guess. With no handlers registered it is inert —
  * `flush()` reports every operation as skipped and changes nothing.
  *
  * It also retries failed operations whose backoff window has elapsed, so an outage
@@ -301,12 +307,15 @@ export class SyncEngine {
       alreadyRunning: false,
     };
 
-    const pending = await listOperations({ status: 'pending' });
-    const retryable = (await listOperations({ status: 'failed' })).filter((op) =>
-      isRetryDue(op),
+    const pending = (await listOperations({ status: 'pending' })).filter(
+      (op) => op.retryable !== true || isRetryDue(op),
+    );
+    const retryable = (await listOperations({ status: 'failed' })).filter(
+      (op) => op.retryable !== false && isRetryDue(op),
     );
     const operations = [...pending, ...retryable];
 
+    const groups = new Map<OperationHandler, SyncOperation[]>();
     for (const operation of operations) {
       const handler = this.handlers.get(operation.type);
       if (!handler) {
@@ -315,15 +324,62 @@ export class SyncEngine {
         continue;
       }
 
-      summary.attempted += 1;
-      await markSyncing(operation.operationId);
-      try {
-        const result = await handler.send(operation);
-        await markSynced(operation.operationId, result?.serverId ?? null);
-        summary.synced += 1;
-      } catch (error) {
-        await markFailed(operation.operationId, describeError(error));
-        summary.failed += 1;
+      if (handler.canHandle && !handler.canHandle(operation)) {
+        summary.skipped += 1;
+        continue;
+      }
+
+      const group = groups.get(handler) ?? [];
+      group.push(operation);
+      groups.set(handler, group);
+    }
+
+    for (const [handler, group] of groups) {
+      if (handler.sendBatch) {
+        for (let offset = 0; offset < group.length; offset += 50) {
+          const batch = group.slice(offset, offset + 50);
+          summary.attempted += batch.length;
+          for (const operation of batch) await markSyncing(operation.operationId);
+
+          try {
+            const results = await handler.sendBatch(batch);
+            const byId = new Map(results.map((result) => [result.operationId, result]));
+
+            for (const operation of batch) {
+              const result = byId.get(operation.operationId);
+              if (!result || result.status === 'deferred') {
+                await markPending(operation.operationId);
+                summary.skipped += 1;
+              } else if (result.status === 'synced' || result.status === 'duplicate') {
+                await markSynced(operation.operationId, result.serverId ?? null);
+                summary.synced += 1;
+              } else {
+                await markFailed(operation.operationId, result.error ?? result.status, result.retryable ?? false);
+                summary.failed += 1;
+              }
+            }
+          } catch (error) {
+            const message = describeError(error);
+            for (const operation of batch) {
+              await markPending(operation.operationId, message);
+              summary.failed += 1;
+            }
+          }
+        }
+        continue;
+      }
+
+      for (const operation of group) {
+        summary.attempted += 1;
+        await markSyncing(operation.operationId);
+        try {
+          const result = await handler.send(operation);
+          await markSynced(operation.operationId, result?.serverId ?? null);
+          summary.synced += 1;
+        } catch (error) {
+          await markFailed(operation.operationId, describeError(error));
+          summary.failed += 1;
+        }
       }
     }
 
@@ -349,7 +405,7 @@ export interface SyncFallbackOptions {
  * turned into a burst of doomed requests.
  *
  * Returns a disposer that detaches the listener. With no handlers registered the
- * engine is inert, so this is safe to mount before any transport exists.
+ * engine is inert, so this is safe to mount before registration completes.
  */
 export function startSyncFallback(options: SyncFallbackOptions = {}): () => void {
   const engine = options.engine ?? syncEngine;
