@@ -5,14 +5,19 @@ namespace App\Services\Sync;
 use App\Exceptions\InsufficientStockException;
 use App\Models\SyncOperation;
 use App\Models\User;
+use App\Services\Sync\Handlers\CustomerSyncHandler;
+use App\Services\Sync\Handlers\InventorySyncHandler;
+use App\Services\Sync\Handlers\SaleSyncHandler;
+use App\Services\Sync\Handlers\TodoSyncHandler;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
-use Exception;
 use Throwable;
 
 /**
@@ -62,6 +67,10 @@ class SyncOperationDispatcher
         $type = $operation['type'];
         $startedAt = microtime(true);
 
+        if (! $user->business_id) {
+            return $this->failedResult($operationId, 'forbidden', 'A business is required to sync operations.');
+        }
+
         try {
             $claim = $this->claim($operation, $user);
         } catch (Throwable $e) {
@@ -69,7 +78,8 @@ class SyncOperationDispatcher
                 'operation_id' => $operationId,
                 'type' => $type,
                 'business_id' => $user->business_id,
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
 
             return $this->failedResult($operationId, 'processing_error', 'Could not claim the operation for processing.');
@@ -149,7 +159,8 @@ class SyncOperationDispatcher
                 'error_code' => $error['code'],
                 'attempts' => $record->refresh()->attempts,
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
 
             return [
@@ -182,13 +193,17 @@ class SyncOperationDispatcher
             'status' => SyncOperation::STATUS_PROCESSING,
             'attempts' => 1,
             'client_created_at' => $this->clientCreatedAt($operation),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
-        try {
-            return ['kind' => 'claimed', 'record' => SyncOperation::create($attributes)];
-        } catch (UniqueConstraintViolationException) {
-            // A committed row already exists — fall through to inspect it. This is
-            // the idempotency path, not an error.
+        // PostgreSQL's ON CONFLICT avoids aborting an enclosing transaction. That
+        // matters in tests and callers that wrap requests in a transaction, while
+        // the unique constraint remains the authority for concurrent claims.
+        $inserted = DB::table('sync_operations')->insertOrIgnore($attributes);
+
+        if ($inserted === 1) {
+            return ['kind' => 'claimed', 'record' => $this->operationScope($operation['operation_id'], $user)->firstOrFail()];
         }
 
         $existing = $this->operationScope($operation['operation_id'], $user)->first();
@@ -237,7 +252,7 @@ class SyncOperationDispatcher
         return ['kind' => 'claimed', 'record' => $this->operationScope($operation['operation_id'], $user)->firstOrFail()];
     }
 
-    private function operationScope(string $operationId, User $user): \Illuminate\Database\Eloquent\Builder
+    private function operationScope(string $operationId, User $user): Builder
     {
         return SyncOperation::query()
             ->where('business_id', $user->business_id)
@@ -251,7 +266,7 @@ class SyncOperationDispatcher
         }
 
         try {
-            return \Illuminate\Support\Carbon::parse($operation['created_at'])->toDateTimeString();
+            return Carbon::parse($operation['created_at'])->toDateTimeString();
         } catch (Throwable) {
             return null;
         }
@@ -275,7 +290,8 @@ class SyncOperationDispatcher
                 'sync_operation_id' => $record->id,
                 'operation_id' => $record->operation_id,
                 'error_code' => $code,
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
         }
     }
@@ -283,8 +299,8 @@ class SyncOperationDispatcher
     /**
      * Map a thrown condition to the response contract's status + a stable,
      * machine-readable code. Business messages are safe to surface (they are the
-     * same texts the online endpoints report); unexpected exceptions are logged in
-     * full and reported generically so internals never leave the API.
+     * same texts the online endpoints report); unexpected exceptions are logged
+     * without raw messages or bindings and reported generically.
      *
      * @return array{status: 'conflict'|'failed', code: string, message: string, details?: array}
      */
@@ -321,7 +337,10 @@ class SyncOperationDispatcher
             return [
                 'status' => 'failed',
                 'code' => 'forbidden',
-                'message' => 'Not authorized to perform this operation.',
+                // Handlers raise AuthorizationException with the same human-readable
+                // texts the online endpoints abort with (e.g. a disabled feature);
+                // policy denials arrive with an empty message and get the generic one.
+                'message' => $e->getMessage() !== '' ? $e->getMessage() : 'Not authorized to perform this operation.',
                 'details' => [],
             ];
         }
@@ -377,7 +396,10 @@ class SyncOperationDispatcher
             }
         }
 
-        Log::error('sync operation unexpected exception', ['exception' => $e]);
+        Log::error('sync operation unexpected exception', [
+            'exception_class' => $e::class,
+            'exception_code' => (string) $e->getCode(),
+        ]);
 
         return [
             'status' => 'failed',
