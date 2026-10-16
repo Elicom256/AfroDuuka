@@ -7,7 +7,7 @@ Source brief: `offline.md`. Scope for this pass: **frontend foundation + local p
 - ✅ Chunk 1 — Dexie persistence + durable outbox core (+tests)
 - ✅ Chunk 2 — Connectivity monitoring hooks/services (+tests)
 - ✅ Chunk 3 — PWA config via vite-plugin-pwa + SW registration
-- ⬜ Chunk 4 — Offline-aware operation layer + POS/CRUD integration
+- ✅ Chunk 4 — Offline-aware operation layer + POS/CRUD integration
 - ⬜ Chunk 5 — `sync_status` columns (migrations)
 - ⬜ Chunk 6 — Offline status UI (indicator + sync badge)
 - ⬜ Chunk 7 — Sync engine interfaces + hooks
