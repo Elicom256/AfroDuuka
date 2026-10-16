@@ -5,6 +5,7 @@ import { NavBar } from './app/navbar/NavBar';
 import { AppRoutes } from './app/routes/AppRoutes';
 import { Footer } from './app/pages/public/Footer';
 import { Toaster } from '@/components/ui/sonner';
+import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 
 function App() {
   const location = useLocation();
@@ -32,6 +33,16 @@ function App() {
         <AppRoutes />
       </main>
       {!isDashboard && <Footer />}
+      {/*
+        Live connectivity/sync status, kept as a floating pill so it never displaces the
+        dashboard or POS layout (offline.md §6). Mounted once at the app root rather
+        than per layout so every role — and the POS — gets it without touching each shell.
+      */}
+      {isDashboard && (
+        <div className='pointer-events-none fixed bottom-4 left-4 z-40'>
+          <OfflineStatusIndicator />
+        </div>
+      )}
       <Toaster position='top-right' />
     </div>
   );

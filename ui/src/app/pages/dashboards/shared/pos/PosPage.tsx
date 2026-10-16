@@ -38,6 +38,7 @@ import {
   type LocalSale,
 } from '@/lib/offline';
 import { PosReceiptModal } from './PosReceiptModal';
+import { SyncStatusBadge } from '@/components/offline/SyncStatusBadge';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 interface CartItem {
@@ -907,9 +908,14 @@ export const PosPage = () => {
               <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600'>
                 <WifiOff className='h-5 w-5' />
               </div>
-              <h2 id='offline-sale-title' className='text-lg font-semibold'>
-                Sale saved on this device
-              </h2>
+              <div className='min-w-0 flex-1'>
+                <h2 id='offline-sale-title' className='text-lg font-semibold'>
+                  Sale saved on this device
+                </h2>
+                <div className='mt-1'>
+                  <SyncStatusBadge status='pending' />
+                </div>
+              </div>
             </div>
             <p className='text-sm text-muted-foreground'>
               The server could not be reached, so this sale is <strong>not confirmed yet</strong>. It
