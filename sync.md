@@ -42,7 +42,7 @@ Status:
 
 ### Chunk 2 — Batch endpoint + dispatcher
 - New `api/routes/sync.php`, required from `routes/api.php` under the existing `throttle:api` group, `auth:sanctum` + existing policies. *(Implemented; `RequireTillAccess` deliberately not applied — per-type authority is enforced in handlers.)*
-- Additive migration for `client_created_at` on `sync_operations` (client timestamp = audit only).
+- `sync_operations` carries `client_created_at` (audit only) in the create migration itself.
 - `POST /api/sync/batch` → `SyncBatchController` + `SyncBatchRequest` (cap batch size, e.g. 50; per-op: `operation_id` uuid, `type` in `sale|inventory|customer|todo`, `payload` array, `created_at` for audit only).
 - `Sync\OperationDispatcher`: one independent DB transaction per operation:
   1. Insert `SyncOperation` (`processing`) first — a unique violation means a duplicate; return stored `result` when `completed`.

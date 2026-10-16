@@ -36,6 +36,10 @@ return new class extends Migration
             $table->text('error_message')->nullable();
             $table->unsignedInteger('attempts')->default(0);
             $table->timestamp('processed_at')->nullable();
+            // The client's `created_at` is audit context only (never used for server
+            // ordering or financial calculation), so it is stored separately rather
+            // than overwriting `created_at` with device time.
+            $table->timestamp('client_created_at')->nullable()->after('processed_at');
             $table->timestamps();
 
             $table->unique(['business_id', 'operation_id']);
