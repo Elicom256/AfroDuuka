@@ -3,7 +3,17 @@
 Combined brief: `apisync.md` (Laravel sync contract + frontend sync-engine wiring merged from `offline.md` §7).
 Frontend foundation: already delivered — see `todayswork.md`. This plan covers the undone half: the backend idempotent sync API and wiring the existing outbox to it.
 
-Status: **not started.** All chunks below are pending.
+Status:
+
+- ✅ Chunk 1 — Idempotency store (migration + model)
+- ⬜ Chunk 2 — Batch endpoint + dispatcher
+- ⬜ Chunk 3 — Type handlers
+- ⬜ Chunk 4 — Security and tenant isolation
+- ⬜ Chunk 5 — Backend tests
+- ⬜ Chunk 6 — Frontend syncQuery endpoint
+- ⬜ Chunk 7 — Register handlers and flush
+- ⬜ Chunk 8 — Frontend tests
+- ⬜ Final verification + deliverables
 
 ## 1. Facts this plan is built on
 
