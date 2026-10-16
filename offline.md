@@ -42,7 +42,7 @@ Create a maintainable offline module in an appropriate location, following exist
 
 Implement a versioned IndexedDB database with a durable outbox for pending operations. Each operation should support:
 
-- A unique, client-generated `operationId` using `crypto.randomUUID()` or an appropriate compatible alternative. But dexie.js already handles ids as I need
+- A unique, client-generated `operationId` using `crypto.randomUUID()`
 - Operation type, initially supporting `sale`, `inventory`, and `customer`.
 - The serialized operation payload.
 - Creation timestamp.

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('sale_items', function (Blueprint $table) {
             $table->softDeletes();
             $table->id();
-            $table->string('sync_status')->default('synced')->index();
+            $table->enum('sync_status', ['synced', 'pending', 'failed'])->default('synced')->index();
             $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->integer('quantity');
