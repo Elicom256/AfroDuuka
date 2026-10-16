@@ -109,9 +109,9 @@ const faqs = [
       'Navigate to Settings > Branches and click "Add Branch". Enter your branch name, address, and contact details. You can assign specific staff members to each branch and set individual permissions.',
   },
   {
-    question: 'Can I use DuukaFlow on multiple devices?',
+    question: 'Can I use AfroDuuka on multiple devices?',
     answer:
-      'Yes! DuukaFlow is fully responsive and works on desktops, tablets, and smartphones. Your data syncs in real-time across all devices, so you can manage your shop from anywhere.',
+      'Yes! AfroDuuka is fully responsive and works on desktops, tablets, and smartphones. Your data syncs in real-time across all devices, so you can manage your shop from anywhere.',
   },
   {
     question: 'How does barcode scanning work?',
@@ -152,10 +152,10 @@ export const Documentation: React.FC = () => {
             Documentation
           </Badge>
           <h1 className='font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl'>
-            Everything you need to know about DuukaFlow
+            Everything you need to know about AfroDuuka
           </h1>
           <p className='mt-4 text-lg text-muted-foreground'>
-            A complete guide to setting up, managing, and growing your retail business with DuukaFlow.
+            A complete guide to setting up, managing, and growing your retail business with AfroDuuka.
           </p>
         </div>
 
@@ -356,7 +356,7 @@ export const Documentation: React.FC = () => {
               <Heart className='mx-auto h-8 w-8 text-red-500' />
               <h3 className='mt-4 text-xl font-semibold text-foreground'>Ready to get started?</h3>
               <p className='mt-2 text-sm text-muted-foreground'>
-                Join thousands of retailers managing their business with DuukaFlow.
+                Join thousands of retailers managing their business with AfroDuuka.
               </p>
               <div className='mt-6 flex flex-wrap items-center justify-center gap-3'>
                 <a

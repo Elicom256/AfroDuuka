@@ -310,8 +310,8 @@ class RecipientProvisionerTest extends TestCase
         $business = $this->business();
         $this->ownerFor($business);
 
-        $this->artisan('duukaflow:notifications:backfill-recipients')->assertSuccessful();
-        $this->artisan('duukaflow:notifications:backfill-recipients')->assertSuccessful();
+        $this->artisan('afroduuka:notifications:backfill-recipients')->assertSuccessful();
+        $this->artisan('afroduuka:notifications:backfill-recipients')->assertSuccessful();
 
         $this->assertSame(2, NotificationRecipient::withoutGlobalScopes()
             ->where('business_id', $business->id)
@@ -323,7 +323,7 @@ class RecipientProvisionerTest extends TestCase
         $business = $this->business();
         $this->ownerFor($business);
 
-        $this->artisan('duukaflow:notifications:backfill-recipients --dry-run')
+        $this->artisan('afroduuka:notifications:backfill-recipients --dry-run')
             ->assertSuccessful();
 
         $this->assertSame(0, NotificationRecipient::withoutGlobalScopes()

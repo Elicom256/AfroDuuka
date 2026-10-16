@@ -8,7 +8,7 @@
  * localStorage would. It is never the source of truth — `me` is — only a fast path so
  * the first render can name the address before the query answers.
  */
-const STORAGE_KEY = 'duukaflow:pending-verification-email';
+const STORAGE_KEY = 'afroduuka:pending-verification-email';
 
 /**
  * How long the resend affordance stays disabled after a send.

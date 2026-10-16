@@ -227,7 +227,7 @@ export const Onboarding: React.FC = () => {
           <CardTitle className='text-2xl font-semibold'>Set up your business</CardTitle>
           <CardDescription className='text-sm text-muted-foreground'>
             {isSignedIn
-              ? 'Finish setting up your business to start using DuukaFlow.'
+              ? 'Finish setting up your business to start using AfroDuuka.'
               : 'Three short steps, then your workspace is ready.'}
           </CardDescription>
         </CardHeader>

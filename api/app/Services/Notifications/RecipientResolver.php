@@ -19,7 +19,7 @@ use Illuminate\Support\Collection;
  *
  * Step 4 is the important one. The previous implementation fell back to a hard-coded
  * demo number, which meant a business with no WhatsApp configured silently sent its
- * stock alerts to DuukaFlow's own phone.
+ * stock alerts to AfroDuuka's own phone.
  */
 class RecipientResolver
 {

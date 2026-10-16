@@ -6,7 +6,7 @@ import { useCurrency } from '@/app/hooks/useCurrency';
 /**
  * Platform settings, read from the platform rather than restated here.
  *
- * This page held a `settingsSections` array of literals — System Name 'DuukaFlow',
+ * This page held a `settingsSections` array of literals — System Name 'AfroDuuka',
  * Platform Status 'Operational', a support address, currency, timezone. Each was a claim
  * about the running install, written once in a component, with no connection to the value
  * it claimed to show (checked.md P2). If the platform were suspended, or its support

@@ -87,7 +87,7 @@ class TemplateSyncServiceTest extends TestCase
         );
 
         $this->assertSame(
-            'Welcome to DuukaFlow, Acme. Your business is live and your free trial ends 30 Sep 2026.',
+            'Welcome to AfroDuuka, Acme. Your business is live and your free trial ends 30 Sep 2026.',
             $rendered->body
         );
     }
@@ -310,7 +310,7 @@ class TemplateSyncServiceTest extends TestCase
 
         $this->metaConfig();
 
-        $this->artisan('duukaflow:whatsapp:sync-templates')
+        $this->artisan('afroduuka:whatsapp:sync-templates')
             ->assertSuccessful();
     }
 
@@ -322,7 +322,7 @@ class TemplateSyncServiceTest extends TestCase
 
         $this->metaConfig();
 
-        $this->artisan('duukaflow:whatsapp:sync-templates')
+        $this->artisan('afroduuka:whatsapp:sync-templates')
             ->assertFailed();
     }
 
@@ -330,7 +330,7 @@ class TemplateSyncServiceTest extends TestCase
     {
         Http::fake();
 
-        $this->artisan('duukaflow:whatsapp:sync-templates')->assertSuccessful();
+        $this->artisan('afroduuka:whatsapp:sync-templates')->assertSuccessful();
 
         Http::assertNothingSent();
     }

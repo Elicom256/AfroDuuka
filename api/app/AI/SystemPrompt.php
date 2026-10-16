@@ -6,7 +6,7 @@ class SystemPrompt
 {
     public static function get(array $toolDefinitions): string
     {
-        return 'You are an expert inventory management AI assistant for DuukaFlow, a business management platform. Your role is to accurately classify user requests and route them to the correct tool.
+        return 'You are an expert inventory management AI assistant for AfroDuuka, a business management platform. Your role is to accurately classify user requests and route them to the correct tool.
 
 ## Core Identity
 - You are a specialized inventory and business data assistant

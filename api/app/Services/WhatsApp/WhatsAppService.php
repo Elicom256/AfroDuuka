@@ -37,7 +37,7 @@ class WhatsAppService
             'webhook_verify_token' => 'demo_verify_token',
             'is_active' => true,
             'message_template' => 'demo_business_alert',
-            'welcome_message' => 'Welcome to DuukaFlow WhatsApp demo mode.',
+            'welcome_message' => 'Welcome to AfroDuuka WhatsApp demo mode.',
         ]);
     }
 
@@ -81,7 +81,7 @@ class WhatsAppService
             'template_key' => 'demo_test',
             'recipient_phone' => $recipient,
             'template_data' => [
-                'business_name' => 'DuukaFlow',
+                'business_name' => 'AfroDuuka',
                 'message' => $message,
             ],
         ]);

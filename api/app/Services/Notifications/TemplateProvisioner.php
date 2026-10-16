@@ -45,7 +45,7 @@ class TemplateProvisioner
      */
     private const WORDING = [
         'registration.welcome' => [
-            'body' => 'Welcome to DuukaFlow, {{business_name}}. Your business is live and your free trial ends {{trial_ends_at}}.',
+            'body' => 'Welcome to AfroDuuka, {{business_name}}. Your business is live and your free trial ends {{trial_ends_at}}.',
             'variables' => ['business_name', 'trial_ends_at'],
         ],
         'subscription.activated' => [
@@ -77,7 +77,7 @@ class TemplateProvisioner
             'variables' => ['trial_ends_at', 'subscribe_url'],
         ],
         'report.monthly' => [
-            'body' => 'Your {{period}} report is ready. View it in DuukaFlow: {{report_url}}',
+            'body' => 'Your {{period}} report is ready. View it in AfroDuuka: {{report_url}}',
             'variables' => ['period', 'report_url'],
         ],
         'order.purchase' => [

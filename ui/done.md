@@ -24,7 +24,7 @@ https://wa.me/256781490899/?text=Hello%20Elicom%2C%20auto%20inserted/ (Whatsapp)
 - Please, do not hallucinate
   Otherwise, let's make it modern
 
-  # Today's work at DuukaFlow project
+  # Today's work at AfroDuuka project
 You are working inside an existing React + TypeScript frontend project using Vite, Redux Toolkit, and RTK Query. The Redux store and RTK Query setup are already configured.
 
 Your task is to build a modern, responsive **Admin Dashboard** inside the folder:
@@ -187,7 +187,7 @@ Keep components reusable and clean.
 Generate complete, clean, production-quality code.
  # Do NOT Hallucinate
 
-# Today's work at DuukaFlow project
+# Today's work at AfroDuuka project
  - in src/app/pages/dashboards/admin/sidebar.tsx, I have included some other features, but some don't have components they're linking to, eg Marketing etc, your work is to add corresponding pages and componets
  - Split code in each page into components if neccessary so that there is no too much code in 1 page(file)
  - Add corresponding querries inside a specific folder in src/app/store/features/business/ . Create the folder if not found

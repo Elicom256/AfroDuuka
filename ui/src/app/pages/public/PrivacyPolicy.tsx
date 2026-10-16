@@ -119,7 +119,7 @@ export const PrivacyPolicy = () => {
         </CardHeader>
         <CardContent className='prose prose-sm dark:prose-invert max-w-none'>
           <p>
-            For privacy-related inquiries, contact us at privacy@duukaflow.com or +256 731 794401.
+            For privacy-related inquiries, contact us at privacy@afroduuka.com or +256 731 794401.
           </p>
         </CardContent>
       </Card>

@@ -1,4 +1,4 @@
-# DuukaFlow Review Findings
+# AfroDuuka Review Findings
 
 ## Scope
 
@@ -17,7 +17,7 @@ The project is materially larger than a simple inventory app, and there are stro
 
 ## Executive summary
 
-DuukaFlow appears to have a substantial amount of business-domain work already implemented. The backend includes multi-branch inventory logic, purchase and sale flows, stock movement tracking, employee and branch structures, role-based access concepts, and reporting/Audit surfaces. The UI also includes a broad set of dashboards and screens for operational work.
+AfroDuuka appears to have a substantial amount of business-domain work already implemented. The backend includes multi-branch inventory logic, purchase and sale flows, stock movement tracking, employee and branch structures, role-based access concepts, and reporting/Audit surfaces. The UI also includes a broad set of dashboards and screens for operational work.
 
 That said, the codebase is not launch-ready. The biggest risks are not in the excluded notification/API areas; they are in:
 
@@ -180,7 +180,7 @@ These are not launch blockers by themselves, but they do affect trust and adopti
 
 ## Bottom line
 
-DuukaFlow is not a toy app and it is not in a “just needs a few features” state. It has substantial product structure and operational domain coverage, but it still needs a focused launch-hardening pass on invariants, access control, route integrity, and sale/stock correctness.
+AfroDuuka is not a toy app and it is not in a “just needs a few features” state. It has substantial product structure and operational domain coverage, but it still needs a focused launch-hardening pass on invariants, access control, route integrity, and sale/stock correctness.
 
 The excluded messaging and API work is not the main constraint here. The real blocker is that the core product still has too many safety and correctness issues for a trustworthy production release.
 

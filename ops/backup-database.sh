@@ -11,4 +11,4 @@ compose=(docker compose --env-file "$repo_root/api/.env" -f "$compose_file")
 
 "${compose[@]}" exec -T pgsql sh -lc \
     'pg_dump --format=custom --no-owner --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' \
-    | "${compose[@]}" exec -T backend php artisan duukaflow:database:backup --stdin
+    | "${compose[@]}" exec -T backend php artisan afroduuka:database:backup --stdin

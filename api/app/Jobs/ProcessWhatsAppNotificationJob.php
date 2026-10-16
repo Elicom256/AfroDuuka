@@ -125,7 +125,7 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
                 'webhook_verify_token' => config('services.whatsapp.webhook_verify_token', 'demo_verify_token'),
                 'is_active' => true,
                 'message_template' => config('services.whatsapp.default_template', 'demo_business_alert'),
-                'welcome_message' => 'Welcome to DuukaFlow WhatsApp demo mode.',
+                'welcome_message' => 'Welcome to AfroDuuka WhatsApp demo mode.',
             ]);
         }
 
@@ -147,7 +147,7 @@ class ProcessWhatsAppNotificationJob implements ShouldQueue
 
         // A template's `variables` column holds the variable *names* it expects,
         // not values, so it must never be used as the render data.
-        $templateString = $template?->body ?? ($config->message_template ?? 'Hello {{business_name}}, this is a DuukaFlow WhatsApp alert.');
+        $templateString = $template?->body ?? ($config->message_template ?? 'Hello {{business_name}}, this is a AfroDuuka WhatsApp alert.');
         $templateData = $normalized['template_data'] ?? [];
         $message = $templateService->render($templateString, $templateData);
 

@@ -114,7 +114,7 @@ class ReceiptPdfTest extends TestCase
 
     public function test_qr_helper_renders_an_svg_data_uri(): void
     {
-        $uri = ReceiptQrCode::svgDataUri('https://duukaflow.com');
+        $uri = ReceiptQrCode::svgDataUri('https://afroduuka.com');
 
         $this->assertStringStartsWith('data:image/svg+xml;base64,', $uri);
 

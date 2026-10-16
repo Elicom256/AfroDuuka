@@ -62,7 +62,7 @@ return [
             'channels' => ['email', 'whatsapp'],
             'mandatory' => true,
             'scope' => 'business',
-            'meta' => 'duukaflow_welcome',
+            'meta' => 'afroduuka_welcome',
             'dedupe' => 'registration:welcome:business-{business_id}',
         ],
 
@@ -229,7 +229,7 @@ return [
         // `mandatory` flags (NotificationCatalogue::mandatoryCategories()), because a
         // hand-maintained copy of that list drifted and the two disagreed.
 
-        'from_address' => env('MAIL_FROM_ADDRESS', 'notifications@duukaflow.com'),
+        'from_address' => env('MAIL_FROM_ADDRESS', 'notifications@afroduuka.com'),
         // Same `${APP_NAME}` guard as config/mail.php: a host that does not expand
         // variables can otherwise leak the raw placeholder into the From name.
         'from_name' => in_array(trim((string) env('MAIL_FROM_NAME')), ['', '${APP_NAME}'], true)

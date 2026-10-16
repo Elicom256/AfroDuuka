@@ -7,7 +7,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('duukaflow:currency:sync-rates')
+Schedule::command('afroduuka:currency:sync-rates')
     ->dailyAt('06:00')
     ->withoutOverlapping();
 
@@ -28,7 +28,7 @@ Schedule::command('inspire')->hourly();
 // believe is APPROVED is the gate for every WhatsApp send. Daily is a compromise:
 // the only real cost of a stale status is sending against a revoked template, which
 // Meta rejects, and the retries are already capped.
-Schedule::command('duukaflow:whatsapp:sync-templates')
+Schedule::command('afroduuka:whatsapp:sync-templates')
     ->dailyAt('06:30')
     ->withoutOverlapping();
 // SES event publishing is applied by the webhook the moment it arrives, so this job is

@@ -269,7 +269,7 @@ export const PricingSection = () => {
             Built to Propel Africa's Retail Renaissance
           </h3>
           <p className='mt-4 text-muted-foreground text-sm md:text-base leading-relaxed'>
-            We engineered DuukaFlow because generic enterprise software is built for western markets, while African business owners face unique operational challenges. From informal roadside kiosks (<span className='italic font-medium text-primary'>duukas</span>) to multi-city retail chains, DuukaFlow transforms local commerce with robust, real-world utility.
+            We engineered AfroDuuka because generic enterprise software is built for western markets, while African business owners face unique operational challenges. From informal roadside kiosks (<span className='italic font-medium text-primary'>duukas</span>) to multi-city retail chains, AfroDuuka transforms local commerce with robust, real-world utility.
           </p>
         </div>
 
@@ -322,7 +322,7 @@ export const PricingSection = () => {
             Professional Core Engine Built for Scaling
           </h3>
           <p className='mt-3 text-muted-foreground'>
-            Every line of code in DuukaFlow is tuned to deliver complete control, military-grade auditability, and modern efficiency.
+            Every line of code in AfroDuuka is tuned to deliver complete control, military-grade auditability, and modern efficiency.
           </p>
         </div>
 
@@ -336,12 +336,12 @@ export const PricingSection = () => {
             {
               icon: <ShieldCheck className='h-6 w-6 text-emerald-500' />,
               title: "Digital Shift Handover & Anti-Fraud",
-              description: "Retail shrinkage and cash leakage are the primary reasons retail outlets collapse. DuukaFlow creates strict audit trails. On sign-out, cashiers must enter cash-in-drawer. Discrepancies generate real-time WhatsApp or SMS alerts, giving you full control even when off-site."
+              description: "Retail shrinkage and cash leakage are the primary reasons retail outlets collapse. AfroDuuka creates strict audit trails. On sign-out, cashiers must enter cash-in-drawer. Discrepancies generate real-time WhatsApp or SMS alerts, giving you full control even when off-site."
             },
             {
               icon: <Bot className='h-6 w-6 text-blue-500' />,
               title: "Gemini 2.0 AI Retail Advisor",
-              description: "Experience advanced artificial intelligence built into your core inventory. Speak or type in plain natural language to DuukaFlow AI to immediately track expiring items, fetch top-performing brands, draft reports, or check restock rules without navigating complicated menu layouts."
+              description: "Experience advanced artificial intelligence built into your core inventory. Speak or type in plain natural language to AfroDuuka AI to immediately track expiring items, fetch top-performing brands, draft reports, or check restock rules without navigating complicated menu layouts."
             },
             {
               icon: <Building2 className='h-6 w-6 text-amber-500' />,
@@ -356,7 +356,7 @@ export const PricingSection = () => {
             {
               icon: <Database className='h-6 w-6 text-indigo-500' />,
               title: "Offline-Resilient Architecture",
-              description: "Power outages and fluctuating network coverage shouldn't stop your business. DuukaFlow runs an advanced browser-first synchronization database. Sell products, manage stock, and handle cash registers completely offline. All changes sync smoothly when the network returns."
+              description: "Power outages and fluctuating network coverage shouldn't stop your business. AfroDuuka runs an advanced browser-first synchronization database. Sell products, manage stock, and handle cash registers completely offline. All changes sync smoothly when the network returns."
             }
           ].map((prop, idx) => (
             <div key={idx} className='group bg-card border border-border/60 hover:border-primary/40 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg flex flex-col'>
@@ -375,7 +375,7 @@ export const PricingSection = () => {
             ROI Calculator
           </Badge>
           <h3 className='text-2xl md:text-3xl font-bold text-foreground tracking-tight'>
-            Calculate Your DuukaFlow Returns
+            Calculate Your AfroDuuka Returns
           </h3>
           <p className='text-muted-foreground text-sm leading-relaxed'>
             See exactly how digitizing your business saves you cash, recaptures lost staff hours, and elevates your operational margins. Drag the sliders to match your monthly volume.
@@ -467,13 +467,13 @@ export const PricingSection = () => {
         </div>
       </div>
 
-      {/* Elegant Paper Ledger vs DuukaFlow Comparison Grid */}
+      {/* Elegant Paper Ledger vs AfroDuuka Comparison Grid */}
       <div className='mt-24'>
         <div className='text-center max-w-2xl mx-auto mb-12'>
           <Badge className='bg-primary/10 text-primary border-none mb-3'>Platform Comparison</Badge>
           <h3 className='text-3xl font-bold text-foreground tracking-tight'>The Duuka Renaissance</h3>
           <p className='text-muted-foreground mt-2 text-sm'>
-            See how DuukaFlow stacks up against ancient bookkeeping tools and complex offshore ERP options.
+            See how AfroDuuka stacks up against ancient bookkeeping tools and complex offshore ERP options.
           </p>
         </div>
 
@@ -484,7 +484,7 @@ export const PricingSection = () => {
                 <th className='p-4 font-bold text-sm text-foreground md:w-1/4'>Capability</th>
                 <th className='p-4 font-bold text-sm text-muted-foreground md:w-1/4'>Paper Ledger Book</th>
                 <th className='p-4 font-bold text-sm text-muted-foreground md:w-1/4'>Generic Offshore ERP</th>
-                <th className='p-4 font-bold text-sm text-primary md:w-1/4 bg-primary/5'>DuukaFlow Suite</th>
+                <th className='p-4 font-bold text-sm text-primary md:w-1/4 bg-primary/5'>AfroDuuka Suite</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-border/60 text-sm'>
@@ -560,7 +560,7 @@ export const PricingSection = () => {
             Frequently Asked Questions
           </h3>
           <p className='text-muted-foreground mt-2 text-sm'>
-            Have more questions about deploying DuukaFlow for your retail business? We have the answers.
+            Have more questions about deploying AfroDuuka for your retail business? We have the answers.
           </p>
         </div>
 
@@ -568,33 +568,33 @@ export const PricingSection = () => {
           {[
             {
               id: "faq-1",
-              q: "How does DuukaFlow prevent employee theft and stock leakage?",
-              a: "In Africa, employee cash discrepancies and unrecorded sales are the leading reasons retail duukas fail. DuukaFlow targets this by establishing structured shift reconciliations. On logout, attendants enter the physical cash/mobile money in drawer. The system matches this with expected ledger transactions, instantly highlighting any variance. Any discrepancy triggers a real-time summary notification sent directly to the business owner, preventing fraud."
+              q: "How does AfroDuuka prevent employee theft and stock leakage?",
+              a: "In Africa, employee cash discrepancies and unrecorded sales are the leading reasons retail duukas fail. AfroDuuka targets this by establishing structured shift reconciliations. On logout, attendants enter the physical cash/mobile money in drawer. The system matches this with expected ledger transactions, instantly highlighting any variance. Any discrepancy triggers a real-time summary notification sent directly to the business owner, preventing fraud."
             },
             {
               id: "faq-2",
-              q: "Will DuukaFlow function when cellular or fiber internet is offline?",
-              a: "Absolutely. We engineered DuukaFlow with African infrastructure in mind. It uses a local-first service design where sales, cashier commands, and stock-transfers operate fully offline inside browser and app storage. The moment internet is re-established, the records automatically and seamlessly synchronize back to the cloud."
+              q: "Will AfroDuuka function when cellular or fiber internet is offline?",
+              a: "Absolutely. We engineered AfroDuuka with African infrastructure in mind. It uses a local-first service design where sales, cashier commands, and stock-transfers operate fully offline inside browser and app storage. The moment internet is re-established, the records automatically and seamlessly synchronize back to the cloud."
             },
             {
               id: "faq-3",
               q: "What is the Mobile Money POS integration and how do I set it up?",
-              a: "Instead of managing multiple phones and manual ledger records of transaction IDs, DuukaFlow allows you to initiate mobile money payments directly on the POS screen using MTN MoMo, Airtel Money, Flutterwave, and Pesapal. The POS prompts a secure API push notification (USSD) directly to the customer's phone, requiring only their PIN. Once completed, DuukaFlow receives instantaneous verification, triggers the cash drawer/printer, and secures the transaction record."
+              a: "Instead of managing multiple phones and manual ledger records of transaction IDs, AfroDuuka allows you to initiate mobile money payments directly on the POS screen using MTN MoMo, Airtel Money, Flutterwave, and Pesapal. The POS prompts a secure API push notification (USSD) directly to the customer's phone, requiring only their PIN. Once completed, AfroDuuka receives instantaneous verification, triggers the cash drawer/printer, and secures the transaction record."
             },
             {
               id: "faq-4",
               q: "Do I need expensive barcode scanners or high-end computers?",
-              a: "No. DuukaFlow is extremely lightweight and is optimized to run on standard Android or iOS smartphones, basic tablets, laptops, or older PC models. For receipt printing, it connects effortlessly to budget-friendly USB and Bluetooth thermal receipt printers, keeping setup costs exceptionally low."
+              a: "No. AfroDuuka is extremely lightweight and is optimized to run on standard Android or iOS smartphones, basic tablets, laptops, or older PC models. For receipt printing, it connects effortlessly to budget-friendly USB and Bluetooth thermal receipt printers, keeping setup costs exceptionally low."
             },
             {
               id: "faq-5",
               q: "Can I manage multiple branches in different cities?",
-              a: "Yes. DuukaFlow is built for enterprise scalability. From a single admin login, you can create branches, manage distinct products at each branch, execute secure stock transfers, and monitor comparative sales analytics. It is perfect for managing operations across town or across country lines."
+              a: "Yes. AfroDuuka is built for enterprise scalability. From a single admin login, you can create branches, manage distinct products at each branch, execute secure stock transfers, and monitor comparative sales analytics. It is perfect for managing operations across town or across country lines."
             },
             {
               id: "faq-6",
-              q: "What makes DuukaFlow different from standard accounting tools?",
-              a: "Standard tools are built for countries with widespread credit-card usage and stable fiber internet. DuukaFlow is tailor-made for African commerce. We integrate Mobile Money, build in strict anti-theft shift reconciliations, implement offline resilience, support local tax invoices, and offer a natural language Gemini AI agent that lets business owners control everything with simple, conversational English."
+              q: "What makes AfroDuuka different from standard accounting tools?",
+              a: "Standard tools are built for countries with widespread credit-card usage and stable fiber internet. AfroDuuka is tailor-made for African commerce. We integrate Mobile Money, build in strict anti-theft shift reconciliations, implement offline resilience, support local tax invoices, and offer a natural language Gemini AI agent that lets business owners control everything with simple, conversational English."
             }
           ].map((faq) => (
             <AccordionItem key={faq.id} value={faq.id} className='bg-card border border-border/80 rounded-xl px-5 py-1.5 hover:border-primary/40 transition-colors'>
@@ -620,7 +620,7 @@ export const PricingSection = () => {
             Ready to Digitally Transform Your Retail Operations?
           </h3>
           <p className='text-white/80 text-sm md:text-base leading-relaxed'>
-            Join thousands of modern merchants who have eliminated manual ledger errors, stopped stock theft, accepted mobile money checkout, and grown their business margins with DuukaFlow.
+            Join thousands of modern merchants who have eliminated manual ledger errors, stopped stock theft, accepted mobile money checkout, and grown their business margins with AfroDuuka.
           </p>
           <div className='flex flex-col sm:flex-row gap-4 justify-center pt-4'>
             <Button size="lg" className='bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 shadow-md border-none group transition-all duration-300' asChild>

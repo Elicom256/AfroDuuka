@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
       <div className='container mx-auto px-4'>
         <div className='flex flex-col gap-6 md:flex-row md:items-center md:justify-between'>
           <div>
-            <p className='text-sm font-semibold tracking-tight text-foreground'>DuukaFlow</p>
+            <p className='text-sm font-semibold tracking-tight text-foreground'>AfroDuuka</p>
             <p className='mt-1 text-sm text-muted-foreground'>
               A modern inventory management experience for Ugandan shops.
             </p>
@@ -92,7 +92,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className='mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground text-center'>
-          <p>Made with care in Uganda. © {new Date().getFullYear()} DuukaFlow.</p>
+          <p>Made with care in Uganda. © {new Date().getFullYear()} AfroDuuka.</p>
         </div>
       </div>
     </footer>

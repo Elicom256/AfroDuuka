@@ -1,4 +1,4 @@
-# DuukaFlow — Local Readiness Review
+# AfroDuuka — Local Readiness Review
 
 **Date:** 2026-10-03
 **Scope:** local implementation and product stability only.

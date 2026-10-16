@@ -1,4 +1,4 @@
-// Shared types for the entire DuukaFlow app
+// Shared types for the entire AfroDuuka app
 
 export type { ReportFilter, ReportParams } from './periodFilter';
 export { PERIODS, formatPeriodLabel, getDefaultPeriod } from './periodFilter';

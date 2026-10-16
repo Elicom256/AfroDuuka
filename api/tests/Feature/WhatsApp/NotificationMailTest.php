@@ -119,7 +119,7 @@ class NotificationMailTest extends TestCase
         $email = $this->sentEmail();
 
         $this->assertSame('owner@example.test', $email->getTo()[0]->getAddress());
-        $this->assertSame('Welcome to DuukaFlow, Acme', $email->getSubject());
+        $this->assertSame('Welcome to AfroDuuka, Acme', $email->getSubject());
         $this->assertStringContainsString('Your business is live', (string) $email->getHtmlBody());
         $this->assertStringContainsString('30 Sep 2026', (string) $email->getHtmlBody());
     }
@@ -339,7 +339,7 @@ class NotificationMailTest extends TestCase
 
             $this->assertNotSame('', $email->getSubject(), "Empty subject for {$type}");
             $this->assertStringContainsString(
-                'DuukaFlow',
+                'AfroDuuka',
                 (string) $email->getHtmlBody(),
                 "Body not rendered for {$type}"
             );
@@ -405,8 +405,8 @@ class NotificationMailTest extends TestCase
 
     public function test_the_from_address_comes_from_config(): void
     {
-        config()->set('notifications.email.from_address', 'billing@duukaflow.test');
-        config()->set('notifications.email.from_name', 'DuukaFlow Billing');
+        config()->set('notifications.email.from_address', 'billing@afroduuka.test');
+        config()->set('notifications.email.from_name', 'AfroDuuka Billing');
 
         $delivery = $this->deliver('registration.welcome', [
             'business_name' => 'Acme',
@@ -417,13 +417,13 @@ class NotificationMailTest extends TestCase
 
         $from = $this->sentEmail()->getFrom();
 
-        $this->assertSame('billing@duukaflow.test', $from[0]->getAddress());
-        $this->assertSame('DuukaFlow Billing', $from[0]->getName());
+        $this->assertSame('billing@afroduuka.test', $from[0]->getAddress());
+        $this->assertSame('AfroDuuka Billing', $from[0]->getName());
     }
 
     public function test_the_reply_to_is_set_when_configured(): void
     {
-        config()->set('notifications.email.reply_to', 'support@duukaflow.test');
+        config()->set('notifications.email.reply_to', 'support@afroduuka.test');
 
         $delivery = $this->deliver('registration.welcome', [
             'business_name' => 'Acme',
@@ -432,7 +432,7 @@ class NotificationMailTest extends TestCase
 
         $this->send($delivery);
 
-        $this->assertSame('support@duukaflow.test', $this->sentEmail()->getReplyTo()[0]->getAddress());
+        $this->assertSame('support@afroduuka.test', $this->sentEmail()->getReplyTo()[0]->getAddress());
     }
 
     public function test_the_message_body_does_not_leak_the_payload(): void

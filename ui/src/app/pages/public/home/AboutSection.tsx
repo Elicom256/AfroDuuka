@@ -9,7 +9,7 @@ export const AboutSection = () => {
           <SectionHeader
             badge='Built for Uganda'
             title='Inventory management designed for local businesses'
-            description='DuukaFlow gives you real-time inventory visibility, automated alerts, and simple workflows — without the complexity of enterprise software.'
+            description='AfroDuuka gives you real-time inventory visibility, automated alerts, and simple workflows — without the complexity of enterprise software.'
           />
           <div className='mt-6 flex flex-wrap gap-4'>
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
@@ -28,16 +28,16 @@ export const AboutSection = () => {
         </div>
         <div className='space-y-4 text-sm leading-7 text-muted-foreground'>
           <p>
-            From market stalls to established retailers, DuukaFlow is designed to keep your stock organized, easy to
+            From market stalls to established retailers, AfroDuuka is designed to keep your stock organized, easy to
             update, and ready for customer demand. No complicated setup — just a clean, intuitive interface that works
             on any device.
           </p>
           <p>
-            Whether you run a single shop or multiple branches, DuukaFlow helps you track inventory in real time, receive
-            WhatsApp alerts when stock runs low, and make smarter decisions with the DuukaFlow Assistant.
+            Whether you run a single shop or multiple branches, AfroDuuka helps you track inventory in real time, receive
+            WhatsApp alerts when stock runs low, and make smarter decisions with the AfroDuuka Assistant.
           </p>
           <p>
-            Stop guessing. Start growing. DuukaFlow is the modern inventory partner for Ugandan businesses.
+            Stop guessing. Start growing. AfroDuuka is the modern inventory partner for Ugandan businesses.
           </p>
         </div>
       </div>

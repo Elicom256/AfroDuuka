@@ -45,7 +45,7 @@ const STOPWORDS = new Set([
   'with', 'your', 'you', 'that', 'this', 'from', 'have', 'has', 'was', 'were', 'will',
   'would', 'there', 'their', 'they', 'them', 'then', 'than', 'into', 'over', 'more',
   'some', 'any', 'all', 'also', 'just', 'get', 'got', 'use', 'using', 'want', 'need',
-  'afroduka', 'duukaflow', 'duuka',
+  'afroduka', 'afroduuka', 'duuka',
 ]);
 
 const normalize = (value: string): string =>

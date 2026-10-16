@@ -25,7 +25,7 @@ class SesSuppressionTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const TOPIC = 'arn:aws:sns:eu-west-1:1:duukaflow-ses';
+    private const TOPIC = 'arn:aws:sns:eu-west-1:1:afroduuka-ses';
 
     /**
      * A throwaway keypair. Generated per run rather than committed, so the test can

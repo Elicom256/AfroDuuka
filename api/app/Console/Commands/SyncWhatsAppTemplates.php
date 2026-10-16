@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 class SyncWhatsAppTemplates extends Command
 {
-    protected $signature = 'duukaflow:whatsapp:sync-templates
+    protected $signature = 'afroduuka:whatsapp:sync-templates
                             {--business= : Limit to one business id}
                             {--include-inactive : Also sync businesses whose config is inactive}';
 

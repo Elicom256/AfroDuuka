@@ -7,19 +7,19 @@
 Create a PostgreSQL custom-format backup:
 
 ```bash
-php artisan duukaflow:database:backup
+php artisan afroduuka:database:backup
 ```
 
 Write to a specific path:
 
 ```bash
-php artisan duukaflow:database:backup storage/app/backups/release.dump
+php artisan afroduuka:database:backup storage/app/backups/release.dump
 ```
 
 Restore is destructive and requires an explicit confirmation flag:
 
 ```bash
-php artisan duukaflow:database:backup --restore=storage/app/backups/release.dump --force
+php artisan afroduuka:database:backup --restore=storage/app/backups/release.dump --force
 ```
 
 Run a restore drill against a disposable database before using it in production.

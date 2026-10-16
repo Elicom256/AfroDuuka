@@ -55,7 +55,7 @@ const solutions = [
   },
   {
     icon: <TrendingUp className='h-5 w-5' />,
-    title: 'DuukaFlow Assistant',
+    title: 'AfroDuuka Assistant',
     description: 'Your AI-powered business advisor — delivering actionable insights and answers in natural language.',
   },
 ];
@@ -96,7 +96,7 @@ export const ProblemSolutionSection = () => {
             The Solution
           </span>
           <h2 className='mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl'>
-            DuukaFlow puts you back in control
+            AfroDuuka puts you back in control
           </h2>
           <p className='mt-3 max-w-2xl text-muted-foreground'>
             Real-time visibility, automated workflows, and intelligent insights — everything you need to manage your

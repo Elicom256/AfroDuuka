@@ -15,7 +15,7 @@ import { RESEND_COOLDOWN_SECONDS } from '@/lib/verification';
  * an unverified tenant does not quietly stop being reminded. sessionStorage is exactly
  * that lifetime.
  */
-const DISMISS_KEY = 'duukaflow:verify-banner-dismissed';
+const DISMISS_KEY = 'afroduuka:verify-banner-dismissed';
 
 const readDismissed = (): boolean => {
   try {

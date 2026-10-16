@@ -18,12 +18,12 @@ class PhaseOneMessagingTest extends TestCase
         $service = new WhatsAppTemplateService;
 
         $rendered = $service->render('Hello {{business_name}}, your stock alert for {{product_name}} is at {{current_stock}}.', [
-            'business_name' => 'DuukaFlow Demo',
+            'business_name' => 'AfroDuuka Demo',
             'product_name' => 'Rice',
             'current_stock' => 4,
         ]);
 
-        $this->assertSame('Hello DuukaFlow Demo, your stock alert for Rice is at 4.', $rendered);
+        $this->assertSame('Hello AfroDuuka Demo, your stock alert for Rice is at 4.', $rendered);
     }
 
     #[Test]
@@ -61,13 +61,13 @@ class PhaseOneMessagingTest extends TestCase
 
         $result = $provider->sendMessage([
             'to' => '+256712345678',
-            'message' => 'Hello DuukaFlow Demo, your stock alert for Rice is at 4.',
+            'message' => 'Hello AfroDuuka Demo, your stock alert for Rice is at 4.',
             'template_key' => 'inventory.low_stock',
         ]);
 
         $this->assertTrue($result['success']);
         $this->assertSame('demo', $result['provider']);
-        $this->assertSame('Hello DuukaFlow Demo, your stock alert for Rice is at 4.', $result['message']);
+        $this->assertSame('Hello AfroDuuka Demo, your stock alert for Rice is at 4.', $result['message']);
     }
 
     #[Test]
@@ -81,7 +81,7 @@ class PhaseOneMessagingTest extends TestCase
             'type' => 'registration',
             'template_key' => 'registration.welcome',
             'recipient_phone' => '+256712345678',
-            'template_data' => ['business_name' => 'DuukaFlow Demo'],
+            'template_data' => ['business_name' => 'AfroDuuka Demo'],
         ]);
 
         $this->assertSame('registration', $payload['type']);
@@ -104,7 +104,7 @@ class PhaseOneMessagingTest extends TestCase
             'template_key' => 'subscription.created',
             'recipient_phone' => '+256712345678',
             'template_data' => [
-                'business_name' => 'DuukaFlow Demo',
+                'business_name' => 'AfroDuuka Demo',
                 'plan_name' => 'Starter',
                 'expiry_date' => '2026-09-01',
             ],

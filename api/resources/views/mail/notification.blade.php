@@ -14,7 +14,7 @@
                 <tr>
                     <td style="padding:20px 32px;border-bottom:1px solid #e4e7eb;">
                         <span style="font-size:15px;font-weight:700;color:#0b7285;letter-spacing:.02em;">
-                            DuukaFlow
+                            AfroDuuka
                         </span>
                     </td>
                 </tr>
@@ -51,7 +51,7 @@
                             <p style="margin:0 0 8px;">
                                 <a href="{{ $actionUrl }}"
                                    style="display:inline-block;padding:12px 22px;background:#0b7285;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">
-                                    {{ $actionLabel ?? 'Open DuukaFlow' }}
+                                    {{ $actionLabel ?? 'Open AfroDuuka' }}
                                 </a>
                             </p>
                         @endif
@@ -61,10 +61,10 @@
                 <tr>
                     <td style="padding:20px 32px;background:#fafbfc;border-top:1px solid #e4e7eb;font-size:12px;line-height:1.6;color:#7b8794;">
                         <p style="margin:0 0 8px;">
-                            You are receiving this because you have a DuukaFlow business account.
+                            You are receiving this because you have a AfroDuuka business account.
                         </p>
                         <p style="margin:0;">
-                            &copy; {{ date('Y') }} DuukaFlow
+                            &copy; {{ date('Y') }} AfroDuuka
                         </p>
                     </td>
                 </tr>

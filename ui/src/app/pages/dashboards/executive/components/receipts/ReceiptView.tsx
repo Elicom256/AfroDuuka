@@ -34,7 +34,7 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
-    const platformUrl = 'https://duukaflow.com';
+    const platformUrl = 'https://afroduuka.com';
     QRCode.toDataURL(platformUrl, { width: 150, margin: 1 })
       .then(setQrCodeUrl)
       .catch(() => setQrCodeUrl(''));

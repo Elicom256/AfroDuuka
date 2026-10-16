@@ -17,7 +17,7 @@ const features = [
   { icon: <PackageSearch className='h-5 w-5' />, title: 'Real-time inventory', description: 'Track every product across all branches. Know exactly what you have, where it is, and when to reorder.' },
   { icon: <BarChart3 className='h-5 w-5' />, title: 'Sales analytics', description: 'Understand trends, top products, and peak periods. Make data-driven restocking decisions.' },
   { icon: <MessageSquareText className='h-5 w-5' />, title: 'WhatsApp notifications', description: 'Low-stock alerts, daily summaries, and purchase updates sent directly to your WhatsApp.' },
-  { icon: <BrainCircuit className='h-5 w-5' />, title: 'DuukaFlow Assistant', description: 'Ask questions in plain language. Get inventory insights, sales guidance, and recommendations instantly.' },
+  { icon: <BrainCircuit className='h-5 w-5' />, title: 'AfroDuuka Assistant', description: 'Ask questions in plain language. Get inventory insights, sales guidance, and recommendations instantly.' },
   { icon: <Bell className='h-5 w-5' />, title: 'Low-stock alerts', description: 'Set custom thresholds. Get notified before you run out of best-selling items.' },
   { icon: <FileText className='h-5 w-5' />, title: 'Profit & loss reports', description: 'Know your margins, track expenses, and see exactly where your money is going.' },
   { icon: <Building2 className='h-5 w-5' />, title: 'Multi-branch management', description: 'Manage multiple shop locations from a single dashboard. Compare performance across branches.' },
@@ -39,7 +39,7 @@ export const FeaturesSection = () => {
           Powerful features for growing businesses
         </h2>
         <p className='mx-auto mt-3 max-w-2xl text-muted-foreground'>
-          From inventory tracking to intelligent insights — DuukaFlow equips your business with tools that save time,
+          From inventory tracking to intelligent insights — AfroDuuka equips your business with tools that save time,
           reduce losses, and increase profits.
         </p>
       </div>

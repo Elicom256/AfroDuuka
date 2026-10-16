@@ -82,8 +82,8 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 **How:**
 - Provider: **Meta Cloud API** (WhatsApp Business Platform) — direct control, no BSP markup if self-hosted
-- Already: `WhatsAppProviderInterface`, `MetaWhatsAppProvider` (stub), `WhatsAppConfig`, `WhatsAppTemplate`, `WhatsAppMessageLog`, `ProcessWhatsAppNotificationJob`, `DemoWhatsAppProvider`
-- Need: Complete `MetaWhatsAppProvider` HTTP client, webhook `POST /api/webhooks/whatsapp` for delivery status, template approval flow, dedupe on `dedupe_key` (unique index)
+- Built: `WhatsAppProviderInterface` + a real `MetaWhatsAppProvider` (`sendMessage` with per-outcome delivery classification, paginated `listTemplates`, one pinned Graph API version), `DemoWhatsAppProvider`, `WhatsAppConfig`, `WhatsAppTemplate`, `WhatsAppMessageLog`, `ProcessWhatsAppNotificationJob`, the `afroduuka:whatsapp:sync-templates` command, the config/templates/logs endpoints, and provider tests
+- Need: inbound **delivery-status webhook** `POST /api/webhooks/whatsapp` to advance `WhatsAppMessageLog` through sent → delivered → read → failed (and stop the `sending` rows Meta answers on), plus dedupe on `dedupe_key` (unique index). No template-submission API — approval stays a manual step in Meta Business Manager.
 - Channel strategy: WhatsApp for urgent/state-change (≤4 lines); Email for documents/summaries
 - Template categories: `UTILITY` (subscription, inventory, orders); Monthly report nudge as `UTILITY` not `MARKETING`
 

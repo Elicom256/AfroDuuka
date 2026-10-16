@@ -22,7 +22,7 @@ fi
 
 compose=(docker compose --env-file "$repo_root/api/.env" -f "$compose_file")
 
-"${compose[@]}" exec -T backend php artisan duukaflow:database:backup \
+"${compose[@]}" exec -T backend php artisan afroduuka:database:backup \
     --download="$object_key" \
     | "${compose[@]}" exec -T pgsql sh -lc \
         'pg_restore --clean --if-exists --no-owner --username="$POSTGRES_USER" --dbname="$1" -' \

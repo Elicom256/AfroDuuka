@@ -19,7 +19,7 @@ class UnapprovedTemplateException extends RuntimeException
         return new self(sprintf(
             'Template for "%s" is not approved by Meta (provider_name: %s, template_status: %s). '
             .'Suppressing rather than sending: an unapproved send is rejected at the API and '
-            .'is how a business loses its quality score. Run duukaflow:whatsapp:sync-templates.',
+            .'is how a business loses its quality score. Run afroduuka:whatsapp:sync-templates.',
             $type,
             $providerName ?? 'null',
             $status ?? 'null'

@@ -21,7 +21,7 @@ export const HeroSection = () => {
             Your shop is growing. <span className='text-primary'>Your stock system should too.</span>
           </h1>
           <p className='max-w-lg text-base leading-7 text-muted-foreground sm:text-lg'>
-            Sales, stock, suppliers and branches in one clear view. DuukaFlow gives growing African retailers the
+            Sales, stock, suppliers and branches in one clear view. AfroDuuka gives growing African retailers the
             control to run today&apos;s shop and plan for the next one.
           </p>
 
@@ -49,7 +49,7 @@ export const HeroSection = () => {
             <div className='flex items-center gap-2.5'>
               <img src='/afroduuka.png' alt='' className='h-8 w-8 object-contain' />
               <div>
-                <p className='text-sm font-semibold text-foreground'>DuukaFlow</p>
+                <p className='text-sm font-semibold text-foreground'>AfroDuuka</p>
                 <p className='text-[11px] text-muted-foreground'>Retail operations</p>
               </div>
             </div>

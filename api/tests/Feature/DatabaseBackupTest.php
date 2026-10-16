@@ -19,15 +19,15 @@ class DatabaseBackupTest extends TestCase
         ]);
         Storage::fake('spaces');
 
-        $expiredPath = 'database/duukaflow-expired.dump';
+        $expiredPath = 'database/afroduuka-expired.dump';
         Storage::disk('spaces')->put($expiredPath, 'expired archive');
         touch(Storage::disk('spaces')->path($expiredPath), now()->subDays(31)->timestamp);
 
-        $archivePath = tempnam(sys_get_temp_dir(), 'duukaflow-test-');
+        $archivePath = tempnam(sys_get_temp_dir(), 'afroduuka-test-');
         file_put_contents($archivePath, 'custom-format archive fixture');
 
         try {
-            $this->artisan('duukaflow:database:backup', [
+            $this->artisan('afroduuka:database:backup', [
                 '--archive' => $archivePath,
             ])->assertExitCode(0);
         } finally {
@@ -36,7 +36,7 @@ class DatabaseBackupTest extends TestCase
 
         $files = Storage::disk('spaces')->allFiles('database');
         $this->assertCount(1, $files);
-        $this->assertStringStartsWith('database/duukaflow-', $files[0]);
+        $this->assertStringStartsWith('database/afroduuka-', $files[0]);
         $this->assertNotSame(0, Storage::disk('spaces')->size($files[0]));
         $this->assertFalse(Storage::disk('spaces')->exists($expiredPath));
     }
@@ -46,7 +46,7 @@ class DatabaseBackupTest extends TestCase
         $this->app->detectEnvironment(fn () => 'production');
         config(['backup.disk' => 'backups']);
 
-        $this->artisan('duukaflow:database:backup', [
+        $this->artisan('afroduuka:database:backup', [
             'path' => storage_path('app/backups/manual.dump'),
         ])->assertExitCode(1);
     }
@@ -57,6 +57,6 @@ class DatabaseBackupTest extends TestCase
         config(['backup.disk' => 'spaces']);
         Storage::fake('spaces');
 
-        $this->artisan('duukaflow:database:backup')->assertExitCode(1);
+        $this->artisan('afroduuka:database:backup')->assertExitCode(1);
     }
 }
