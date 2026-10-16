@@ -9,9 +9,9 @@ Source brief: `offline.md`. Scope for this pass: **frontend foundation + local p
 - ✅ Chunk 3 — PWA config via vite-plugin-pwa + SW registration
 - ✅ Chunk 4 — Offline-aware operation layer + POS/CRUD integration
 - ✅ Chunk 5 — `sync_status` columns (migrations)
-- ⬜ Chunk 6 — Offline status UI (indicator + sync badge)
-- ⬜ Chunk 7 — Sync engine interfaces + hooks
-- ⬜ Chunk 8 — Final verification (lint/test/build) + deliverables
+- ✅ Chunk 6 — Offline status UI (indicator + sync badge)
+- ✅ Chunk 7 — Sync engine interfaces + hooks
+- ✅ Chunk 8 — Final verification (lint/test/build) + deliverables
 
 
 ## 1. Codebase facts this plan is built on
@@ -124,6 +124,87 @@ Modify: `ui/vite.config.ts`, `ui/src/main.tsx`, `ui/index.html` (theme-color/tit
 6. **PWA update vs active POS**: `prompt` strategy + POS-session guard needed to avoid interrupting a sale.
 7. **Customer tag gap**: `addCustomer` invalidates `CustomersAPI` but branch reads provide `BranchCustomersAPI` — pre-existing refresh gap the offline layer must not worsen.
 
-## 6. Deliverables (filled in after implementation, per offline.md §9)
+## 6. Deliverables (per offline.md §9)
 
-1. Files created/modified. 2. PWA + SW behavior. 3. IndexedDB schema + outbox API. 4. Hooks/UI added. 5. Test/lint/build commands and actual results. 6. What works offline vs what needs backend. 7. Remaining Laravel integration points (idempotency, sync endpoints, conflict resolution, inventory reconciliation).
+### 6.1 Files created / modified
+
+**Created — offline core (`ui/src/lib/offline/`)**
+`types.ts`, `db.ts`, `outbox.ts`, `connectivity.ts`, `operationQueue.ts`, `index.ts` (barrel)
+and their tests: `outbox.test.ts`, `connectivity.test.ts`, `operationQueue.test.ts`, `syncEngine.test.ts`.
+
+**Created — hooks (`ui/src/hooks/`)**
+`use-connectivity.ts`, `use-pending-operations.ts`, `use-offline-status.ts`, `use-sync-engine.ts`.
+
+**Created — UI (`ui/src/components/offline/`)**
+`OfflineStatusIndicator.tsx` (+`.test.tsx`), `SyncStatusBadge.tsx` (+`.test.tsx`).
+
+**Created — PWA/routing helpers**
+`ui/src/lib/pwa.ts` (manual SW registration), `ui/src/lib/posRoute.ts` (+`.test.ts`).
+
+**Created — backend**
+`api/database/migrations/2026_10_16_000001_add_sync_status_to_syncable_tables.php` (additive, guarded).
+
+**Modified — frontend**
+`ui/vite.config.ts` (VitePWA), `ui/src/main.tsx` (register SW), `ui/index.html` (theme-color/title),
+`ui/nginx.conf` (SW/manifest cache headers), `ui/tsconfig.app.json`, `ui/package.json` (+`fake-indexeddb`),
+`ui/src/App.tsx` (mount `DashboardOffline`), `ui/src/app/pages/dashboards/shared/pos/PosPage.tsx`
+(offline checkout + confirmation modal + badge), `ui/src/app/pages/dashboards/executive/components/todos/TodoForm.tsx`
+(representative CRUD enqueue).
+
+**Modified — backend**
+8 create migrations add `sync_status` (`sales`, `sale_items`, `business_branch_products`,
+`stock_movements`, `customers`, `purchases`, `purchase_items`, `todos`).
+
+### 6.2 PWA configuration and service-worker behavior
+- `registerType: "prompt"` with `injectRegister: null` — registration is manual (`src/lib/pwa.ts`)
+  so an update can be deferred while a POS session is open.
+- Manifest: `AfroDuuka`, `display: standalone`, `theme_color: #2f7d4f`, `start_url: /`, icons use the
+  only existing asset `afroduuka.png` (256×256, `any` + `maskable`). No invented icon sizes.
+- Workbox: precaches the built shell/static assets only; `navigateFallback: /index.html` with
+  `/api/` denylisted and `runtimeCaching: []`, so authenticated API traffic is never cached.
+- `npm run build` (generateSW) emits `dist/sw.js` + `dist/workbox-2fbc6a65.js` with 352 precache entries.
+
+### 6.3 IndexedDB schema and outbox API
+- Dexie database `afroduuka-offline`, version 1 (add-only upgrade policy).
+- `operations` — PK `operationId`; indexes `type`, `status`, `createdAt`, `[type+status]`, `businessId`, `branchId`.
+- `sales` — PK `localId`; indexes `operationId`, `businessId`, `branchId`, `syncStatus`, `createdAt`.
+- `saleItems` — `++id`; indexes `saleLocalId`, `productId`.
+- `stockAdjustments` — `++id`; indexes `saleLocalId`, `productId`, `syncStatus`, `operationId`, `businessId`, `branchId`.
+- Outbox API: `generateOperationId`, `enqueueOperation`, `enqueueSale` (sale + items + stock adjustments +
+  outbox entry in one transaction), `listOperations(filter)`, `getOperation`, `markSyncing`, `markSynced`,
+  `markFailed` (stamps `lastErrorAt`, bumps `retryCount`), `retryOperation`, `removeOperation`,
+  `countOperations`; `DuplicateOperationError` guards duplicate idempotency keys.
+
+### 6.4 React hooks and UI components added
+- Hooks: `useConnectivity`, `usePendingOperations`, `useLastSyncedAt`, `useOfflineStatus` (single reactive
+  view), `useSyncEngine` (engine snapshot + `flush`), `useSyncFallback` (app-open/reconnect flush).
+- Components: `OfflineStatusIndicator` (online/offline, pending/syncing/failed, `role="status"` +
+  `aria-live="polite"`, floating pill mounted dashboard-only via `App.tsx`); `SyncStatusBadge`
+  (`pending|syncing|synced|failed` → variant, reused in the POS offline confirmation).
+
+### 6.5 Commands executed and actual results
+- `npm run test` → **39 files, 955 tests passed** (offline layer: 45 tests).
+- `npm run lint` → **956 problems (32 errors, 924 warnings)** — identical to the pre-existing repo
+  baseline; no new problems. New/changed files: `eslint` exit 0.
+- `npm run build` → `tsc -b` clean; `vite build` OK; PWA generateSW → `dist/sw.js`,
+  `dist/workbox-2fbc6a65.js`.
+- `npx tsc -b` → clean.
+- Migrations: validated with `php -l` only (no local Postgres/`pdo_sqlite`, so not executed).
+
+### 6.6 What works offline now vs. what still requires backend
+- **Works offline:** durable local write of a POS sale (sale + items + stock adjustments + outbox entry
+  atomically), duplicate-key protection, connectivity detection (health probe + browser events),
+  status indicator/badge, enqueue for todo/customer/inventory, exponential retry/backoff, and an
+  app-open/reconnect flush attempt.
+- **Requires backend:** actually transmitting queued operations. No transport handlers are registered, so
+  `SyncEngine.flush()` is inert — every operation is reported `skipped` and stays `pending`. No offline
+  operation is ever marked `synced` without a server response (no fake success, per offline.md §7).
+
+### 6.7 Remaining Laravel integration points
+1. **Idempotency contract** — a server-side `Idempotency-Key`/`operationId` guarantee so replay is safe
+   (the client already carries the stable key; the `stock_movements.movement_key` model is the precedent).
+2. **Sync endpoints** — a POST per operation type that accepts the outbox payload and returns a server id.
+3. **Conflict resolution** — no last-write-wins for sales/stock/payments/finance; server remains
+   authoritative and recomputes totals.
+4. **Inventory reconciliation** — apply `stockAdjustments` on the server and reconcile against authoritative
+   stock; serialise `sync_status` on server rows so the badge reflects the real server state.

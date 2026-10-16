@@ -39,10 +39,17 @@ export {
   isTransportError,
   isApiUnreachable,
   operationContextFromUser,
+  backoffDelayMs,
+  isRetryDue,
+  startSyncFallback,
+  RETRY_BASE_DELAY_MS,
+  RETRY_MAX_DELAY_MS,
 } from './operationQueue';
 export type {
   FlushSummary,
   OperationHandler,
   SaleSubmitResult,
   SubmitResult,
+  SyncEngineSnapshot,
+  SyncFallbackOptions,
 } from './operationQueue';
