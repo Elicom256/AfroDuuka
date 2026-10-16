@@ -25,3 +25,9 @@ export type {
   ListOperationsFilter,
   OperationCounts,
 } from './outbox';
+export {
+  ConnectivityMonitor,
+  connectivity,
+  resolveHealthUrl,
+} from './connectivity';
+export type { ConnectivityOptions, ConnectivitySnapshot } from './connectivity';
