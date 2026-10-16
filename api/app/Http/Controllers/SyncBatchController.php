@@ -43,7 +43,8 @@ class SyncBatchController extends Controller
                     'operation_id' => $operation['operation_id'] ?? null,
                     'type' => $operation['type'] ?? null,
                     'business_id' => $user->business_id,
-                    'exception' => $e,
+                    'exception_class' => $e::class,
+                    'exception_code' => (string) $e->getCode(),
                 ]);
 
                 $result = [

@@ -10,6 +10,7 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Models\CoreSettings\CustomersSettings;
 use App\Models\Customer;
+use App\Http\Requests\SyncBatchRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
@@ -156,6 +157,49 @@ class SyncBatchTest extends TestCase
             ->assertJsonValidationErrors(['operations']);
     }
 
+    public function test_request_body_size_is_capped(): void
+    {
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'todo',
+                'payload' => ['large_field' => str_repeat('x', SyncBatchRequest::MAX_REQUEST_BYTES)],
+            ]],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['operations']);
+        $this->assertDatabaseCount('sync_operations', 0);
+    }
+
+    public function test_platform_operator_without_business_cannot_submit_sync_operations(): void
+    {
+        $siteAdminRole = Role::factory()->create([
+            'business_id' => null,
+            'name' => 'siteadmin',
+        ]);
+        $siteAdmin = User::factory()->create([
+            'business_id' => null,
+            'business_branch_id' => null,
+            'role_id' => $siteAdminRole->id,
+        ]);
+        Sanctum::actingAs($siteAdmin);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'todo',
+                'payload' => ['title' => 'Must remain tenant-bound'],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'forbidden');
+        $this->assertDatabaseCount('sync_operations', 0);
+        $this->assertDatabaseCount('todos', 0);
+    }
+
     public function test_sale_operation_replays_without_duplicating_financial_or_stock_records(): void
     {
         $operation = [
@@ -297,6 +341,158 @@ class SyncBatchTest extends TestCase
             ->assertJsonPath('results.0.server_id', $serverId);
 
         $this->assertSame(1, Customer::withoutGlobalScopes()->where('business_id', $this->business->id)->count());
+    }
+
+    public function test_counterparty_cannot_sync_a_sale(): void
+    {
+        $counterpartyRole = Role::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'customer',
+        ]);
+        $counterparty = User::factory()->create([
+            'business_id' => $this->business->id,
+            'business_branch_id' => $this->branch->id,
+            'role_id' => $counterpartyRole->id,
+        ]);
+        Sanctum::actingAs($counterparty);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'sale',
+                'payload' => [
+                    'items' => [[
+                        'product_id' => $this->product->id,
+                        'quantity' => 1,
+                        'unit_price' => 10000,
+                    ]],
+                    'payments' => [['method' => 'cash', 'amount' => 10000]],
+                ],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'forbidden');
+        $this->assertDatabaseCount('sales', 0);
+        $this->assertSame(50, $this->product->fresh()->quantity);
+    }
+
+    public function test_foreign_tenant_product_and_customer_ids_are_rejected_for_sales(): void
+    {
+        $foreignBusiness = Business::factory()->create();
+        $foreignBranch = BusinessBranch::factory()->create([
+            'business_id' => $foreignBusiness->id,
+        ]);
+        $foreignProduct = Product::factory()->create([
+            'business_branch_id' => $foreignBranch->id,
+            'quantity' => 25,
+            'selling_price' => 10000,
+        ]);
+        $foreignCustomerUser = User::factory()->create([
+            'business_id' => $foreignBusiness->id,
+            'business_branch_id' => $foreignBranch->id,
+        ]);
+        $foreignCustomer = Customer::factory()->create([
+            'user_id' => $foreignCustomerUser->id,
+            'business_id' => $foreignBusiness->id,
+        ]);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [
+                [
+                    'operation_id' => $this->faker->uuid(),
+                    'type' => 'sale',
+                    'payload' => [
+                        'items' => [[
+                            'product_id' => $foreignProduct->id,
+                            'quantity' => 1,
+                            'unit_price' => 10000,
+                        ]],
+                        'payments' => [['method' => 'cash', 'amount' => 10000]],
+                    ],
+                ],
+                [
+                    'operation_id' => $this->faker->uuid(),
+                    'type' => 'sale',
+                    'payload' => [
+                        'items' => [[
+                            'product_id' => $this->product->id,
+                            'quantity' => 1,
+                            'unit_price' => 10000,
+                        ]],
+                        'payments' => [['method' => 'cash', 'amount' => 10000]],
+                        'customer_id' => $foreignCustomer->id,
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.1.status', 'failed');
+        $this->assertDatabaseCount('sales', 0);
+        $this->assertSame(25, $foreignProduct->fresh()->quantity);
+    }
+
+    public function test_sale_cannot_target_a_branch_from_another_business(): void
+    {
+        $foreignBusiness = Business::factory()->create();
+        $foreignBranch = BusinessBranch::factory()->create([
+            'business_id' => $foreignBusiness->id,
+        ]);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'sale',
+                'payload' => [
+                    'business_branch_id' => $foreignBranch->id,
+                    'items' => [[
+                        'product_id' => $this->product->id,
+                        'quantity' => 1,
+                        'unit_price' => 10000,
+                    ]],
+                    'payments' => [['method' => 'cash', 'amount' => 10000]],
+                ],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'validation_error');
+        $this->assertDatabaseCount('sales', 0);
+        $this->assertSame(50, $this->product->fresh()->quantity);
+    }
+
+    public function test_inventory_sync_cannot_target_a_foreign_tenant_product(): void
+    {
+        $foreignBusiness = Business::factory()->create();
+        $foreignBranch = BusinessBranch::factory()->create([
+            'business_id' => $foreignBusiness->id,
+        ]);
+        $foreignProduct = Product::factory()->create([
+            'business_branch_id' => $foreignBranch->id,
+            'quantity' => 25,
+        ]);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'inventory',
+                'payload' => [
+                    'product_id' => $foreignProduct->id,
+                    'quantity_delta' => 5,
+                    'reason' => 'adjustment',
+                ],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'not_found');
+        $this->assertSame(25, $foreignProduct->fresh()->quantity);
+        $this->assertDatabaseCount('stock_movements', 0);
     }
 
     private function assertDatabaseHasCustomerUser(string $email): int

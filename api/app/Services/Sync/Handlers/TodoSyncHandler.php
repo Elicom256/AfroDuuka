@@ -7,6 +7,7 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Services\Sync\SyncHandler;
 use App\Services\Sync\ValidatesPayload;
+use Illuminate\Auth\Access\AuthorizationException;
 
 /**
  * Replays an offline todo through the same request the online form uses.
@@ -24,6 +25,10 @@ class TodoSyncHandler implements SyncHandler
 
     public function handle(array $payload, User $user, string $operationId): array
     {
+        if (! $user->business_id) {
+            throw new AuthorizationException('A business is required to sync todos.');
+        }
+
         $validated = ValidatesPayload::run(StoreTodoRequest::class, $payload);
 
         $todo = Todo::create($validated);

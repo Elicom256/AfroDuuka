@@ -21,6 +21,8 @@ class SyncBatchRequest extends FormRequest
 {
     public const MAX_OPERATIONS = 50;
 
+    public const MAX_REQUEST_BYTES = 1_048_576;
+
     public function authorize(): bool
     {
         return Auth::check();
@@ -39,6 +41,18 @@ class SyncBatchRequest extends FormRequest
             // Client timestamp for audit context only — never used for ordering.
             'operations.*.created_at' => ['nullable', 'date'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if (strlen($this->getContent()) > self::MAX_REQUEST_BYTES) {
+                $validator->errors()->add(
+                    'operations',
+                    'The sync batch request may not exceed '.self::MAX_REQUEST_BYTES.' bytes.'
+                );
+            }
+        });
     }
 
     public function messages(): array

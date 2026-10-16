@@ -11,6 +11,7 @@ use App\Services\PosService;
 use App\Services\Sync\SyncConflictException;
 use App\Services\Sync\SyncHandler;
 use App\Services\Sync\ValidatesPayload;
+use App\Support\Auth\RolePermissions;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -53,6 +54,10 @@ class SaleSyncHandler implements SyncHandler
     {
         if (! $user->business_id) {
             throw new AuthorizationException('A business is required to sync sales.');
+        }
+
+        if (! RolePermissions::canOperateTill($user)) {
+            throw new AuthorizationException('The till is available to staff accounts.');
         }
 
         $validated = ValidatesPayload::run(PosCheckoutRequest::class, $payload);

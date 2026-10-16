@@ -65,6 +65,10 @@ class SyncOperationDispatcher
         $type = $operation['type'];
         $startedAt = microtime(true);
 
+        if (! $user->business_id) {
+            return $this->failedResult($operationId, 'forbidden', 'A business is required to sync operations.');
+        }
+
         try {
             $claim = $this->claim($operation, $user);
         } catch (Throwable $e) {
@@ -72,7 +76,8 @@ class SyncOperationDispatcher
                 'operation_id' => $operationId,
                 'type' => $type,
                 'business_id' => $user->business_id,
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
 
             return $this->failedResult($operationId, 'processing_error', 'Could not claim the operation for processing.');
@@ -152,7 +157,8 @@ class SyncOperationDispatcher
                 'error_code' => $error['code'],
                 'attempts' => $record->refresh()->attempts,
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
 
             return [
@@ -282,16 +288,17 @@ class SyncOperationDispatcher
                 'sync_operation_id' => $record->id,
                 'operation_id' => $record->operation_id,
                 'error_code' => $code,
-                'exception' => $e,
+                'exception_class' => $e::class,
+                'exception_code' => (string) $e->getCode(),
             ]);
         }
     }
 
     /**
-     * Map a thrown condition to the response contract's status + a stable,
-     * machine-readable code. Business messages are safe to surface (they are the
-     * same texts the online endpoints report); unexpected exceptions are logged in
-     * full and reported generically so internals never leave the API.
+    * Map a thrown condition to the response contract's status + a stable,
+    * machine-readable code. Business messages are safe to surface (they are the
+    * same texts the online endpoints report); unexpected exceptions are logged
+    * without raw messages or bindings and reported generically.
      *
      * @return array{status: 'conflict'|'failed', code: string, message: string, details?: array}
      */
@@ -387,7 +394,10 @@ class SyncOperationDispatcher
             }
         }
 
-        Log::error('sync operation unexpected exception', ['exception' => $e]);
+        Log::error('sync operation unexpected exception', [
+            'exception_class' => $e::class,
+            'exception_code' => (string) $e->getCode(),
+        ]);
 
         return [
             'status' => 'failed',
