@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->softDeletes();
             $table->id();
+            $table->string('sync_status')->default('synced')->index();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete()->index();
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
