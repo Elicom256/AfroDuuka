@@ -43,6 +43,14 @@ export interface SyncOperation<TPayload = unknown> {
   status: SyncStatus;
   retryCount: number;
   lastError: string | null;
+  /**
+   * When the most recent failure happened, if any.
+   *
+   * Drives retry backoff: a failed operation is only re-attempted once
+   * `now - lastErrorAt >= backoffDelayMs(retryCount)`, so an unreachable API is
+   * not hammered while it stays down.
+   */
+  lastErrorAt: number | null;
   businessId: number | null;
   branchId: number | null;
   /** Set once the server confirms the operation, if the API returns an id. */

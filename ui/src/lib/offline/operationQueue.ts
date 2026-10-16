@@ -166,6 +166,52 @@ function describeError(error: unknown): string {
   }
 }
 
+/** Base delay before a failed operation is re-attempted (10s). */
+export const RETRY_BASE_DELAY_MS = 10_000;
+
+/** Cap on the exponential backoff so a long outage does not park work forever (15min). */
+export const RETRY_MAX_DELAY_MS = 15 * 60_000;
+
+/**
+ * Exponential backoff for a retrying operation, capped at {@link RETRY_MAX_DELAY_MS}.
+ *
+ * `retryCount` 0 → base, 1 → base*2, 2 → base*4 … Never negative, never NaN.
+ */
+export function backoffDelayMs(retryCount: number): number {
+  const n = Number.isFinite(retryCount) ? Math.max(0, Math.floor(retryCount)) : 0;
+  return Math.min(RETRY_MAX_DELAY_MS, RETRY_BASE_DELAY_MS * 2 ** n);
+}
+
+/**
+ * Whether a `failed` operation is due to be re-attempted.
+ *
+ * A failed operation does not stay `pending`; it sits in `failed` until its backoff
+ * window has elapsed. Anything other than `failed` is not due.
+ */
+export function isRetryDue(operation: SyncOperation, now: number = Date.now()): boolean {
+  if (operation.status !== 'failed') return false;
+  const lastErrorAt = operation.lastErrorAt ?? operation.createdAt;
+  return now - lastErrorAt >= backoffDelayMs(operation.retryCount);
+}
+
+/**
+ * A snapshot of the engine's run state.
+ *
+ * `running` is true while a flush is in flight, so a UI can show a spinner without
+ * polling. `lastResult` is the most recent {@link FlushSummary}.
+ */
+export interface SyncEngineSnapshot {
+  running: boolean;
+  lastResult: FlushSummary | null;
+  lastRanAt: number | null;
+}
+
+const INITIAL_SNAPSHOT: SyncEngineSnapshot = {
+  running: false,
+  lastResult: null,
+  lastRanAt: null,
+};
+
 /**
  * The sync engine.
  *
@@ -173,10 +219,29 @@ function describeError(error: unknown): string {
  * narrow: run each pending operation through the handler registered for its type,
  * record the outcome, and never guess. With no handlers registered it is inert —
  * `flush()` reports every operation as skipped and changes nothing.
+ *
+ * It also retries failed operations whose backoff window has elapsed, so an outage
+ * that ends after a few minutes is recovered without the user doing anything.
  */
 export class SyncEngine {
   private readonly handlers = new Map<OperationType, OperationHandler>();
-  private running: Promise<FlushSummary> | null = null;
+  private readonly listeners = new Set<() => void>();
+  private snapshot: SyncEngineSnapshot = INITIAL_SNAPSHOT;
+  private activeFlush: Promise<FlushSummary> | null = null;
+
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  getSnapshot = (): SyncEngineSnapshot => this.snapshot;
+
+  private patch(partial: Partial<SyncEngineSnapshot>): void {
+    this.snapshot = { ...this.snapshot, ...partial };
+    this.listeners.forEach((listener) => listener());
+  }
 
   registerHandler(type: OperationType, handler: OperationHandler): void {
     this.handlers.set(type, handler);
@@ -191,24 +256,40 @@ export class SyncEngine {
   }
 
   isRunning(): boolean {
-    return this.running !== null;
+    return this.activeFlush !== null;
   }
 
   /**
-   * Send every pending operation through its handler.
+   * Send every pending operation through its handler, plus any `failed` operation
+   * whose backoff window has elapsed.
    *
    * Concurrent callers share one run: the second sees {@link FlushSummary.alreadyRunning}
    * instead of starting a parallel flush that could double-send. Operations with no
-   * handler stay `pending` and are counted as skipped.
+   * handler stay `pending` and are counted as skipped. The summary always reflects
+   * the real outcome — a partial failure counts `synced` and `failed` separately and
+   * never reports a false `synced`.
    */
   flush(): Promise<FlushSummary> {
-    if (this.running) {
-      return this.running.then((summary) => ({ ...summary, alreadyRunning: true }));
+    if (this.activeFlush) {
+      return this.activeFlush.then((summary) => ({ ...summary, alreadyRunning: true }));
     }
-    this.running = this.runFlush().finally(() => {
-      this.running = null;
-    });
-    return this.running;
+
+    this.patch({ running: true });
+
+    this.activeFlush = this.runFlush()
+      .then((summary) => {
+        this.patch({ running: false, lastResult: summary, lastRanAt: Date.now() });
+        return summary;
+      })
+      .catch((error: unknown) => {
+        this.patch({ running: false });
+        throw error;
+      })
+      .finally(() => {
+        this.activeFlush = null;
+      });
+
+    return this.activeFlush;
   }
 
   private async runFlush(): Promise<FlushSummary> {
@@ -221,11 +302,16 @@ export class SyncEngine {
     };
 
     const pending = await listOperations({ status: 'pending' });
+    const retryable = (await listOperations({ status: 'failed' })).filter((op) =>
+      isRetryDue(op),
+    );
+    const operations = [...pending, ...retryable];
 
-    for (const operation of pending) {
+    for (const operation of operations) {
       const handler = this.handlers.get(operation.type);
       if (!handler) {
-        summary.skipped += 1;
+        // A failed operation with no handler is not "pending" work — leave it failed.
+        if (operation.status === 'pending') summary.skipped += 1;
         continue;
       }
 
@@ -246,3 +332,47 @@ export class SyncEngine {
 }
 
 export const syncEngine = new SyncEngine();
+
+export interface SyncFallbackOptions {
+  engine?: SyncEngine;
+  /** Flush once when the fallback starts, covering app-open. Defaults to true. */
+  flushOnStart?: boolean;
+}
+
+/**
+ * Drive sync from app lifecycle instead of relying on the Background Sync API.
+ *
+ * The brief (offline.md §7) calls for a reliable app-open/reconnect fallback because
+ * Background Sync support is uneven. This starts one flush when it is mounted
+ * (app-open) and another each time connectivity transitions from unreachable back to
+ * reachable. It never flushes while the API is known to be down, so an outage is not
+ * turned into a burst of doomed requests.
+ *
+ * Returns a disposer that detaches the listener. With no handlers registered the
+ * engine is inert, so this is safe to mount before any transport exists.
+ */
+export function startSyncFallback(options: SyncFallbackOptions = {}): () => void {
+  const engine = options.engine ?? syncEngine;
+  let disposed = false;
+  let wasUnreachable = isApiUnreachable();
+
+  const flushIfReachable = (): void => {
+    if (disposed || isApiUnreachable()) return;
+    void engine.flush();
+  };
+
+  if (options.flushOnStart !== false) flushIfReachable();
+
+  const unsubscribe = connectivity.subscribe(() => {
+    if (disposed) return;
+    const unreachableNow = isApiUnreachable();
+    const recovered = wasUnreachable && !unreachableNow;
+    wasUnreachable = unreachableNow;
+    if (recovered) flushIfReachable();
+  });
+
+  return () => {
+    disposed = true;
+    unsubscribe();
+  };
+}

@@ -6,6 +6,23 @@ import { AppRoutes } from './app/routes/AppRoutes';
 import { Footer } from './app/pages/public/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
+import { useSyncFallback } from '@/hooks/use-sync-engine';
+
+/**
+ * The dashboard-only offline surface.
+ *
+ * Bundling the fallback with the indicator keeps both mounted for exactly the routes
+ * that have connectivity monitoring and queued writes (the `/dashboard/*` tree). A
+ * component boundary lets {@link useSyncFallback} be gated without a conditional hook.
+ */
+function DashboardOffline() {
+  useSyncFallback();
+  return (
+    <div className='pointer-events-none fixed bottom-4 left-4 z-40'>
+      <OfflineStatusIndicator />
+    </div>
+  );
+}
 
 function App() {
   const location = useLocation();
@@ -38,11 +55,7 @@ function App() {
         dashboard or POS layout (offline.md §6). Mounted once at the app root rather
         than per layout so every role — and the POS — gets it without touching each shell.
       */}
-      {isDashboard && (
-        <div className='pointer-events-none fixed bottom-4 left-4 z-40'>
-          <OfflineStatusIndicator />
-        </div>
-      )}
+      {isDashboard && <DashboardOffline />}
       <Toaster position='top-right' />
     </div>
   );

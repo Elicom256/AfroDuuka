@@ -64,6 +64,7 @@ export async function enqueueOperation<TPayload>(
     status: 'pending',
     retryCount: 0,
     lastError: null,
+    lastErrorAt: null,
     businessId: context.businessId,
     branchId: context.branchId,
     serverId: null,
@@ -156,6 +157,7 @@ export async function enqueueSale(
     status: 'pending',
     retryCount: 0,
     lastError: null,
+    lastErrorAt: null,
     businessId: input.context.businessId,
     branchId: input.context.branchId,
     serverId: null,
@@ -229,6 +231,7 @@ export async function markSynced(
       serverId,
       syncedAt,
       lastError: null,
+      lastErrorAt: null,
     });
     await db.sales.update(operationId, { syncStatus: 'synced' });
   });
@@ -247,14 +250,19 @@ export async function markFailed(operationId: string, error: string): Promise<vo
     await db.operations.update(operationId, {
       status: 'failed',
       lastError: error,
+      lastErrorAt: Date.now(),
       retryCount: current.retryCount + 1,
     });
   });
 }
 
-/** Return a failed operation to `pending` so the next flush retries it. */
+/** Return a failed operation to `pending` so the next flush retries it immediately. */
 export async function retryOperation(operationId: string): Promise<void> {
-  await db.operations.update(operationId, { status: 'pending', lastError: null });
+  await db.operations.update(operationId, {
+    status: 'pending',
+    lastError: null,
+    lastErrorAt: null,
+  });
 }
 
 /** Remove an operation (e.g. after the user discards a failed one). */
