@@ -117,22 +117,9 @@ meaning on routes that have CRUD or aka user-owned, they must have an status to 
 
 ## 7. Synchronization architecture preparation
 
-Prepare clean interfaces for a future sync engine, but do not invent Laravel endpoints or implement a fake synchronization service.
+**Undone by design in this pass — now combined into `apisync.md`.**
 
-The eventual sync engine must support:
-
-- Stable idempotency keys.
-- Safe retries.
-- Partial failure handling.
-- Per-operation status tracking.
-- Server-confirmed completion.
-- Recoverable failed operations.
-- Tenant and branch isolation.
-- Server-authoritative inventory and financial calculations.
-
-Do not use last-write-wins indiscriminately for sales, stock movements, payments, or financial transactions. These operations require domain-specific reconciliation.
-
-Do not rely exclusively on the Background Sync API. Include a reliable app-open/reconnect fallback for browsers that do not support it.
+This section could not be completed here because it depends on the backend idempotency contract and sync endpoint, which did not exist. Its requirements have been merged into `apisync.md` (see "Frontend sync-engine wiring") and the execution plan lives in `sync.md`. Nothing below is claimed as implemented by the frontend foundation pass.
 
 ## 8. Testing and quality
 
@@ -153,7 +140,7 @@ After implementation, summarize:
 4. React hooks and UI components added.
 5. Tests and build commands executed, including their actual results.
 6. What works offline now versus what still requires backend work.
-7. Remaining integration points for the Laravel API, especially idempotency, sync endpoints, conflict resolution, and inventory reconciliation.
+7. Remaining integration points for the Laravel API, especially idempotency, sync endpoints, conflict resolution, and inventory reconciliation. **(Now specified in `apisync.md` and planned in `sync.md`.)**
 
 ## Constraints
 
