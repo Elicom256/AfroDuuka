@@ -5,9 +5,12 @@ namespace App\Services\Sync;
 use App\Exceptions\InsufficientStockException;
 use App\Models\SyncOperation;
 use App\Models\User;
+use App\Services\Sync\Handlers\CustomerSyncHandler;
+use App\Services\Sync\Handlers\InventorySyncHandler;
+use App\Services\Sync\Handlers\SaleSyncHandler;
+use App\Services\Sync\Handlers\TodoSyncHandler;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -182,13 +185,17 @@ class SyncOperationDispatcher
             'status' => SyncOperation::STATUS_PROCESSING,
             'attempts' => 1,
             'client_created_at' => $this->clientCreatedAt($operation),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
-        try {
-            return ['kind' => 'claimed', 'record' => SyncOperation::create($attributes)];
-        } catch (UniqueConstraintViolationException) {
-            // A committed row already exists — fall through to inspect it. This is
-            // the idempotency path, not an error.
+        // PostgreSQL's ON CONFLICT avoids aborting an enclosing transaction. That
+        // matters in tests and callers that wrap requests in a transaction, while
+        // the unique constraint remains the authority for concurrent claims.
+        $inserted = DB::table('sync_operations')->insertOrIgnore($attributes);
+
+        if ($inserted === 1) {
+            return ['kind' => 'claimed', 'record' => $this->operationScope($operation['operation_id'], $user)->firstOrFail()];
         }
 
         $existing = $this->operationScope($operation['operation_id'], $user)->first();
@@ -321,7 +328,10 @@ class SyncOperationDispatcher
             return [
                 'status' => 'failed',
                 'code' => 'forbidden',
-                'message' => 'Not authorized to perform this operation.',
+                // Handlers raise AuthorizationException with the same human-readable
+                // texts the online endpoints abort with (e.g. a disabled feature);
+                // policy denials arrive with an empty message and get the generic one.
+                'message' => $e->getMessage() !== '' ? $e->getMessage() : 'Not authorized to perform this operation.',
                 'details' => [],
             ];
         }

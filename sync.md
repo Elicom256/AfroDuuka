@@ -7,7 +7,7 @@ Status:
 
 - ✅ Chunk 1 — Idempotency store (migration + model)
 - ✅ Chunk 2 — Batch endpoint + dispatcher
-- ⬜ Chunk 3 — Type handlers
+- ✅ Chunk 3 — Type handlers
 - ⬜ Chunk 4 — Security and tenant isolation
 - ⬜ Chunk 5 — Backend tests
 - ⬜ Chunk 6 — Frontend syncQuery endpoint
@@ -58,6 +58,8 @@ Status:
 - Customer handler: reuse existing customer creation rules + validation; retried submissions dedupe through `SyncOperation`, not invented matching rules; return `server_id` for local-id reconciliation.
 - Todo handler: reuse the existing todo creation path (frontend already enqueues `todo`).
 - Touch model `$fillable`/casts only if the server must write `sync_status`; default `synced` already covers server-created rows.
+
+**Completed 2026-10-16:** registered and implemented sale, inventory, customer, and todo handlers. Sale checkout reuses `PosService`, checks cached prices and stock, and includes the operation key in stock movement identity; inventory accepts signed deltas through `InventoryService`; customer and todo creation reuse their existing FormRequests/services. Sync handlers fail closed without business context and explicitly scope branch/product/customer resources to the authenticated business. Focused feature coverage passes: 9 tests, 69 assertions (`docker compose -f ../docker-compose.dev.yml exec backend php artisan test tests/Feature/Sync/SyncBatchTest.php`).
 
 ### Chunk 4 — Security and tenant isolation
 - Resolve `business_id` from the authenticated context only — payload tenant fields are ignored.

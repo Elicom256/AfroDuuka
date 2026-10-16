@@ -146,7 +146,7 @@ class PosService
         return $errors;
     }
 
-    public function checkout(array $validated): Sale
+    public function checkout(array $validated, ?string $syncOperationId = null): Sale
     {
         $user = Auth::user();
         $branchId = $this->validateCheckoutRequest($validated, $user);
@@ -156,7 +156,7 @@ class PosService
         // does not block, so this costs nothing in throughput.
         $receiptNumber = $this->receiptNumberGenerator->next(ReceiptNumberGenerator::POS_PREFIX);
 
-        return DB::transaction(function () use ($validated, $user, $branchId, $receiptNumber) {
+        return DB::transaction(function () use ($validated, $user, $branchId, $receiptNumber, $syncOperationId) {
             $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
             $products = Product::with('taxCategory.taxRates')
                 ->whereIn('id', $productIds)
@@ -197,7 +197,7 @@ class PosService
                     ->selectRaw('COALESCE(SUM(discount * quantity), 0) as total')
                     ->value('total');
             } else {
-                $createdSale = $this->createSaleFromCart($validated, $products, $user, $branchId);
+                $createdSale = $this->createSaleFromCart($validated, $products, $user, $branchId, $syncOperationId);
                 $sale = $createdSale['sale'];
                 $totalAmount = $createdSale['total_amount'];
             }
@@ -233,7 +233,7 @@ class PosService
         return $branchId;
     }
 
-    private function createSaleFromCart(array $validated, Collection $products, User $user, int|string|null $branchId): array
+    private function createSaleFromCart(array $validated, Collection $products, User $user, int|string|null $branchId, ?string $syncOperationId = null): array
     {
         $calculation = $this->calculateNewSaleLines($validated['items'], $products);
         $sale = Sale::create([
@@ -271,7 +271,7 @@ class PosService
 
             StockMovement::updateOrCreate(
                 [
-                    'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity']),
+                    'movement_key' => $this->stockMovementKey('out', (int) $item['product_id'], (int) $sale->id, Sale::class, (int) $item['quantity'], $syncOperationId),
                 ],
                 [
                     'business_id' => $user->business_id,
@@ -412,9 +412,21 @@ class PosService
         return $sale->load(['saleItems.product', 'receipt.items']);
     }
 
-    protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity): string
+    /**
+     * The movement key is the idempotency point for stock side effects. Online
+     * keys derive from (reference, product, direction, quantity); a sync-replayed
+     * sale adds its operation id so a retried operation maps to the same rows even
+     * though the server sale id was not yet known when the device first enqueued it.
+     */
+    protected function stockMovementKey(string $type, int $productId, int $referenceId, string $referenceType, int $quantity, ?string $syncOperationId = null): string
     {
-        return md5($referenceType.':'.$referenceId.':'.$productId.':'.$type.':'.$quantity);
+        $seed = $referenceType.':'.$referenceId.':'.$productId.':'.$type.':'.$quantity;
+
+        if ($syncOperationId !== null) {
+            $seed .= ':sync:'.$syncOperationId;
+        }
+
+        return md5($seed);
     }
 
     protected function createPosReceipt(Sale $sale, array $validated, float $amountPaid, float $changeGiven, string $receiptNumber): Receipt
