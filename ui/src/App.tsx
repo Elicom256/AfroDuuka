@@ -7,6 +7,8 @@ import { Footer } from './app/pages/public/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 import { useSyncFallback } from '@/hooks/use-sync-engine';
+import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import { operationContextFromUser, registerSyncHandlers, syncEngine } from '@/lib/offline';
 
 /**
  * The dashboard-only offline surface.
@@ -16,6 +18,14 @@ import { useSyncFallback } from '@/hooks/use-sync-engine';
  * component boundary lets {@link useSyncFallback} be gated without a conditional hook.
  */
 function DashboardOffline() {
+  const { data: userData } = useLoggedinUserQuery();
+  const businessId = operationContextFromUser(userData?.data).businessId;
+
+  useEffect(() => {
+    registerSyncHandlers(businessId);
+    if (businessId) void syncEngine.flush();
+  }, [businessId]);
+
   useSyncFallback();
   return (
     <div className='pointer-events-none fixed bottom-4 left-4 z-40'>

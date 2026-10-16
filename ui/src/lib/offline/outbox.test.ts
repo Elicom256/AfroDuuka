@@ -40,9 +40,12 @@ beforeEach(async () => {
 });
 
 describe('generateOperationId', () => {
-  it('mints unique ids', () => {
+  it('mints unique UUIDs accepted by the sync API', () => {
     const ids = new Set(Array.from({ length: 50 }, () => generateOperationId()));
     expect(ids.size).toBe(50);
+    expect(
+      [...ids].every((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)),
+    ).toBe(true);
   });
 });
 
@@ -94,10 +97,7 @@ describe('enqueueSale', () => {
     expect(items).toHaveLength(2);
     expect(items.map((i) => i.productId).sort()).toEqual([1, 2]);
 
-    const adjustments = await db.stockAdjustments
-      .where('saleLocalId')
-      .equals(sale.localId)
-      .toArray();
+    const adjustments = await db.stockAdjustments.where('saleLocalId').equals(sale.localId).toArray();
     expect(adjustments).toHaveLength(2);
     expect(adjustments.every((a) => a.operationId === operation.operationId)).toBe(true);
     expect(adjustments.every((a) => a.quantityDelta < 0)).toBe(true);
@@ -113,9 +113,7 @@ describe('enqueueSale', () => {
   it('writes nothing when the operation id is already queued', async () => {
     await enqueueSale({ ...saleInput, operationId: 'dup' });
 
-    await expect(enqueueSale({ ...saleInput, operationId: 'dup' })).rejects.toBeInstanceOf(
-      DuplicateOperationError,
-    );
+    await expect(enqueueSale({ ...saleInput, operationId: 'dup' })).rejects.toBeInstanceOf(DuplicateOperationError);
 
     expect(await db.sales.count()).toBe(1);
     expect(await db.saleItems.count()).toBe(2);

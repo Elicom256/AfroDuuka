@@ -33,8 +33,21 @@ export function generateOperationId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
-  const random = Math.random().toString(36).slice(2, 10);
-  return `op-${Date.now().toString(36)}-${random}`;
+
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 function resolveOperationId(operationId?: string): string {
@@ -164,21 +177,14 @@ export async function enqueueSale(
     syncedAt: null,
   };
 
-  await db.transaction(
-    'rw',
-    db.operations,
-    db.sales,
-    db.saleItems,
-    db.stockAdjustments,
-    async () => {
-      const existing = await db.operations.get(operationId);
-      if (existing) throw new DuplicateOperationError(operationId);
-      await db.sales.add(sale);
-      await db.saleItems.bulkAdd(saleItems);
-      await db.stockAdjustments.bulkAdd(adjustments);
-      await db.operations.add(operation);
-    },
-  );
+  await db.transaction('rw', db.operations, db.sales, db.saleItems, db.stockAdjustments, async () => {
+    const existing = await db.operations.get(operationId);
+    if (existing) throw new DuplicateOperationError(operationId);
+    await db.sales.add(sale);
+    await db.saleItems.bulkAdd(saleItems);
+    await db.stockAdjustments.bulkAdd(adjustments);
+    await db.operations.add(operation);
+  });
 
   return { operation, sale };
 }
@@ -191,9 +197,7 @@ export interface ListOperationsFilter {
 }
 
 /** List queued operations, newest first, optionally filtered. */
-export async function listOperations(
-  filter: ListOperationsFilter = {},
-): Promise<SyncOperation[]> {
+export async function listOperations(filter: ListOperationsFilter = {}): Promise<SyncOperation[]> {
   let operations = await db.operations.toArray();
 
   if (filter.status) operations = operations.filter((op) => op.status === filter.status);
@@ -208,15 +212,17 @@ export async function listOperations(
   return operations.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export async function getOperation(
-  operationId: string,
-): Promise<SyncOperation | undefined> {
+export async function getOperation(operationId: string): Promise<SyncOperation | undefined> {
   return db.operations.get(operationId);
 }
 
 /** Move an operation to `syncing`. Returns the updated row, or undefined if missing. */
 export async function markSyncing(operationId: string): Promise<void> {
-  await db.operations.update(operationId, { status: 'syncing' });
+  await db.transaction('rw', db.operations, db.sales, db.stockAdjustments, async () => {
+    await db.operations.update(operationId, { status: 'syncing' });
+    await db.sales.update(operationId, { syncStatus: 'syncing' });
+    await db.stockAdjustments.where('operationId').equals(operationId).modify({ syncStatus: 'syncing' });
+  });
 }
 
 /** Record server confirmation, optionally with the server-assigned identifier. */
@@ -225,15 +231,17 @@ export async function markSynced(
   serverId: number | null = null,
   syncedAt: number = Date.now(),
 ): Promise<void> {
-  await db.transaction('rw', db.operations, db.sales, async () => {
+  await db.transaction('rw', db.operations, db.sales, db.stockAdjustments, async () => {
     await db.operations.update(operationId, {
       status: 'synced',
       serverId,
       syncedAt,
+      retryable: false,
       lastError: null,
       lastErrorAt: null,
     });
     await db.sales.update(operationId, { syncStatus: 'synced' });
+    await db.stockAdjustments.where('operationId').equals(operationId).modify({ syncStatus: 'synced' });
   });
 }
 
@@ -243,25 +251,54 @@ export async function markSynced(
  * The operation is kept, never deleted, so a failed sync is recoverable rather than a
  * silent loss (offline.md §7, "recoverable failed operations").
  */
-export async function markFailed(operationId: string, error: string): Promise<void> {
-  await db.transaction('rw', db.operations, async () => {
+export async function markFailed(operationId: string, error: string, retryable = true): Promise<void> {
+  await db.transaction('rw', db.operations, db.sales, db.stockAdjustments, async () => {
     const current = await db.operations.get(operationId);
     if (!current) return;
     await db.operations.update(operationId, {
       status: 'failed',
+      retryable,
       lastError: error,
       lastErrorAt: Date.now(),
       retryCount: current.retryCount + 1,
     });
+    await db.sales.update(operationId, { syncStatus: 'failed' });
+    await db.stockAdjustments.where('operationId').equals(operationId).modify({ syncStatus: 'failed' });
+  });
+}
+
+/** Return a transport-failed operation to pending without consuming a retry. */
+export async function markPending(operationId: string, transportError?: string): Promise<void> {
+  await db.transaction('rw', db.operations, db.sales, db.stockAdjustments, async () => {
+    const current = await db.operations.get(operationId);
+    if (!current) return;
+    await db.operations.update(operationId, {
+      status: 'pending',
+      retryable: transportError ? true : current.retryable,
+      ...(transportError
+        ? {
+            lastError: transportError,
+            lastErrorAt: Date.now(),
+            retryCount: current.retryCount + 1,
+          }
+        : {}),
+    });
+    await db.sales.update(operationId, { syncStatus: 'pending' });
+    await db.stockAdjustments.where('operationId').equals(operationId).modify({ syncStatus: 'pending' });
   });
 }
 
 /** Return a failed operation to `pending` so the next flush retries it immediately. */
 export async function retryOperation(operationId: string): Promise<void> {
-  await db.operations.update(operationId, {
-    status: 'pending',
-    lastError: null,
-    lastErrorAt: null,
+  await db.transaction('rw', db.operations, db.sales, db.stockAdjustments, async () => {
+    await db.operations.update(operationId, {
+      status: 'pending',
+      retryable: true,
+      lastError: null,
+      lastErrorAt: null,
+    });
+    await db.sales.update(operationId, { syncStatus: 'pending' });
+    await db.stockAdjustments.where('operationId').equals(operationId).modify({ syncStatus: 'pending' });
   });
 }
 

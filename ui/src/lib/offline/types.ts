@@ -42,6 +42,8 @@ export interface SyncOperation<TPayload = unknown> {
   createdAt: number;
   status: SyncStatus;
   retryCount: number;
+  /** False for server-confirmed permanent failures that require user correction. */
+  retryable?: boolean;
   lastError: string | null;
   /**
    * When the most recent failure happened, if any.
