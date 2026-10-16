@@ -13,6 +13,8 @@ AfroDuuka is a multi-tenant inventory management SaaS.
 
 The next task is to implement the backend foundation required to safely synchronize queued offline operations from the frontend.
 
+**Scope note:** this brief now also absorbs the undone "Synchronization architecture preparation" section from `offline.md` — the frontend outbox, sync engine, and status UI already exist, but no production operation handler is registered because the backend contract described here does not exist yet. Section 7 covers wiring that existing frontend to this API. The execution plan is in `sync.md`.
+
 ## Primary objective
 
 Implement a secure, idempotent Laravel sync API that can accept offline operations and process them without duplicating sales, corrupting inventory, or generating duplicate financial records.
@@ -45,6 +47,7 @@ Accept a bounded list of operations. Initially support:
 - `sale`
 - `inventory`
 - `customer`
+- `todo` (the frontend outbox already enqueues todo operations)
 
 Each operation should have:
 
@@ -189,7 +192,33 @@ Keep the processing flow recoverable after request timeouts, client disconnects,
 
 Do not require a background job merely to process a small synchronous batch unless the existing architecture justifies it. If jobs or outbox events are needed for external side effects, ensure those side effects are not duplicated when a request is retried.
 
-## 7. Database design and migrations
+## 7. Frontend sync-engine wiring (combined from `offline.md` §7)
+
+The offline foundation already exists in `ui/src/lib/offline/`: a Dexie outbox (`db.ts`, `outbox.ts`), a `SyncEngine` with retry/backoff and an app-open/reconnect fallback (`operationQueue.ts`), connectivity monitoring against `GET /health`, and status UI (`OfflineStatusIndicator`, `SyncStatusBadge`). No production `OperationHandler` is registered yet, so `syncEngine.flush()` currently skips every pending operation. The contract defined above is the blocker this section removes.
+
+Wire the existing outbox to the sync API:
+
+- Register production handlers for each supported operation type (`sale`, `inventory`, `customer`, `todo`) and invoke their registration at app startup so flushes actually submit operations.
+- Expose the batch endpoint through the existing RTK Query API client (bearer auth via the existing session helper). Do not introduce a second HTTP client.
+- Map per-operation results to outbox state: `synced` / `duplicate` → `markSynced` (including the linked local row's `syncStatus`); `failed` / `conflict` → `markFailed` with the server's machine-readable error code; transport-level errors → leave `pending` so the existing backoff retries it. Never report a local success the server did not confirm.
+- Preserve current online behavior: when the API is reachable, the existing direct paths (e.g. `POST /pos/checkout`) remain authoritative; outbox submission is the fallback for unreachable/transport-failure cases only.
+- Keep the app-open/reconnect fallback as the primary flush trigger. Do not rely exclusively on the Background Sync API.
+- Failed operations must stay visible and recoverable through the existing status UI (`retryOperation`), and last-successful-sync time should update after a committed flush.
+
+The sync engine must satisfy these requirements (carried over unchanged from `offline.md` §7):
+
+- Stable idempotency keys.
+- Safe retries.
+- Partial failure handling.
+- Per-operation status tracking.
+- Server-confirmed completion.
+- Recoverable failed operations.
+- Tenant and branch isolation.
+- Server-authoritative inventory and financial calculations.
+
+Do not use last-write-wins indiscriminately for sales, stock movements, payments, or financial transactions. These operations require domain-specific reconciliation.
+
+## 8. Database design and migrations
 
 Create only the migrations needed for the sync contract.
 
@@ -202,7 +231,7 @@ Create only the migrations needed for the sync contract.
 
 Do not automatically run destructive migrations against a remote or production database.
 
-## 8. Testing requirements
+## 9. Testing requirements
 
 Add tests using the project's existing testing framework.
 
@@ -220,10 +249,11 @@ Cover at least:
 10. Retry after a successful commit but simulated client timeout does not duplicate effects.
 11. Customer retries do not create unintended duplicates.
 12. Inventory adjustments preserve the existing audit and stock movement rules.
+13. Frontend: handler registration flushes real operations, per-operation results map to the correct outbox statuses, partial batch results are handled, and transport errors leave operations pending for retry (Vitest, alongside the existing `operationQueue` tests).
 
 Use isolated test data and the project's supported test database. Do not run destructive tests against production data.
 
-## 9. Deliverables
+## 10. Deliverables
 
 After implementation, report:
 

@@ -187,6 +187,10 @@ Route::middleware('throttle:api')->group(function () {
         require __DIR__.'/pos.php';
     });
 
+    Route::prefix('sync')->group(function () {
+        require __DIR__.'/sync.php';
+    });
+
     Route::prefix('sale-orders')->group(function () {
         require __DIR__.'/sale-orders.php';
     });
