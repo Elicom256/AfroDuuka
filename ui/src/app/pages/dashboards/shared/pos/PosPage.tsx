@@ -15,6 +15,7 @@ import {
   Download,
   Ban,
   ArrowLeft,
+  WifiOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,14 @@ import {
   useDeleteHeldSaleMutation,
 } from '@/app/store/features/branch/pos/posQuery';
 import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import {
+  connectivity,
+  isStorageFailure,
+  isTransportError,
+  operationContextFromUser,
+  submitSale,
+  type LocalSale,
+} from '@/lib/offline';
 import { PosReceiptModal } from './PosReceiptModal';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
@@ -64,6 +73,7 @@ export const PosPage = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<any>(null);
+  const [offlineSale, setOfflineSale] = useState<LocalSale | null>(null);
   const [note, setNote] = useState('');
   const [payments, setPayments] = useState<PaymentInput[]>([]);
   const [heldSaleId, setHeldSaleId] = useState<number | null>(null);
@@ -82,10 +92,13 @@ export const PosPage = () => {
   const scanFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const customerModalRef = useRef<HTMLDivElement>(null);
   const checkoutModalRef = useRef<HTMLDivElement>(null);
+  const offlineModalRef = useRef<HTMLDivElement>(null);
+  const checkoutInFlightRef = useRef(false);
   const [scanState, setScanState] = useState<'idle' | 'success' | 'error'>('idle');
 
   useFocusTrap(customerModalRef, { active: showCustomerModal, onEscape: () => setShowCustomerModal(false) });
   useFocusTrap(checkoutModalRef, { active: showCheckoutModal, onEscape: () => setShowCheckoutModal(false) });
+  useFocusTrap(offlineModalRef, { active: !!offlineSale, onEscape: () => setOfflineSale(null) });
 
   const heldSales = heldSalesData?.data || [];
 
@@ -311,29 +324,69 @@ export const PosPage = () => {
       toast.error('Cart is empty');
       return;
     }
+    if (checkoutInFlightRef.current) return;
     const totalPayments = payments.reduce((s, p) => s + (p.amount || 0), 0);
     if (totalPayments < total) {
       toast.error(`Total payment (${totalPayments}) is less than total (${total})`);
       return;
     }
 
+    const items = cart.map((c) => ({
+      product_id: c.product_id,
+      quantity: c.quantity,
+      unit_price: c.unit_price,
+      discount: c.discount,
+    }));
+
+    const body: any = {
+      items,
+      payments: payments.map((p) => ({ method: p.method, amount: p.amount })),
+      customer_id: selectedCustomer?.id || null,
+      note: note || undefined,
+    };
+
+    if (heldSaleId) {
+      body.sale_id = heldSaleId;
+    }
+
+    /**
+     * Persist the sale on this device. This is the fallback when the API is known to be
+     * unreachable and when the request fails at the transport layer — a sale is never
+     * silently lost. Storage is a hard failure: the cart is left intact and the cashier
+     * is told, rather than showing a false "completed" state.
+     */
+    const saveOffline = async () => {
+      try {
+        const { sale } = await submitSale({
+          items,
+          payments: body.payments,
+          customerId: body.customer_id,
+          customerName: selectedCustomer?.name || selectedCustomer?.company_name || null,
+          note: note || undefined,
+          context: operationContextFromUser(userData?.data),
+          total,
+          resumedSaleId: heldSaleId ?? undefined,
+        });
+        setOfflineSale(sale);
+        setShowCheckoutModal(false);
+        clearCart();
+      } catch (err) {
+        if (isStorageFailure(err)) {
+          toast.error(
+            'Could not save this sale on the device — storage is full. The sale was NOT recorded; free up space and try again.',
+          );
+        } else {
+          toast.error('Could not save this sale on the device. The sale was NOT recorded; please try again.');
+        }
+      }
+    };
+
+    checkoutInFlightRef.current = true;
     try {
-      const items = cart.map((c) => ({
-        product_id: c.product_id,
-        quantity: c.quantity,
-        unit_price: c.unit_price,
-        discount: c.discount,
-      }));
-
-      const body: any = {
-        items,
-        payments: payments.map((p) => ({ method: p.method, amount: p.amount })),
-        customer_id: selectedCustomer?.id || null,
-        note: note || undefined,
-      };
-
-      if (heldSaleId) {
-        body.sale_id = heldSaleId;
+      // A known-unreachable API means a request can only fail; queue instead of firing it.
+      if (connectivity.getSnapshot().apiReachable === false || !connectivity.getSnapshot().online) {
+        await saveOffline();
+        return;
       }
 
       const res = await checkout(body).unwrap();
@@ -344,7 +397,16 @@ export const PosPage = () => {
       setShowReceiptModal(true);
       clearCart();
     } catch (err: any) {
+      // A transport failure means the server never answered. The request may or may not
+      // have been recorded, so it is queued locally rather than shown as a plain error
+      // the cashier would retry into a duplicate — or abandon.
+      if (isTransportError(err)) {
+        await saveOffline();
+        return;
+      }
       toast.error(err?.data?.error || err?.data?.message || 'Checkout failed');
+    } finally {
+      checkoutInFlightRef.current = false;
     }
   };
 
@@ -820,6 +882,56 @@ export const PosPage = () => {
 
       {showReceiptModal && completedSale && (
         <PosReceiptModal receiptId={completedSale.receipt?.id} onClose={() => setShowReceiptModal(false)} />
+      )}
+
+      {/*
+        Offline confirmation. This is deliberately NOT the receipt modal: no server
+        receipt exists yet, so showing one would imply a confirmation the sale does not
+        have. The copy states plainly that the sale is on the device and not yet
+        confirmed by the server (offline.md §5).
+      */}
+      {offlineSale && (
+        <div
+          ref={offlineModalRef}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='offline-sale-title'
+          className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
+          onClick={() => setOfflineSale(null)}
+        >
+          <div
+            className='bg-card rounded-3xl border border-border p-6 w-full max-w-md space-y-4'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='flex items-center gap-3'>
+              <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600'>
+                <WifiOff className='h-5 w-5' />
+              </div>
+              <h2 id='offline-sale-title' className='text-lg font-semibold'>
+                Sale saved on this device
+              </h2>
+            </div>
+            <p className='text-sm text-muted-foreground'>
+              The server could not be reached, so this sale is <strong>not confirmed yet</strong>. It
+              is stored on this device and queued to sync when the connection returns.
+            </p>
+            <div className='flex justify-between text-sm'>
+              <span className='text-muted-foreground'>Total</span>
+              <span className='font-semibold'>
+                {offlineSale.total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className='flex justify-between text-sm'>
+              <span className='text-muted-foreground'>Reference</span>
+              <span className='font-mono text-xs text-muted-foreground'>
+                {offlineSale.localId.slice(0, 8)}
+              </span>
+            </div>
+            <Button className='w-full' onClick={() => setOfflineSale(null)}>
+              New Sale
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

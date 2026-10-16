@@ -31,3 +31,18 @@ export {
   resolveHealthUrl,
 } from './connectivity';
 export type { ConnectivityOptions, ConnectivitySnapshot } from './connectivity';
+export {
+  SyncEngine,
+  syncEngine,
+  submitOperation,
+  submitSale,
+  isTransportError,
+  isApiUnreachable,
+  operationContextFromUser,
+} from './operationQueue';
+export type {
+  FlushSummary,
+  OperationHandler,
+  SaleSubmitResult,
+  SubmitResult,
+} from './operationQueue';

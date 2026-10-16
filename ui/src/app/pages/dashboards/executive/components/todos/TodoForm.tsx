@@ -19,6 +19,14 @@ import { CalendarIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCreateTodoMutation } from '@/app/store/features/todos/todoQuery';
+import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
+import {
+  isApiUnreachable,
+  isStorageFailure,
+  isTransportError,
+  operationContextFromUser,
+  submitOperation,
+} from '@/lib/offline';
 import { toast } from 'sonner'; // or your toast library
 
 interface TodoFormData {
@@ -29,6 +37,7 @@ interface TodoFormData {
 
 export const TodoForm = () => {
   const [createTodo, { isLoading }] = useCreateTodoMutation();
+  const { data: userData } = useLoggedinUserQuery();
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState<TodoFormData>({
@@ -41,6 +50,11 @@ export const TodoForm = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const reset = () => {
+    setOpen(false);
+    setFormData({ title: '', description: '', date: undefined });
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -48,23 +62,54 @@ export const TodoForm = () => {
 
     if (!title.trim()) return;
 
-    try {
-      const formattedDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+    const formattedDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+    const payload = {
+      title: title.trim(),
+      description: description.trim() || undefined,
+      date: formattedDate,
+      status: 'undone',
+    };
 
-      const response = await createTodo({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        date: formattedDate,
-        status: 'undone',
-      }).unwrap();
+    /**
+     * The API is unreachable or the request never answered. The task is persisted to
+     * the outbox rather than dropped; the online path below is untouched. Storage
+     * failure is reported as a real failure — the dialog stays open and nothing is
+     * claimed as saved.
+     */
+    const saveOffline = async () => {
+      try {
+        await submitOperation('todo', payload, operationContextFromUser(userData?.data));
+        toast.success('Task saved on this device', {
+          description: 'It will sync when the connection returns.',
+        });
+        reset();
+      } catch (err) {
+        if (isStorageFailure(err)) {
+          toast.error('Could not save the task — device storage is full.');
+        } else {
+          toast.error('Could not save the task on this device.');
+        }
+      }
+    };
+
+    if (isApiUnreachable()) {
+      await saveOffline();
+      return;
+    }
+
+    try {
+      const response = await createTodo(payload).unwrap();
 
       toast.success('Task created successfully!', {
         description: response?.data?.title || title,
       });
 
-      setOpen(false);
-      setFormData({ title: '', description: '', date: undefined });
+      reset();
     } catch (err: any) {
+      if (isTransportError(err)) {
+        await saveOffline();
+        return;
+      }
       toast.error('Failed to create task', {
         description: err?.data?.message || 'Please try again',
       });

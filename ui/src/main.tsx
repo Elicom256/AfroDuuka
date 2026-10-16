@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { collapseSlashes } from './lib/url';
+import { setupServiceWorker } from './lib/pwa';
 
 // A verification link from an inbox can carry a doubled leading slash: a FRONTEND_URL
 // that ended in "/" made the backend emit https://host//verify-email. nginx still
@@ -24,6 +25,10 @@ if (normalizedPath !== window.location.pathname) {
     normalizedPath + window.location.search + window.location.hash
   );
 }
+
+// Register the service worker before the app mounts so the offline shell is available
+// on the first load after a deploy (no-op in dev).
+setupServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

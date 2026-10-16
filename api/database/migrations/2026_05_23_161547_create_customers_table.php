@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->softDeletes();
             $table->id();
+            $table->string('sync_status')->default('synced')->index();
             // Link customer to a user account
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('customer_code')->unique();     // internal code/ID

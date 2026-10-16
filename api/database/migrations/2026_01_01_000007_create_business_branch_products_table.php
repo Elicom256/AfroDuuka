@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('sync_status')->default('synced')->index();
 
             $table->foreignId('business_branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_category_id')->nullable()->constrained('product_categories')->nullOnDelete();
