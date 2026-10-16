@@ -14,6 +14,7 @@ use App\Services\Sync\ValidatesPayload;
 use App\Support\Auth\RolePermissions;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -41,9 +42,7 @@ use Illuminate\Validation\ValidationException;
  */
 class SaleSyncHandler implements SyncHandler
 {
-    public function __construct(private readonly PosService $posService)
-    {
-    }
+    public function __construct(private readonly PosService $posService) {}
 
     public function type(): string
     {
@@ -112,9 +111,9 @@ class SaleSyncHandler implements SyncHandler
      * scopes. Products that do not resolve are reported together so one stale row
      * does not cost a round trip per item.
      *
-     * @return \Illuminate\Support\Collection<int, Product>
+     * @return Collection<int, Product>
      */
-    private function loadCartProducts(array $validated, User $user): \Illuminate\Support\Collection
+    private function loadCartProducts(array $validated, User $user): Collection
     {
         $productIds = collect($validated['items'])->pluck('product_id')->unique()->values()->all();
 
@@ -140,9 +139,9 @@ class SaleSyncHandler implements SyncHandler
      * Mirrors the in-transaction aggregation (the same product may appear on
      * several rows) so the pre-flight verdict equals what checkout would decide.
      *
-     * @param  \Illuminate\Support\Collection<int, Product>  $products
+     * @param  Collection<int, Product>  $products
      */
-    private function assertStockAvailable(array $validated, \Illuminate\Support\Collection $products): void
+    private function assertStockAvailable(array $validated, Collection $products): void
     {
         $requestedByProduct = [];
         foreach ($validated['items'] as $item) {
@@ -169,9 +168,9 @@ class SaleSyncHandler implements SyncHandler
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Product>  $products
+     * @param  Collection<int, Product>  $products
      */
-    private function assertPricesMatchServer(array $validated, \Illuminate\Support\Collection $products): void
+    private function assertPricesMatchServer(array $validated, Collection $products): void
     {
         foreach ($validated['items'] as $item) {
             $product = $products->get($item['product_id']);

@@ -92,6 +92,7 @@ class MutatingRouteAuthorizationAuditTest extends TestCase
         'POST api/pos/cart/validate' => 'Read-only despite the verb; prices a cart and writes nothing.',
         'POST api/pos/checkout' => 'Completing the sale Operations is there to take.',
         'POST api/pos/sales/hold' => 'Parks the caller\'s own till ticket.',
+        'POST api/sync/batch' => 'Authenticated and throttled batch; per-operation tenant and role authorization is enforced by the registered sync handler.',
     ];
 
     // ------------------------------------------------------------------ structure

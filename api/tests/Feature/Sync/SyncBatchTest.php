@@ -2,17 +2,19 @@
 
 namespace Tests\Feature\Sync;
 
+use App\Http\Requests\SyncBatchRequest;
 use App\Models\Business;
 use App\Models\BusinessBranch;
+use App\Models\CoreSettings\CustomersSettings;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Todo;
 use App\Models\User;
-use App\Models\CoreSettings\CustomersSettings;
-use App\Models\Customer;
-use App\Http\Requests\SyncBatchRequest;
+use App\Services\CashFlowService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -110,6 +112,40 @@ class SyncBatchTest extends TestCase
             ->assertJsonPath('results.1.error.code', 'validation_error')
             ->assertJsonPath('results.1.error.details.title.0', 'The title field is required.');
 
+        $this->assertDatabaseCount('todos', 1);
+    }
+
+    public function test_failed_operation_can_be_retried_after_correcting_its_payload(): void
+    {
+        $operationId = $this->faker->uuid();
+
+        $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $operationId,
+                'type' => 'todo',
+                'payload' => ['description' => 'Missing title'],
+            ]],
+        ])
+            ->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'validation_error');
+
+        $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $operationId,
+                'type' => 'todo',
+                'payload' => ['title' => 'Corrected todo'],
+            ]],
+        ])
+            ->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'synced')
+            ->assertJsonPath('results.0.result.title', 'Corrected todo');
+
+        $this->assertDatabaseHas('sync_operations', [
+            'operation_id' => $operationId,
+            'status' => 'completed',
+            'attempts' => 2,
+        ]);
         $this->assertDatabaseCount('todos', 1);
     }
 
@@ -220,24 +256,15 @@ class SyncBatchTest extends TestCase
         $first->assertStatus(200)
             ->assertJsonPath('results.0.status', 'synced');
 
-        $this->assertDatabaseCount('sales', 1);
-        $this->assertDatabaseCount('sale_items', 1);
-        $this->assertDatabaseCount('sale_payments', 1);
-        $this->assertDatabaseCount('stock_movements', 1);
-        $this->assertDatabaseCount('cash_flows', 1);
-        $this->assertDatabaseCount('receipts', 1);
+        $saleId = (int) $first->json('results.0.server_id');
+        $this->assertSaleEffectsAreSingle($saleId, $this->product->id);
         $this->assertSame(48, $this->product->fresh()->quantity);
 
         $this->postJson('/api/sync/batch', ['operations' => [$operation]])
             ->assertStatus(200)
             ->assertJsonPath('results.0.status', 'duplicate');
 
-        $this->assertDatabaseCount('sales', 1);
-        $this->assertDatabaseCount('sale_items', 1);
-        $this->assertDatabaseCount('sale_payments', 1);
-        $this->assertDatabaseCount('stock_movements', 1);
-        $this->assertDatabaseCount('cash_flows', 1);
-        $this->assertDatabaseCount('receipts', 1);
+        $this->assertSaleEffectsAreSingle($saleId, $this->product->id);
         $this->assertSame(48, $this->product->fresh()->quantity);
     }
 
@@ -263,8 +290,63 @@ class SyncBatchTest extends TestCase
             ->assertJsonPath('results.0.status', 'conflict')
             ->assertJsonPath('results.0.error.code', 'price_mismatch');
 
-        $this->assertDatabaseCount('sales', 0);
-        $this->assertDatabaseCount('stock_movements', 0);
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
+        $this->assertSame(50, $this->product->fresh()->quantity);
+    }
+
+    public function test_sale_with_insufficient_stock_is_a_conflict_without_side_effects(): void
+    {
+        $this->product->update(['quantity' => 1]);
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'sale',
+                'payload' => [
+                    'items' => [[
+                        'product_id' => $this->product->id,
+                        'quantity' => 2,
+                        'unit_price' => 10000,
+                    ]],
+                    'payments' => [['method' => 'cash', 'amount' => 20000]],
+                ],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'conflict')
+            ->assertJsonPath('results.0.error.code', 'insufficient_stock');
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
+        $this->assertSame(1, $this->product->fresh()->quantity);
+    }
+
+    public function test_sale_effects_roll_back_when_cash_flow_creation_fails(): void
+    {
+        $this->mock(CashFlowService::class, function ($mock) {
+            $mock->shouldReceive('createCashFlowForSale')
+                ->once()
+                ->andThrow(new \RuntimeException('Simulated cash-flow failure'));
+        });
+
+        $response = $this->postJson('/api/sync/batch', [
+            'operations' => [[
+                'operation_id' => $this->faker->uuid(),
+                'type' => 'sale',
+                'payload' => [
+                    'items' => [[
+                        'product_id' => $this->product->id,
+                        'quantity' => 2,
+                        'unit_price' => 10000,
+                    ]],
+                    'payments' => [['method' => 'cash', 'amount' => 20000]],
+                ],
+            ]],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'failed')
+            ->assertJsonPath('results.0.error.code', 'processing_error');
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
         $this->assertSame(50, $this->product->fresh()->quantity);
     }
 
@@ -299,7 +381,61 @@ class SyncBatchTest extends TestCase
             ->assertJsonPath('results.0.status', 'duplicate');
 
         $this->assertSame(48, $this->product->fresh()->quantity);
-        $this->assertDatabaseCount('stock_movements', 1);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $this->product->id,
+            'movement_key' => 'sync:'.$this->business->id.':'.$operation['operation_id'],
+        ]);
+        $this->assertSame(1, DB::table('stock_movements')
+            ->where('product_id', $this->product->id)
+            ->where('movement_key', 'sync:'.$this->business->id.':'.$operation['operation_id'])
+            ->count());
+    }
+
+    public function test_same_operation_uuid_is_independent_between_businesses(): void
+    {
+        $operationId = $this->faker->uuid();
+        $operation = [
+            'operation_id' => $operationId,
+            'type' => 'todo',
+            'payload' => ['title' => 'Tenant-owned task'],
+        ];
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'synced');
+
+        $otherBusiness = Business::factory()->create();
+        $otherBranch = BusinessBranch::factory()->create([
+            'business_id' => $otherBusiness->id,
+        ]);
+        $otherRole = Role::factory()->create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Executive',
+        ]);
+        $otherUser = User::factory()->create([
+            'business_id' => $otherBusiness->id,
+            'business_branch_id' => $otherBranch->id,
+            'role_id' => $otherRole->id,
+        ]);
+        Sanctum::actingAs($otherUser);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertStatus(200)
+            ->assertJsonPath('results.0.status', 'synced');
+
+        $this->assertDatabaseCount('sync_operations', 2);
+        $this->assertDatabaseHas('sync_operations', [
+            'business_id' => $this->business->id,
+            'operation_id' => $operationId,
+            'status' => 'completed',
+        ]);
+        $this->assertDatabaseHas('sync_operations', [
+            'business_id' => $otherBusiness->id,
+            'operation_id' => $operationId,
+            'status' => 'completed',
+        ]);
+        $this->assertSame(1, Todo::withoutGlobalScopes()->where('business_id', $this->business->id)->count());
+        $this->assertSame(1, Todo::withoutGlobalScopes()->where('business_id', $otherBusiness->id)->count());
     }
 
     public function test_customer_operation_creates_once_and_returns_the_server_id_on_replay(): void
@@ -374,7 +510,7 @@ class SyncBatchTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('results.0.status', 'failed')
             ->assertJsonPath('results.0.error.code', 'forbidden');
-        $this->assertDatabaseCount('sales', 0);
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
         $this->assertSame(50, $this->product->fresh()->quantity);
     }
 
@@ -431,7 +567,8 @@ class SyncBatchTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('results.0.status', 'failed')
             ->assertJsonPath('results.1.status', 'failed');
-        $this->assertDatabaseCount('sales', 0);
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
+        $this->assertNoSaleEffectsForBranch($foreignBranch->id);
         $this->assertSame(25, $foreignProduct->fresh()->quantity);
     }
 
@@ -461,7 +598,7 @@ class SyncBatchTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('results.0.status', 'failed')
             ->assertJsonPath('results.0.error.code', 'validation_error');
-        $this->assertDatabaseCount('sales', 0);
+        $this->assertNoSaleEffectsForBranch($this->branch->id);
         $this->assertSame(50, $this->product->fresh()->quantity);
     }
 
@@ -492,7 +629,39 @@ class SyncBatchTest extends TestCase
             ->assertJsonPath('results.0.status', 'failed')
             ->assertJsonPath('results.0.error.code', 'not_found');
         $this->assertSame(25, $foreignProduct->fresh()->quantity);
-        $this->assertDatabaseCount('stock_movements', 0);
+        $this->assertDatabaseMissing('stock_movements', ['product_id' => $foreignProduct->id]);
+    }
+
+    private function assertSaleEffectsAreSingle(int $saleId, int $productId): void
+    {
+        $this->assertSame(1, DB::table('sales')->where('id', $saleId)->count());
+        $this->assertSame(1, DB::table('sale_items')->where('sale_id', $saleId)->count());
+        $this->assertSame(1, DB::table('sale_payments')->where('sale_id', $saleId)->count());
+        $this->assertSame(1, DB::table('stock_movements')
+            ->where('product_id', $productId)
+            ->where('reference_id', $saleId)
+            ->count());
+        $this->assertSame(1, DB::table('cash_flows')->where('sale_id', $saleId)->count());
+        $this->assertSame(1, DB::table('receipts')->where('sale_id', $saleId)->count());
+    }
+
+    private function assertNoSaleEffectsForBranch(int $branchId): void
+    {
+        $this->assertSame(0, DB::table('sales')->where('business_branch_id', $branchId)->count());
+        $this->assertSame(0, DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.business_branch_id', $branchId)
+            ->count());
+        $this->assertSame(0, DB::table('sale_payments')
+            ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
+            ->where('sales.business_branch_id', $branchId)
+            ->count());
+        $this->assertSame(0, DB::table('stock_movements')->where('business_branch_id', $branchId)->count());
+        $this->assertSame(0, DB::table('cash_flows')
+            ->where('business_branch_id', $branchId)
+            ->whereNotNull('sale_id')
+            ->count());
+        $this->assertSame(0, DB::table('receipts')->where('business_branch_id', $branchId)->count());
     }
 
     private function assertDatabaseHasCustomerUser(string $email): int

@@ -9,13 +9,15 @@ use App\Services\Sync\Handlers\CustomerSyncHandler;
 use App\Services\Sync\Handlers\InventorySyncHandler;
 use App\Services\Sync\Handlers\SaleSyncHandler;
 use App\Services\Sync\Handlers\TodoSyncHandler;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
-use Exception;
 use Throwable;
 
 /**
@@ -250,7 +252,7 @@ class SyncOperationDispatcher
         return ['kind' => 'claimed', 'record' => $this->operationScope($operation['operation_id'], $user)->firstOrFail()];
     }
 
-    private function operationScope(string $operationId, User $user): \Illuminate\Database\Eloquent\Builder
+    private function operationScope(string $operationId, User $user): Builder
     {
         return SyncOperation::query()
             ->where('business_id', $user->business_id)
@@ -264,7 +266,7 @@ class SyncOperationDispatcher
         }
 
         try {
-            return \Illuminate\Support\Carbon::parse($operation['created_at'])->toDateTimeString();
+            return Carbon::parse($operation['created_at'])->toDateTimeString();
         } catch (Throwable) {
             return null;
         }
@@ -295,10 +297,10 @@ class SyncOperationDispatcher
     }
 
     /**
-    * Map a thrown condition to the response contract's status + a stable,
-    * machine-readable code. Business messages are safe to surface (they are the
-    * same texts the online endpoints report); unexpected exceptions are logged
-    * without raw messages or bindings and reported generically.
+     * Map a thrown condition to the response contract's status + a stable,
+     * machine-readable code. Business messages are safe to surface (they are the
+     * same texts the online endpoints report); unexpected exceptions are logged
+     * without raw messages or bindings and reported generically.
      *
      * @return array{status: 'conflict'|'failed', code: string, message: string, details?: array}
      */

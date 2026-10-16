@@ -9,7 +9,7 @@ Status:
 - ✅ Chunk 2 — Batch endpoint + dispatcher
 - ✅ Chunk 3 — Type handlers
 - ✅ Chunk 4 — Security and tenant isolation
-- ⬜ Chunk 5 — Backend tests
+- ✅ Chunk 5 — Backend tests
 - ⬜ Chunk 6 — Frontend syncQuery endpoint
 - ⬜ Chunk 7 — Register handlers and flush
 - ⬜ Chunk 8 — Frontend tests
@@ -77,6 +77,8 @@ Status:
 ### Chunk 5 — Backend tests (PHPUnit)
 
 New `api/tests/Feature/Sync/` covering apisync.md §9 items 1–12: happy path, unauthenticated 401, cross-tenant/branch rejection, duplicate replay returns original result, concurrent duplicates don't duplicate rows, sale rollback is atomic, insufficient stock/price conflict → `conflict`, partial batch isolation, invalid payload/type rejection, retry-after-timeout doesn't duplicate, customer retry safety, inventory audit rules.
+
+**Completed 2026-10-16:** added recovery-after-failure, price/stock conflicts, rollback of sale/items/payments/stock/cashflow/receipt, customer and inventory replay, tenant-scoped UUID reuse, and a two-process PostgreSQL claim race proving the unique idempotency key admits exactly one winner. The authorization audit now documents handler-level route authorization. Full backend suite: 988 passed, 3,382 assertions; touched PHP files pass Pint.
 
 ## 3. Frontend chunks
 
