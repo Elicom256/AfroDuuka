@@ -10,7 +10,7 @@ Status:
 - ✅ Chunk 3 — Type handlers
 - ✅ Chunk 4 — Security and tenant isolation
 - ✅ Chunk 5 — Backend tests
-- ⬜ Chunk 6 — Frontend syncQuery endpoint
+- ✅ Chunk 6 — Frontend syncQuery endpoint
 - ⬜ Chunk 7 — Register handlers and flush
 - ⬜ Chunk 8 — Frontend tests
 - ⬜ Final verification + deliverables
@@ -85,6 +85,8 @@ New `api/tests/Feature/Sync/` covering apisync.md §9 items 1–12: happy path, 
 ### Chunk 6 — Sync API endpoint
 
 - `ui/src/app/store/features/sync/syncQuery.ts`: `syncBatch` mutation → `POST /sync/batch` through `baseApi` (bearer auth, existing conventions). No second HTTP client.
+
+**Completed 2026-10-16:** added typed batch request, per-operation result, and summary contracts plus the RTK Query `syncBatch` mutation. UI production build passed (`cd ui && npm run build`).
 
 ### Chunk 7 — Register handlers and flush
 
