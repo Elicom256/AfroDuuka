@@ -16,7 +16,7 @@ export const TermsOfService = () => {
         </CardHeader>
         <CardContent className='prose prose-sm dark:prose-invert max-w-none'>
           <p>
-            By accessing and using DuukaFlow, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
+            By accessing and using AfroDuuka, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
           </p>
         </CardContent>
       </Card>
@@ -27,7 +27,7 @@ export const TermsOfService = () => {
         </CardHeader>
         <CardContent className='prose prose-sm dark:prose-invert max-w-none'>
           <p>
-            DuukaFlow is a cloud-based inventory management system designed for businesses in Uganda and Africa. The service includes stock tracking, sales management, financial reporting, and related features.
+            AfroDuuka is a cloud-based inventory management system designed for businesses in Uganda and Africa. The service includes stock tracking, sales management, financial reporting, and related features.
           </p>
         </CardContent>
       </Card>
@@ -93,7 +93,7 @@ export const TermsOfService = () => {
         </CardHeader>
         <CardContent className='prose prose-sm dark:prose-invert max-w-none'>
           <p>
-            DuukaFlow is provided "as is" without warranties of any kind. We shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service.
+            AfroDuuka is provided "as is" without warranties of any kind. We shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service.
           </p>
         </CardContent>
       </Card>
@@ -115,7 +115,7 @@ export const TermsOfService = () => {
         </CardHeader>
         <CardContent className='prose prose-sm dark:prose-invert max-w-none'>
           <p>
-            For questions about these terms, contact us at legal@duukaflow.com or +256 731 794401.
+            For questions about these terms, contact us at legal@afroduuka.com or +256 731 794401.
           </p>
         </CardContent>
       </Card>

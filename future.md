@@ -190,7 +190,7 @@ This should happen near launch, but not block the launch itself.
 
 ## 6. Final Verdict
 
-Without this layer, DuukaFlow is still a useful internal tool, but not yet a premium product. To justify paying for it, the app needs real operational automations, especially WhatsApp notifications, not just marketing claims or in-app notification storage.
+Without this layer, AfroDuuka is still a useful internal tool, but not yet a premium product. To justify paying for it, the app needs real operational automations, especially WhatsApp notifications, not just marketing claims or in-app notification storage.
 
 This is the difference between a simple inventory app and a real retail operations platform.
 

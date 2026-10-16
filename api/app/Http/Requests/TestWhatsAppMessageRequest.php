@@ -22,7 +22,7 @@ class TestWhatsAppMessageRequest extends FormRequest
 
         if (! $this->has('message')) {
             $this->merge([
-                'message' => 'Demo WhatsApp message from DuukaFlow.',
+                'message' => 'Demo WhatsApp message from AfroDuuka.',
             ]);
         }
     }

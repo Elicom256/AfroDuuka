@@ -1,7 +1,7 @@
 import type { OnboardingDraft } from './types';
 import { initialDraft } from './types';
 
-const STORAGE_KEY = 'duukaflow:onboarding-draft';
+const STORAGE_KEY = 'afroduuka:onboarding-draft';
 
 /**
  * Keep the draft in sessionStorage so a refresh does not throw away the work.

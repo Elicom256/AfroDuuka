@@ -67,6 +67,6 @@ final class NotificationMessageId
             return substr(strrchr($from, '@') ?: '', 1);
         }
 
-        return 'duukaflow.com';
+        return 'afroduuka.com';
     }
 }

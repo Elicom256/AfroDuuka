@@ -113,7 +113,7 @@ export const BusinessInfoSettings = () => {
               />
             </div>
             <p className='text-xs text-muted-foreground'>
-              Shown in the top navigation instead of the DuukaFlow wordmark.
+              Shown in the top navigation instead of the AfroDuuka wordmark.
             </p>
           </div>
           <Button type='submit' disabled={isUpdating}>

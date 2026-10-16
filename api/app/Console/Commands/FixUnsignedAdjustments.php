@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
  */
 class FixUnsignedAdjustments extends Command
 {
-    protected $signature = 'duukaflow:finance:unsigned-adjustments
+    protected $signature = 'afroduuka:finance:unsigned-adjustments
                             {--business= : Limit to one business id}
                             {--code= : Set the direction of this one transaction_code and exit}
                             {--direction= : credit or debit, required with --code}';
@@ -129,7 +129,7 @@ class FixUnsignedAdjustments extends Command
         );
 
         $this->line('Decide each one, then record it:');
-        $this->line('  php artisan duukaflow:finance:unsigned-adjustments --code=<code> --direction=credit|debit');
+        $this->line('  php artisan afroduuka:finance:unsigned-adjustments --code=<code> --direction=credit|debit');
 
         return self::SUCCESS;
     }

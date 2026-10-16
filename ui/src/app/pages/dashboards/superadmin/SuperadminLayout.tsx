@@ -15,7 +15,7 @@ export const SuperadminLayout = () => {
         <div className='container mx-auto flex items-center justify-between gap-4'>
           <div>
             <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground'>Super Executive</p>
-            <h1 className='text-lg font-semibold'>DuukaFlow System</h1>
+            <h1 className='text-lg font-semibold'>AfroDuuka System</h1>
           </div>
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>

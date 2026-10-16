@@ -30,7 +30,7 @@ export const NoDashboardAccess = ({ role }: { role: string | null }) => {
           <h1 className='text-3xl font-bold text-foreground'>No dashboard for your role</h1>
           <p className='text-muted-foreground'>
             {role
-              ? `Your account is signed in and working, but "${role}" does not have a dashboard in this version of DuukaFlow.`
+              ? `Your account is signed in and working, but "${role}" does not have a dashboard in this version of AfroDuuka.`
               : 'Your account is signed in and working, but it has no role assigned, so there is no dashboard to open.'}
           </p>
         </div>

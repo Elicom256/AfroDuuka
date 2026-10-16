@@ -193,7 +193,7 @@ Add `resendVerification` to `onboardingQuery.ts` (or a small `verificationQuery`
 
 ## 8. Copy (first pass)
 
-**Email subject:** `Verify your email to activate your DuukaFlow account`
+**Email subject:** `Verify your email to activate your AfroDuuka account`
 (**body:** existing `verification.blade.php`; confirm the 24-hour line matches the real TTL).
 
 **Check-inbox page:**

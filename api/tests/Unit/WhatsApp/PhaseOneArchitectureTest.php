@@ -39,12 +39,12 @@ class PhaseOneArchitectureTest extends TestCase
 
         $result = $provider->sendMessage([
             'to' => '+256712345678',
-            'message' => 'Welcome to DuukaFlow',
+            'message' => 'Welcome to AfroDuuka',
             'template_key' => 'welcome',
         ]);
 
         $this->assertTrue($result['success']);
         $this->assertSame('demo', $result['provider']);
-        $this->assertSame('Welcome to DuukaFlow', $result['message']);
+        $this->assertSame('Welcome to AfroDuuka', $result['message']);
     }
 }

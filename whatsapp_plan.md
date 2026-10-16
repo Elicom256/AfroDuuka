@@ -2,7 +2,7 @@
 
 ## Audit Summary
 
-Based on a comprehensive review of the current WhatsApp module in DuukaFlow, here's an assessment of what exists and what needs to be implemented.
+Based on a comprehensive review of the current WhatsApp module in AfroDuuka, here's an assessment of what exists and what needs to be implemented.
 
 ## 1. Current Implementation
 

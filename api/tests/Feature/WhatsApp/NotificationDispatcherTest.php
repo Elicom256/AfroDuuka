@@ -84,7 +84,7 @@ class NotificationDispatcherTest extends TestCase
 
         $this->assertSame(NotificationDelivery::STATUS_PENDING, $delivery->status);
         $this->assertSame('registration.welcome', $delivery->type);
-        $this->assertSame('duukaflow_welcome', $delivery->meta_template_name);
+        $this->assertSame('afroduuka_welcome', $delivery->meta_template_name);
         $this->assertSame('+256700000001', $delivery->recipient_address);
         $this->assertTrue($delivery->is_mandatory);
 

@@ -46,7 +46,7 @@ class CurrencyRateSyncTest extends TestCase
     {
         $this->fakeProvider();
 
-        $this->artisan('duukaflow:currency:sync-rates')->assertSuccessful();
+        $this->artisan('afroduuka:currency:sync-rates')->assertSuccessful();
 
         $this->assertDatabaseHas('currency_rates', [
             'business_id' => $this->business->id,
@@ -72,8 +72,8 @@ class CurrencyRateSyncTest extends TestCase
     {
         $this->fakeProvider();
 
-        $this->artisan('duukaflow:currency:sync-rates')->assertSuccessful();
-        $this->artisan('duukaflow:currency:sync-rates')->assertSuccessful();
+        $this->artisan('afroduuka:currency:sync-rates')->assertSuccessful();
+        $this->artisan('afroduuka:currency:sync-rates')->assertSuccessful();
 
         $this->assertSame(1, CurrencyRate::withoutGlobalScopes()
             ->where('business_id', $this->business->id)
@@ -86,7 +86,7 @@ class CurrencyRateSyncTest extends TestCase
     {
         Http::fake(['open.er-api.com/*' => Http::response([], 500)]);
 
-        $this->artisan('duukaflow:currency:sync-rates')
+        $this->artisan('afroduuka:currency:sync-rates')
             ->assertFailed()
             ->expectsOutputToContain('Failed to sync');
 
@@ -111,7 +111,7 @@ class CurrencyRateSyncTest extends TestCase
             ]),
         ]);
 
-        $this->artisan('duukaflow:currency:sync-rates')->assertSuccessful();
+        $this->artisan('afroduuka:currency:sync-rates')->assertSuccessful();
 
         $this->assertDatabaseHas('currency_rates', [
             'business_id' => $usdBusiness->id,

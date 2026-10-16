@@ -82,8 +82,8 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 **How:**
 - Provider: **Meta Cloud API** (WhatsApp Business Platform) — direct control, no BSP markup if self-hosted
-- Already: `WhatsAppProviderInterface`, `MetaWhatsAppProvider` (stub), `WhatsAppConfig`, `WhatsAppTemplate`, `WhatsAppMessageLog`, `ProcessWhatsAppNotificationJob`, `DemoWhatsAppProvider`
-- Need: Complete `MetaWhatsAppProvider` HTTP client, webhook `POST /api/webhooks/whatsapp` for delivery status, template approval flow, dedupe on `dedupe_key` (unique index)
+- Built: `WhatsAppProviderInterface` + a real `MetaWhatsAppProvider` (`sendMessage` with per-outcome delivery classification, paginated `listTemplates`, one pinned Graph API version), `DemoWhatsAppProvider`, `WhatsAppConfig`, `WhatsAppTemplate`, `WhatsAppMessageLog`, `ProcessWhatsAppNotificationJob`, the `afroduuka:whatsapp:sync-templates` command, the config/templates/logs endpoints, and provider tests
+- Need: inbound **delivery-status webhook** `POST /api/webhooks/whatsapp` to advance `WhatsAppMessageLog` through sent → delivered → read → failed (and stop the `sending` rows Meta answers on), plus dedupe on `dedupe_key` (unique index). No template-submission API — approval stays a manual step in Meta Business Manager.
 - Channel strategy: WhatsApp for urgent/state-change (≤4 lines); Email for documents/summaries
 - Template categories: `UTILITY` (subscription, inventory, orders); Monthly report nudge as `UTILITY` not `MARKETING`
 
@@ -125,27 +125,7 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 
 ---
 
-## 6. SMS Gateway (Africa's Talking / Twilio / Infobip)
-
-**What:** Fallback for WhatsApp delivery failures, OTP for login, critical alerts when WhatsApp is down.
-
-**Why:** WhatsApp quality-score collapse risk; business-level failover for SMS/email if WhatsApp down (per `future.md` line 149). OTP for 2FA/login alerts.
-
-**How:**
-- Provider: **Africa's Talking** (best Uganda/East Africa coverage), **Twilio**, or **Infobip**
-- Channel: `sms` in `notification_preferences`, fallback logic in `NotificationDispatcher`
-- Use case: OTP, WhatsApp failover, critical alerts only (not marketing)
-
-**When:** **Post-launch (P1/P2)** — failover/OTP, not core MVP.
-
-**Cost:**
-- Africa's Talking: **~UGX 30–50/SMS** (local); **~$0.01–0.03/SMS** international
-- Twilio: **$0.0075/SMS** (Uganda)
-- Estimated: **$10–50/month** for OTP + failover volume.
-
----
-
-## 7. Direct Mobile Money (MTN MoMo + Airtel Money) — Post-Launch
+## 6. Direct Mobile Money (MTN MoMo + Airtel Money) — Post-Launch
 
 **What:** Direct real-time mobile money collection via **MTN MoMo API** + **Airtel Money API** (bypassing Flutterwave aggregator). Covers ~95% of Uganda mobile money market.
 
@@ -177,8 +157,7 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 | 3 | **Offline-First Sync** | P0 — Architecture, not feature | Pre-launch | Dev effort only |
 | 4 | **WhatsApp (Meta Cloud API)** | P0 — Product promise, nudges | Pre-launch | $10–50 |
 | 5 | **URA EFRIS** | P0 — Legal compliance (Uganda) | Pre-launch | Dev effort only |
-| 6 | **SMS Gateway** | P1 — Failover/OTP | Post-launch | $10–50 |
-| 7 | **Direct MTN/Airtel MoMo** | P2 — Cost optimization at scale | ~1 year post-launch | 1.5–2.5% (vs 3%) |
+| 6 | **Direct MTN/Airtel MoMo** | P2 — Cost optimization at scale | ~1 year post-launch | 1.5–2.5% (vs 3%) |
 
 ---
 
@@ -188,9 +167,8 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 2. **Parallel**: Email (Resend) + Offline Sync (architectural) — both P0, different teams.
 3. **WhatsApp** after Email is working — Email is the fallback; WhatsApp is the nudge layer.
 4. **URA EFRIS** can run in parallel (different team) — sandbox testing first, Uganda-only.
-5. **SMS** only as WhatsApp failover — not a primary channel.
-6. **Direct MTN/Airtel** only after ~1 year when volume justifies contract overhead — Flutterwave aggregator fee (3%) is the cost of speed-to-market.
-7. **Offline sync** is architectural — plan early, build early (retrofitting is expensive per `checked.md`).
+5. **Direct MTN/Airtel** only after ~1 year when volume justifies contract overhead — Flutterwave aggregator fee (3%) is the cost of speed-to-market.
+6. **Offline sync** is architectural — plan early, build early (retrofitting is expensive per `checked.md`).
 
 ---
 
@@ -202,7 +180,6 @@ Ordered by **launch criticality** (most essential → least essential). All are 
 | Resend | GitHub/Email signup | resend.com/docs | Free tier (3k/mo) | Auto |
 | Meta WhatsApp | Meta Business Manager, WhatsApp Business Account | developers.facebook.com/docs/whatsapp | Yes (test numbers) | Template approval (1–3 days) |
 | URA EFRIS | Taxpayer registration, EFRIS cert | URA portal | Yes (test env) | Live cert from URA |
-| Africa's Talking | Account | developers.africastalking.com | Yes | Auto |
 | Amazon SES | AWS Account | docs.aws.amazon.com/ses | Yes (sandbox) | Production access request |
 | MTN MoMo (later) | Business registration, MoMo Developer Portal | developer.mtn.com | Yes | Business cert + KYC |
 | Airtel Money (later) | Business registration, Airtel Developer Portal | developers.airtel.africa | Yes | Business cert + KYC |

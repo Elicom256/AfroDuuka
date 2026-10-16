@@ -141,7 +141,7 @@ class NotificationMail extends Mailable
         $name = $values['business_name'] ?? config('app.name');
 
         return match ($this->type) {
-            'registration.welcome' => "Welcome to DuukaFlow, {$name}",
+            'registration.welcome' => "Welcome to AfroDuuka, {$name}",
             'subscription.activated' => "Your {$values['plan_name']} plan is active",
             'subscription.plan_changed' => 'Your plan has changed',
             'subscription.renewed' => 'Your subscription has been renewed',
@@ -151,7 +151,7 @@ class NotificationMail extends Mailable
             'trial.ended' => 'Your free trial has ended',
             'report.monthly' => "Your {$values['period']} report is ready",
             'quotation.sent' => "Quotation {$values['quotation_number']}",
-            default => 'A DuukaFlow update',
+            default => 'A AfroDuuka update',
         };
     }
 
@@ -225,7 +225,7 @@ class NotificationMail extends Mailable
             'subscription.expired' => 'Your subscription has expired. Reactivate to pick up where you left off.',
             'subscription.expiring' => 'Your subscription is about to expire. Renew to avoid losing access.',
             'trial.ended' => 'Your free trial has ended. Subscribe to keep selling.',
-            'report.monthly' => 'Your monthly performance report is ready to view in DuukaFlow.',
+            'report.monthly' => 'Your monthly performance report is ready to view in AfroDuuka.',
             'quotation.sent' => 'A quotation has been sent to your customer.',
             default => '',
         };
@@ -252,7 +252,7 @@ class NotificationMail extends Mailable
             'subscription.expiring' => 'Renew now',
             'trial.ended' => 'Subscribe',
             'report.monthly' => 'View report',
-            default => $this->actionUrl() !== null ? 'Open DuukaFlow' : null,
+            default => $this->actionUrl() !== null ? 'Open AfroDuuka' : null,
         };
     }
 }

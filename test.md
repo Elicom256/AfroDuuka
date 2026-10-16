@@ -21,7 +21,7 @@ Report not spam
 InvetoryTracker
 Business Email Verification
 
-Welcome to InvetoryTracker, DuukaFlow!
+Welcome to InvetoryTracker, AfroDuuka!
 Thank you for registering your business. To complete your registration and activate your account, please verify your email address by clicking the button below:
 
 Verify Email Address

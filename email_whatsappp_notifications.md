@@ -125,9 +125,9 @@ This is the part that dictates everything, and it is **not** in any of the docs.
 it you may send free-form text. Outside it, **every message must be a pre-approved
 template**.
 
-DuukaFlow's notifications are 100% business-initiated. Therefore:
+AfroDuuka's notifications are 100% business-initiated. Therefore:
 
-> **All outbound WhatsApp from DuukaFlow must be Meta template messages.**
+> **All outbound WhatsApp from AfroDuuka must be Meta template messages.**
 > There is no free-text path in production.
 
 Consequences:
@@ -274,7 +274,7 @@ Meta has approved". Split the responsibilities, keep one table:
 | Column | Purpose |
 |---|---|
 | `name`, `category`, `locale`, `body`, `variables` | **existing** — our wording, `{{token}}` substitution |
-| `provider_name` | the **Meta** template name (`duukaflow_subscription_renewed`) |
+| `provider_name` | the **Meta** template name (`afroduuka_subscription_renewed`) |
 | `language_code` | `en` / `en_GB` — must match the approved template |
 | `template_category` | `UTILITY` / `MARKETING` / `AUTHENTICATION` |
 | `template_status` | mirror of Meta's `APPROVED` / `PENDING` / `REJECTED` |
@@ -282,7 +282,7 @@ Meta has approved". Split the responsibilities, keep one table:
 | `is_mandatory` | transactional, not user-editable / not opt-out-able |
 
 Rules:
-- `duukaflow:whatsapp:sync-templates` pulls status from
+- `afroduuka:whatsapp:sync-templates` pulls status from
   `GET /{waba-id}/message_templates` and flips `template_status`. Business owners may
   edit the **body wording**; they may not edit `provider_name` or `language_code`.
 - A notification whose `template_status != APPROVED` is **not dispatched** — logged
@@ -439,7 +439,7 @@ scope: **B** business / **Br** branch
 
 | # | Notification | Ch | Sc | Meta template | Trigger | Dedupe identity |
 |---|---|---|---|---|---|---|
-| 1 | Business registered / welcome | E + W | B·M | `duukaflow_welcome` | after `BusinessService::create` **commits** | `registration:welcome:business-{id}` |
+| 1 | Business registered / welcome | E + W | B·M | `afroduuka_welcome` | after `BusinessService::create` **commits** | `registration:welcome:business-{id}` |
 | 2 | Subscription activated | E + W | B·M | `subscription_activated` | `SubscriptionPayment` verified | `subscription:created:sub-{id}:payment-{id}` |
 | 3 | Plan changed | E + W | B·M | `plan_changed` | `Subscription.plan_id` changes | `subscription:plan_changed:sub-{id}:plan-{new}:{effective}` |
 | 4 | Subscription renewed | E + W | B·M | `subscription_renewed` | renewal payment verified | `subscription:renewed:sub-{id}:{period_start}` |
@@ -554,10 +554,10 @@ Delete: `SendWhatsAppNotificationJob` (never dispatched, **dead**) ·
 `app/Console/Kernel.php` (**B11**)
 
 ### Commands
-`duukaflow:whatsapp:sync-templates` · `duukaflow:whatsapp:test` ·
-`duukaflow:whatsapp:limits` (messaging tier + quality score) ·
-`duukaflow:notifications:test` (render every template for a business, no send) ·
-`duukaflow:notifications:retry-failed`
+`afroduuka:whatsapp:sync-templates` · `afroduuka:whatsapp:test` ·
+`afroduuka:whatsapp:limits` (messaging tier + quality score) ·
+`afroduuka:notifications:test` (render every template for a business, no send) ·
+`afroduuka:notifications:retry-failed`
 
 ### Webhooks
 | Route | Auth | Handles |
@@ -588,7 +588,7 @@ unsubscribe · SES config completion.
 
 **Stage 3 — WhatsApp (real Meta)** Real `MetaWhatsAppProvider` (Cloud API v26, template
 messages, E.164 normalisation) · webhook controller + status reconciliation ·
-`duukaflow:whatsapp:*` commands · throttle rails.
+`afroduuka:whatsapp:*` commands · throttle rails.
 
 **Stage 4 — Catalogue wiring** All 14 live notifications (#11 deferred) · product alert-state machine ·
 subscription lifecycle · monthly report job · quotation send · sale receipt.

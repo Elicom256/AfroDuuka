@@ -36,7 +36,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <AuthLayout title='Welcome back' description='Sign in to your DuukaFlow account to continue managing inventory.'>
+    <AuthLayout title='Welcome back' description='Sign in to your AfroDuuka account to continue managing inventory.'>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {/* Email Field */}
         <div className='space-y-2'>

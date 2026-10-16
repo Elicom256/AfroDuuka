@@ -24,7 +24,7 @@ export const NavBar: React.FC = () => {
   // keeps a logged-out visitor from firing a request that can only ever 401.
   const { data } = useLoggedinUserQuery({ skip: !getToken() });
   const role = data?.data?.role?.name;
-  const businessName = data?.data?.business?.name ?? 'DuukaFlow';
+  const businessName = data?.data?.business?.name ?? 'AfroDuuka';
   const businessLogo = data?.data?.business?.logo ?? logo;
   // Eloquent serialises the businessBranch() relation under its snake_case key, so
   // businessBranch is always undefined here and the badge could never render.

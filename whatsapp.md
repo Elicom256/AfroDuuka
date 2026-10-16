@@ -2,7 +2,7 @@
 
 ## Objective
 
-Audit the existing WhatsApp module in **DuukaFlow** and determine whether it is properly aligned with the project's business requirements and architecture.
+Audit the existing WhatsApp module in **AfroDuuka** and determine whether it is properly aligned with the project's business requirements and architecture.
 
 Do **not** immediately rewrite the module.
 
@@ -15,7 +15,7 @@ First:
 5. Produce a clear refactoring plan.
 6. Only after the plan is established should implementation/refactoring begin.
 
-The refactored module should be production-oriented, maintainable, queue-friendly, and consistent with the existing DuukaFlow architecture.
+The refactored module should be production-oriented, maintainable, queue-friendly, and consistent with the existing AfroDuuka architecture.
 
 ---
 
@@ -25,7 +25,7 @@ WhatsApp should be used for **important business notifications and business-crit
 
 ## 1. Business Registration
 
-When a business successfully registers on DuukaFlow:
+When a business successfully registers on AfroDuuka:
 
 * Send a WhatsApp notification confirming successful registration.
 * Identify the business appropriately.
@@ -34,7 +34,7 @@ When a business successfully registers on DuukaFlow:
 
 Example purpose:
 
-> Welcome the business to DuukaFlow and confirm that the account has been successfully created.
+> Welcome the business to AfroDuuka and confirm that the account has been successfully created.
 
 ---
 
@@ -123,7 +123,7 @@ The report should contain useful high-level business metrics available from the 
 * Number of sales
 * Number of purchases
 * Inventory-related highlights
-* Other important business KPIs already supported by DuukaFlow
+* Other important business KPIs already supported by AfroDuuka
 
 Do not duplicate business calculations unnecessarily inside the WhatsApp module.
 
@@ -344,7 +344,7 @@ Do not assume the business owner's personal phone number is always the correct r
 
 # Notification Preferences
 
-Evaluate whether DuukaFlow needs configurable notification preferences.
+Evaluate whether AfroDuuka needs configurable notification preferences.
 
 Consider allowing businesses to control notification categories such as:
 
@@ -405,7 +405,7 @@ Do not add fields that are unnecessary; base the final design on the existing im
 
 # Business & Branch Scope
 
-DuukaFlow supports businesses and business branches.
+AfroDuuka supports businesses and business branches.
 
 Audit every WhatsApp notification and determine whether it belongs to:
 
@@ -604,7 +604,7 @@ Do not begin a large-scale refactor until the audit clearly explains:
 2. What is missing.
 3. What is wrong.
 4. What should change.
-5. Why the proposed architecture is appropriate for DuukaFlow.
+5. Why the proposed architecture is appropriate for AfroDuuka.
 
 After the audit, proceed with implementation in small, verifiable stages.
 

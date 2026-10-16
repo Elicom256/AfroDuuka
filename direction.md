@@ -9,7 +9,7 @@ CHECK `cash_flows_adjustment_requires_direction` rejects such a row, so routing
 Separately, a row that predated the requirement could only be repaired by hand: the
 executive dashboard warns that unsigned adjustments are excluded from the cash balance and
 that an administrator must mark each one, and the only mechanism was the
-`duukaflow:finance:unsigned-adjustments` artisan command.
+`afroduuka:finance:unsigned-adjustments` artisan command.
 
 ## Task
 Give the rule "an adjustment must have a direction" one owner, close the 500, and make the

@@ -1,4 +1,4 @@
-# DuukaFlow — Remaining Work
+# AfroDuuka — Remaining Work
 
 **Reviewed:** 2026-10-03  
 **Scope:** Core product launch readiness: operations, data integrity, UI, testing, and recovery.  
@@ -6,7 +6,7 @@
 
 ## Status
 
-DuukaFlow has broad operational coverage across inventory, POS and sales, purchasing, finance, staff, reporting, and audit workflows. The remaining work is primarily release verification and operational readiness, not adding more feature breadth.
+AfroDuuka has broad operational coverage across inventory, POS and sales, purchasing, finance, staff, reporting, and audit workflows. The remaining work is primarily release verification and operational readiness, not adding more feature breadth.
 
 **Not yet ready for production rollout.** Verify production backups and restore, clear the frontend CI lint failure, and complete business-flow UAT before handling live business data.
 

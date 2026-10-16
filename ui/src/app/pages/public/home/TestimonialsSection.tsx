@@ -3,21 +3,21 @@ import { Star, Quote } from 'lucide-react';
 const testimonials = [
   {
     quote:
-      'DuukaFlow completely changed how I manage my shop. The WhatsApp alerts alone saved me from running out of stock during the holiday season.',
+      'AfroDuuka completely changed how I manage my shop. The WhatsApp alerts alone saved me from running out of stock during the holiday season.',
     name: 'Grace N.',
     role: 'Shop Owner, Kampala',
     rating: 5,
   },
   {
     quote:
-      'I used to spend hours on spreadsheets. Now I just check my phone. The DuukaFlow Assistant helps me understand which products are selling best.',
+      'I used to spend hours on spreadsheets. Now I just check my phone. The AfroDuuka Assistant helps me understand which products are selling best.',
     name: 'Samuel O.',
     role: 'Retail Store Manager, Jinja',
     rating: 5,
   },
   {
     quote:
-      'Managing three branches was a nightmare until DuukaFlow. Now I see all my stock levels from one dashboard. Game changer.',
+      'Managing three branches was a nightmare until AfroDuuka. Now I see all my stock levels from one dashboard. Game changer.',
     name: 'Hajjat Aisha M.',
     role: 'Business Owner, Mbale',
     rating: 5,
@@ -35,7 +35,7 @@ export const TestimonialsSection = () => {
           Loved by shop owners like you
         </h2>
         <p className='mx-auto mt-3 max-w-2xl text-muted-foreground'>
-          Hear from business owners who have made the switch from notebooks and spreadsheets to DuukaFlow.
+          Hear from business owners who have made the switch from notebooks and spreadsheets to AfroDuuka.
         </p>
       </div>
 

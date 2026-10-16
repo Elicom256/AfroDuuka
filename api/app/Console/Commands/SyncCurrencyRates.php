@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class SyncCurrencyRates extends Command
 {
-    protected $signature = 'duukaflow:currency:sync-rates
+    protected $signature = 'afroduuka:currency:sync-rates
                             {--base= : Force a base currency (defaults to each business\'s country currency)}
                             {--business= : Limit to one business id}';
 

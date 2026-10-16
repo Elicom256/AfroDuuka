@@ -35,7 +35,7 @@ export const WhatsAppSettings = () => {
     access_token: 'demo_access_token',
     webhook_verify_token: 'demo_verify_token',
     is_active: true,
-    welcome_message: 'Welcome to DuukaFlow. This is a demo WhatsApp notification message.',
+    welcome_message: 'Welcome to AfroDuuka. This is a demo WhatsApp notification message.',
   });
 
   useEffect(() => {

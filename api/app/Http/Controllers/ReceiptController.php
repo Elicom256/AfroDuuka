@@ -83,7 +83,7 @@ class ReceiptController extends Controller
         }
 
         $qrBase64 = null;
-        $platformUrl = config('app.url', 'https://duukaflow.com');
+        $platformUrl = config('app.url', 'https://afroduuka.com');
         try {
             $qrBase64 = ReceiptQrCode::svgDataUri($platformUrl);
         } catch (\Throwable $e) {

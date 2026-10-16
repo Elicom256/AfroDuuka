@@ -17,7 +17,7 @@ use Illuminate\Console\Command;
  */
 class BackfillNotificationRecipients extends Command
 {
-    protected $signature = 'duukaflow:notifications:backfill-recipients
+    protected $signature = 'afroduuka:notifications:backfill-recipients
                             {--business= : Limit to one business id}
                             {--dry-run : Report what would be created without writing}';
 

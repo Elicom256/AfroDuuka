@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the architecture and implementation rules for the DuukaFlow WhatsApp module during Phase 1. It is the reference document to follow before writing code and should be used as the source of truth for the first implementation pass.
+This document defines the architecture and implementation rules for the AfroDuuka WhatsApp module during Phase 1. It is the reference document to follow before writing code and should be used as the source of truth for the first implementation pass.
 
 The goal is to establish a production-oriented, queue-friendly WhatsApp notification foundation without breaking existing functionality.
 

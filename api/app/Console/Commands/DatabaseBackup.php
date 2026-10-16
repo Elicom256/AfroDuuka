@@ -9,7 +9,7 @@ use Throwable;
 
 class DatabaseBackup extends Command
 {
-    protected $signature = 'duukaflow:database:backup
+    protected $signature = 'afroduuka:database:backup
                             {path? : Backup file path, or restore source with --restore}
                             {--restore= : Restore a custom-format PostgreSQL dump}
                             {--download= : Write a stored backup archive to STDOUT}
@@ -19,7 +19,7 @@ class DatabaseBackup extends Command
 
     protected $description = 'Create or restore a PostgreSQL database backup';
 
-    private const ARCHIVE_PREFIX = 'duukaflow-';
+    private const ARCHIVE_PREFIX = 'afroduuka-';
 
     public function handle(): int
     {

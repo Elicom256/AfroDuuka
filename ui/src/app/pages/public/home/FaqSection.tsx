@@ -2,24 +2,24 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 const faqs = [
   {
-    question: 'What is DuukaFlow and how can it help my business?',
+    question: 'What is AfroDuuka and how can it help my business?',
     answer:
-      'DuukaFlow is an inventory management system built for Ugandan small and medium businesses. It helps you track stock in real time, get WhatsApp alerts when items run low, generate profit & loss reports, and access your data from anywhere. It replaces manual notebooks and spreadsheets with an automated, cloud-based system.',
+      'AfroDuuka is an inventory management system built for Ugandan small and medium businesses. It helps you track stock in real time, get WhatsApp alerts when items run low, generate profit & loss reports, and access your data from anywhere. It replaces manual notebooks and spreadsheets with an automated, cloud-based system.',
   },
   {
     question: 'How do WhatsApp notifications work?',
     answer:
-      'DuukaFlow sends instant low-stock alerts, daily sales summaries, purchase notifications, and important business updates directly to your WhatsApp. You do not need to install any extra apps — just connect your phone number during setup.',
+      'AfroDuuka sends instant low-stock alerts, daily sales summaries, purchase notifications, and important business updates directly to your WhatsApp. You do not need to install any extra apps — just connect your phone number during setup.',
   },
   {
-    question: 'What is the DuukaFlow Assistant?',
+    question: 'What is the AfroDuuka Assistant?',
     answer:
-      'The DuukaFlow Assistant is an intelligent inventory assistant that understands natural language. You can ask it questions like "Which products are selling fastest this month?" or "What should I restock?" and get instant answers, insights, and recommendations.',
+      'The AfroDuuka Assistant is an intelligent inventory assistant that understands natural language. You can ask it questions like "Which products are selling fastest this month?" or "What should I restock?" and get instant answers, insights, and recommendations.',
   },
   {
     question: 'Can I manage multiple shop branches?',
     answer:
-      'Yes. DuukaFlow supports multi-branch management, allowing you to track inventory, sales, and performance across all your locations from a single dashboard.',
+      'Yes. AfroDuuka supports multi-branch management, allowing you to track inventory, sales, and performance across all your locations from a single dashboard.',
   },
   {
     question: 'How long does it take to set up?',
@@ -34,12 +34,12 @@ const faqs = [
   {
     question: 'What kind of reports can I generate?',
     answer:
-      'DuukaFlow generates profit & loss reports, sales analytics, inventory summaries, and financial reports. You can see exactly what is selling, what is not, and where your money is going.',
+      'AfroDuuka generates profit & loss reports, sales analytics, inventory summaries, and financial reports. You can see exactly what is selling, what is not, and where your money is going.',
   },
   {
     question: 'Is there a free trial?',
     answer:
-      'Yes. All plans come with a 14-day free trial — no credit card required. You can explore all features and see how DuukaFlow works for your business before committing.',
+      'Yes. All plans come with a 14-day free trial — no credit card required. You can explore all features and see how AfroDuuka works for your business before committing.',
   },
 ];
 
@@ -54,7 +54,7 @@ export const FaqSection = () => {
           Frequently asked questions
         </h2>
         <p className='mx-auto mt-3 max-w-2xl text-muted-foreground'>
-          Everything you need to know about DuukaFlow. Still have questions? Contact our support team.
+          Everything you need to know about AfroDuuka. Still have questions? Contact our support team.
         </p>
       </div>
 

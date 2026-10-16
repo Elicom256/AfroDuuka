@@ -109,7 +109,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
     {
         $this->legacyAdjustment('CF-ADJ-LEGACY-3', 4200);
 
-        $this->artisan('duukaflow:finance:unsigned-adjustments')
+        $this->artisan('afroduuka:finance:unsigned-adjustments')
             ->expectsOutputToContain('1 adjustment(s) carry no direction')
             ->expectsOutputToContain('CF-ADJ-LEGACY-3')
             ->assertSuccessful();
@@ -117,7 +117,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
 
     public function test_the_command_reports_a_clean_ledger(): void
     {
-        $this->artisan('duukaflow:finance:unsigned-adjustments')
+        $this->artisan('afroduuka:finance:unsigned-adjustments')
             ->expectsOutputToContain('No unsigned adjustments')
             ->assertSuccessful();
     }
@@ -126,7 +126,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
     {
         $this->legacyAdjustment('CF-ADJ-LEGACY-4', 15000);
 
-        $this->artisan('duukaflow:finance:unsigned-adjustments', [
+        $this->artisan('afroduuka:finance:unsigned-adjustments', [
             '--code' => 'CF-ADJ-LEGACY-4',
             '--direction' => 'credit',
         ])->assertSuccessful();
@@ -140,7 +140,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
     {
         $this->legacyAdjustment('CF-ADJ-LEGACY-5');
 
-        $this->artisan('duukaflow:finance:unsigned-adjustments', [
+        $this->artisan('afroduuka:finance:unsigned-adjustments', [
             '--code' => 'CF-ADJ-LEGACY-5',
             '--direction' => 'sideways',
         ])->assertFailed();
@@ -162,7 +162,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        $this->artisan('duukaflow:finance:unsigned-adjustments', [
+        $this->artisan('afroduuka:finance:unsigned-adjustments', [
             '--code' => 'CF-SALE-9',
             '--direction' => 'credit',
         ])->assertFailed();
@@ -172,7 +172,7 @@ class UnsignedAdjustmentRecoveryTest extends TestCase
 
     public function test_the_command_reports_a_missing_code(): void
     {
-        $this->artisan('duukaflow:finance:unsigned-adjustments', [
+        $this->artisan('afroduuka:finance:unsigned-adjustments', [
             '--code' => 'NOPE',
             '--direction' => 'credit',
         ])->assertFailed();

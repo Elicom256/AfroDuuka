@@ -16,7 +16,7 @@ export const OperationsLayout = () => {
         <div className='container mx-auto flex items-center justify-between gap-4'>
           <div>
             <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground'>Operations</p>
-            <h1 className='text-lg font-semibold'>DuukaFlow Dashboard</h1>
+            <h1 className='text-lg font-semibold'>AfroDuuka Dashboard</h1>
           </div>
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>

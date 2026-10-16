@@ -71,8 +71,8 @@ export const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
       'about afroduka',
       'what does afroduka do',
       'what is this',
-      'what is duukaflow',
-      'duukaflow',
+      'what is afroduuka',
+      'afroduuka',
     ],
     answer:
       'AfroDuuka is smart inventory management software built for African small, medium and large enterprises. ' +

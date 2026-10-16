@@ -36,7 +36,7 @@ export const DashboardTopBar = ({ role, userData, onMenuClick }: DashboardTopBar
         </Button>
         <img src='/afroduuka.png' alt='' className='h-9 w-9 shrink-0 object-contain' />
         <div className='min-w-0'>
-          <p className='truncate text-sm font-semibold'>DuukaFlow</p>
+          <p className='truncate text-sm font-semibold'>AfroDuuka</p>
           <p className='truncate text-xs text-muted-foreground'>{userData?.data?.business?.name ?? role}</p>
         </div>
       </div>

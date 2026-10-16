@@ -1,4 +1,4 @@
-# DuukaFlow — Open Findings
+# AfroDuuka — Open Findings
 
 **Source:** the pre-launch review of 2026-10-01 @ `b718ad0`, re-verified against `oct`.
 **Trimmed:** 2026-10-06 — completed items removed. What remains is what is actually undone.

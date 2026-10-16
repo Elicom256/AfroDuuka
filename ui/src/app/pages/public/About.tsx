@@ -49,7 +49,7 @@ export const About: React.FC = () => {
       <SectionHeader
         badge='About Us'
         title='We are building the future of African retail'
-        description='DuukaFlow is a modern inventory management platform built for African businesses. We combine powerful features with an intuitive experience to help you sell more, stock smarter, and grow faster.'
+        description='AfroDuuka is a modern inventory management platform built for African businesses. We combine powerful features with an intuitive experience to help you sell more, stock smarter, and grow faster.'
       />
 
       <div className='mt-16 grid gap-8 lg:grid-cols-2'>
@@ -61,7 +61,7 @@ export const About: React.FC = () => {
                 From paper ledgers to digital excellence
               </h2>
               <p className='text-base leading-7 text-muted-foreground'>
-                DuukaFlow started with a simple observation: African businesses deserve world-class software built for their reality. We saw shop owners struggling with stockouts, manual bookkeeping, and systems designed for markets with perfect infrastructure.
+                AfroDuuka started with a simple observation: African businesses deserve world-class software built for their reality. We saw shop owners struggling with stockouts, manual bookkeeping, and systems designed for markets with perfect infrastructure.
               </p>
               <p className='text-base leading-7 text-muted-foreground'>
                 So we built a platform that works offline, accepts mobile money, and speaks your language — literally and figuratively. Today, we serve businesses across Uganda and beyond, helping them modernize operations and compete in the digital economy.
@@ -120,7 +120,7 @@ export const About: React.FC = () => {
           Ready to transform your business?
         </h2>
         <p className='mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground'>
-          Join thousands of businesses already using DuukaFlow to manage inventory, track sales, and grow with confidence.
+          Join thousands of businesses already using AfroDuuka to manage inventory, track sales, and grow with confidence.
         </p>
         <div className='mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row'>
           <a
