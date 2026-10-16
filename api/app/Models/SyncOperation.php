@@ -41,6 +41,7 @@ class SyncOperation extends BaseModel
         'error_message',
         'attempts',
         'processed_at',
+        'client_created_at',
     ];
 
     protected $casts = [
@@ -48,6 +49,7 @@ class SyncOperation extends BaseModel
         'result' => 'array',
         'attempts' => 'integer',
         'processed_at' => 'datetime',
+        'client_created_at' => 'datetime',
     ];
 
     public function business(): BelongsTo
