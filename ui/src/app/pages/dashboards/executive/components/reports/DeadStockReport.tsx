@@ -36,11 +36,13 @@ export const DeadStockReport = () => {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'Never';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(new Date(dateString));
+    }).format(date);
   };
 
   return (

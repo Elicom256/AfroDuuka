@@ -14,7 +14,7 @@ import {
 import { useProductPriceHistoryQuery } from '@/app/store/features/branch/priceHistory/priceHistoryQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { LoadingState } from '@/utils/LoadingState';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -41,7 +41,7 @@ export const ProductPriceChart = ({ productId }: ProductPriceChartProps) => {
     if (!sortedRecords.length) return null;
 
     return {
-      labels: sortedRecords.map((r) => format(new Date(r.created_at), 'MMM d')),
+      labels: sortedRecords.map((r) => formatDate(r.created_at, 'MMM d')),
       datasets: [
         {
           label: `Cost Price (${currency})`,
