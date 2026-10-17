@@ -12,6 +12,7 @@ import {
   rememberRead,
   type ReadRequest,
 } from '@/lib/offline/readCache';
+import { queueIfTransportError } from '@/lib/offline/offlineWrite';
 
 /**
  * The single RTK Query slice for the whole application.
@@ -115,6 +116,14 @@ const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryE
     if (isCacheableGet(request) && isTransportError(result.error)) {
       const cached = await recallRead(request);
       if (cached) return { data: cached.body, meta: { fromCache: true, cachedAt: cached.cachedAt } };
+    }
+
+    // A dead network queues the mutation and resolves as a local save. A 4xx/5xx
+    // falls through unchanged, so a validation error is never stored as pending.
+    if (!isCacheableGet(request) && isTransportError(result.error)) {
+      const queued = await queueIfTransportError(result.error, args);
+      if (queued && 'data' in queued) return { data: queued.data };
+      if (queued && 'error' in queued) return { error: { ...queued.error, url } };
     }
 
     return { error: { ...result.error, url } };

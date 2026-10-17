@@ -39,6 +39,8 @@ export {
   RETRY_MAX_DELAY_MS,
 } from './operationQueue';
 export { registerSyncHandlers } from './handlers';
+export { queueMutation, queueIfTransportError, OFFLINE_SAVED_MESSAGE } from './offlineWrite';
+export { matchMutation } from './mutationRegistry';
 export {
   rememberRead,
   recallRead,
