@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
 import type { ComponentType, SVGProps } from "react";
 import { Download, Link2, Mail, MessageCircle } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   FacebookMark,
@@ -9,21 +7,7 @@ import {
   LinkedInMark,
   XMark,
 } from "@/app/components/BrandIcons";
-
-/**
- * lucide-react rather than react-icons: react-icons/fa6 alone pulls roughly 1,500
- * brand glyphs into the bundle to render the six below, and the project already
- * standardises on lucide everywhere else. The four real brand marks are inlined in
- * BrandIcons.tsx, since lucide deliberately ships none.
- *
- * Icon is typed as a plain SVG component rather than LucideIcon because the list
- * mixes the two: LucideIcon's return type is ReactNode, which does not satisfy the
- * narrower signature the inline marks have.
- */
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+import { usePwaInstall } from "@/lib/pwaInstall";
 
 const socials: {
   name: string;
@@ -68,61 +52,7 @@ const socials: {
 ];
 
 export const Footer: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      (window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone ===
-          true),
-  );
-  const [isIos] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      /iPad|iPhone|iPod/.test(navigator.userAgent),
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const onBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
-    };
-    const onAppInstalled = () => {
-      setInstalled(true);
-      setDeferredPrompt(null);
-      toast.success("AfroDuuka installed.");
-    };
-
-    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-    window.addEventListener("appinstalled", onAppInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", onAppInstalled);
-    };
-  }, []);
-
-  const handleInstall = async () => {
-    if (installed) {
-      toast('AfroDuuka is already installed.');
-      return;
-    }
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") setDeferredPrompt(null);
-      return;
-    }
-    if (isIos) {
-      toast('To install: tap Share, then "Add to Home Screen".', {
-        duration: 6000,
-      });
-      return;
-    }
-    toast("Use your browser menu to install AfroDuuka.");
-  };
+  const { promptInstall } = usePwaInstall();
 
   return (
     <footer className="border-t border-border/60 bg-slate-950 py-8">
@@ -163,19 +93,17 @@ export const Footer: React.FC = () => {
           </div>
 
           <button
-              type="button"
-              onClick={handleInstall}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/70 bg-primary/10 p-2 text-sm text-primary transition hover:bg-primary hover:text-primary-foreground"
-            >
-              <Download className="h-4 w-4" />
-              <span>Install app</span>
-            </button>
+            type="button"
+            onClick={promptInstall}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+          >
+            <Download className="h-4 w-4" />
+            <span>Install app</span>
+          </button>
         </div>
 
         <div className="mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground text-center">
-          <p>
-            Made with care in Uganda. © {new Date().getFullYear()} AfroDuuka.
-          </p>
+          <p>Made with care in Uganda. © {new Date().getFullYear()} AfroDuuka.</p>
         </div>
       </div>
     </footer>

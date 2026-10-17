@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom';
 import { NavBar } from './app/navbar/NavBar';
 import { AppRoutes } from './app/routes/AppRoutes';
 import { Footer } from './app/pages/public/Footer';
+import { usePwaInstall } from './lib/pwaInstall';
+import { Download } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 import { useSyncFallback } from '@/hooks/use-sync-engine';
@@ -42,6 +44,7 @@ function App() {
   // URL like /dashboard-notes is not mistaken for the dashboard.
   const { pathname } = location;
   const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
+  const { installed, promptInstall } = usePwaInstall();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -60,6 +63,16 @@ function App() {
         <AppRoutes />
       </main>
       {!isDashboard && <Footer />}
+      {!installed && isDashboard && (
+        <button
+          type='button'
+          onClick={promptInstall}
+          className='fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition hover:opacity-90'
+        >
+          <Download className='h-4 w-4' />
+          <span>Install app</span>
+        </button>
+      )}
       {/*
         Live connectivity/sync status, kept as a floating pill so it never displaces the
         dashboard or POS layout (offline.md §6). Mounted once at the app root rather
