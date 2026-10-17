@@ -119,7 +119,11 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
       }
       return;
     } catch (error) {
-      toast.error('Failed to create purchase');
+      const message =
+        error && typeof error === 'object' && 'data' in error
+          ? (error as { data?: { message?: string } }).data?.message
+          : undefined;
+      toast.error(message || 'Failed to create purchase');
       console.error(error);
     }
   };
@@ -156,7 +160,10 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                 <SelectContent>
                   {suppliers?.map((supplier) => (
                     <SelectItem value={String(supplier.id)} key={supplier.id}>
-                      {supplier.name}
+                      {supplier.company_name ||
+                        supplier.name ||
+                        [supplier.user?.firstname, supplier.user?.lastname].filter(Boolean).join(' ') ||
+                        `Supplier ${supplier.id}`}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -23,12 +23,12 @@ export const ExecutivePurchasesPage = () => {
   const { data: sup } = useSuppliersQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
 
-  const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
+  const [addPurchase] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();
   const [editPurchase, setEditPurchase] = useState<any>(null);
   const paymentMethods = methods?.methods;
   const suppliers = sup?.suppliers || [];
-  if (isLoading || loadNewPurchase) return <PageLoadingState />;
+  if (isLoading) return <PageLoadingState />;
   if (error && !data) {
     return (
       <QueryErrorState
