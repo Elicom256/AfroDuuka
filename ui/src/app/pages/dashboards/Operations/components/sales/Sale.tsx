@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useSaleQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle, Receipt as ReceiptIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const Sale = () => {
@@ -43,7 +43,7 @@ export const Sale = () => {
           </CardTitle>
           <CardDescription className='flex items-center italic'>
             <span>Date</span>
-            <span>{format(new Date(sale.created_at), 'PPP')}</span>
+            <span>{formatDate(sale.created_at)}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>

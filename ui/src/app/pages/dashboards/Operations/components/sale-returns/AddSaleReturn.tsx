@@ -38,8 +38,19 @@ export const AddSaleReturn = ({ addSaleReturn }: AddSaleReturnProps) => {
   const { data: returnsData } = useSaleReturnsQuery();
   // Memoised so the `?? []` fallbacks below stop handing the search/line-item memos a
   // brand new array identity on every render.
-  const sales = useMemo(() => salesData?.sales ?? salesData ?? [], [salesData]);
-  const existingReturns = useMemo(() => returnsData?.sale_returns ?? returnsData ?? [], [returnsData]);
+  const sales = useMemo(
+    () => (Array.isArray(salesData?.sales) ? salesData.sales : Array.isArray(salesData) ? salesData : []),
+    [salesData]
+  );
+  const existingReturns = useMemo(
+    () =>
+      Array.isArray(returnsData?.sale_returns)
+        ? returnsData.sale_returns
+        : Array.isArray(returnsData)
+          ? returnsData
+          : [],
+    [returnsData]
+  );
 
   const [search, setSearch] = useState('');
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);

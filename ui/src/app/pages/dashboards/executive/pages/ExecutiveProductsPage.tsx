@@ -16,7 +16,11 @@ export const ExecutiveProductsPage = () => {
   const [addProduct] = useAddProductMutation();
   const { data: branchesData } = useBranchesQuery();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
-  const branches = branchesData?.branches ?? branchesData ?? [];
+  const branches = Array.isArray(branchesData?.branches)
+    ? branchesData.branches
+    : Array.isArray(branchesData)
+      ? branchesData
+      : [];
   const { canCreate } = useRolePermissions();
 
   return (

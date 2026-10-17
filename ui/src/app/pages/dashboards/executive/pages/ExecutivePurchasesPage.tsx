@@ -40,7 +40,7 @@ export const ExecutivePurchasesPage = () => {
     );
   }
 
-  const purchases = data?.purchases ?? data ?? [];
+  const purchases = Array.isArray(data?.purchases) ? data.purchases : Array.isArray(data) ? data : [];
   const products = productData?.products ?? [];
 
   // Calculate total amount from all purchases

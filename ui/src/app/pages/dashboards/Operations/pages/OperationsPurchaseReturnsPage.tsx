@@ -15,7 +15,7 @@ export const OperationsPurchaseReturnsPage = () => {
 
   if (isLoading) return <PageLoadingState />;
 
-  const purchaseReturns = data?.purchase_returns ?? data ?? [];
+  const purchaseReturns = Array.isArray(data?.purchase_returns) ? data.purchase_returns : Array.isArray(data) ? data : [];
 
   const totalReturns = purchaseReturns.length;
   const totalRefunded = purchaseReturns.reduce((sum: number, pr: any) => sum + Number(pr.refund_amount || 0), 0);

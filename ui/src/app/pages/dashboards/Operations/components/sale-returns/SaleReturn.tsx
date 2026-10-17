@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useSaleReturnQuery } from '@/app/store/features/branch/sale-returns/saleReturnsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const SaleReturn = () => {
@@ -41,7 +41,7 @@ export const SaleReturn = () => {
             <Badge variant='secondary'>ID: {sr.id}</Badge>
           </CardTitle>
           <CardDescription className='flex items-center italic'>
-            <span>Date: {format(new Date(sr.created_at), 'PPP')}</span>
+            <span>Date: {formatDate(sr.created_at)}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>

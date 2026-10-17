@@ -84,7 +84,8 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.cost_price && item.selling_price);
+    // `selling_price` is nullable server-side; requiring it dropped valid lines.
+    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.cost_price);
 
     if (validItems.length === 0) {
       toast.error('Please add at least one purchase item.');
@@ -97,7 +98,7 @@ export const EditPurchase = ({ open, onOpenChange, purchase, products, updatePur
         product_id: Number(item.product_id),
         quantity: Number(item.quantity),
         cost_price: Number(item.cost_price),
-        selling_price: Number(item.selling_price),
+        selling_price: item.selling_price ? Number(item.selling_price) : null,
         subtotal: Number(item.quantity) * Number(item.cost_price),
       }));
 

@@ -19,7 +19,11 @@ export const ExecutiveMessagesPage = () => {
 
   if (isLoading) return <PageLoadingState />;
 
-  const notifications = notificationsData?.notifications ?? notificationsData ?? [];
+  const notifications = Array.isArray(notificationsData?.notifications)
+    ? notificationsData.notifications
+    : Array.isArray(notificationsData)
+      ? notificationsData
+      : [];
   const unreadCount = unreadData?.count ?? unreadData?.unread ?? notifications.filter((n: any) => !n.is_read).length;
 
   const conversations = notifications.slice(0, 5);

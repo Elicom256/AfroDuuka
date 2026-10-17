@@ -13,8 +13,20 @@ export const OperationsRecentActivity = () => {
 
   const isLoading = salesLoading || purchasesLoading || notifLoading;
 
-  const sales = salesData?.sales ?? salesData?.data ?? salesData ?? [];
-  const purchases = purchasesData?.purchases ?? purchasesData?.data ?? purchasesData ?? [];
+  const sales = Array.isArray(salesData?.sales)
+    ? salesData.sales
+    : Array.isArray(salesData?.data)
+      ? salesData.data
+      : Array.isArray(salesData)
+        ? salesData
+        : [];
+  const purchases = Array.isArray(purchasesData?.purchases)
+    ? purchasesData.purchases
+    : Array.isArray(purchasesData?.data)
+      ? purchasesData.data
+      : Array.isArray(purchasesData)
+        ? purchasesData
+        : [];
   const notifications = Array.isArray(notifData?.data)
     ? notifData.data
     : Array.isArray(notifData)

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
@@ -45,7 +45,7 @@ export const SaleReturnsTable = ({ saleReturns }: SaleReturnsTableProps) => {
                 <TableCell>{startIndex + i + 1}</TableCell>
                 <TableCell>#{sr.sale_id}</TableCell>
                 <TableCell>{sr.reason?.slice(0, 30) || '-'}</TableCell>
-                <TableCell>{format(new Date(sr.created_at), 'PPP')}</TableCell>
+                <TableCell>{formatDate(sr.created_at)}</TableCell>
                 <TableCell>{sr.restock ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{Number(sr.refund_amount).toLocaleString()}</TableCell>
               </TableRow>
