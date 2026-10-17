@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 import { Download, Link2, Mail, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import {
   FacebookMark,
@@ -92,14 +93,14 @@ export const Footer: React.FC = () => {
             ))}
           </div>
 
-          <button
+          <Button
             type="button"
             onClick={promptInstall}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+            className="self-start rounded-full"
           >
             <Download className="h-4 w-4" />
-            <span>Install app</span>
-          </button>
+            Install app
+          </Button>
         </div>
 
         <div className="mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground text-center">

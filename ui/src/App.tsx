@@ -6,6 +6,7 @@ import { AppRoutes } from './app/routes/AppRoutes';
 import { Footer } from './app/pages/public/Footer';
 import { usePwaInstall } from './lib/pwaInstall';
 import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 import { useSyncFallback } from '@/hooks/use-sync-engine';
@@ -64,14 +65,14 @@ function App() {
       </main>
       {!isDashboard && <Footer />}
       {!installed && isDashboard && (
-        <button
+        <Button
           type='button'
           onClick={promptInstall}
-          className='fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition hover:opacity-90'
+          className='fixed bottom-4 right-4 z-50 rounded-full shadow-lg'
         >
           <Download className='h-4 w-4' />
-          <span>Install app</span>
-        </button>
+          Install app
+        </Button>
       )}
       {/*
         Live connectivity/sync status, kept as a floating pill so it never displaces the
