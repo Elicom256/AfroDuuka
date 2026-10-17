@@ -8,6 +8,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { useNavigate } from 'react-router-dom';
 import { ExportButton } from '@/app/components/ExportButton';
 import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export const ExecutiveCustomersPage = () => {
   const navigate = useNavigate();
@@ -73,8 +74,9 @@ export const ExecutiveCustomersPage = () => {
                   className='border p-4 rounded-lg flex justify-between items-center'
                 >
                   <div>
-                    <p className='font-medium'>
+                    <p className='font-medium inline-flex items-center gap-2'>
                       {customer.user.firstname} {customer.user.lastname}
+                      <RowSyncStatus status={customer.sync_status} />
                     </p>
                     <p className='text-sm text-muted-foreground'>{customer.user.email}</p>
                     {customer.company_name && <p className='text-sm text-muted-foreground'>{customer.company_name}</p>}

@@ -6,6 +6,7 @@ import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
 import { DashboardTopBar } from '../shared/DashboardTopBar';
 import { VerifyEmailBanner } from '@/app/components/VerifyEmailBanner';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
+import { OfflinePendingRows } from '@/components/offline/OfflinePendingRows';
 
 export const BranchManagerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,6 +31,7 @@ export const BranchManagerLayout = () => {
           </aside>
 
           <main className='min-h-[calc(100vh-4rem)] min-w-0 p-4 sm:p-6'>
+            <OfflinePendingRows />
             <RouteErrorBoundary>
               <Outlet />
             </RouteErrorBoundary>

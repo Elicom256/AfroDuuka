@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { FileText, Eye, Plus, X, Minus, PlusIcon, Send, CheckCircle2, Ban, Download } from 'lucide-react';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 import {
   useQuotationsQuery,
   useCreateQuotationMutation,
@@ -173,7 +174,12 @@ const QuotationsTable = ({ status }: { status: string }) => {
                 <TableBody>
                   {quotations.map((q: any) => (
                     <TableRow key={q.id}>
-                      <TableCell className='font-mono font-medium'>{q.quotation_number}</TableCell>
+                      <TableCell className='font-mono font-medium'>
+                        <span className='inline-flex items-center gap-2'>
+                          {q.quotation_number}
+                          <RowSyncStatus status={q.sync_status} />
+                        </span>
+                      </TableCell>
                       <TableCell>{q.customer?.name || 'Walk-in'}</TableCell>
                       <TableCell>{q.items?.length || 0}</TableCell>
                       <TableCell>{Number(q.total_amount).toLocaleString()}</TableCell>

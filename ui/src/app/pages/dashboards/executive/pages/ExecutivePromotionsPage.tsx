@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Gift } from 'lucide-react';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export const ExecutivePromotionsPage = () => {
   const { data, isLoading } = useBranchPromotionsQuery();
@@ -26,7 +27,10 @@ export const ExecutivePromotionsPage = () => {
             {promotions.map((promo: any) => (
               <div key={promo.id} className='rounded-3xl border border-border/70 bg-muted p-4'>
                 <div className='flex items-center justify-between'>
-                  <p className='font-semibold'>{promo.title}</p>
+                  <p className='font-semibold inline-flex items-center gap-2'>
+                    {promo.title}
+                    <RowSyncStatus status={promo.sync_status} />
+                  </p>
                   <Badge variant={promo.status === 'active' ? 'default' : 'secondary'}>{promo.status}</Badge>
                 </div>
                 <p className='text-sm text-muted-foreground mt-1'>{promo.description}</p>

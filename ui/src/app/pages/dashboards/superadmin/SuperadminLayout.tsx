@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Menu } from 'lucide-react';
 import { SuperadminSidebar } from './SuperadminSidebar';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
+import { OfflinePendingRows } from '@/components/offline/OfflinePendingRows';
 
 export const SuperadminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,6 +44,7 @@ export const SuperadminLayout = () => {
 
         <main className='flex min-h-screen flex-col p-6'>
           <div className='mt-6'>
+            <OfflinePendingRows />
             <RouteErrorBoundary>
               <Outlet />
             </RouteErrorBoundary>

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { ExportButton } from '@/app/components/ExportButton';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export const ExecutiveSuppliersPage = () => {
   const navigate = useNavigate();
@@ -79,8 +80,9 @@ export const ExecutiveSuppliersPage = () => {
                   onClick={() => navigate(`/dashboard/suppliers/${supplier?.id}`)}
                 >
                   <div>
-                    <p className='font-medium'>
+                    <p className='font-medium inline-flex items-center gap-2'>
                       {supplier.user.firstname} {supplier.user.lastname}
+                      <RowSyncStatus status={supplier.sync_status} />
                     </p>
                     {supplier.company_name && (
                       <p className='text-sm text-muted-foreground font-medium'>{supplier.company_name}</p>

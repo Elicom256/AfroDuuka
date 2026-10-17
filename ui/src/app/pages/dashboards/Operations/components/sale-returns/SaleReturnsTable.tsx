@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface SaleReturnsTableProps {
   saleReturns: any[];
@@ -43,7 +44,12 @@ export const SaleReturnsTable = ({ saleReturns }: SaleReturnsTableProps) => {
                 className='cursor-pointer'
               >
                 <TableCell>{startIndex + i + 1}</TableCell>
-                <TableCell>#{sr.sale_id}</TableCell>
+                <TableCell>
+                  <span className='inline-flex items-center gap-2'>
+                    #{sr.sale_id}
+                    <RowSyncStatus status={sr.sync_status} />
+                  </span>
+                </TableCell>
                 <TableCell>{sr.reason?.slice(0, 30) || '-'}</TableCell>
                 <TableCell>{formatDate(sr.created_at)}</TableCell>
                 <TableCell>{sr.restock ? 'Yes' : 'No'}</TableCell>

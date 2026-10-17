@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export type WorkerItem = {
   id: number;
@@ -174,7 +175,12 @@ export const WorkersTable = ({ workers, onEdit, onDelete, isLoading, isDeleting 
                 />
               </TableCell>
               <TableCell>{worker.employee_code || '—'}</TableCell>
-              <TableCell>{`${worker.user?.firstname ?? '-'} ${worker.user?.lastname ?? ''}`}</TableCell>
+              <TableCell>
+                <span className='inline-flex items-center gap-2'>
+                  {`${worker.user?.firstname ?? '-'} ${worker.user?.lastname ?? ''}`}
+                  <RowSyncStatus status={worker.sync_status} />
+                </span>
+              </TableCell>
               <TableCell>{worker.user?.email || '—'}</TableCell>
               <TableCell>{worker.user?.phone || '—'}</TableCell>
               <TableCell>{worker.user?.business_branch?.name ?? '—'}</TableCell>

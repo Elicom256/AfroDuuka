@@ -6,6 +6,7 @@ import { Menu } from 'lucide-react';
 import { OperationsSidebar } from './OperationsSidebar';
 import { VerifyEmailBanner } from '@/app/components/VerifyEmailBanner';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
+import { OfflinePendingRows } from '@/components/offline/OfflinePendingRows';
 
 export const OperationsLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,6 +47,7 @@ export const OperationsLayout = () => {
 
         <main className='flex min-h-screen flex-col p-6'>
           <div className='mt-6'>
+            <OfflinePendingRows />
             <RouteErrorBoundary>
               <Outlet />
             </RouteErrorBoundary>

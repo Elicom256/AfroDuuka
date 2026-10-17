@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { formatDate } from '@/app/utils/safeDate';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface PurchasesTableProps {
   purchases: any[];
@@ -30,6 +31,7 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
             <TableHead>Date</TableHead>
             <TableHead>Note</TableHead>
             <TableHead>Amount ({currency})</TableHead>
+            <TableHead>Sync</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -47,12 +49,15 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
                   <TableCell>{purchase.date ?? formatDate(purchase.created_at)}</TableCell>
                   <TableCell>{purchase.note ? purchase.note.slice(0, 10) : '-'}</TableCell>
                   <TableCell>{totalAmount.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <RowSyncStatus status={purchase.sync_status} />
+                  </TableCell>
                 </TableRow>
               );
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={5}>
+              <TableCell colSpan={6}>
                 <p className='text-center py-3 hover:underline'>You haven't recorded any purchase yet!</p>
               </TableCell>
             </TableRow>

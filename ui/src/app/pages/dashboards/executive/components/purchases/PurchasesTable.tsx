@@ -6,6 +6,7 @@ import { PaginationComponent } from '@/app/utils/Pagination';
 import { formatDate } from '@/app/utils/safeDate';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { Badge } from '@/components/ui/badge';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface PurchasesTableProps {
   purchases: any[];
@@ -34,6 +35,7 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
             <TableHead>Status</TableHead>
             <TableHead>Note</TableHead>
             <TableHead>Amount ({currency})</TableHead>
+            <TableHead>Sync</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -57,12 +59,15 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
                   </TableCell>
                   <TableCell>{purchase.note ? purchase.note.slice(0, 10) : '-'}</TableCell>
                   <TableCell>{totalAmount.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <RowSyncStatus status={purchase.sync_status} />
+                  </TableCell>
                 </TableRow>
               );
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={6}>
+              <TableCell colSpan={7}>
                 <p className='text-center py-3 hover:underline'>You haven't recorded any purchase yet!</p>
               </TableCell>
             </TableRow>

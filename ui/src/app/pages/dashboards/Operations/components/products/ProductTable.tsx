@@ -10,6 +10,7 @@ import { useProductsQuery, useDeleteProductMutation } from '@/app/store/features
 import { useRolePermissions } from '@/lib/useRolePermissions';
 import { Button } from '@/components/ui/button';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 
 interface Product {
@@ -78,6 +79,7 @@ export const ProductTable = () => {
                     <img src={product.cover_url} alt={product.name} className='h-9 w-9 rounded-lg object-cover' />
                   ) : null}
                   {product.name}
+                  <RowSyncStatus status={(product as Product & { sync_status?: string }).sync_status} />
                 </span>
               </TableCell>
               <TableCell>{product.sku}</TableCell>
