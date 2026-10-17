@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -45,6 +45,13 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
     payment_status_id: '',
     note: '',
   });
+
+  useEffect(() => {
+    if (formData.payment_status_id || !paymentMethods?.length) return;
+    setFormData((prev) =>
+      prev.payment_status_id ? prev : { ...prev, payment_status_id: String(paymentMethods[0].id) },
+    );
+  }, [paymentMethods, formData.payment_status_id]);
 
   // user can add an item on the list
   const addItem = () => {
@@ -184,7 +191,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                 <SelectContent>
                   {paymentMethods?.map((pm: any) => (
                     <SelectItem key={pm.id} value={String(pm.id)}>
-                      {pm.method}
+                      {String(pm.method ?? '').replaceAll('_', ' ')}
                     </SelectItem>
                   ))}
                 </SelectContent>
