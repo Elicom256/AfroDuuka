@@ -4,7 +4,7 @@ Source brief: `now.md` ("Offline Gap"). Supersedes nothing; extends `offline.md`
 
 Goal, restated from the brief: **when the connection drops, the app does not stop working.** A signed-in operator can keep reading every list/detail page and keep creating, editing and deleting on every route they own, and nothing is silently lost. Everything written while offline syncs when the network returns.
 
-Status: in progress. P0 registry is frozen below; later phases implement against it.
+Status: complete. P0–P5 are done. Section 1 is the starting snapshot; the registry in §4 is what shipped.
 
 **Pending-marker decision (P3, chosen in P0):** the client-owned outbox is the pending marker. Server `sync_status` stays at its default `synced` until a handler commits, and handlers do not write `pending`. This matches the tables that already have the column (`sync_status` is not in `$fillable`, and the server never writes `pending` today). A row is pending only while its outbox operation is unconfirmed.
 
@@ -62,7 +62,7 @@ Produce the inventory the rest of the plan is built from, and freeze it in this 
 - Add the missing `sync_status` columns/migrations for user-CRUD tables that lack them, following the existing 8-column convention exactly (`enum('sync_status', ['synced','pending','failed'])->default('synced')->index()`). Candidate tables: `suppliers`, `workers`/`users`, `orders`, `quotations`, `expenses`, `promotions`, `messages`, `products` (if not already via `business_branch_products`), etc. — P0 confirms the exact set.
 - Deliverable: an updated table in this doc + migrations. No app code.
 
-### P1 — Generic offline read cache (biggest "keeps flowing" win)
+### P1 — Generic offline read cache (biggest "keeps flowing" win) — done
 
 Today reads are the dominant offline failure. This phase makes every cached list/detail usable offline.
 
@@ -75,7 +75,7 @@ Today reads are the dominant offline failure. This phase makes every cached list
 - Priority order (by operator dependence): sales, purchases, products, customers, suppliers, workers, inventory/stock, returns, orders, quotations, expenses, promotions, messages.
 - Tests: each cached query serves stale data on transport error; cache is invalidated after a successful write; cache survives reload.
 
-### P2 — Generic write seam (replaces the toast path)
+### P2 — Generic write seam (replaces the toast path) — done
 
 Turn every user mutation into "API first, queue on transport failure" without touching each form's happy path.
 
@@ -90,7 +90,7 @@ Turn every user mutation into "API first, queue on transport failure" without to
 - UI: forms show "Saved on this device — will sync" instead of an error toast; `SyncStatusBadge`/`OfflineStatusIndicator` already surface the counts.
 - Tests: transport error enqueues exactly one operation; a 4xx does **not** enqueue; duplicate submit is prevented; offline create returns a local id.
 
-### P3 — Extend the sync contract to every domain
+### P3 — Extend the sync contract to every domain — done
 
 This is the backend half of "everything keeps flowing". For each domain in the P0 registry, in priority order:
 
@@ -105,13 +105,15 @@ This is the backend half of "everything keeps flowing". For each domain in the P
 - Idempotency and conflict rules stay as in `apisync.md` §2–§4 (unique `(business_id, operation_id)`, per-op transaction, `conflict` for stock/price).
 - Tests: one focused test per new handler (happy path, tenant isolation, duplicate replay, rollback on failure), added to `api/tests/Feature/Sync/`.
 
-### P4 — Per-row status and recovery UI
+### P4 — Per-row status and recovery UI — done
 
 - `sync_status` surfaced in every user-CRUD table (a small `RowSyncStatus` badge component), pending rows visibly distinct, failed rows with a retry affordance wired to `retryOperation` (`ui/src/lib/offline/outbox.ts`).
 - Offline-created rows are selectable/openable from their list using the local id (reconcile local id → `server_id` from the sync result, as `handlers.ts` already returns `serverId`).
 - `formatDate`/`safeDate` guards stay; extend to any date rendered from an offline row.
 
-### P5 — Verification
+### P5 — Verification — done
+
+Automated on 2026-10-17. Results, including the matrix that was not run in a browser, are in `now.md`.
 
 - Frontend: `cd ui && npm test -- --run src/lib/offline/*.test.ts` plus a new offline matrix test per converted domain; `npm run build` green.
 - Backend: `docker compose -f docker-compose.dev.yml exec backend php artisan test` green; new handler tests included.

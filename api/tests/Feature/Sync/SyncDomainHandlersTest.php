@@ -156,22 +156,62 @@ class SyncDomainHandlersTest extends TestCase
         $this->assertDatabaseCount('promotions', 1);
     }
 
-    public function test_product_create_syncs(): void
+    public function test_product_create_syncs_replays_and_a_bad_body_adds_nothing(): void
     {
+        $before = Product::query()->count();
+        $operation = $this->operation('product', [
+            'action' => 'create',
+            'body' => [
+                'name' => 'Offline rice',
+                'quantity' => 4,
+                'cost_price' => 2000,
+                'selling_price' => 3000,
+            ],
+        ]);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseHas('products', ['name' => 'Offline rice', 'business_branch_id' => $this->branch->id]);
+        $this->assertSame($before + 1, Product::query()->count());
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertSame($before + 1, Product::query()->count());
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('product', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
+        $this->assertSame($before + 1, Product::query()->count());
+    }
+
+    public function test_product_update_cannot_rename_another_tenants_product(): void
+    {
+        $otherBusiness = Business::factory()->create();
+        $otherBranch = BusinessBranch::factory()->create(['business_id' => $otherBusiness->id]);
+        $foreign = Product::factory()->create([
+            'business_branch_id' => $otherBranch->id,
+            'name' => 'Theirs',
+            'quantity' => 1,
+            'cost_price' => 100,
+            'selling_price' => 200,
+            'status' => 'active',
+        ]);
+
         $response = $this->postJson('/api/sync/batch', ['operations' => [
             $this->operation('product', [
-                'action' => 'create',
-                'body' => [
-                    'name' => 'Offline rice',
-                    'quantity' => 4,
-                    'cost_price' => 2000,
-                    'selling_price' => 3000,
-                ],
+                'action' => 'update',
+                'id' => $foreign->id,
+                'body' => ['name' => 'Stolen'],
             ]),
         ]]);
 
-        $response->assertOk()->assertJsonPath('results.0.status', 'synced');
-        $this->assertDatabaseHas('products', ['name' => 'Offline rice', 'business_branch_id' => $this->branch->id]);
+        $response->assertOk();
+        $this->assertNotSame('synced', $response->json('results.0.status'));
+        $this->assertDatabaseHas('products', ['id' => $foreign->id, 'name' => 'Theirs']);
     }
 
     public function test_order_syncs_and_replays(): void
@@ -196,19 +236,32 @@ class SyncDomainHandlersTest extends TestCase
         $this->assertDatabaseCount('sale_orders', 1);
     }
 
-    public function test_quotation_syncs(): void
+    public function test_quotation_syncs_replays_and_a_bad_body_adds_nothing(): void
     {
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('quotation', [
-                'action' => 'create',
-                'body' => [
-                    'items' => [
-                        ['product_id' => $this->product->id, 'quantity' => 1, 'unit_price' => 10000],
-                    ],
+        $operation = $this->operation('quotation', [
+            'action' => 'create',
+            'body' => [
+                'items' => [
+                    ['product_id' => $this->product->id, 'quantity' => 1, 'unit_price' => 10000],
                 ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('quotations', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('quotations', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('quotation', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('quotations', 1);
     }
 
@@ -220,35 +273,61 @@ class SyncDomainHandlersTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('expense', [
-                'action' => 'create',
-                'body' => [
-                    'expense_category_id' => $category->id,
-                    'amount' => 15000,
-                    'payment_date' => now()->toDateString(),
-                    'description' => 'Boda to the market',
-                ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+        $operation = $this->operation('expense', [
+            'action' => 'create',
+            'body' => [
+                'expense_category_id' => $category->id,
+                'amount' => 15000,
+                'payment_date' => now()->toDateString(),
+                'description' => 'Boda to the market',
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('expenses', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('expenses', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('expense', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('expenses', 1);
     }
 
     public function test_coupon_syncs(): void
     {
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('coupon', [
-                'action' => 'create',
-                'body' => [
-                    'discount_type' => 'fixed',
-                    'discount_value' => 500,
-                    'valid_from' => now()->toDateString(),
-                    'valid_until' => now()->addMonth()->toDateString(),
-                ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+        $operation = $this->operation('coupon', [
+            'action' => 'create',
+            'body' => [
+                'discount_type' => 'fixed',
+                'discount_value' => 500,
+                'valid_from' => now()->toDateString(),
+                'valid_until' => now()->addMonth()->toDateString(),
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('coupons', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('coupons', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('coupon', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('coupons', 1);
     }
 
@@ -263,19 +342,32 @@ class SyncDomainHandlersTest extends TestCase
             'name' => 'supplier',
         ]);
 
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('supplier', [
-                'action' => 'create',
-                'body' => [
-                    'firstname' => 'Amina',
-                    'lastname' => 'Kato',
-                    'email' => 'amina@example.com',
-                    'phone' => '0700000001',
-                    'company_name' => 'Kato Supplies',
-                ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+        $operation = $this->operation('supplier', [
+            'action' => 'create',
+            'body' => [
+                'firstname' => 'Amina',
+                'lastname' => 'Kato',
+                'email' => 'amina@example.com',
+                'phone' => '0700000001',
+                'company_name' => 'Kato Supplies',
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('suppliers', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('suppliers', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('supplier', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('suppliers', 1);
     }
 
@@ -286,19 +378,32 @@ class SyncDomainHandlersTest extends TestCase
             'name' => 'Operations',
         ]);
 
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('worker', [
-                'action' => 'create',
-                'body' => [
-                    'firstname' => 'Peter',
-                    'lastname' => 'Okello',
-                    'email' => 'peter@example.com',
-                    'phone' => '0700000002',
-                    'position' => 'Cashier',
-                ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+        $operation = $this->operation('worker', [
+            'action' => 'create',
+            'body' => [
+                'firstname' => 'Peter',
+                'lastname' => 'Okello',
+                'email' => 'peter@example.com',
+                'phone' => '0700000002',
+                'position' => 'Cashier',
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('workers', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('workers', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('worker', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('workers', 1);
     }
 
@@ -318,16 +423,23 @@ class SyncDomainHandlersTest extends TestCase
             'subtotal' => 10000,
         ]);
 
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('sale_return', [
-                'action' => 'create',
-                'body' => [
-                    'items' => [
-                        ['sale_item_id' => $item->id, 'quantity' => 1],
-                    ],
+        $operation = $this->operation('sale_return', [
+            'action' => 'create',
+            'body' => [
+                'items' => [
+                    ['sale_item_id' => $item->id, 'quantity' => 1],
                 ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+            ],
+        ]);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('sale_returns', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
         $this->assertDatabaseCount('sale_returns', 1);
 
         $this->postJson('/api/sync/batch', ['operations' => [
@@ -363,17 +475,30 @@ class SyncDomainHandlersTest extends TestCase
         $purchase = Purchase::query()->with('purchaseItems')->first();
         $this->assertNotNull($purchase);
 
-        $this->postJson('/api/sync/batch', ['operations' => [
-            $this->operation('purchase_return', [
-                'action' => 'create',
-                'body' => [
-                    'items' => [
-                        ['purchase_item_id' => $purchase->purchaseItems->first()->id, 'quantity' => 1],
-                    ],
+        $operation = $this->operation('purchase_return', [
+            'action' => 'create',
+            'body' => [
+                'items' => [
+                    ['purchase_item_id' => $purchase->purchaseItems->first()->id, 'quantity' => 1],
                 ],
-            ]),
-        ]])->assertOk()->assertJsonPath('results.0.status', 'synced');
+            ],
+        ]);
 
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'synced');
+        $this->assertDatabaseCount('purchase_returns', 1);
+
+        $this->postJson('/api/sync/batch', ['operations' => [$operation]])
+            ->assertOk()
+            ->assertJsonPath('results.0.status', 'duplicate');
+        $this->assertDatabaseCount('purchase_returns', 1);
+
+        $rejected = $this->postJson('/api/sync/batch', ['operations' => [
+            $this->operation('purchase_return', ['action' => 'create', 'body' => []]),
+        ]]);
+        $rejected->assertOk();
+        $this->assertNotSame('synced', $rejected->json('results.0.status'));
         $this->assertDatabaseCount('purchase_returns', 1);
     }
 
