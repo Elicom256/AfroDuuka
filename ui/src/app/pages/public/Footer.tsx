@@ -105,6 +105,10 @@ export const Footer: React.FC = () => {
   }, []);
 
   const handleInstall = async () => {
+    if (installed) {
+      toast('AfroDuuka is already installed.');
+      return;
+    }
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
@@ -158,8 +162,7 @@ export const Footer: React.FC = () => {
             ))}
           </div>
 
-          {!installed && (
-            <button
+          <button
               type="button"
               onClick={handleInstall}
               className="inline-flex items-center gap-2 rounded-full border border-primary/70 bg-primary/10 p-2 text-sm text-primary transition hover:bg-primary hover:text-primary-foreground"
@@ -167,7 +170,6 @@ export const Footer: React.FC = () => {
               <Download className="h-4 w-4" />
               <span>Install app</span>
             </button>
-          )}
         </div>
 
         <div className="mt-8 border-t border-border/50 pt-6 text-sm text-muted-foreground text-center">
