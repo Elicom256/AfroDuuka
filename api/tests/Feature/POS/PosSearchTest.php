@@ -93,6 +93,50 @@ class PosSearchTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_empty_query_returns_catalog_for_offline_warm_up(): void
+    {
+        // The POS warms its IndexedDB catalog with an empty q on mount so search and
+        // barcode scan work offline. That call must not be rejected by validation.
+        Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'name' => 'Cached Product One',
+            'status' => 'active',
+        ]);
+        Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'name' => 'Cached Product Two',
+            'status' => 'inactive',
+        ]);
+
+        $response = $this->getJson('/api/pos/products/search?q=');
+
+        $response->assertStatus(200);
+        $this->assertCount(2, $response->json('data'));
+        $response->assertJsonPath('data.0.name', 'Cached Product One');
+    }
+
+    public function test_missing_query_is_treated_as_catalog_warm_up(): void
+    {
+        Product::factory()->create([
+            'business_branch_id' => $this->branch->id,
+            'name' => 'Catalog Product',
+            'status' => 'active',
+        ]);
+
+        $this->getJson('/api/pos/products/search')
+            ->assertStatus(200)
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_single_character_query_is_rejected(): void
+    {
+        // min:2 still applies to a real search — the empty-query exception must not
+        // widen the debounced search path.
+        $this->getJson('/api/pos/products/search?q=A')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('q');
+    }
+
     public function test_search_products_returns_empty_for_no_match(): void
     {
         Product::factory()->create([
