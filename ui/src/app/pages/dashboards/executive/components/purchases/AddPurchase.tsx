@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -34,7 +34,6 @@ interface PurchaseItem {
 export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }: AddPurchaseProps) => {
   const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
-
   const [formData, setFormData] = useState({
     items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }] as PurchaseItem[],
     supplier_id: '',
@@ -42,6 +41,13 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
     reference: '',
     note: '',
   });
+
+  useEffect(() => {
+    if (formData.payment_status_id || !paymentMethods?.length) return;
+    setFormData((prev) =>
+      prev.payment_status_id ? prev : { ...prev, payment_status_id: String(paymentMethods[0].id) },
+    );
+  }, [paymentMethods, formData.payment_status_id]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -263,7 +269,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                 <SelectContent>
                   {paymentMethods?.map((pm: any) => (
                     <SelectItem key={pm.id} value={String(pm.id)}>
-                      {pm.method}
+                      {String(pm.method ?? '').replaceAll('_', ' ')}
                     </SelectItem>
                   ))}
                 </SelectContent>
