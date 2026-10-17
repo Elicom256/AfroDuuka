@@ -3,6 +3,16 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import { sharedApiTagTypes } from './apiTags';
 import { getToken } from '@/lib/session';
 import { loadSessionProfile, saveSessionProfile } from '@/lib/offline/sessionProfile';
+import { isTransportError } from '@/lib/offline/operationQueue';
+import {
+  domainForMutation,
+  invalidateReadDomain,
+  isCacheableGet,
+  recallRead,
+  rememberRead,
+  type ReadRequest,
+} from '@/lib/offline/readCache';
+import { queueIfTransportError } from '@/lib/offline/offlineWrite';
 
 /**
  * The single RTK Query slice for the whole application.
@@ -59,15 +69,33 @@ type AuthBaseQueryError = FetchBaseQueryError & { url?: string };
  * session, so `data.data` is null and callers see exactly what they saw before a
  * token existed.
  */
+function asReadRequest(args: string | FetchArgs): ReadRequest {
+  if (typeof args === 'string') return { method: 'GET', url: args };
+  return { method: args.method ?? 'GET', url: args.url ?? '', params: args.params };
+}
+
+/** The browser is certain there is no network. A probe is not required for that. */
+function browserOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
+
 const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryError> = async (
   args,
   api,
   extraOptions
 ) => {
   const url = typeof args === 'string' ? args : (args?.url ?? '');
+  const request = asReadRequest(args);
 
   if (url.startsWith('/users') && !getToken() && !PUBLIC_ENDPOINTS.some((path) => url.includes(path))) {
     return { data: { success: true, data: null } };
+  }
+
+  // Offline refresh: render the last GET immediately instead of waiting for a
+  // request that cannot succeed. A later successful response replaces the row.
+  if (isCacheableGet(request) && browserOffline()) {
+    const cached = await recallRead(request);
+    if (cached) return { data: cached.body, meta: { fromCache: true, cachedAt: cached.cachedAt } };
   }
 
   const result = await rawBaseQuery(args, api, extraOptions);
@@ -83,11 +111,33 @@ const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryE
       if (cached !== null) return { data: cached };
     }
 
+    // Any other GET that already succeeded once is served from IndexedDB. A 4xx/5xx
+    // still surfaces — stale data must not hide a real rejection.
+    if (isCacheableGet(request) && isTransportError(result.error)) {
+      const cached = await recallRead(request);
+      if (cached) return { data: cached.body, meta: { fromCache: true, cachedAt: cached.cachedAt } };
+    }
+
+    // A dead network queues the mutation and resolves as a local save. A 4xx/5xx
+    // falls through unchanged, so a validation error is never stored as pending.
+    if (!isCacheableGet(request) && isTransportError(result.error)) {
+      const queued = await queueIfTransportError(result.error, args);
+      if (queued && 'data' in queued) return { data: queued.data };
+      if (queued && 'error' in queued) return { error: { ...queued.error, url } };
+    }
+
     return { error: { ...result.error, url } };
   }
 
   // Remember the session so the next offline load can restore it.
   if (isSessionEndpoint(url)) saveSessionProfile(result.data);
+
+  if (isCacheableGet(request)) {
+    await rememberRead(request, result.data);
+  } else {
+    const domain = domainForMutation(url);
+    if (domain) await invalidateReadDomain(domain);
+  }
 
   return result;
 };

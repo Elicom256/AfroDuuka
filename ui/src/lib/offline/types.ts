@@ -143,3 +143,16 @@ export interface LocalProduct {
   status?: string;
   cachedAt: number;
 }
+
+/**
+ * One successful GET, kept so a later transport failure can render the same payload.
+ *
+ * `key` is method + url + query params. `body` is the API envelope, not a rewritten
+ * row. Tokens and passwords are never written here.
+ */
+export interface CachedRead {
+  key: string;
+  domain: string;
+  body: unknown;
+  cachedAt: number;
+}

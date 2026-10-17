@@ -19,14 +19,7 @@ import { CalendarIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCreateTodoMutation } from '@/app/store/features/todos/todoQuery';
-import { useLoggedinUserQuery } from '@/app/store/features/auth/authQuery';
-import {
-  isApiUnreachable,
-  isStorageFailure,
-  isTransportError,
-  operationContextFromUser,
-  submitOperation,
-} from '@/lib/offline';
+import { isStorageFailure } from '@/lib/offline';
 import { toast } from 'sonner'; // or your toast library
 
 interface TodoFormData {
@@ -37,7 +30,6 @@ interface TodoFormData {
 
 export const TodoForm = () => {
   const [createTodo, { isLoading }] = useCreateTodoMutation();
-  const { data: userData } = useLoggedinUserQuery();
   const [open, setOpen] = useState(false);
 
   const [formData, setFormData] = useState<TodoFormData>({
@@ -71,43 +63,27 @@ export const TodoForm = () => {
     };
 
     /**
-     * The API is unreachable or the request never answered. The task is persisted to
-     * the outbox rather than dropped; the online path below is untouched. Storage
-     * failure is reported as a real failure — the dialog stays open and nothing is
-     * claimed as saved.
+     * The mutation tries the API first. A transport failure is queued by the shared
+     * write seam and comes back as a pending local save, so this form does not
+     * enqueue a second copy. A 4xx still rejects and is shown as an error.
      */
-    const saveOffline = async () => {
-      try {
-        await submitOperation('todo', payload, operationContextFromUser(userData?.data));
-        toast.success('Task saved on this device', {
-          description: 'It will sync when the connection returns.',
-        });
-        reset();
-      } catch (err) {
-        if (isStorageFailure(err)) {
-          toast.error('Could not save the task — device storage is full.');
-        } else {
-          toast.error('Could not save the task on this device.');
-        }
-      }
-    };
-
-    if (isApiUnreachable()) {
-      await saveOffline();
-      return;
-    }
-
     try {
       const response = await createTodo(payload).unwrap();
 
-      toast.success('Task created successfully!', {
-        description: response?.data?.title || title,
-      });
+      if (response?.syncStatus === 'pending') {
+        toast.success('Task saved on this device', {
+          description: 'It will sync when the connection returns.',
+        });
+      } else {
+        toast.success('Task created successfully!', {
+          description: response?.data?.title || title,
+        });
+      }
 
       reset();
     } catch (err: any) {
-      if (isTransportError(err)) {
-        await saveOffline();
+      if (isStorageFailure(err)) {
+        toast.error('Could not save the task — device storage is full.');
         return;
       }
       toast.error('Failed to create task', {
