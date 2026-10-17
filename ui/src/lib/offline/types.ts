@@ -16,7 +16,22 @@
  * queued, so the outbox cannot silently accumulate operations no flush handler knows
  * how to send.
  */
-export type OperationType = 'sale' | 'inventory' | 'customer' | 'todo';
+export type OperationType =
+  | 'sale'
+  | 'inventory'
+  | 'customer'
+  | 'todo'
+  | 'purchase'
+  | 'sale_return'
+  | 'purchase_return'
+  | 'product'
+  | 'supplier'
+  | 'worker'
+  | 'order'
+  | 'quotation'
+  | 'expense'
+  | 'promotion'
+  | 'coupon';
 
 /** Lifecycle of a queued operation, from durable local save to server confirmation. */
 export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';

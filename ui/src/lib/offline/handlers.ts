@@ -4,7 +4,23 @@ import { syncEngine } from './operationQueue';
 import type { OperationHandler, BatchOperationResult } from './operationQueue';
 import type { OperationType, SyncOperation } from './types';
 
-const OPERATION_TYPES: OperationType[] = ['sale', 'inventory', 'customer', 'todo'];
+const OPERATION_TYPES: OperationType[] = [
+  'sale',
+  'inventory',
+  'customer',
+  'todo',
+  'purchase',
+  'sale_return',
+  'purchase_return',
+  'product',
+  'supplier',
+  'worker',
+  'order',
+  'quotation',
+  'expense',
+  'promotion',
+  'coupon',
+];
 
 function numericStatus(error: unknown): number | null {
   if (typeof error !== 'object' || error === null) return null;

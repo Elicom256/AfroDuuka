@@ -34,7 +34,55 @@ interface RoutePattern extends MutationRoute {
 
 const ROUTES: RoutePattern[] = [
   { method: 'POST', pattern: '/users/todos', type: 'todo', action: 'create', flat: true },
+  { method: 'PUT', pattern: '/users/todos/:id', type: 'todo', action: 'update' },
+  { method: 'DELETE', pattern: '/users/todos/:id', type: 'todo', action: 'delete' },
+
   { method: 'POST', pattern: '/dashboard/customers', type: 'customer', action: 'create', flat: true },
+  { method: 'PUT', pattern: '/dashboard/customers/:id', type: 'customer', action: 'update' },
+  { method: 'DELETE', pattern: '/dashboard/customers/:id', type: 'customer', action: 'delete' },
+
+  { method: 'POST', pattern: '/purchases/branch-purchases', type: 'purchase', action: 'create' },
+  { method: 'POST', pattern: '/purchases/branch-purchases/:id/receive', type: 'purchase', action: 'receive' },
+
+  { method: 'POST', pattern: '/returns/sale-returns', type: 'sale_return', action: 'create' },
+  { method: 'PUT', pattern: '/returns/sale-returns/:id', type: 'sale_return', action: 'update' },
+
+  { method: 'POST', pattern: '/returns/purchase-returns', type: 'purchase_return', action: 'create' },
+
+  { method: 'POST', pattern: '/products', type: 'product', action: 'create' },
+  { method: 'PUT', pattern: '/products/:id', type: 'product', action: 'update' },
+  { method: 'DELETE', pattern: '/products/:id', type: 'product', action: 'delete' },
+
+  { method: 'POST', pattern: '/dashboard/suppliers', type: 'supplier', action: 'create' },
+  { method: 'PUT', pattern: '/dashboard/suppliers/:id', type: 'supplier', action: 'update' },
+  { method: 'DELETE', pattern: '/dashboard/suppliers/:id', type: 'supplier', action: 'delete' },
+
+  { method: 'POST', pattern: '/dashboard/workers', type: 'worker', action: 'create' },
+  { method: 'PUT', pattern: '/dashboard/workers/:id', type: 'worker', action: 'update' },
+  { method: 'POST', pattern: '/users/workers', type: 'worker', action: 'create' },
+  { method: 'PUT', pattern: '/users/workers/:id', type: 'worker', action: 'update' },
+
+  { method: 'POST', pattern: '/sale-orders', type: 'order', action: 'create' },
+  { method: 'PUT', pattern: '/sale-orders/:id', type: 'order', action: 'update' },
+  { method: 'DELETE', pattern: '/sale-orders/:id', type: 'order', action: 'delete' },
+
+  { method: 'POST', pattern: '/quotations/:id/send', type: 'quotation', action: 'send' },
+  { method: 'POST', pattern: '/quotations/:id/accept', type: 'quotation', action: 'accept' },
+  { method: 'POST', pattern: '/quotations/:id/cancel', type: 'quotation', action: 'cancel' },
+  { method: 'POST', pattern: '/quotations', type: 'quotation', action: 'create' },
+  { method: 'PUT', pattern: '/quotations/:id', type: 'quotation', action: 'update' },
+  { method: 'DELETE', pattern: '/quotations/:id', type: 'quotation', action: 'delete' },
+
+  { method: 'POST', pattern: '/expenses/branch-expenses/:id/approve', type: 'expense', action: 'approve' },
+  { method: 'POST', pattern: '/expenses/branch-expenses', type: 'expense', action: 'create' },
+  { method: 'PUT', pattern: '/expenses/branch-expenses/:id', type: 'expense', action: 'update' },
+
+  { method: 'POST', pattern: '/promotions', type: 'promotion', action: 'create' },
+  { method: 'PUT', pattern: '/promotions/:id', type: 'promotion', action: 'update' },
+  { method: 'DELETE', pattern: '/promotions/:id', type: 'promotion', action: 'delete' },
+
+  { method: 'POST', pattern: '/coupons', type: 'coupon', action: 'create' },
+  { method: 'DELETE', pattern: '/coupons/:id', type: 'coupon', action: 'delete' },
 ];
 
 export interface MatchedMutation {
@@ -69,7 +117,10 @@ function matchPattern(pattern: string, path: string): { id: string | null } | nu
 export function matchMutation(method: string, url: string): MatchedMutation | null {
   const path = normalize(url);
   const verb = method.toUpperCase();
-  for (const route of ROUTES) {
+  const routes = [...ROUTES].sort(
+    (left, right) => right.pattern.split('/').length - left.pattern.split('/').length,
+  );
+  for (const route of routes) {
     if (route.method !== verb) continue;
     const matched = matchPattern(route.pattern, path);
     if (!matched) continue;

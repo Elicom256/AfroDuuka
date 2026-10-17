@@ -1,5 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useSyncExternalStore } from 'react';
+import { baseApi } from '@/app/store/baseApi';
+import { sharedApiTagTypes } from '@/app/store/apiTags';
+import { store } from '@/app/store/app/store';
 import {
   startSyncFallback,
   syncEngine,
@@ -35,5 +38,21 @@ export function useSyncEngine(): SyncEngineSnapshot & {
  * renders a badge should not start network work).
  */
 export function useSyncFallback(): void {
-  useEffect(() => startSyncFallback(), []);
+  useEffect(() => {
+    const stop = startSyncFallback();
+    let seenAt: number | null = null;
+    const unsubscribe = syncEngine.subscribe(() => {
+      const snapshot = syncEngine.getSnapshot();
+      if (snapshot.running || !snapshot.lastResult || snapshot.lastResult.synced < 1) return;
+      if (snapshot.lastRanAt === seenAt) return;
+      seenAt = snapshot.lastRanAt;
+      // A confirmed sync replaces the device cache. Refetching the tags rewrites
+      // the IndexedDB reads from the server's answer.
+      store.dispatch(baseApi.util.invalidateTags([...sharedApiTagTypes]));
+    });
+    return () => {
+      stop();
+      unsubscribe();
+    };
+  }, []);
 }

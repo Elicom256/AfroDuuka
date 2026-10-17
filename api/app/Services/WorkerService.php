@@ -15,10 +15,14 @@ class WorkerService
     {
         return $this->profileService->create($data, function ($user, $data) {
             $employeeCode = DB::transaction(function () {
+                // lockForUpdate() cannot wrap max(): Postgres rejects FOR UPDATE on an
+                // aggregate. Lock the latest code row instead, which is the row a
+                // concurrent insert would collide with.
                 $max = Worker::withoutGlobalScopes()
                     ->where('employee_code', 'like', 'EMP-%')
+                    ->orderByDesc('employee_code')
                     ->lockForUpdate()
-                    ->max('employee_code');
+                    ->value('employee_code');
 
                 $next = $max ? (int) substr($max, 4) + 1 : 1;
 

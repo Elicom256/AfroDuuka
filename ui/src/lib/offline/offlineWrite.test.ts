@@ -53,6 +53,28 @@ describe('queueMutation', () => {
     expect(await db.operations.count()).toBe(0);
   });
 
+  it('queues a purchase create as an action envelope', async () => {
+    await queueMutation({
+      url: '/purchases/branch-purchases/',
+      method: 'POST',
+      body: { items: [{ product_id: 1, quantity: 2, cost_price: 5000 }] },
+    });
+
+    const [operation] = await listOperations({ type: 'purchase' });
+    expect(operation.payload).toEqual({
+      action: 'create',
+      id: null,
+      body: { items: [{ product_id: 1, quantity: 2, cost_price: 5000 }] },
+    });
+  });
+
+  it('matches a receive url to the purchase id rather than the create route', () => {
+    expect(matchMutation('POST', '/purchases/branch-purchases/12/receive')).toEqual({
+      id: '12',
+      route: { type: 'purchase', action: 'receive', flat: undefined },
+    });
+  });
+
   it('stores a customer create as the flat body the existing handler validates', async () => {
     await queueMutation({
       url: '/dashboard/customers/',
