@@ -21,6 +21,7 @@ interface AddPurchaseProps {
   addPurchase: any;
   products: any[];
   suppliers: any[];
+  paymentMethods?: any[];
 }
 
 interface PurchaseItem {
@@ -30,16 +31,18 @@ interface PurchaseItem {
   selling_price: string;
 }
 
-export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchaseProps) => {
+export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }: AddPurchaseProps) => {
   const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<{
     items: PurchaseItem[];
     supplier_id: string;
+    payment_status_id: string;
     note: string;
   }>({
           items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }],
     supplier_id: '',
+    payment_status_id: '',
     note: '',
   });
 
@@ -69,12 +72,20 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // `selling_price` is nullable server-side, so an item missing it is still valid;
+    // only the fields the API requires are mandatory here. Requiring it silently
+    // dropped those rows before the request was ever sent.
     const validItems = formData.items.filter(
-      (item) => item.product_id && item.quantity && item.cost_price && item.selling_price,
+      (item) => item.product_id && item.quantity && item.cost_price,
     );
 
     if (validItems.length === 0) {
       toast.error('Please add at least one purchase item.');
+      return;
+    }
+
+    if (!formData.payment_status_id) {
+      toast.error('Please select a payment method.');
       return;
     }
 
@@ -83,11 +94,12 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
         product_id: item.product_id,
         quantity: Number(item.quantity),
         cost_price: Number(item.cost_price),
-        selling_price: Number(item.selling_price),
+        selling_price: item.selling_price ? Number(item.selling_price) : null,
       }));
 
       const body = {
         supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
+        payment_status_id: formData.payment_status_id,
         note: formData.note,
         items: itemsPayload,
       };
@@ -101,6 +113,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
         setFormData({
     items: [{ product_id: '', quantity: '', cost_price: '', selling_price: '' }],
           supplier_id: '',
+          payment_status_id: '',
           note: '',
         });
       }
@@ -141,9 +154,30 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                   <SelectValue placeholder='Select supplier' />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers.map((supplier) => (
+                  {suppliers?.map((supplier) => (
                     <SelectItem value={String(supplier.id)} key={supplier.id}>
                       {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='payment_status_id' className='text-right'>
+                Payment method
+              </Label>
+              <Select
+                value={formData.payment_status_id}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, payment_status_id: value }))}
+              >
+                <SelectTrigger id='payment_status_id' className='col-span-3'>
+                  <SelectValue placeholder='Select payment method' />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods?.map((pm: any) => (
+                    <SelectItem key={pm.id} value={String(pm.id)}>
+                      {pm.method}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -220,7 +254,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                   </div>
                   <div className='grid grid-cols-4 items-center gap-4'>
                     <Label htmlFor={`selling_price-${index}`} className='text-right'>
-                      Selling Price
+                      Selling Price <span className='text-muted-foreground'>(optional)</span>
                     </Label>
                     <Input
                       id={`selling_price-${index}`}
@@ -228,7 +262,6 @@ export const AddPurchase = ({ addPurchase, products, suppliers }: AddPurchasePro
                       value={item.selling_price}
                       onChange={(e) => updateItem(index, 'selling_price', e.target.value)}
                       className='col-span-3'
-                      required
                     />
                   </div>
                   {item.quantity && item.cost_price && (

@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { sharedApiTagTypes } from './apiTags';
 import { getToken } from '@/lib/session';
+import { loadSessionProfile, saveSessionProfile } from '@/lib/offline/sessionProfile';
 
 /**
  * The single RTK Query slice for the whole application.
@@ -19,6 +20,9 @@ import { getToken } from '@/lib/session';
  * with `baseApi.injectEndpoints(...)`, re-exporting the generated hooks
  * unchanged — so page-level imports are untouched.
  */
+
+/** The one endpoint whose answer is the session itself. */
+const isSessionEndpoint = (url: string): boolean => url.includes('/users/me');
 
 /** Endpoints a caller can reach before they have a token. */
 const PUBLIC_ENDPOINTS = ['/login', '/signup'];
@@ -69,8 +73,21 @@ const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryE
   const result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {
+    // An offline cold start has no in-memory session, so `/users/me` fails with a
+    // network error and every dashboard route degrades to an error card or /login —
+    // the whole dashboard reads as blank. Serve the last known profile for a
+    // *transport* failure only; a real 401/403 must still reach authListener so a
+    // revoked token is cleared rather than masked.
+    if (isSessionEndpoint(url) && result.error.status === 'FETCH_ERROR') {
+      const cached = loadSessionProfile();
+      if (cached !== null) return { data: cached };
+    }
+
     return { error: { ...result.error, url } };
   }
+
+  // Remember the session so the next offline load can restore it.
+  if (isSessionEndpoint(url)) saveSessionProfile(result.data);
 
   return result;
 };

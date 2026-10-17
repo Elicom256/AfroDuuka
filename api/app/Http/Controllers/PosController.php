@@ -24,7 +24,9 @@ class PosController extends Controller
     public function searchProducts(PosProductSearchRequest $request): JsonResponse
     {
         try {
-            $products = $this->posService->searchProducts($request->input('q'));
+            // `ConvertEmptyStringsToNull` turns an empty catalog warm-up query into
+            // null; coerce it so the empty-query branch in the service is reached.
+            $products = $this->posService->searchProducts((string) $request->input('q'));
 
             return response()->json(['message' => 'Products fetched', 'data' => $products]);
         } catch (\Exception $e) {

@@ -128,7 +128,14 @@ export const AppRoutes = () => {
   // was left sitting in localStorage the bounce repeated on every navigation. So a
   // non-auth failure only blocks the one thing that genuinely cannot render without
   // a known role, which is the dashboard.
-  if (error && onDashboard) {
+  //
+  // Only block when there is no session data to fall back on. Once `/users/me` has
+  // answered once, RTK Query keeps `data` through a later refetch failure — so when
+  // the connection drops, an aimed refetch (reconnect, focus) used to swap the whole
+  // dashboard for this error card even though the last known session was still in
+  // memory. Treating cached data as good enough is what lets the dashboard keep
+  // rendering offline.
+  if (error && onDashboard && !data) {
     return (
       <div className='mx-auto max-w-lg p-6'>
         <QueryErrorState

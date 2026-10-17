@@ -106,12 +106,31 @@ export const PosPage = () => {
   const heldSales = heldSalesData?.data || [];
 
   useEffect(() => {
-    const snap = connectivity.getSnapshot();
-    if (!snap.online || snap.apiReachable === false) return;
-    triggerSearch('').then((res) => {
-      const products = res.data?.data || [];
-      if (products.length) void cacheProducts(products);
+    const warmUp = () => {
+      const snap = connectivity.getSnapshot();
+      if (!snap.online || snap.apiReachable === false) return;
+      // An empty query returns the whole catalog, which primes the IndexedDB cache so
+      // search keeps working when the device later loses connectivity.
+      triggerSearch('').then((res) => {
+        const products = res.error ? [] : res.data?.data || [];
+        if (products.length) void cacheProducts(products);
+      });
+    };
+
+    warmUp();
+
+    // Re-prime the cache whenever the API becomes reachable again (e.g. the tab was
+    // opened offline and only later regained a connection).
+    let lastReachable = connectivity.getSnapshot().apiReachable;
+    const unsubscribe = connectivity.subscribe(() => {
+      const snap = connectivity.getSnapshot();
+      if (snap.apiReachable !== lastReachable) {
+        lastReachable = snap.apiReachable;
+        if (snap.apiReachable) warmUp();
+      }
     });
+
+    return unsubscribe;
   }, [triggerSearch]);
 
   useEffect(() => {
@@ -132,7 +151,11 @@ export const PosPage = () => {
           searchProductsOffline(q).then(setOfflineResults);
         } else {
           setOfflineResults([]);
-          triggerSearch(q);
+          triggerSearch(q).then((res) => {
+            // The API probe can be stale (e.g. the connection dropped a moment ago), so
+            // fall back to the local catalog whenever the online search fails.
+            if (res.error) searchProductsOffline(q).then(setOfflineResults);
+          });
         }
       }, 300);
     },
@@ -184,14 +207,23 @@ export const PosPage = () => {
       const code = raw.replace(/[\s]+/g, '');
       const fallbackToSearch = (message: string) => {
         triggerSearch(code).then((res) => {
-          const products = res.data?.data || [];
+          const products = res.error ? [] : res.data?.data || [];
           if (products.length === 1) {
             addToCart(products[0]);
             flashScan('success');
-          } else {
-            if (message) toast.error(message);
-            flashScan('error');
+            return;
           }
+          // Online lookup found nothing (or failed) — try the cached catalog before
+          // giving up, so scanning still works on a flaky connection.
+          searchProductsOffline(code).then((offlineProducts) => {
+            if (offlineProducts.length === 1) {
+              addToCart(offlineProducts[0]);
+              flashScan('success');
+            } else {
+              if (message) toast.error(message);
+              flashScan('error');
+            }
+          });
         });
       };
 

@@ -6,6 +6,8 @@ import { AddSale } from '../components/sales/AddSale';
 import { SalesTable } from '../components/sales/SalesTable';
 import { EditSale } from '../components/sales/EditSale';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
+import { useCustomersQuery } from '@/app/store/features/business/customers/customersQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { ExportButton } from '@/app/components/ExportButton';
 
@@ -13,14 +15,18 @@ export const OperationsSalesPage = () => {
   const { currency } = useCurrency();
   const { data, isLoading } = useSalesQuery();
   const { data: productData } = useProductsQuery();
+  const { data: methods } = useGetPaymentSettingsQuery();
+  const { data: buyers } = useCustomersQuery();
   const [addSale] = useAddSaleMutation();
   const [updateSale] = useUpdateSaleMutation();
   const [editSale, setEditSale] = useState<any>(null);
   if (isLoading) return <PageLoadingState />;
-  const sales = data?.sales ?? data ?? [];
+  const sales = Array.isArray(data?.sales) ? data.sales : Array.isArray(data) ? data : [];
   const products = productData?.products ?? [];
+  const paymentMethods = methods?.methods;
+  const customers = buyers?.customers;
   const totalSalesAmount = sales.reduce((sum: number, sale: any) => {
-    const all = sale.sale_items.reduce((acc: number, val: any) => acc + val.quantity, 0);
+    const all = (sale.sale_items ?? []).reduce((acc: number, val: any) => acc + Number(val.quantity ?? 0), 0);
     return sum + all;
   }, 0);
   // console.log('quantity==>', totalSalesAmount);
@@ -61,7 +67,7 @@ export const OperationsSalesPage = () => {
           </div>
           <div className='flex gap-2'>
             <ExportButton type='sales' label='Export' withDateRange />
-            <AddSale addSale={addSale} products={products} />
+            <AddSale addSale={addSale} products={products} paymentMethods={paymentMethods} customers={customers} />
           </div>
         </CardHeader>
         <CardContent>

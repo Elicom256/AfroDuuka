@@ -14,6 +14,18 @@ class PosProductSearchRequest extends FormRequest
 
     public function rules(): array
     {
+        $query = $this->input('q');
+        $isEmpty = $query === null || trim((string) $query) === '';
+
+        // An empty query is the POS catalog warm-up: the client caches the whole branch
+        // catalog in IndexedDB so search and barcode scan still work offline. It must be
+        // allowed through, and PosService::searchProducts answers it with the catalog.
+        if ($isEmpty) {
+            return [
+                'q' => 'nullable|string|max:255',
+            ];
+        }
+
         return [
             // min:2 because the query drives a LIKE against every product in the
             // caller's branch, and a single character matches most of them — the

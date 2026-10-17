@@ -52,7 +52,7 @@ class PurchaseService
             $isCompleted = $status === 'completed';
 
             $purchase = Purchase::create([
-                'supplier_id' => $validated['supplier_id'],
+                'supplier_id' => $validated['supplier_id'] ?? null,
                 'business_branch_id' => $branchId,
                 'total_amount' => $total_amount,
                 'status' => $status,

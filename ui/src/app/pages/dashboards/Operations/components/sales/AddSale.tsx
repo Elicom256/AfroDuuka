@@ -12,21 +12,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/app/hooks/useCurrency';
 
 interface AddSaleProps {
   addSale: any;
   products: any[];
+  customers?: any[];
+  paymentMethods?: any[];
 }
 
 interface SaleItem {
@@ -35,28 +30,39 @@ interface SaleItem {
   unit_price: string;
 }
 
-export const AddSale = ({ addSale, products }: AddSaleProps) => {
+/**
+ * Sentinel for the "no customer" option. Radix Select reserves the empty string
+ * for "clear", and sending the human label as the id made the API reject a
+ * walk-in sale (`nullable|exists:customers,id`).
+ */
+const WALK_IN_CUSTOMER = '__walk_in__';
+
+export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSaleProps) => {
+  const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<{ items: SaleItem[]; note: string; method: string }>({
-    items: [{ product_id: '', quantity: '', unit_price: '' }],
+  const [formData, setFormData] = useState({
+    items: [{ product_id: '', quantity: '', unit_price: '' }] as SaleItem[],
+    customer_id: '',
+    payment_status_id: '',
+    paymentStatus: 'paid',
     note: '',
-    method: '',
+    reference: '',
   });
-  // user can add an item on the list
+
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
       items: [...prev.items, { product_id: '', quantity: '', unit_price: '' }],
     }));
   };
-  // user can remove an item on the list
+
   const removeItem = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.length > 1 ? prev.items.filter((_, i) => i !== index) : prev.items,
     }));
   };
-  // user can update item in the list
+
   const updateItem = (index: number, field: keyof SaleItem, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -64,14 +70,22 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
     }));
   };
 
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validItems = formData.items.filter(
-      (item) => item.product_id && item.quantity && item.unit_price,
-    );
+
+    const validItems = formData.items.filter((item) => item.product_id && item.quantity && item.unit_price);
 
     if (validItems.length === 0) {
       toast.error('Please add at least one sale item.');
+      return;
+    }
+
+    if (!formData.payment_status_id) {
+      toast.error('Please select a payment method.');
       return;
     }
 
@@ -82,30 +96,31 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
         })),
+        customer_id:
+          formData.customer_id && formData.customer_id !== WALK_IN_CUSTOMER
+            ? Number(formData.customer_id)
+            : null,
+        payment_status_id: formData.payment_status_id,
+        paymentStatus: formData.paymentStatus,
         note: formData.note,
-        method: formData.method,
+        reference: formData.reference || null,
       };
 
       const res = await addSale(body).unwrap();
-      if (res) {
-        toast.success(res.message || 'Sale created successfully');
-        setOpen(false);
-        setFormData({
-          items: [{ product_id: '', quantity: '', unit_price: '' }],
-          note: '',
-          method: '',
-        });
-      } else {
-        return toast.error(res.data.message || 'Failed to add a sale');
-      }
+      toast.success(res.message || 'Sale created successfully');
+      setOpen(false);
+      setFormData({
+        items: [{ product_id: '', quantity: '', unit_price: '' }],
+        customer_id: '',
+        payment_status_id: '',
+        paymentStatus: 'paid',
+        note: '',
+        reference: '',
+      });
     } catch (error: any) {
-      toast.error(error.data.message || 'Failed to create sale');
+      toast.error(error?.data?.message || 'Failed to create sale');
       console.error(error);
     }
-  };
-
-  const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const selectedIds = formData.items.map((i) => i.product_id);
@@ -118,13 +133,33 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
           Add Sale
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-106.25 max-h-[80vh] overflow-y-auto'>
+      <DialogContent className='sm:max-w-106.25 max-h-[85vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Record a Sale</DialogTitle>
           <DialogDescription>Add a new sales record for a product.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className='grid gap-4 py-4'>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='customer_id' className='text-right'>
+                Customer <span className='text-muted-foreground'>(optional)</span>
+              </Label>
+              <Select value={formData.customer_id} onValueChange={(v) => handleChange('customer_id', v)}>
+                <SelectTrigger id='customer_id' className='col-span-3'>
+                  <SelectValue placeholder='Select customer (optional - walk-in)' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={WALK_IN_CUSTOMER}>Walk-in Customer (No record)</SelectItem>
+                  {customers?.map((cust: any) => (
+                    <SelectItem key={cust.id} value={String(cust.id)}>
+                      {cust.user?.firstname} {cust.user?.lastname}{' '}
+                      {cust.company_name ? `(${cust.company_name})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {formData.items.map((item, index) => (
               <div key={index} className='rounded-lg border p-4'>
                 <div className='flex items-center justify-between gap-4'>
@@ -146,7 +181,21 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                     </Label>
                     <Select
                       value={item.product_id}
-                      onValueChange={(value) => updateItem(index, 'product_id', value)}
+                      onValueChange={(value) => {
+                        const selected = products.find((p) => String(p.id) === value);
+                        setFormData((prev) => ({
+                          ...prev,
+                          items: prev.items.map((i, idx) =>
+                            idx === index
+                              ? {
+                                  ...i,
+                                  product_id: value,
+                                  unit_price: selected?.selling_price?.toString() || '',
+                                }
+                              : i,
+                          ),
+                        }));
+                      }}
                     >
                       <SelectTrigger id={`product_id-${index}`} className='col-span-3'>
                         <SelectValue placeholder='Select product' />
@@ -181,7 +230,7 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                   </div>
                   <div className='grid grid-cols-4 items-center gap-4'>
                     <Label htmlFor={`unit_price-${index}`} className='text-right'>
-                      Unit Price
+                      Unit Price ({currency})
                     </Label>
                     <Input
                       id={`unit_price-${index}`}
@@ -201,29 +250,41 @@ export const AddSale = ({ addSale, products }: AddSaleProps) => {
                 Add item
               </Button>
             </div>
-            {/* state */}
+
             <div className='grid grid-cols-4 items-center gap-4'>
-              <Label htmlFor='method' className='text-right'>
-                Payment
+              <Label htmlFor='payment_status_id' className='text-right'>
+                Payment Method
               </Label>
-
-              <Select value={formData.method} onValueChange={(value) => handleChange('method', value)}>
-                <SelectTrigger id='method' className='w-full max-w-48 col-span-3'>
-                  <SelectValue placeholder='Select payment status' />
+              <Select
+                value={formData.payment_status_id}
+                onValueChange={(v) => handleChange('payment_status_id', v)}
+              >
+                <SelectTrigger id='payment_status_id' className='col-span-3'>
+                  <SelectValue placeholder='Select payment method' />
                 </SelectTrigger>
-
                 <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Payment Status</SelectLabel>
-
-                    <SelectItem value='cash'>Cash</SelectItem>
-                    <SelectItem value='mobile_money'>Mobile Money</SelectItem>
-                    <SelectItem value='card'>Card</SelectItem>
-                    <SelectItem value='credit'>Credit</SelectItem>
-                  </SelectGroup>
+                  {paymentMethods?.map((pm: any) => (
+                    <SelectItem key={pm.id} value={String(pm.id)}>
+                      {pm.method}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='reference' className='text-right'>
+                Reference
+              </Label>
+              <Input
+                id='reference'
+                value={formData.reference}
+                onChange={(e) => handleChange('reference', e.target.value)}
+                className='col-span-3'
+                placeholder='Optional receipt or transaction ID'
+              />
+            </div>
+
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='note' className='text-right'>
                 Note

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { formatDate } from '@/app/utils/safeDate';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 
 interface SalesTableProps {
@@ -41,8 +41,8 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
               <TableRow key={sale.id} onClick={() => navigate(`/dashboard/sales/${sale.id}`)} className='cursor-pointer'>
                 <TableHead>{startIndex + i + 1}</TableHead>
                 <TableCell>{sale.status ?? 'N/A'}</TableCell>
-                <TableCell>{sale.date ?? format(new Date(sale.created_at), 'PPP') ?? '-'}</TableCell>
-                <TableCell>{sale.note?.slice(0, 10)}</TableCell>
+                <TableCell>{sale.date ?? formatDate(sale.created_at)}</TableCell>
+                <TableCell>{sale.note ? String(sale.note).slice(0, 10) : '-'}</TableCell>
                 <TableCell> {totalPrice.toLocaleString()}</TableCell>
               </TableRow>
             );
