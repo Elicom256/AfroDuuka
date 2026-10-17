@@ -21,7 +21,7 @@ export const ExecutiveWorkersPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<WorkerItem | null>(null);
   const { data: roles } = useRolesQuery();
-  const branches = sections?.branches;
+  const branches = sections?.branches ?? [];
 
   const openNewWorker = () => {
     setSelectedWorker(null);
@@ -33,7 +33,7 @@ export const ExecutiveWorkersPage = () => {
     setSelectedWorker(worker);
     setDialogOpen(true);
   };
-  const workers = data?.workers;
+  const workers = data?.workers ?? [];
 
   const handleDelete = async (worker: WorkerItem) => {
     const confirmed = window.confirm(`Delete ${worker.name ?? 'this worker'}?`);

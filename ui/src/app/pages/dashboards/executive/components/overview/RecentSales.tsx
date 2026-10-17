@@ -3,14 +3,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSalesQuery } from '@/app/store/features/branch/sales/salesQuery';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Receipt } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { QueryEmptyState, QueryErrorState } from '@/app/components/QueryErrorState';
 
 export const RecentSales = () => {
   const { currency } = useCurrency();
   const { data, isLoading, isFetching, isError, refetch } = useSalesQuery();
 
-  const sales = data?.sales ?? data ?? [];
+  const sales = Array.isArray(data?.sales) ? data.sales : Array.isArray(data) ? data : [];
   const recent = [...sales]
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
@@ -80,7 +80,7 @@ export const RecentSales = () => {
                     Order #{sale.id}
                     {sale.customer?.name ? ` · ${sale.customer.name}` : ''}
                   </p>
-                  <p className='text-xs text-muted-foreground'>{format(new Date(sale.created_at), 'PPp')}</p>
+                  <p className='text-xs text-muted-foreground'>{formatDate(sale.created_at, 'PPp')}</p>
                 </div>
                 <span className='shrink-0 font-medium text-emerald-600 dark:text-emerald-400'>
                   {currency} {Number(sale.total_amount ?? 0).toLocaleString()}

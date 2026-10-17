@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Search, Send, Inbox, Bell, Users } from 'lucide-react';
 import { useGetNotificationsQuery, useGetUnreadCountQuery, useMarkAllAsReadMutation } from '@/app/store/features/branch/notifications/notificationsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 
 export const ExecutiveMessagesPage = () => {
   // Messaging has no backend module yet, so the inbox is driven by the
@@ -19,7 +19,11 @@ export const ExecutiveMessagesPage = () => {
 
   if (isLoading) return <PageLoadingState />;
 
-  const notifications = notificationsData?.notifications ?? notificationsData ?? [];
+  const notifications = Array.isArray(notificationsData?.notifications)
+    ? notificationsData.notifications
+    : Array.isArray(notificationsData)
+      ? notificationsData
+      : [];
   const unreadCount = unreadData?.count ?? unreadData?.unread ?? notifications.filter((n: any) => !n.is_read).length;
 
   const conversations = notifications.slice(0, 5);
@@ -99,7 +103,7 @@ export const ExecutiveMessagesPage = () => {
                     <div className='flex items-center justify-between'>
                       <h4 className='font-medium'>{convo.sender?.name ?? convo.title ?? 'Message'}</h4>
                       <span className='text-xs text-muted-foreground'>
-                        {convo.created_at ? format(new Date(convo.created_at), 'PP') : ''}
+                        {convo.created_at ? formatDate(convo.created_at, 'PP') : ''}
                       </span>
                     </div>
 
@@ -136,7 +140,7 @@ export const ExecutiveMessagesPage = () => {
                   </p>
                   {selectedConvo.created_at && (
                     <p className='mt-2 text-xs text-muted-foreground'>
-                      {format(new Date(selectedConvo.created_at), 'PPp')}
+                      {formatDate(selectedConvo.created_at, 'PPp')}
                     </p>
                   )}
                 </div>

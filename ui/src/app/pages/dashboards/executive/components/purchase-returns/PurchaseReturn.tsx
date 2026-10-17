@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { usePurchaseReturnQuery } from '@/app/store/features/branch/purchase-returns/purchaseReturnsQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 export const PurchaseReturn = () => {
@@ -40,7 +40,7 @@ export const PurchaseReturn = () => {
             <Badge variant='secondary'>ID: {pr.id}</Badge>
           </CardTitle>
           <CardDescription className='flex items-center italic'>
-            <span>Date: {format(new Date(pr.created_at), 'PPP')}</span>
+            <span>Date: {formatDate(pr.created_at)}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>

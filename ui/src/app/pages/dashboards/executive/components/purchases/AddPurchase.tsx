@@ -71,8 +71,10 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // `selling_price` is nullable server-side, so a line without it is still valid;
+    // requiring it silently dropped those rows before the request was ever sent.
     const validItems = formData.items.filter(
-      (item) => item.product_id && item.quantity && item.cost_price && item.selling_price,
+      (item) => item.product_id && item.quantity && item.cost_price,
     );
 
     if (validItems.length === 0) {
@@ -97,7 +99,7 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
           product_id: Number(item.product_id),
           quantity: Number(item.quantity),
           cost_price: Number(item.cost_price),
-          selling_price: Number(item.selling_price),
+          selling_price: item.selling_price ? Number(item.selling_price) : null,
         })),
         payment_status_id: formData.payment_status_id,
         reference: formData.reference || null,
@@ -153,9 +155,9 @@ export const AddPurchase = ({ addPurchase, products, suppliers, paymentMethods }
                 <SelectValue placeholder='Select supplier' />
               </SelectTrigger>
               <SelectContent>
-                {suppliers.map((supplier: any) => (
+                {suppliers?.map((supplier: any) => (
                   <SelectItem key={supplier.id} value={String(supplier.id)}>
-                    {supplier.company_name || `${supplier.user.firstname} ${supplier.user.lastname}`}
+                    {supplier.company_name || `${supplier.user?.firstname ?? ''} ${supplier.user?.lastname ?? ''}`}
                   </SelectItem>
                 ))}
               </SelectContent>

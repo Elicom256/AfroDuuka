@@ -15,7 +15,7 @@ export const ExecutiveSaleReturnsPage = () => {
 
   if (isLoading) return <PageLoadingState />;
 
-  const saleReturns = data?.sale_returns ?? data ?? [];
+  const saleReturns = Array.isArray(data?.sale_returns) ? data.sale_returns : Array.isArray(data) ? data : [];
 
   const totalReturns = saleReturns.length;
   const totalRefunded = saleReturns.reduce((sum: number, sr: any) => sum + Number(sr.refund_amount || 0), 0);

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 export const OperationsWorkersPage = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useBranchWorkersQuery();
-  const workers = data?.data;
+  const workers = Array.isArray(data?.data) ? data.data : [];
 
   const activeCount = workers?.filter((worker: any) => worker.status === 'active' || worker.is_active).length;
 

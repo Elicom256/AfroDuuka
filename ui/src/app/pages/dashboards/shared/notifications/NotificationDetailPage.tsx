@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { AlertTriangle, ArrowLeft, Bell, CheckCheck, Package, ShoppingCart, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -93,7 +93,7 @@ export const NotificationDetailPage = ({ scope }: { scope: 'executive' | 'branch
                   )}
                 </div>
                 <CardTitle className='text-2xl'>{notification.title}</CardTitle>
-                <CardDescription>{format(new Date(notification.created_at), 'MMM d, yyyy · h:mm a')}</CardDescription>
+                <CardDescription>{formatDate(notification.created_at, 'MMM d, yyyy · h:mm a')}</CardDescription>
               </div>
             </div>
           </div>

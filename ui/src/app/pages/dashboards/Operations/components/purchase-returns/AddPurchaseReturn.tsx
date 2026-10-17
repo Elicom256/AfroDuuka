@@ -41,10 +41,23 @@ export const AddPurchaseReturn = ({ addPurchaseReturn }: AddPurchaseReturnProps)
   const { data: sup } = useSuppliersQuery();
   // Memoised so the `?? []` fallbacks below stop handing the search/line-item memos a
   // brand new array identity on every render.
-  const purchases = useMemo(() => purchasesData?.purchases ?? purchasesData ?? [], [purchasesData]);
+  const purchases = useMemo(
+    () =>
+      Array.isArray(purchasesData?.purchases)
+        ? purchasesData.purchases
+        : Array.isArray(purchasesData)
+          ? purchasesData
+          : [],
+    [purchasesData]
+  );
   const existingReturns = useMemo(
-    () => returnsData?.purchase_returns ?? returnsData ?? [],
-    [returnsData],
+    () =>
+      Array.isArray(returnsData?.purchase_returns)
+        ? returnsData.purchase_returns
+        : Array.isArray(returnsData)
+          ? returnsData
+          : [],
+    [returnsData]
   );
   const suppliers = sup?.suppliers || [];
 

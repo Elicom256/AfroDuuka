@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { usePurchaseQuery } from '@/app/store/features/branch/purchases/purchasesQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { ArrowLeftCircle, PackageCheck } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
@@ -80,7 +80,7 @@ export const Purchase = () => {
           </CardTitle>
           <CardDescription className='flex items-center gap-2 italic'>
             <span>Datehh: </span>
-            <span>{format(new Date(purchase?.created_at), 'PPP')}</span>
+            <span>{formatDate(purchase?.created_at, 'PPP')}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>

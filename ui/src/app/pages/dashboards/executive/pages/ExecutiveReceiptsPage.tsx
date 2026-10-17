@@ -12,7 +12,7 @@ import { PageLoadingState } from '@/utils/PageLoadingState';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { Search, Filter, Eye, Download, Receipt } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 
 export const ExecutiveReceiptsPage = () => {
   const { currency } = useCurrency();
@@ -220,7 +220,7 @@ export const ExecutiveReceiptsPage = () => {
                     <TableCell>
                       <Badge variant={statusVariant(receipt.status) as any}>{receipt.status}</Badge>
                     </TableCell>
-                    <TableCell>{format(new Date(receipt.created_at), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{formatDate(receipt.created_at, 'MMM d, yyyy')}</TableCell>
                     <TableCell>
                       <div className='flex items-center gap-2'>
                         <Link

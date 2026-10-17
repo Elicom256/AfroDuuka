@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { LoadingState } from '@/utils/LoadingState';
 import { Clock, TrendingUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { ProductPriceChart } from './ProductPriceChart';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -79,7 +79,7 @@ export const PriceHistoryTab = ({ productId }: PriceHistoryTabProps) => {
                 <TableRow key={record.id}>
                   {/* Date */}
                   <TableCell className='text-xs whitespace-nowrap'>
-                    {format(new Date(record.created_at), 'PPP')}
+                    {formatDate(record.created_at, 'PPP')}
                   </TableCell>
 
                   {/* Old Cost */}

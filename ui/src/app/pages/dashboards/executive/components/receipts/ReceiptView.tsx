@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Receipt as ReceiptIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import * as QRCode from 'qrcode';
 
@@ -53,7 +53,7 @@ export const ReceiptView = ({ receipt }: { receipt: any }) => {
             <div className='text-sm text-muted-foreground'>{businessName}</div>
           )}
         </div>
-        <CardDescription>{format(new Date(receipt.created_at), 'PPPP p')}</CardDescription>
+        <CardDescription>{formatDate(receipt.created_at, 'PPPP p')}</CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='grid gap-4 md:grid-cols-2'>

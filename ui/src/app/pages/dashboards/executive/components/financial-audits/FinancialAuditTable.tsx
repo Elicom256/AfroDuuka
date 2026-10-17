@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Eye, FileText, ThumbsUp, XCircle, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 
 const statusColors: Record<string, string> = {
@@ -59,7 +59,7 @@ export const FinancialAuditTable = ({
                 <TableRow key={audit.id}>
                   <TableCell className='font-medium'>{audit.audit_number}</TableCell>
                   <TableCell>{audit.branch?.name ?? '-'}</TableCell>
-                  <TableCell>{format(new Date(audit.audit_date), 'PP')}</TableCell>
+                  <TableCell>{formatDate(audit.audit_date, 'PP')}</TableCell>
                   <TableCell className='text-right'>{currencySymbol}{Number(audit.expected_balance).toLocaleString()}</TableCell>
                   <TableCell className='text-right'>{currencySymbol}{Number(audit.actual_balance).toLocaleString()}</TableCell>
                   <TableCell className={`text-right font-medium ${audit.difference > 0 ? 'text-green-600' : audit.difference < 0 ? 'text-red-600' : ''}`}>
