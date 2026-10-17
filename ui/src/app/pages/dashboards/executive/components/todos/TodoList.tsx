@@ -9,6 +9,7 @@ import { Trash2, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export const TodoList = () => {
   const { data: todosData, isLoading } = useGetTodosQuery();
@@ -93,6 +94,7 @@ export const TodoList = () => {
                       >
                         {todo.title}
                       </p>
+                      <RowSyncStatus status={todo.sync_status} />
                       <Badge variant={todo.status === 'completed' ? 'secondary' : 'outline'}>
                         {todo.status === 'completed' ? 'Completed' : 'Pending'}
                       </Badge>

@@ -17,6 +17,7 @@ import { useBranchSuppliersQuery } from '@/app/store/features/branch/suppliers/b
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -189,7 +190,12 @@ const SalesOrdersTab = () => {
               <TableBody>
                 {orders.map((order: any) => (
                   <TableRow key={order.id}>
-                    <TableCell className='font-mono'>{order.order_number}</TableCell>
+                    <TableCell className='font-mono'>
+                      <span className='inline-flex items-center gap-2'>
+                        {order.order_number}
+                        <RowSyncStatus status={order.sync_status} />
+                      </span>
+                    </TableCell>
                     <TableCell>{order.customer?.name || 'Walk-in'}</TableCell>
                     <TableCell>{order.items?.length || 0}</TableCell>
                     <TableCell>{Number(order.total_amount).toLocaleString()}</TableCell>
@@ -431,7 +437,12 @@ const PurchaseOrdersTab = () => {
               <TableBody>
                 {orders.map((order: any) => (
                   <TableRow key={order.id}>
-                    <TableCell className='font-mono'>{order.order_number}</TableCell>
+                    <TableCell className='font-mono'>
+                      <span className='inline-flex items-center gap-2'>
+                        {order.order_number}
+                        <RowSyncStatus status={order.sync_status} />
+                      </span>
+                    </TableCell>
                     <TableCell>{order.supplier?.company_name || order.supplier?.user?.name || 'N/A'}</TableCell>
                     <TableCell>{order.items?.length || 0}</TableCell>
                     <TableCell>{Number(order.total_amount).toLocaleString()}</TableCell>

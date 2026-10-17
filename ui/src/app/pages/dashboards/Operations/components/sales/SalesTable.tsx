@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { formatDate } from '@/app/utils/safeDate';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface SalesTableProps {
   sales: any[];
@@ -38,7 +39,12 @@ export const SalesTable = ({ sales }: SalesTableProps) => {
             return (
               <TableRow key={sale.id} onClick={() => navigate(`/dashboard/sales/${sale.id}`)} className='cursor-pointer'>
                 <TableHead>{startIndex + i + 1}</TableHead>
-                <TableCell>{sale.status ?? 'N/A'}</TableCell>
+                <TableCell>
+                  <span className='inline-flex items-center gap-2'>
+                    {sale.status ?? 'N/A'}
+                    <RowSyncStatus status={sale.sync_status} />
+                  </span>
+                </TableCell>
                 <TableCell>{sale.date ?? formatDate(sale.created_at)}</TableCell>
                 <TableCell>{sale.note ? String(sale.note).slice(0, 10) : '-'}</TableCell>
                 <TableCell> {totalPrice.toLocaleString()}</TableCell>

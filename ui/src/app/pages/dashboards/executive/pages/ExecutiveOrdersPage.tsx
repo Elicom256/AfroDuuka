@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 import { Package, Eye, Plus, X, Minus, PlusIcon, Truck } from 'lucide-react';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 import { useOrdersQuery, useCreateOrderMutation } from '@/app/store/features/orders/ordersQuery';
 import {
   usePurchaseOrdersQuery,
@@ -242,7 +243,12 @@ const SalesOrdersTab = () => {
                 <TableBody>
                   {orders.map((order: any) => (
                     <TableRow key={order.id}>
-                      <TableCell className='font-mono font-medium'>{order.order_number}</TableCell>
+                      <TableCell className='font-mono font-medium'>
+                        <span className='inline-flex items-center gap-2'>
+                          {order.order_number}
+                          <RowSyncStatus status={order.sync_status} />
+                        </span>
+                      </TableCell>
                       <TableCell>{order.customer?.name || 'Walk-in'}</TableCell>
                       <TableCell>{order.items?.length || 0}</TableCell>
                       <TableCell>{Number(order.total_amount).toLocaleString()}</TableCell>
@@ -548,7 +554,12 @@ const PurchaseOrdersTab = () => {
                 <TableBody>
                   {orders.map((order: any) => (
                     <TableRow key={order.id}>
-                      <TableCell className='font-mono font-medium'>{order.order_number}</TableCell>
+                      <TableCell className='font-mono font-medium'>
+                        <span className='inline-flex items-center gap-2'>
+                          {order.order_number}
+                          <RowSyncStatus status={order.sync_status} />
+                        </span>
+                      </TableCell>
                       <TableCell>{order.supplier?.company_name || order.supplier?.user?.name || 'N/A'}</TableCell>
                       <TableCell>{order.items?.length || 0}</TableCell>
                       <TableCell>{Number(order.total_amount).toLocaleString()}</TableCell>

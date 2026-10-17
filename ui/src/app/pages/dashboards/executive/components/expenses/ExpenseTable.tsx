@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import { CheckCircle, BarChart3 } from 'lucide-react';
 import { useCurrency } from '@/app/hooks/useCurrency';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 type ExpenseTableProps = {
   expenses: any[];
@@ -56,7 +57,12 @@ export const ExpenseTable = ({ expenses, currentPage, totalPages, onPageChange, 
                   <TableCell>
                     <Badge variant='outline'>{exp.category?.name ?? '—'}</Badge>
                   </TableCell>
-                  <TableCell>{exp.description || '—'}</TableCell>
+                  <TableCell>
+                    <span className='inline-flex items-center gap-2'>
+                      {exp.description || '—'}
+                      <RowSyncStatus status={exp.sync_status} />
+                    </span>
+                  </TableCell>
                   <TableCell>{exp.vendor || '—'}</TableCell>
                   <TableCell>{exp.business_branch?.name || '—'}</TableCell>
                   <TableCell className='text-right font-medium text-red-600'>

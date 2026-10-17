@@ -10,6 +10,7 @@ import { useProductsQuery } from '@/app/store/features/branch/products/branchPro
 import { EditProduct } from './EditProduct';
 import { useNavigate } from 'react-router-dom';
 import { QueryErrorState } from '@/app/components/QueryErrorState';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface Product {
   id: string;
@@ -27,6 +28,7 @@ interface Product {
   description: string;
   markup_percentage: number;
   cover_url?: string;
+  sync_status?: string;
   product_category?: { name: string };
   category_name?: string;
 }
@@ -137,7 +139,12 @@ export const ProductTable = () => {
                           )}
                         </span>
                       </TableCell>
-                      <TableCell className='font-medium'>{product.name}</TableCell>
+                      <TableCell className='font-medium'>
+                        <span className='inline-flex items-center gap-2'>
+                          {product.name}
+                          <RowSyncStatus status={product.sync_status} />
+                        </span>
+                      </TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>{product.barcode || '-'}</TableCell>
                       <TableCell>{Number(product.selling_price).toFixed(2)}</TableCell>

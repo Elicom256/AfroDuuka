@@ -11,6 +11,7 @@ import { useCouponsQuery, useCreateCouponMutation, useDeleteCouponMutation } fro
 import { Tag, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 export const ExecutiveCouponsPage = () => {
   const { data, isLoading } = useCouponsQuery();
@@ -87,7 +88,10 @@ export const ExecutiveCouponsPage = () => {
             {coupons.map((coupon: any) => (
               <div key={coupon.id} className='rounded-3xl border border-border/70 bg-muted p-4 flex items-center justify-between'>
                 <div>
-                  <p className='font-mono font-semibold'>{coupon.code}</p>
+                  <p className='font-mono font-semibold inline-flex items-center gap-2'>
+                    {coupon.code}
+                    <RowSyncStatus status={coupon.sync_status} />
+                  </p>
                   <p className='text-sm text-muted-foreground'>{coupon.description}</p>
                   <div className='flex gap-3 mt-1 text-xs text-muted-foreground'>
                     <span>{coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `${coupon.discount_value}`}</span>

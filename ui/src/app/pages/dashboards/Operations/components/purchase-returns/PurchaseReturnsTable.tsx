@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
 import { useRolePermissions } from '@/lib/useRolePermissions';
+import { RowSyncStatus } from '@/components/offline/RowSyncStatus';
 
 interface PurchaseReturnsTableProps {
   purchaseReturns: any[];
@@ -43,7 +44,12 @@ export const PurchaseReturnsTable = ({ purchaseReturns }: PurchaseReturnsTablePr
                 className='cursor-pointer'
               >
                 <TableCell>{startIndex + i + 1}</TableCell>
-                <TableCell>#{pr.purchase_id}</TableCell>
+                <TableCell>
+                  <span className='inline-flex items-center gap-2'>
+                    #{pr.purchase_id}
+                    <RowSyncStatus status={pr.sync_status} />
+                  </span>
+                </TableCell>
                 <TableCell>{pr.reason?.slice(0, 30) || '-'}</TableCell>
                 <TableCell>{formatDate(pr.created_at)}</TableCell>
                 <TableCell>{pr.restock ? 'Yes' : 'No'}</TableCell>
