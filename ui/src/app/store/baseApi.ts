@@ -123,7 +123,15 @@ const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, AuthBaseQueryE
     if (!isCacheableGet(request) && isTransportError(result.error)) {
       const queued = await queueIfTransportError(result.error, args);
       if (queued && 'data' in queued) return { data: queued.data };
-      if (queued && 'error' in queued) return { error: { ...queued.error, url } };
+      if (queued && 'error' in queued) {
+        const error: AuthBaseQueryError = {
+          status: 'CUSTOM_ERROR',
+          error: queued.error.data.message,
+          data: queued.error.data,
+          url,
+        };
+        return { error };
+      }
     }
 
     return { error: { ...result.error, url } };
