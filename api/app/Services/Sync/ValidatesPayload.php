@@ -5,6 +5,7 @@ namespace App\Services\Sync;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Runs an existing FormRequest against a sync payload instead of the HTTP request.
@@ -38,6 +39,9 @@ class ValidatesPayload
         );
 
         $request->setContainer(app())->setRedirector(app(Redirector::class));
+        // A synthetic request has no user resolver. FormRequests that call $this->user()
+        // (catalogue authorization, branch defaults) must see the authenticated account.
+        $request->setUserResolver(static fn () => Auth::user());
         $request->validateResolved();
 
         return $request->validated();

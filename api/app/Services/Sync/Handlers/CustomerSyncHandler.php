@@ -3,11 +3,13 @@
 namespace App\Services\Sync\Handlers;
 
 use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\BusinessBranch;
 use App\Models\CoreSettings\CustomersSettings;
 use App\Models\Customer;
 use App\Models\User;
 use App\Services\CustomerService;
+use App\Services\Sync\SyncAction;
 use App\Services\Sync\SyncHandler;
 use App\Services\Sync\ValidatesPayload;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -37,7 +39,42 @@ class CustomerSyncHandler implements SyncHandler
             throw new AuthorizationException('A business is required to sync customers.');
         }
 
-        $validated = ValidatesPayload::run(StoreCustomerRequest::class, $payload);
+        $action = SyncAction::name($payload);
+
+        if ($action === 'delete') {
+            $customer = Customer::query()->findOrFail(SyncAction::id($payload));
+            if (! $user->can('delete', $customer)) {
+                throw new AuthorizationException('Your role cannot delete customers.');
+            }
+            $id = (int) $customer->getKey();
+            $customer->delete();
+
+            return [
+                'server_id' => $id,
+                'resource_type' => 'customer',
+                'result' => ['id' => $id],
+            ];
+        }
+
+        if ($action === 'update') {
+            $customer = Customer::query()->findOrFail(SyncAction::id($payload));
+            if (! $user->can('update', $customer)) {
+                throw new AuthorizationException('Your role cannot update customers.');
+            }
+            $validated = ValidatesPayload::run(UpdateCustomerRequest::class, SyncAction::body($payload));
+            $updated = $this->customerService->updateCustomer($customer, $validated);
+
+            return [
+                'server_id' => (int) $updated->getKey(),
+                'resource_type' => 'customer',
+                'result' => [
+                    'id' => (int) $updated->getKey(),
+                    'customer_code' => $updated->customer_code,
+                ],
+            ];
+        }
+
+        $validated = ValidatesPayload::run(StoreCustomerRequest::class, SyncAction::body($payload));
 
         if (empty($validated['phone'])) {
             throw ValidationException::withMessages([

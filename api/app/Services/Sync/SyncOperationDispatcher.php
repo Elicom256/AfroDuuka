@@ -5,10 +5,21 @@ namespace App\Services\Sync;
 use App\Exceptions\InsufficientStockException;
 use App\Models\SyncOperation;
 use App\Models\User;
+use App\Services\Sync\Handlers\CouponSyncHandler;
 use App\Services\Sync\Handlers\CustomerSyncHandler;
+use App\Services\Sync\Handlers\ExpenseSyncHandler;
 use App\Services\Sync\Handlers\InventorySyncHandler;
+use App\Services\Sync\Handlers\ProductSyncHandler;
+use App\Services\Sync\Handlers\PromotionSyncHandler;
+use App\Services\Sync\Handlers\PurchaseReturnSyncHandler;
+use App\Services\Sync\Handlers\PurchaseSyncHandler;
+use App\Services\Sync\Handlers\QuotationSyncHandler;
+use App\Services\Sync\Handlers\SaleOrderSyncHandler;
+use App\Services\Sync\Handlers\SaleReturnSyncHandler;
 use App\Services\Sync\Handlers\SaleSyncHandler;
+use App\Services\Sync\Handlers\SupplierSyncHandler;
 use App\Services\Sync\Handlers\TodoSyncHandler;
+use App\Services\Sync\Handlers\WorkerSyncHandler;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,6 +66,17 @@ class SyncOperationDispatcher
         'inventory' => InventorySyncHandler::class,
         'customer' => CustomerSyncHandler::class,
         'todo' => TodoSyncHandler::class,
+        'purchase' => PurchaseSyncHandler::class,
+        'sale_return' => SaleReturnSyncHandler::class,
+        'purchase_return' => PurchaseReturnSyncHandler::class,
+        'product' => ProductSyncHandler::class,
+        'supplier' => SupplierSyncHandler::class,
+        'worker' => WorkerSyncHandler::class,
+        'order' => SaleOrderSyncHandler::class,
+        'quotation' => QuotationSyncHandler::class,
+        'expense' => ExpenseSyncHandler::class,
+        'promotion' => PromotionSyncHandler::class,
+        'coupon' => CouponSyncHandler::class,
     ];
 
     /**
