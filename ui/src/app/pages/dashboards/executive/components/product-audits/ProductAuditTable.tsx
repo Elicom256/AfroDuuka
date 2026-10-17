@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Eye, FileText, ThumbsUp, XCircle, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PaginationComponent } from '@/app/utils/Pagination';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { personName } from '@/app/utils/userName';
 import { useRolePermissions } from '@/lib/useRolePermissions';
 
@@ -66,7 +66,7 @@ export const ProductAuditTable = ({
               <TableRow key={audit.id}>
                 <TableCell className='font-medium'>{audit.audit_number}</TableCell>
                 <TableCell>{audit.branch?.name ?? '-'}</TableCell>
-                <TableCell>{format(new Date(audit.audit_date), 'PP')}</TableCell>
+                <TableCell>{formatDate(audit.audit_date, 'PP')}</TableCell>
                 <TableCell>{audit.items?.length ?? 0}</TableCell>
                 <TableCell>
                   <Badge className={statusColors[audit.status]} variant='outline'>

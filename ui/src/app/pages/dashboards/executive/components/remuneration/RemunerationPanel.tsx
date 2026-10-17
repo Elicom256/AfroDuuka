@@ -2,8 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
 import { RecordEmployeePayment } from './RecordEmployeePayment';
+import { formatDate } from '@/app/utils/safeDate';
 import { useGetWorkersInfoQuery } from '@/app/store/features/business/workers/workersQuery';
 import { PageLoadingState } from '@/utils/PageLoadingState';
 
@@ -22,7 +22,7 @@ export const RemunerationPanel = ({
   pending,
   onEditRow,
 }: RemunerationPanelProps) => {
-  const formatted = (payment_date: any) => format(new Date(payment_date), 'dd MMM yyyy');
+  const formatted = (payment_date: any) => formatDate(payment_date, 'dd MMM yyyy');
   const { data, isLoading } = useGetWorkersInfoQuery();
   const workers = data?.workers;
   const statusVariant = (status?: string) => {

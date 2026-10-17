@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { formatDate } from '@/app/utils/safeDate';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { personName } from '@/app/utils/userName';
 
@@ -38,7 +38,7 @@ export const FinancialAuditDetail = ({ audit }: Props) => {
             <div>
               <CardTitle className='text-2xl'>{audit.audit_number}</CardTitle>
               <p className='text-sm text-muted-foreground mt-1'>
-                {audit.branch?.name} &middot; {format(new Date(audit.audit_date), 'PP')}
+                {audit.branch?.name} &middot; {formatDate(audit.audit_date, 'PP')}
               </p>
             </div>
             <Badge className={statusColors[audit.status]} variant='outline'>
@@ -80,7 +80,7 @@ export const FinancialAuditDetail = ({ audit }: Props) => {
             </div>
             <div>
               <p className='text-sm text-muted-foreground'>Approved At</p>
-              <p className='font-medium'>{audit.approved_at ? format(new Date(audit.approved_at), 'PPp') : '-'}</p>
+              <p className='font-medium'>{formatDate(audit.approved_at, 'PPp')}</p>
             </div>
           </div>
           {audit.notes && (
