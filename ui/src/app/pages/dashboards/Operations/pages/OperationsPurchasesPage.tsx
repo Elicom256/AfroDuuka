@@ -11,6 +11,7 @@ import { PurchasesTable } from '../components/purchases/PurchasesTable';
 import { EditPurchase } from '../components/purchases/EditPurchase';
 import { useSuppliersQuery } from '@/app/store/features/business/suppliers/supplierQuery';
 import { useProductsQuery } from '@/app/store/features/branch/products/branchProductsQuery';
+import { useGetPaymentSettingsQuery } from '@/app/store/features/business/settings/payment';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { ExportButton } from '@/app/components/ExportButton';
 
@@ -19,14 +20,16 @@ export const OperationsPurchasesPage = () => {
   const { data, isLoading } = usePurchasesQuery();
   const { data: productData } = useProductsQuery();
   const { data: sup } = useSuppliersQuery();
+  const { data: methods } = useGetPaymentSettingsQuery();
   const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();
   const [editPurchase, setEditPurchase] = useState<any>(null);
   const suppliers = sup?.suppliers || [];
+  const paymentMethods = methods?.methods;
 
   if (isLoading || loadNewPurchase) return <PageLoadingState />;
 
-  const purchases = data?.purchases ?? data ?? [];
+  const purchases = Array.isArray(data?.purchases) ? data.purchases : Array.isArray(data) ? data : [];
   const products = productData?.products ?? [];
 
   // Calculate total amount from all purchases
@@ -76,7 +79,7 @@ export const OperationsPurchasesPage = () => {
           </div>
           <div className='flex gap-2'>
             <ExportButton type='purchases' label='Export' withDateRange />
-            <AddPurchase addPurchase={addPurchase} products={products} suppliers={suppliers} />
+            <AddPurchase addPurchase={addPurchase} products={products} suppliers={suppliers} paymentMethods={paymentMethods} />
           </div>
         </CardHeader>
         <CardContent>

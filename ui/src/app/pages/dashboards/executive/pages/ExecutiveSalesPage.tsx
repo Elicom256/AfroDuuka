@@ -35,10 +35,10 @@ export const ExecutiveSalesPage = () => {
     );
   }
 
-  const sales = data?.sales ?? data ?? [];
+  const sales = Array.isArray(data?.sales) ? data.sales : Array.isArray(data) ? data : [];
   const products = productData?.products ?? [];
   const totalSalesAmount = sales.reduce((sum: number, sale: any) => {
-    const all = sale.sale_items.reduce((acc: number, val: any) => acc + val.quantity, 0);
+    const all = (sale.sale_items ?? []).reduce((acc: number, val: any) => acc + Number(val.quantity ?? 0), 0);
     return sum + all;
   }, 0);
 

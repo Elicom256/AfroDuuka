@@ -30,6 +30,17 @@ interface SaleItem {
   unit_price: string;
 }
 
+/**
+ * Sentinel for the "no customer" option.
+ *
+ * Radix Select reserves the empty string for "clear", so a walk-in cannot be
+ * represented by `''`. It used to be the literal label `'Walk-in Customer (No
+ * record)'`, which is truthy — so `customer_id: formData.customer_id || null`
+ * sent that string as the id and the API rejected it (`nullable|exists`), which
+ * is why recording a walk-in sale failed with a toast.
+ */
+const WALK_IN_CUSTOMER = '__walk_in__';
+
 export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSaleProps) => {
   const { currency } = useCurrency();
   const [open, setOpen] = useState(false);
@@ -95,7 +106,7 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
         })),
-        customer_id: formData.customer_id || null,
+        customer_id: formData.customer_id && formData.customer_id !== WALK_IN_CUSTOMER ? Number(formData.customer_id) : null,
         payment_status_id: formData.payment_status_id,
         paymentStatus: formData.paymentStatus,
         note: formData.note,
@@ -145,14 +156,14 @@ export const AddSale = ({ addSale, products, customers, paymentMethods }: AddSal
           {/* Customer Selection */}
           <div className='grid grid-cols-4 items-center gap-4'>
             <Label htmlFor='customer_id' className='text-right'>
-              Customer <span className='text-red-500'>*</span>
+              Customer <span className='text-muted-foreground'>(optional)</span>
             </Label>
             <Select value={formData.customer_id} onValueChange={(v) => handleChange('customer_id', v)}>
               <SelectTrigger id='customer_id' className='col-span-3'>
                 <SelectValue placeholder='Select customer (optional - walk-in)' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='Walk-in Customer (No record)'>Walk-in Customer (No record)</SelectItem>
+                <SelectItem value={WALK_IN_CUSTOMER}>Walk-in Customer (No record)</SelectItem>
                 {customers?.map((cust: any) => (
                   <SelectItem key={cust.id} value={String(cust.id)}>
                     {cust.user.firstname} {cust.user.lastname} {cust.company_name ? `(${cust.company_name})` : ''}

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/app/hooks/useCurrency';
 import { PaginationComponent } from '@/app/utils/Pagination';
+import { formatDate } from '@/app/utils/safeDate';
 
 interface PurchasesTableProps {
   purchases: any[];
@@ -44,7 +44,7 @@ export const PurchasesTable = ({ purchases }: PurchasesTableProps) => {
                 >
                   <TableCell>{startIndex + i + 1}</TableCell>
                   <TableCell>{purchase.supplier_id ?? 'N/A'}</TableCell>
-                  <TableCell>{purchase.date ?? format(new Date(purchase.created_at), 'PPP') ?? '-'}</TableCell>
+                  <TableCell>{purchase.date ?? formatDate(purchase.created_at)}</TableCell>
                   <TableCell>{purchase.note ? purchase.note.slice(0, 10) : '-'}</TableCell>
                   <TableCell>{totalAmount.toLocaleString()}</TableCell>
                 </TableRow>
