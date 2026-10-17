@@ -5,6 +5,7 @@ import type {
   LocalStockAdjustment,
   SyncOperation,
   LocalProduct,
+  CachedRead,
 } from './types';
 
 /**
@@ -27,6 +28,7 @@ export class OfflineDatabase extends Dexie {
   saleItems!: EntityTable<LocalSaleItem, 'id'>;
   stockAdjustments!: EntityTable<LocalStockAdjustment, 'id'>;
   products!: EntityTable<LocalProduct, 'id'>;
+  readCache!: EntityTable<CachedRead, 'key'>;
 
   constructor() {
     super('afroduuka-offline');
@@ -42,6 +44,12 @@ export class OfflineDatabase extends Dexie {
 
     this.version(2).stores({
       products: 'id, barcode, sku, name, cachedAt',
+    });
+
+    // List/detail responses for offline reads. Add-only: older builds never see this
+    // table, and a newer build opening an older database just creates it.
+    this.version(3).stores({
+      readCache: 'key, domain, cachedAt',
     });
   }
 }

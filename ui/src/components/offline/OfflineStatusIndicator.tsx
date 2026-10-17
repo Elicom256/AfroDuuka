@@ -1,6 +1,8 @@
+import { useSyncExternalStore } from 'react';
 import { AlertTriangle, CheckCircle2, Loader2, WifiOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useOfflineStatus } from '@/hooks/use-offline-status';
+import { getCacheNotice, subscribeCacheNotice } from '@/lib/offline/readCache';
 
 /**
  * The always-on connectivity + sync status pill.
@@ -15,10 +17,12 @@ import { useOfflineStatus } from '@/hooks/use-offline-status';
  */
 export const OfflineStatusIndicator = () => {
   const { online, apiReachable, pendingCount, syncing, failedCount } = useOfflineStatus();
+  const cacheNotice = useSyncExternalStore(subscribeCacheNotice, getCacheNotice, getCacheNotice);
 
   const offline = !online || apiReachable === false;
 
   const parts: string[] = [offline ? 'Offline' : 'Online'];
+  if (offline && cacheNotice) parts.push('showing saved data');
   if (syncing) parts.push('syncing');
   if (pendingCount > 0) parts.push(`${pendingCount} pending`);
   if (failedCount > 0) parts.push(`${failedCount} failed`);
