@@ -123,3 +123,23 @@ export interface SaleOperationPayload {
   /** Present when resuming a held sale, per PosPage's checkout body. */
   sale_id?: number;
 }
+
+/**
+ * A product cached on this device for offline POS lookup.
+ *
+ * Mirrors the shape returned by `/pos/products/search` (PosProductResource) so the
+ * POS can render and add cached products exactly as it does online ones.
+ */
+export interface LocalProduct {
+  id: number;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  selling_price: number;
+  stock: number;
+  tax_rate: number;
+  is_tax_inclusive: boolean;
+  product_category?: { name?: string } | null;
+  status?: string;
+  cachedAt: number;
+}

@@ -48,13 +48,22 @@ class PosService
 
     public function searchProducts(string $query, int $limit = 20): array
     {
-        $products = Product::with('productCategory')
+        $query = trim($query);
+
+        $base = Product::with('productCategory')
+            ->whereIn('status', ['active', 'inactive']);
+
+        if ($query === '') {
+            $products = $base->orderBy('name')->limit($limit === 20 ? 1000 : $limit)->get();
+            return PosProductResource::collection($products)->resolve();
+        }
+
+        $products = $base
             ->where(function ($q) use ($query) {
                 $q->where('barcode', 'ILIKE', "{$query}%")
                     ->orWhere('sku', 'ILIKE', "{$query}%")
                     ->orWhere('name', 'ILIKE', "%{$query}%");
             })
-            ->whereIn('status', ['active', 'inactive'])
             ->orderByRaw('CASE
                 WHEN barcode LIKE ? THEN 1
                 WHEN sku LIKE ? THEN 2

@@ -4,6 +4,7 @@ import type {
   LocalSaleItem,
   LocalStockAdjustment,
   SyncOperation,
+  LocalProduct,
 } from './types';
 
 /**
@@ -25,6 +26,7 @@ export class OfflineDatabase extends Dexie {
   sales!: EntityTable<LocalSale, 'localId'>;
   saleItems!: EntityTable<LocalSaleItem, 'id'>;
   stockAdjustments!: EntityTable<LocalStockAdjustment, 'id'>;
+  products!: EntityTable<LocalProduct, 'id'>;
 
   constructor() {
     super('afroduuka-offline');
@@ -36,6 +38,10 @@ export class OfflineDatabase extends Dexie {
       saleItems: '++id, saleLocalId, productId',
       stockAdjustments:
         '++id, saleLocalId, productId, syncStatus, operationId, businessId, branchId',
+    });
+
+    this.version(2).stores({
+      products: 'id, barcode, sku, name, cachedAt',
     });
   }
 }

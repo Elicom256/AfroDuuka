@@ -39,6 +39,7 @@ import {
 } from '@/lib/offline';
 import { PosReceiptModal } from './PosReceiptModal';
 import { SyncStatusBadge } from '@/components/offline/SyncStatusBadge';
+import { cacheProducts, searchProductsOffline, getProductByBarcodeOffline } from '@/lib/offline/productCache';
 import { ConfirmDeleteButton } from '@/components/ConfirmDeleteButton';
 
 interface CartItem {
@@ -80,6 +81,7 @@ export const PosPage = () => {
   const [heldSaleId, setHeldSaleId] = useState<number | null>(null);
 
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchProductsQuery();
+  const [offlineResults, setOfflineResults] = useState<any[]>([]);
   const [triggerBarcodeLookup] = useLazySearchProductByBarcodeQuery();
   const [triggerCustomerSearch] = useLazySearchCustomersQuery();
 
@@ -104,6 +106,15 @@ export const PosPage = () => {
   const heldSales = heldSalesData?.data || [];
 
   useEffect(() => {
+    const snap = connectivity.getSnapshot();
+    if (!snap.online || snap.apiReachable === false) return;
+    triggerSearch('').then((res) => {
+      const products = res.data?.data || [];
+      if (products.length) void cacheProducts(products);
+    });
+  }, [triggerSearch]);
+
+  useEffect(() => {
     searchRef.current?.focus();
   }, []);
 
@@ -111,9 +122,18 @@ export const PosPage = () => {
     (q: string) => {
       setSearchQuery(q);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (q.length < 1) return;
+      if (q.length < 1) {
+        setOfflineResults([]);
+        return;
+      }
       debounceRef.current = setTimeout(() => {
-        triggerSearch(q);
+        const snap = connectivity.getSnapshot();
+        if (!snap.online || snap.apiReachable === false) {
+          searchProductsOffline(q).then(setOfflineResults);
+        } else {
+          setOfflineResults([]);
+          triggerSearch(q);
+        }
       }, 300);
     },
     [triggerSearch],
@@ -174,6 +194,27 @@ export const PosPage = () => {
           }
         });
       };
+
+      const snap = connectivity.getSnapshot();
+      if (!snap.online || snap.apiReachable === false) {
+        getProductByBarcodeOffline(code).then((product) => {
+          if (product) {
+            addToCart(product);
+            flashScan('success');
+          } else {
+            searchProductsOffline(code).then((products) => {
+              if (products.length === 1) {
+                addToCart(products[0]);
+                flashScan('success');
+              } else {
+                toast.error(`No product found for ${code}`);
+                flashScan('error');
+              }
+            });
+          }
+        });
+        return;
+      }
 
       triggerBarcodeLookup(code)
         .then((res) => {
@@ -508,9 +549,9 @@ export const PosPage = () => {
               />
             </div>
             {/* Search results */}
-            {searchQuery && searchResults?.data && searchResults.data.length > 0 && (
+            {searchQuery && ((offlineResults.length > 0) || (searchResults?.data && searchResults.data.length > 0)) && (
               <div className='mt-2 border border-border rounded-xl bg-card max-h-48 overflow-y-auto'>
-                {searchResults.data.map((p: any) => (
+                {(offlineResults.length > 0 ? offlineResults : searchResults?.data || []).map((p: any) => (
                   <button
                     key={p.id}
                     onClick={() => addToCart(p)}
