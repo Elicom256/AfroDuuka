@@ -26,13 +26,15 @@ export const OutOfStockReport = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'N/A';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(dateString));
+    }).format(date);
   };
 
   return (

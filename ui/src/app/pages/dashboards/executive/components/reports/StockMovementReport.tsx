@@ -16,6 +16,17 @@ export const StockMovementReport = () => {
     return num.toLocaleString('en-US');
   };
 
+  const formatDay = (value: string | number | Date | null | undefined) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
+  };
+
   return (
     <ReportCard title='Stock Movement' loading={isLoading}>
       {isError && (
@@ -98,11 +109,7 @@ export const StockMovementReport = () => {
                     className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 transition-all'
                   >
                     <div className='font-medium'>
-                      {new Intl.DateTimeFormat('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      }).format(new Date(day.date))}
+                      {formatDay(day.date)}
                     </div>
 
                     <div className='flex gap-6 text-sm'>
