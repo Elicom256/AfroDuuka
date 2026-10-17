@@ -53,9 +53,25 @@ class PurchaseSyncHandler implements SyncHandler
         if ($action === 'receive') {
             $purchase = Purchase::query()->findOrFail(SyncAction::id($payload));
             $body = SyncAction::body($payload);
+            // The online controller keys received lines by purchase_item_id.
+            // Replaying the raw list would look up line 0, 1, 2 and ignore the
+            // quantities the device actually received.
+            $receivedItems = [];
+            foreach ($body['items'] ?? [] as $item) {
+                if (! is_array($item) || ! isset($item['purchase_item_id'])) {
+                    continue;
+                }
+                $receivedItems[(int) $item['purchase_item_id']] = [
+                    'quantity' => (int) ($item['quantity'] ?? 0),
+                    'cost_price' => array_key_exists('cost_price', $item) ? (float) $item['cost_price'] : null,
+                    'selling_price' => isset($item['selling_price']) && $item['selling_price'] !== ''
+                        ? (float) $item['selling_price']
+                        : null,
+                ];
+            }
             $received = $this->purchases->receivePurchase(
                 $purchase,
-                $body['items'] ?? [],
+                $receivedItems,
                 $user->id,
                 $body['note'] ?? null,
             );

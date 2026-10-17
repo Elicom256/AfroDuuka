@@ -20,10 +20,22 @@ return [
 
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
 
-    'allowed_origins' => array_values(array_filter(array_map(
-        'trim',
-        explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://afroduuka-ui.onrender.com'))
-    ))),
+    // FRONTEND_URL is the origin the UI actually runs on. Local Vite is
+    // http://localhost:5173 while CORS_ALLOWED_ORIGINS defaults to the hosted UI,
+    // so a browser on the dev server was refused every response — including
+    // /users/me — and the app looked signed out. The hosted origin stays allowed.
+    'allowed_origins' => array_values(array_unique(array_filter(array_map(
+        static fn (string $origin) => rtrim(trim($origin), '/'),
+        [
+            ...explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://afroduuka-ui.onrender.com')),
+            (string) env('FRONTEND_URL', ''),
+            // Dev publishes the UI through nginx on port 80. The browser origin is
+            // http://localhost, while FRONTEND_URL is the Vite port inside the
+            // container. These are not added outside local, so production stays
+            // limited to the hosted UI.
+            ...(env('APP_ENV') === 'local' ? ['http://localhost', 'http://127.0.0.1'] : []),
+        ]
+    )))),
 
     'allowed_origins_patterns' => [],
 

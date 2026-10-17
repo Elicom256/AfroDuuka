@@ -19,7 +19,22 @@ let updateServiceWorker: UpdateServiceWorker | undefined;
  * (the app is a client-only SPA, so this is only a guard for safety).
  */
 export function setupServiceWorker(): void {
-  if (import.meta.env.DEV || typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return;
+
+  // Dev serves the SPA shell for /sw.js. A worker registered earlier on this
+  // origin (a production build opened at http://localhost) then stays in
+  // control, intercepts /api calls, and the page reports
+  // "TypeError: Failed to fetch" for a request the server already answered.
+  if (import.meta.env.DEV) {
+    if ('serviceWorker' in navigator) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          void registration.unregister();
+        });
+      });
+    }
+    return;
+  }
 
   updateServiceWorker = registerSW({
     immediate: true,

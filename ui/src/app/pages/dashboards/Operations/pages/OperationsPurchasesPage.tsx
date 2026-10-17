@@ -21,13 +21,13 @@ export const OperationsPurchasesPage = () => {
   const { data: productData } = useProductsQuery();
   const { data: sup } = useSuppliersQuery();
   const { data: methods } = useGetPaymentSettingsQuery();
-  const [addPurchase, { isLoading: loadNewPurchase }] = useAddPurchaseMutation();
+  const [addPurchase] = useAddPurchaseMutation();
   const [updatePurchase] = useUpdatePurchaseMutation();
   const [editPurchase, setEditPurchase] = useState<any>(null);
   const suppliers = sup?.suppliers || [];
   const paymentMethods = methods?.methods;
 
-  if (isLoading || loadNewPurchase) return <PageLoadingState />;
+  if (isLoading) return <PageLoadingState />;
 
   const purchases = Array.isArray(data?.purchases) ? data.purchases : Array.isArray(data) ? data : [];
   const products = productData?.products ?? [];
